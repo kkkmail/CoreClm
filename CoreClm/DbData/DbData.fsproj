@@ -5,6 +5,10 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Configuration.fs" />
     <Compile Include="DynamicSql.fs" />

@@ -6,8 +6,22 @@
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="Program.fs" />
+    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj" />
+    <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj" />
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
+    <ProjectReference Include="..\Clm\Clm.fsproj" />
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
+    <ProjectReference Include="..\ContGen\ContGen.fsproj" />
+    <ProjectReference Include="..\DbData\DbData.fsproj" />
+    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
+    <ProjectReference Include="..\Messaging\Messaging.fsproj" />
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
+    <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj" />
   </ItemGroup>
 
 </Project>
