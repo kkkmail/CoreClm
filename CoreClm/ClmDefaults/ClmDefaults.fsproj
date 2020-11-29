@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -10,8 +11,68 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="DefaultValuesExt.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_000.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_007.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_009.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_010.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_011.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_012.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_013.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_014.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_015.fs" />
+    <Compile Include="DefaultValues\000\Defaults_000_016.fs" />
+    <Compile Include="DefaultValues\000\Defaults_999_999.fs" />
+    <Compile Include="DefaultValues\000\AllDefaults_000.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_007.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_009.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_010.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_011.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_012.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_016.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_017.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_018.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_019.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_021.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_022.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_023.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_024.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_025.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_000_026.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_001_018.fs" />
+    <Compile Include="DefaultValues\001\Defaults_001_001_022.fs" />
+    <Compile Include="DefaultValues\001\AllDefaults_001.fs" />
+    <Compile Include="DefaultValues\002\Defaults_002_000_016.fs" />
+    <Compile Include="DefaultValues\002\Defaults_002_000_018.fs" />
+    <Compile Include="DefaultValues\002\Defaults_002_000_116.fs" />
+    <Compile Include="DefaultValues\002\Defaults_002_000_118.fs" />
+    <Compile Include="DefaultValues\002\Defaults_002_000_216.fs" />
+    <Compile Include="DefaultValues\002\Defaults_002_000_218.fs" />
+    <Compile Include="DefaultValues\002\Defaults_002_000_316.fs" />
+    <Compile Include="DefaultValues\002\Defaults_002_000_318.fs" />
+    <Compile Include="DefaultValues\002\AllDefaults_002.fs" />
+    <Compile Include="DefaultValues\003\Defaults_003_000_016.fs" />
+    <Compile Include="DefaultValues\003\Defaults_003_000_018.fs" />
+    <Compile Include="DefaultValues\003\Defaults_003_000_116.fs" />
+    <Compile Include="DefaultValues\003\Defaults_003_000_118.fs" />
+    <Compile Include="DefaultValues\003\Defaults_003_000_216.fs" />
+    <Compile Include="DefaultValues\003\Defaults_003_000_218.fs" />
+    <Compile Include="DefaultValues\003\AllDefaults_003.fs" />
+    <Compile Include="DefaultValues\004\Defaults_004_000_000.fs" />
+    <Compile Include="DefaultValues\004\Defaults_004_001_000.fs" />
+    <Compile Include="DefaultValues\004\Defaults_004_002_000.fs" />
+    <Compile Include="DefaultValues\004\Defaults_004_003_000.fs" />
+    <Compile Include="DefaultValues\004\Defaults_004_004_000.fs" />
+    <Compile Include="DefaultValues\004\AllDefaults_004.fs" />
+    <Compile Include="AllDefaults.fs" />
+    <Compile Include="ClmDefaultsTasks.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />
+    <ProjectReference Include="..\DbData\DbData.fsproj" />
   </ItemGroup>
 
 </Project>

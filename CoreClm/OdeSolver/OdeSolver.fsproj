@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Solver.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="alglib.net" Version="3.16.0" />
   </ItemGroup>
 

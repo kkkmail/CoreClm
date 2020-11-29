@@ -41,6 +41,7 @@ module MsgSvcDatabaseTypes =
         with
         member g.ToSqliteString() = g.ToString("N")
 
+
 //    type sqLite = SqlDataProvider<
 //                   Common.DatabaseProviderTypes.SQLITE,
 //                   SQLiteLibrary = Common.SQLiteLibrary.SystemDataSQLite,
