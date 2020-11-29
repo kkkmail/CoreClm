@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="ContGenServiceInfo.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
+    <ProjectReference Include="..\Clm\Clm.fsproj" />
+  </ItemGroup>
+
+</Project>

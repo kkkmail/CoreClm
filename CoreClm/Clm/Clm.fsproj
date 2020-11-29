@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Distributions.fs" />
+    <Compile Include="Substances.fs" />
+    <Compile Include="ReactionTypes.fs" />
+    <Compile Include="ReactionRatesBase.fs" />
+    <Compile Include="ReactionRateParams.fs" />
+    <Compile Include="ReactionRates.fs" />
+    <Compile Include="Reactions.fs" />
+    <Compile Include="ModelParams.fs" />
+    <Compile Include="ModelInit.fs" />
+    <Compile Include="CalculationData.fs" />
+    <Compile Include="ReactionRatesExt.fs" />
+    <Compile Include="ChartData.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
+  </ItemGroup>
+
+</Project>
