@@ -3,13 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmSys", "ClmSys\ClmSys.fsproj", "{E0F610B3-4953-459C-84C1-547304C04868}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ClmSys", "ClmSys\ClmSys.fsproj", "{E0F610B3-4953-459C-84C1-547304C04868}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Clm", "Clm\Clm.fsproj", "{7847367F-EC02-4006-A08E-622F3259BC73}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Clm", "Clm\Clm.fsproj", "{7847367F-EC02-4006-A08E-622F3259BC73}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenServiceInfo", "ContGenServiceInfo\ContGenServiceInfo.fsproj", "{13A2CC42-EF72-4CA2-A510-8F90A39EF146}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ContGenServiceInfo", "ContGenServiceInfo\ContGenServiceInfo.fsproj", "{13A2CC42-EF72-4CA2-A510-8F90A39EF146}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenService", "ContGenService\ContGenService.fsproj", "{DABBA37A-C6E3-47EF-A6C3-70276B783669}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ContGenService", "ContGenService\ContGenService.fsproj", "{DABBA37A-C6E3-47EF-A6C3-70276B783669}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DbData", "DbData\DbData.fsproj", "{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingService", "MessagingService\MessagingService.fsproj", "{113FE044-337F-44DA-A458-7F2D41021EBF}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingServiceInfo", "MessagingServiceInfo\MessagingServiceInfo.fsproj", "{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +57,30 @@ Global
 		{DABBA37A-C6E3-47EF-A6C3-70276B783669}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DABBA37A-C6E3-47EF-A6C3-70276B783669}.Release|x64.ActiveCfg = Release|x64
 		{DABBA37A-C6E3-47EF-A6C3-70276B783669}.Release|x64.Build.0 = Release|x64
+		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Debug|x64.Build.0 = Debug|Any CPU
+		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Release|x64.ActiveCfg = Release|x64
+		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Release|x64.Build.0 = Release|x64
+		{113FE044-337F-44DA-A458-7F2D41021EBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{113FE044-337F-44DA-A458-7F2D41021EBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{113FE044-337F-44DA-A458-7F2D41021EBF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{113FE044-337F-44DA-A458-7F2D41021EBF}.Debug|x64.Build.0 = Debug|Any CPU
+		{113FE044-337F-44DA-A458-7F2D41021EBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{113FE044-337F-44DA-A458-7F2D41021EBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{113FE044-337F-44DA-A458-7F2D41021EBF}.Release|x64.ActiveCfg = Release|x64
+		{113FE044-337F-44DA-A458-7F2D41021EBF}.Release|x64.Build.0 = Release|x64
+		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Debug|x64.Build.0 = Debug|Any CPU
+		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Release|x64.ActiveCfg = Release|x64
+		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

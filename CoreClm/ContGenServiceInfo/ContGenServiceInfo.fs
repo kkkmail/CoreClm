@@ -4,7 +4,7 @@ open System
 open System.ServiceModel
 open System.Threading
 open FSharp.Configuration
-open FSharp.Data
+open Softellect.Sys.Core
 
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
@@ -101,13 +101,10 @@ module ServiceInfo =
 
 
     [<Literal>]
-    //let ContGenAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\ContGenService\app.config"
-    let ContGenAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\ContGenService\appsettings.json"
+    let ContGenAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\ContGenService\app.config"
 
 
-    //type ContGenAppSettings = AppSettings<ContGenAppConfigFile>
-    type AppSettingsProvider = JsonProvider<ContGenAppConfigFile>
-    type ContGenAppSettings = AppSettingsProvider
+    type ContGenAppSettings = AppSettings<ContGenAppConfigFile>
 
 
     type ContGenSettings
@@ -116,7 +113,7 @@ module ServiceInfo =
             match w.isValid() with
             | Ok() ->
                 try
-                    ContGenAppSettings.AppSettings.ContGenSvcAddress <- w.contGenSvcInfo.contGenServiceAddress.value.value
+                    ContGenAppSettings.ContGenSvcAddress <- w.contGenSvcInfo.contGenServiceAddress.value.value
                     ContGenAppSettings.ContGenSvcPort <- w.contGenSvcInfo.contGenServicePort.value.value
 
                     ContGenAppSettings.MsgSvcAddress <- w.messagingSvcInfo.messagingServiceAddress.value.value
