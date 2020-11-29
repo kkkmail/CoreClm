@@ -26,6 +26,7 @@
     <Compile Include="MessagingClientErrors.fs" />
     <Compile Include="ModelRunnerErrors.fs" />
     <Compile Include="WorkerNodeErrors.fs" />
+    <Compile Include="SolverRunnerErrors.fs" />
     <Compile Include="ClmErrors.fs" />
     <Compile Include="Logging.fs" />
     <Compile Include="GeneralData.fs" />

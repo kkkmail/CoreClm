@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="FSharpCodeExt.fs" />
+    <Compile Include="ReactionRatesExt.fs" />
+    <Compile Include="ClmModelData.fs" />
+    <Compile Include="ClmModel.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ClmImpure\ClmImpure.fsproj" />
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />

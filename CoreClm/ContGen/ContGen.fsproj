@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ModelGenerator.fs" />
+    <Compile Include="ModelRunner.fs" />
+    <Compile Include="ContGenServiceResponse.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj" />
     <ProjectReference Include="..\ClmImpure\ClmImpure.fsproj" />
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />

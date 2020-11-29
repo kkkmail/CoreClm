@@ -10,6 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="MsgServiceProxy.fs" />
+    <Compile Include="MsgProcessorProxy.fs" />
+    <Compile Include="ModelGeneratorProxy.fs" />
+    <Compile Include="ModelRunnerProxy.fs" />
+    <Compile Include="SolverRunnerProxy.fs" />
+    <Compile Include="WorkerNodeProxy.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj" />
     <ProjectReference Include="..\ClmImpure\ClmImpure.fsproj" />
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
@@ -17,6 +26,7 @@
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
+    <ProjectReference Include="..\NoSql\NoSql.fsproj" />
   </ItemGroup>
 
 </Project>
