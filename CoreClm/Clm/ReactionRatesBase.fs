@@ -197,6 +197,16 @@ module ReactionRatesBase =
             rnd : RandomValueGetter
         }
 
+    /// TODO kk:20201129 - The logic of getting random values of f, fe, fu, and feu seems wrong.
+    /// The reaction goes as follows [REF]:
+    ///     1. The "energy source" molecule is consumed and it activates the "catalyst".
+    ///     2. That means that the activation part of kf: (R, C, U) -> (C, U) must be the same as of
+    ///        kfeu: (R, E(C), E(U)) -> (E(C), E(U)) == E (C, U) and similarly for kfe vs kfu.
+    ///     3. Once the activation happens (and provided that the chiral remains of the energy source molecule is
+    ///        not attached to the catalyst anymore), then the chiral part of the energy source is no longer available.
+    ///     4. Which means that the activated catalyst now can "utilize" its enantioselectivity.
+    ///     5. Current code DOES NOT follow this symmetry.
+    ///
     /// These reactions explicitly consume energy by utilizing "energy source" molecule, which is destroyed.
     /// Subsequently, thermodynamic equilibrium IS changed as a result of such reaction and we assume that
     /// the catalyst then catalyzes only forward reaction.
