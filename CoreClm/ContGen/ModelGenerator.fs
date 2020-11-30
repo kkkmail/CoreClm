@@ -2,6 +2,7 @@
 
 open System
 open Softellect.Sys.Rop
+open Softellect.Sys.TimerEvents
 
 open Clm.ModelParams
 open ClmSys.ClmErrors

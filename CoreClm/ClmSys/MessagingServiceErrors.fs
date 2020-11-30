@@ -1,8 +1,9 @@
 ﻿namespace ClmSys
 
 open System
+open Softellect.Sys.WcfErrors
+
 open VersionInfo
-open GeneralErrors
 open MessagingPrimitives
 open MessagingCommonErrors
 
@@ -49,8 +50,8 @@ module MessagingServiceErrors =
         | TryDeleteMsgWcfErr of WcfError
         | CannotFindClientErr of Guid
         | UnableToDeleteMessageErr of (MessagingClientId * MessageId)
-        
-        
+
+
     type MsgSettingsError =
         | InvalidSettings of string
         | MsgSettingExn of exn

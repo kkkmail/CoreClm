@@ -1,4 +1,5 @@
 ﻿namespace ClmSys
+open Softellect.Sys.WcfErrors
 
 open GeneralErrors
 open MessagingServiceErrors

@@ -1,6 +1,5 @@
 ﻿namespace ClmSys
-
-open GeneralErrors
+open Softellect.Sys.WcfErrors
 
 module ContGenErrors =
 
@@ -10,8 +9,8 @@ module ContGenErrors =
 
     type TryRequestResultsError =
         | TryRequestResultsWcfErr of WcfError
-        
-        
+
+
     type ContGenSettingsError =
         | InvalidSettings of string
         | ContGenSettingExn of exn
@@ -21,4 +20,3 @@ module ContGenErrors =
         | TryCancelRunQueueErr of TryCancelRunQueueError
         | TryRequestResultsErr of TryRequestResultsError
         | ContGenSettingsErr of ContGenSettingsError
-        

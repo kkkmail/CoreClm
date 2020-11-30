@@ -1,7 +1,8 @@
 ﻿namespace ClmSys
 
+open Softellect.Sys.WcfErrors
+
 open VersionInfo
-open GeneralErrors
 open MessagingPrimitives
 open MessagingCommonErrors
 

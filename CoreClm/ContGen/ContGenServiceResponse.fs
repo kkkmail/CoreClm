@@ -12,7 +12,7 @@ module ContGenServiceResponse =
 
     /// Low level WCF messaging client.
     type ContGenResponseHandler private (url) =
-        let tryGetWcfService() = tryGetWcfService<IContGenWcfService> url
+        let tryGetWcfService() = tryGetWcfService<IContGenWcfService> NetTcpCommunication url
         let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> TryCancelRunQueueErr |> ContGenServiceErr
         let toRequestResultsError f = f |> TryRequestResultsWcfErr |> TryRequestResultsErr |> ContGenServiceErr
         let tryCancelRunQueueImpl q c = tryCommunicate tryGetWcfService (fun service -> service.tryCancelRunQueue) toCancelRunQueueError (q, c)

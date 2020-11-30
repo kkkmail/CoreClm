@@ -4,6 +4,7 @@ open System
 open System.Diagnostics
 open log4net
 open log4net.Core
+open Softellect.Sys.Logging
 open ClmErrors
 
 module Logging =
@@ -23,36 +24,23 @@ module Logging =
     /// https://codereview.stackexchange.com/questions/202745/f-idiomatic-log4net-wrapper
     /// https://stackoverflow.com/questions/9805281/writing-logs-to-file
     /// https://codeshare.co.uk/blog/how-to-set-up-and-configure-error-logging-in-net-with-log4net/
-    type LogInfo =
-        {
-            Message : string
-            Date : DateTime
-        }
+//    type LogInfo =
+//        {
+//            Message : string
+//            Date : DateTime
+//        }
+//
+//
+//    type ErrorInfo =
+//        {
+//            Error : exn
+//            StackTrace : StackTrace
+//        }
+//
+//
 
 
-    type ErrorInfo =
-        {
-            Error : exn
-            StackTrace : StackTrace
-        }
-
-
-    type LogMessage =
-        | DebugMessage of LogInfo
-        | InfoMessage of LogInfo
-        | WarningMessage of LogInfo
-        | ErrMessage of ErrorInfo * LogInfo
-        | FatalMessage of ErrorInfo * LogInfo
-
-        member this.Message =
-            match this with | DebugMessage i | InfoMessage i | WarningMessage i | ErrMessage (_, i) | FatalMessage (_, i) -> i.Message
-        member this.Exception =
-            match this with | ErrMessage (e, _) | FatalMessage (e, _) -> Some e.Error | _ -> None
-        member this.Level =
-            match this with | DebugMessage _ -> Level.Debug | InfoMessage _ -> Level.Info | WarningMessage _ -> Level.Warn | ErrMessage _ -> Level.Error | FatalMessage _ -> Level.Fatal
-        member this.LogInfo =
-            match this with | DebugMessage i | InfoMessage i | WarningMessage i | ErrMessage (_, i) | FatalMessage (_, i) -> i
-
+    type LogMessage = LogData<ClmError>
 
     let logAgent = MailboxProcessor.Start <| fun inbox ->
         let rec logLoop () = async {

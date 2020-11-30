@@ -62,11 +62,6 @@ module GeneralErrors =
         | DeserializationExn of exn
 
 
-    type WcfError =
-        | WcfExn of exn
-        | WcfSerializationErr of SerializationError
-
-
     type InvalidRunQueueData =
         {
             runQueueId : RunQueueId

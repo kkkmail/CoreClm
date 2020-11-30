@@ -1,5 +1,7 @@
 ﻿namespace ClmSys
 
+open Softellect.Sys.WcfErrors
+
 open GeneralPrimitives
 open MessagingClientErrors
 open MessagingPrimitives
@@ -34,12 +36,12 @@ module WorkerNodeErrors =
 
     type OnRequestResultError =
         | CannotFindRunQueueErr of RunQueueId
-        
-        
+
+
     type WrkSettingsError =
         | InvalidSettings of string
         | WrkSettingExn of exn
-        
+
 
     type WorkerNodeError =
         | OnSaveResultErr of OnSaveResultError
