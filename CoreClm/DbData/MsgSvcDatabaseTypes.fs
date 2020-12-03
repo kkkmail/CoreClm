@@ -4,6 +4,7 @@ open FSharp.Data
 open System
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
@@ -80,10 +81,7 @@ module MsgSvcDatabaseTypes =
            ", MsgSvcConnectionStringValue, ResultType.DataReader>
 
 
-    type Message
-        with
-
-        static member tryCreate (r : MessageTableRow) =
+    let tryCreateMessageTableRow (r : MessageTableRow) =
             let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
             let g() =

@@ -3,6 +3,7 @@
 open System
 open System.ServiceModel
 open FSharp.Configuration
+
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.MessagingPrimitives
@@ -180,7 +181,7 @@ module ServiceInfo =
 
     /// The decision was that we want strongly typed messages rather than untyped messages.
     /// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
-    type MessageData =
+    type ClmMessageData =
         | TextData of string
         | PartitionerMsg of PartitionerMessage
         | WorkerNodeMsg of WorkerNodeMessage
@@ -196,15 +197,15 @@ module ServiceInfo =
             | PartitionerMsg m -> m.messageSize
             | WorkerNodeMsg m -> m.messageSize
 
-        member this.keepInMemory() =
-            match this.getMessageSize() with
-            | SmallSize -> true
-            | MediumSize -> false
-            | LargeSize -> false
+//        member this.keepInMemory() =
+//            match this.getMessageSize() with
+//            | SmallSize -> true
+//            | MediumSize -> false
+//            | LargeSize -> false
 
-        member this.getInfo() =
-            let s = (sprintf "%A" this)
-            s.Substring(0, min s.Length MessageData.maxInfoLength)
+//        member this.getInfo() =
+//            let s = (sprintf "%A" this)
+//            s.Substring(0, min s.Length MessageData.maxInfoLength)
 
 
 //    type MessageRecipientInfo =
@@ -221,69 +222,78 @@ module ServiceInfo =
 //        }
 
 
-    type PartitionerMessageInfo =
-        {
-            partitionerRecipient : PartitionerId
-            deliveryType : MessageDeliveryType
-            messageData : PartitionerMessage
-        }
-
-        member this.getMessageInfo() =
-            {
-                recipientInfo =
-                    {
-                        recipient = this.partitionerRecipient.messagingClientId
-                        deliveryType = this.deliveryType
-                    }
-                messageData = this.messageData |> PartitionerMsg
-            }
+    type MessagingClient = MessagingClient<ClmMessageData, ClmError>
+    type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
+    type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
+    type Message = Message<ClmMessageData>
+    type MessagingService = MessagingService<ClmMessageData, ClmError>
+    type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
+    type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
 
 
-    type WorkerNodeMessageInfo =
-        {
-            workerNodeRecipient : WorkerNodeId
-            deliveryType : MessageDeliveryType
-            messageData : WorkerNodeMessage
-        }
+    //type PartitionerMessageInfo =
+    //    {
+    //        partitionerRecipient : PartitionerId
+    //        deliveryType : MessageDeliveryType
+    //        messageData : PartitionerMessage
+    //    }
 
-        member this.getMessageInfo() =
-            {
-                recipientInfo =
-                    {
-                        recipient = this.workerNodeRecipient.messagingClientId
-                        deliveryType = this.deliveryType
-                    }
-                messageData = this.messageData |> WorkerNodeMsg
-            }
-
-
-    type MessageType =
-        | IncomingMessage
-        | OutgoingMessage
+    //    member this.getMessageInfo() =
+    //        {
+    //            recipientInfo =
+    //                {
+    //                    recipient = this.partitionerRecipient.messagingClientId
+    //                    deliveryType = this.deliveryType
+    //                }
+    //            messageData = this.messageData |> PartitionerMsg
+    //        }
 
 
-    /// TODO kk:20190930 - The name is not good.
-    type MessageDataInfo =
-        {
-            messageId : MessageId
-            dataVersion : MessagingDataVersion
-            sender : MessagingClientId
-            recipientInfo : MessageRecipientInfo
-            createdOn : DateTime
-        }
+    //type WorkerNodeMessageInfo =
+    //    {
+    //        workerNodeRecipient : WorkerNodeId
+    //        deliveryType : MessageDeliveryType
+    //        messageData : WorkerNodeMessage
+    //    }
+
+    //    member this.getMessageInfo() =
+    //        {
+    //            recipientInfo =
+    //                {
+    //                    recipient = this.workerNodeRecipient.messagingClientId
+    //                    deliveryType = this.deliveryType
+    //                }
+    //            messageData = this.messageData |> WorkerNodeMsg
+    //        }
 
 
-    type Message =
-        {
-            messageDataInfo : MessageDataInfo
-            messageData : MessageData
-        }
+    //type MessageType =
+    //    | IncomingMessage
+    //    | OutgoingMessage
+
+
+    ///// TODO kk:20190930 - The name is not good.
+    //type MessageDataInfo =
+    //    {
+    //        messageId : MessageId
+    //        dataVersion : MessagingDataVersion
+    //        sender : MessagingClientId
+    //        recipientInfo : MessageRecipientInfo
+    //        createdOn : DateTime
+    //    }
+
+
+    //type Message =
+    //    {
+    //        messageDataInfo : MessageDataInfo
+    //        messageData : MessageData
+    //    }
 
 
     type MessageWithOptionalData =
         {
             messageDataInfo : MessageDataInfo
-            messageDataOpt : MessageData option
+            messageDataOpt : ClmMessageData option
         }
 
 
@@ -293,11 +303,6 @@ module ServiceInfo =
             match this.recipientInfo.deliveryType with
             | GuaranteedDelivery -> false
             | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
-
-
-    type Message
-        with
-        member this.isExpired waitTime = this.messageDataInfo.isExpired waitTime
 
 
     type MessagingConfigParam =
@@ -327,26 +332,26 @@ module ServiceInfo =
                             |> Some)
 
 
-        member q.toMessageInfoOpt getModelData minUsefulEe eeo =
-            match q.toRunningProcessDataOpt() with
-            | Some d ->
-                match getModelData q.info.modelDataId with
-                | Ok m ->
-                    {
-                        workerNodeRecipient = d.workerNodeId
-                        deliveryType = GuaranteedDelivery
-                        messageData =
-                            {
-                                runningProcessData = d
-                                minUsefulEe = minUsefulEe
-                                modelData = m
-                                earlyExitOpt = eeo
-                            }
-                            |> RunModelWrkMsg
-                    }.getMessageInfo()
-                    |> Some |> Ok
-                | Error e -> Error e
-            | None -> Ok None
+        //member q.toMessageInfoOpt getModelData minUsefulEe eeo =
+        //    match q.toRunningProcessDataOpt() with
+        //    | Some d ->
+        //        match getModelData q.info.modelDataId with
+        //        | Ok m ->
+        //            {
+        //                workerNodeRecipient = d.workerNodeId
+        //                deliveryType = GuaranteedDelivery
+        //                messageData =
+        //                    {
+        //                        runningProcessData = d
+        //                        minUsefulEe = minUsefulEe
+        //                        modelData = m
+        //                        earlyExitOpt = eeo
+        //                    }
+        //                    |> RunModelWrkMsg
+        //            }.getMessageInfo()
+        //            |> Some |> Ok
+        //        | Error e -> Error e
+        //    | None -> Ok None
 
 
     type IMessagingService =

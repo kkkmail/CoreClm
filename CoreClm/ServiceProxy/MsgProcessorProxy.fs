@@ -1,5 +1,7 @@
 ﻿namespace ServiceProxy
 
+open Softellect.Sys.MessagingPrimitives
+
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.MessagingClientErrors

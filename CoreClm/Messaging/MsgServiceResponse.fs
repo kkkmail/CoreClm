@@ -18,14 +18,15 @@ open ClmSys.MessagingServiceErrors
 open ClmSys.ClmErrors
 
 module ServiceResponse =
+    let x = 1
 
-    type MessagingClient = MessagingClient<MessageData, ClmError>
-    type MessagingClientData = MessagingClientData<MessageData, ClmError>
-    type MessagingServiceData = MessagingServiceData<MessageData, ClmError>
-    type Message = Message<MessageData>
-    type MessagingService = MessagingService<MessageData, ClmError>
-    type MessagingWcfService = MessagingWcfService<MessageData, ClmError>
-    type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
+//    type MessagingClient = MessagingClient<ClmMessageData, ClmError>
+//    type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
+//    type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
+//    type Message = Message<ClmMessageData>
+//    type MessagingService = MessagingService<ClmMessageData, ClmError>
+//    type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
+//    type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
 
 //    type MsgResponseHandler private (url) =
 //        let tryGetWcfService() = tryGetWcfService<IMessagingWcfService> url

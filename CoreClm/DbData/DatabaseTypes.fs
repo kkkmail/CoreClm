@@ -3,8 +3,11 @@
 open Newtonsoft.Json
 open FSharp.Data
 open System
+
 open Softellect.Sys
 open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+
 open ClmSys.VersionInfo
 open Clm.Substances
 open ClmSys.GeneralData
