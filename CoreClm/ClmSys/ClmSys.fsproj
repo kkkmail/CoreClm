@@ -30,6 +30,7 @@
     <Compile Include="ClmErrors.fs" />
     <Compile Include="Logging.fs" />
     <Compile Include="GeneralData.fs" />
+    <Compile Include="TimerEvents.fs" />
     <Compile Include="MessagingData.fs" />
     <Compile Include="PartitionerData.fs" />
     <Compile Include="WorkerNodeData.fs" />
@@ -38,12 +39,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Configuration" Version="2.0.0-alpha2" />
+    <PackageReference Include="FSharp.Configuration" Version="1.5.0" />
     <PackageReference Include="FSharp.Data" Version="3.3.3" />
     <PackageReference Include="log4net" Version="2.0.12" />
-    <PackageReference Include="Softellect.Messaging" Version="0.0.1-alpha.100" />
-    <PackageReference Include="Softellect.Sys" Version="0.0.1-alpha.100" />
-    <PackageReference Include="Softellect.Wcf" Version="0.0.1-alpha.100" />
+    <PackageReference Include="Softellect.Messaging" Version="0.0.1-alpha.103" />
+    <PackageReference Include="Softellect.Sys" Version="0.0.1-alpha.103" />
+    <PackageReference Include="Softellect.Wcf" Version="0.0.1-alpha.103" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.0" />
   </ItemGroup>
 

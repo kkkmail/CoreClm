@@ -1,9 +1,10 @@
 ﻿namespace ClmSys
 
+open Softellect.Sys.MessagingPrimitives
+
 open GeneralPrimitives
 open ContGenPrimitives
 open WorkerNodePrimitives
-open MessagingPrimitives
 open MessagingClientErrors
 
 module ModelRunnerErrors =

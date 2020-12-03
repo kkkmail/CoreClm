@@ -1,9 +1,9 @@
 ﻿namespace ClmSys
 
 open Softellect.Sys.WcfErrors
+open Softellect.Sys.MessagingPrimitives
 
 open VersionInfo
-open MessagingPrimitives
 open MessagingCommonErrors
 
 module MessagingClientErrors =

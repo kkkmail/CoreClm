@@ -2,6 +2,7 @@
 
 open System
 open Softellect.Sys.WcfErrors
+open Softellect.Sys.MessagingPrimitives
 
 open VersionInfo
 open MessagingPrimitives

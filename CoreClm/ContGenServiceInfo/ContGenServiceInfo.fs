@@ -5,6 +5,7 @@ open System.ServiceModel
 open System.Threading
 open FSharp.Configuration
 open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
 
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives

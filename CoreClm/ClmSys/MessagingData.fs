@@ -2,6 +2,8 @@
 
 open System
 open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+
 open GeneralData
 open MessagingPrimitives
 open ClmSys.ClmErrors

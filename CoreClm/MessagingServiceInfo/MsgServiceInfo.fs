@@ -4,6 +4,17 @@ open System
 open System.ServiceModel
 open FSharp.Configuration
 open Softellect.Sys.Core
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingErrors
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
 
 open ClmSys.MessagingData
 open ClmSys.SolverRunnerPrimitives
@@ -29,28 +40,6 @@ module ServiceInfo =
 
     [<Literal>]
     let MessagingWcfServiceName = "MessagingWcfService"
-
-
-    type MessageDeliveryType =
-        | GuaranteedDelivery
-        | NonGuaranteedDelivery
-
-        member d.value =
-            match d with
-            | GuaranteedDelivery -> 0
-            | NonGuaranteedDelivery -> 1
-
-        static member tryCreate i =
-            match i with
-            | 0 -> Some GuaranteedDelivery
-            | 1 -> Some NonGuaranteedDelivery
-            | _ -> None
-
-
-    type MessageSize =
-        | SmallSize
-        | MediumSize
-        | LargeSize
 
 
     type PartitionerMessage =
@@ -218,18 +207,18 @@ module ServiceInfo =
             s.Substring(0, min s.Length MessageData.maxInfoLength)
 
 
-    type MessageRecipientInfo =
-        {
-            recipient : MessagingClientId
-            deliveryType : MessageDeliveryType
-        }
-
-
-    type MessageInfo =
-        {
-            recipientInfo : MessageRecipientInfo
-            messageData : MessageData
-        }
+//    type MessageRecipientInfo =
+//        {
+//            recipient : MessagingClientId
+//            deliveryType : MessageDeliveryType
+//        }
+//
+//
+//    type MessageInfo =
+//        {
+//            recipientInfo : MessageRecipientInfo
+//            messageData : MessageData
+//        }
 
 
     type PartitionerMessageInfo =

@@ -17,4 +17,10 @@
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="MsgServiceResponse.fs" />
+    <Compile Include="MsgClient.fs" />
+    <Compile Include="MsgService.fs" />
+  </ItemGroup>
+
 </Project>

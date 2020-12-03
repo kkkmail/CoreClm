@@ -1,8 +1,9 @@
 ﻿namespace ClmSys
 
 open System
+open Softellect.Sys.MessagingPrimitives
+
 open GeneralPrimitives
-open MessagingPrimitives
 open WorkerNodePrimitives
 
 module ContGenPrimitives =

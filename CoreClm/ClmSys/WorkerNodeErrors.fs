@@ -1,10 +1,10 @@
 ﻿namespace ClmSys
 
 open Softellect.Sys.WcfErrors
+open Softellect.Sys.MessagingPrimitives
 
 open GeneralPrimitives
 open MessagingClientErrors
-open MessagingPrimitives
 open GeneralErrors
 
 module WorkerNodeErrors =

@@ -1,13 +1,13 @@
 ﻿namespace ContGen
 
 open Softellect.Sys.Rop
-open Softellect.Sys.TimerEvents
 
 open Clm.ModelParams
 open ClmSys.SolverRunnerPrimitives
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
+open ClmSys.TimerEvents
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
 open ServiceProxy.ModelRunnerProxy
@@ -364,7 +364,7 @@ module ModelRunner =
     let createModelRunner (logger : Logger) (r : Runner) =
         logger.logInfoString "createModelRunner: Creating model runner..."
         let e = fun () -> r.tryRunAll()
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunner - tryRunAllModels")
+        let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunner - tryRunAllModels")
         h
 
 
@@ -373,7 +373,7 @@ module ModelRunner =
     let createModelRunnerMessageProcessor (logger : Logger) (r : Runner) =
         logger.logInfoString "createModelRunnerMessageProcessor: Creating message processor..."
         let e = fun () -> r.processMessages()
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunnerMessageProcessor - onGetMessages")
+        let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunnerMessageProcessor - onGetMessages")
         h
 
 

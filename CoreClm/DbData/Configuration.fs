@@ -45,7 +45,7 @@ module Configuration =
         |> ConnectionString
 
 
-    let private clmConnectionString = new Lazy<ConnectionString>(getClmConnectionStringImpl)
+    let private clmConnectionString = Lazy<ConnectionString>(getClmConnectionStringImpl)
     let getClmConnectionString() = clmConnectionString.Value
 
 
@@ -74,7 +74,7 @@ module Configuration =
         |> ConnectionString
 
 
-    let private msgSvcConnectionString = new Lazy<ConnectionString>(getMsgSvcConnectionStringImpl)
+    let private msgSvcConnectionString = Lazy<ConnectionString>(getMsgSvcConnectionStringImpl)
     let getMsgSvcConnectionString() = msgSvcConnectionString.Value
 
     [<Literal>]
@@ -91,7 +91,7 @@ module Configuration =
     let openConnIfClosed (conn : SqlConnection) =
         match conn.State with
         | ConnectionState.Closed -> do conn.Open()
-        | _ -> ignore ()
+        | _ -> ()
 
 
     let getOpenConn (c : unit -> ConnectionString) =

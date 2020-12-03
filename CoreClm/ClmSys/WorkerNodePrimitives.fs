@@ -1,7 +1,8 @@
 ﻿namespace ClmSys
 
+open Softellect.Sys.MessagingPrimitives
+
 open GeneralPrimitives
-open MessagingPrimitives
 
 module WorkerNodePrimitives =
 

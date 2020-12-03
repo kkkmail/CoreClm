@@ -1,6 +1,6 @@
 ﻿namespace ClmSys
 
-open MessagingPrimitives
+open Softellect.Sys.MessagingPrimitives
 
 module PartitionerPrimitives =
 
