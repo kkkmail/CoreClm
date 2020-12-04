@@ -16,6 +16,8 @@ open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
 open Softellect.Messaging.Client
 open Softellect.Messaging.Proxy
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.MessagingData
 open ClmSys.SolverRunnerPrimitives
@@ -31,7 +33,6 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open Clm.ChartData
-open ClmSys.MessagingServiceErrors
 open ClmSys.GeneralData
 
 module ServiceInfo =
@@ -226,45 +227,46 @@ module ServiceInfo =
     type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
     type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
     type Message = Message<ClmMessageData>
+    type MessageInfo = MessageInfo<ClmMessageData>
     type MessagingService = MessagingService<ClmMessageData, ClmError>
     type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
     type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
 
 
-    //type PartitionerMessageInfo =
-    //    {
-    //        partitionerRecipient : PartitionerId
-    //        deliveryType : MessageDeliveryType
-    //        messageData : PartitionerMessage
-    //    }
+    type PartitionerMessageInfo =
+        {
+            partitionerRecipient : PartitionerId
+            deliveryType : MessageDeliveryType
+            messageData : PartitionerMessage
+        }
 
-    //    member this.getMessageInfo() =
-    //        {
-    //            recipientInfo =
-    //                {
-    //                    recipient = this.partitionerRecipient.messagingClientId
-    //                    deliveryType = this.deliveryType
-    //                }
-    //            messageData = this.messageData |> PartitionerMsg
-    //        }
+        member this.getMessageInfo() =
+            {
+                recipientInfo =
+                    {
+                        recipient = this.partitionerRecipient.messagingClientId
+                        deliveryType = this.deliveryType
+                    }
+                messageData = this.messageData |> PartitionerMsg |> UserMsg
+            }
 
 
-    //type WorkerNodeMessageInfo =
-    //    {
-    //        workerNodeRecipient : WorkerNodeId
-    //        deliveryType : MessageDeliveryType
-    //        messageData : WorkerNodeMessage
-    //    }
+    type WorkerNodeMessageInfo =
+        {
+            workerNodeRecipient : WorkerNodeId
+            deliveryType : MessageDeliveryType
+            messageData : WorkerNodeMessage
+        }
 
-    //    member this.getMessageInfo() =
-    //        {
-    //            recipientInfo =
-    //                {
-    //                    recipient = this.workerNodeRecipient.messagingClientId
-    //                    deliveryType = this.deliveryType
-    //                }
-    //            messageData = this.messageData |> WorkerNodeMsg
-    //        }
+        member this.getMessageInfo() =
+            {
+                recipientInfo =
+                    {
+                        recipient = this.workerNodeRecipient.messagingClientId
+                        deliveryType = this.deliveryType
+                    }
+                messageData = this.messageData |> WorkerNodeMsg |> UserMsg
+            }
 
 
     //type MessageType =
@@ -332,26 +334,26 @@ module ServiceInfo =
                             |> Some)
 
 
-        //member q.toMessageInfoOpt getModelData minUsefulEe eeo =
-        //    match q.toRunningProcessDataOpt() with
-        //    | Some d ->
-        //        match getModelData q.info.modelDataId with
-        //        | Ok m ->
-        //            {
-        //                workerNodeRecipient = d.workerNodeId
-        //                deliveryType = GuaranteedDelivery
-        //                messageData =
-        //                    {
-        //                        runningProcessData = d
-        //                        minUsefulEe = minUsefulEe
-        //                        modelData = m
-        //                        earlyExitOpt = eeo
-        //                    }
-        //                    |> RunModelWrkMsg
-        //            }.getMessageInfo()
-        //            |> Some |> Ok
-        //        | Error e -> Error e
-        //    | None -> Ok None
+        member q.toMessageInfoOpt getModelData minUsefulEe eeo =
+            match q.toRunningProcessDataOpt() with
+            | Some d ->
+                match getModelData q.info.modelDataId with
+                | Ok m ->
+                    {
+                        workerNodeRecipient = d.workerNodeId
+                        deliveryType = GuaranteedDelivery
+                        messageData =
+                            {
+                                runningProcessData = d
+                                minUsefulEe = minUsefulEe
+                                modelData = m
+                                earlyExitOpt = eeo
+                            }
+                            |> RunModelWrkMsg
+                    }.getMessageInfo()
+                    |> Some |> Ok
+                | Error e -> Error e
+            | None -> Ok None
 
 
     type IMessagingService =

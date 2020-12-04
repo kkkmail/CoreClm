@@ -2,17 +2,19 @@
 
 open FSharp.Data
 open System
+
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
-open ClmSys.MessagingServiceErrors
-open ClmSys.MessagingClientErrors
 open MessagingServiceInfo.ServiceInfo
 open FSharp.Data.Sql
 open System.Data.SQLite
@@ -59,7 +61,7 @@ module MsgSvcDatabaseTypes =
     type MessageTableRow = MessageTable.Row
 
 
-    type MessageData = SqlCommandProvider<"
+    type MessageDatabaseData = SqlCommandProvider<"
         select *
         from dbo.Message
         where messageId = @messageId", MsgSvcConnectionStringValue, ResultType.DataReader>
@@ -81,7 +83,7 @@ module MsgSvcDatabaseTypes =
            ", MsgSvcConnectionStringValue, ResultType.DataReader>
 
 
-    let tryCreateMessageTableRow (r : MessageTableRow) =
+    let tryCreateMessageImpl (r : MessageTableRow) =
             let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
             let g() =
@@ -113,7 +115,8 @@ module MsgSvcDatabaseTypes =
 
             tryDbFun g
 
-        member r.addRow (t : MessageTable) =
+
+    let addMessageTableRow (r : Message) (t : MessageTable) =
             let g() =
                 let newRow =
                     t.NewRow(
@@ -135,7 +138,7 @@ module MsgSvcDatabaseTypes =
 
     let tryCreateMessage (t : MessageTable) =
         match t.Rows |> Seq.tryHead with
-        | Some v -> v |> Message.tryCreate
+        | Some v -> v |> tryCreateMessageImpl
         | None -> Ok None
 
 

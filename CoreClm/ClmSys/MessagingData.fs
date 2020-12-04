@@ -3,11 +3,11 @@
 open System
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
 
 open GeneralData
 open MessagingPrimitives
 open ClmSys.ClmErrors
-open ClmSys.MessagingServiceErrors
 
 module MessagingData =
 

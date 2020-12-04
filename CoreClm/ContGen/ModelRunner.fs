@@ -1,6 +1,14 @@
 ﻿namespace ContGen
 
 open Softellect.Sys.Rop
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.Client
 
 open Clm.ModelParams
 open ClmSys.SolverRunnerPrimitives
@@ -80,7 +88,7 @@ module ModelRunner =
                                 deliveryType = GuaranteedDelivery
                             }
 
-                        messageData = (q, c) |> CancelRunWrkMsg |> WorkerNodeMsg
+                        messageData = (q, c) |> CancelRunWrkMsg |> WorkerNodeMsg |> UserMsg
                     }
                     |> proxy.sendCancelRunQueueMessage
                 | None -> Ok()
@@ -113,7 +121,7 @@ module ModelRunner =
                             deliveryType = GuaranteedDelivery
                         }
 
-                    messageData = (q, c) |> RequestResultWrkMsg |> WorkerNodeMsg
+                    messageData = (q, c) |> RequestResultWrkMsg |> WorkerNodeMsg |> UserMsg
                 }
                 |> proxy.sendRequestResultsMessage
             | None -> Ok()
@@ -202,7 +210,7 @@ module ModelRunner =
         printfn "processMessage: messageId = %A, message = %A" m.messageDataInfo.messageId m
 
         match m.messageData with
-        | PartitionerMsg x ->
+        | UserMsg (PartitionerMsg x) ->
             match x with
             | UpdateProgressPrtMsg i -> proxy.updateProgress i
             | SaveResultPrtMsg r -> proxy.saveResult r
@@ -268,7 +276,7 @@ module ModelRunner =
             }
 
 
-    let onGetMessagesProxy c resultLocation w =
+    let onGetMessagesProxy c resultLocation w : OnGetMessagesProxy<unit> =
         let proxy = ProcessMessageProxy.create c resultLocation
         let p () m = (), processMessage proxy m
 
@@ -277,6 +285,7 @@ module ModelRunner =
             onProcessMessage = p
             maxMessages = maxMessages
             onError = fun f -> f |> OnGetMessagesErr |> ProcessMessageErr |> ModelRunnerErr
+            addError = ClmError.addError
         }
 
 

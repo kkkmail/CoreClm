@@ -4,6 +4,13 @@ open Softellect.Sys.TimerEvents
 
 open System
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.VersionInfo
 open ClmSys.MessagingData
@@ -13,7 +20,6 @@ open System.Threading
 open ServiceProxy.MsgProcessorProxy
 open ClmSys.TimerEvents
 open ClmSys.ClmErrors
-open ClmSys.MessagingClientErrors
 open ClmSys.MessagingPrimitives
 
 module Client =

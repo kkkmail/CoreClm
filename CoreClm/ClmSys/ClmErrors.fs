@@ -2,10 +2,10 @@
 open Softellect.Sys.WcfErrors
 open Softellect.Sys.TimerErrors
 open Softellect.Sys.Rop
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
 
 open GeneralErrors
-open MessagingServiceErrors
-open MessagingClientErrors
 open WorkerNodeErrors
 open ModelGeneratorErrors
 open ModelRunnerErrors

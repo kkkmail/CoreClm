@@ -2,10 +2,9 @@
 
 open Softellect.Sys.WcfErrors
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingClientErrors
 
 open GeneralPrimitives
-open MessagingClientErrors
-open GeneralErrors
 
 module WorkerNodeErrors =
 

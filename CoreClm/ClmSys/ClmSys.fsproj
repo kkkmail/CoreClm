@@ -21,9 +21,6 @@
     <Compile Include="GeneralErrors.fs" />
     <Compile Include="ContGenErrors.fs" />
     <Compile Include="ModelGeneratorErrors.fs" />
-    <Compile Include="MessagingCommonErrors.fs" />
-    <Compile Include="MessagingServiceErrors.fs" />
-    <Compile Include="MessagingClientErrors.fs" />
     <Compile Include="ModelRunnerErrors.fs" />
     <Compile Include="WorkerNodeErrors.fs" />
     <Compile Include="SolverRunnerErrors.fs" />
@@ -42,9 +39,9 @@
     <PackageReference Include="FSharp.Configuration" Version="1.5.0" />
     <PackageReference Include="FSharp.Data" Version="3.3.3" />
     <PackageReference Include="log4net" Version="2.0.12" />
-    <PackageReference Include="Softellect.Messaging" Version="0.0.1-alpha.103" />
-    <PackageReference Include="Softellect.Sys" Version="0.0.1-alpha.103" />
-    <PackageReference Include="Softellect.Wcf" Version="0.0.1-alpha.103" />
+    <PackageReference Include="Softellect.Messaging" Version="0.0.1-alpha.104" />
+    <PackageReference Include="Softellect.Sys" Version="0.0.1-alpha.104" />
+    <PackageReference Include="Softellect.Wcf" Version="0.0.1-alpha.104" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.0" />
   </ItemGroup>
 
