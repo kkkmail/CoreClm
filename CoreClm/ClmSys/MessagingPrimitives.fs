@@ -1,19 +1,21 @@
 ﻿namespace ClmSys
 
 open System
+open Softellect.Sys.Primitives
+open Softellect.Messaging.Primitives
 open GeneralPrimitives
 
 module MessagingPrimitives =
 
-    type MessagingClientName =
-        | MessagingClientName of string
-
-        member this.value = let (MessagingClientName v) = this in v
+//    type MessagingClientName =
+//        | MessagingClientName of string
+//
+//        member this.value = let (MessagingClientName v) = this in v
 
 
     type ServiceName
         with
-        member n.messagingClientName = MessagingClientName n.originalValue
+        member n.messagingClientName = MessagingClientName n.value
 
 
     type MessagingServiceAddress =
@@ -30,10 +32,10 @@ module MessagingPrimitives =
         static member defaultValue = DefaultMessagingServicePort |> ServicePort |> MessagingServicePort
 
 
-    type MessagingServiceName =
-        | MessagingServiceName of ServiceName
-
-        member this.value = let (MessagingServiceName v) = this in v
+//    type MessagingServiceName =
+//        | MessagingServiceName of ServiceName
+//
+//        member this.value = let (MessagingServiceName v) = this in v
 
 
     let messagingServiceName = "MessagingService" |> ServiceName |> MessagingServiceName

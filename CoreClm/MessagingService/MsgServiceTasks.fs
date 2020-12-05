@@ -1,7 +1,7 @@
 ﻿namespace MessagingService
 
 open Argu
-open ClmSys.ServiceInstaller
+open Softellect.Sys.ServiceInstaller
 open ClmSys.MessagingData
 open ClmSys.Logging
 open ClmSys.MessagingPrimitives

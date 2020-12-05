@@ -28,23 +28,23 @@ module GeneralPrimitives =
     let DefaultMessagingServiceAddress = "localhost"
 
 
-    type ServiceAddress =
-        | ServiceAddress of string
+//    type ServiceAddress =
+//        | ServiceAddress of string
+//
+//        member this.value = let (ServiceAddress v) = this in v
+//
+//
+//    type ServicePort =
+//        | ServicePort of int
+//
+//        member this.value = let (ServicePort v) = this in v
 
-        member this.value = let (ServiceAddress v) = this in v
 
-
-    type ServicePort =
-        | ServicePort of int
-
-        member this.value = let (ServicePort v) = this in v
-
-
-    type ServiceName =
-        | ServiceName of string
-
-        member this.value = let (ServiceName v) = this in (v + " - " + versionNumberValue.value + "." + messagingDataVersion.value.ToString())
-        member this.originalValue = let (ServiceName v) = this in v
+//    type ServiceName =
+//        | ServiceName of string
+//
+//        member this.value = let (ServiceName v) = this in (v + " - " + versionNumberValue.value + "." + messagingDataVersion.value.ToString())
+//        member this.originalValue = let (ServiceName v) = this in v
 
 
     type ConnectionString =
