@@ -17,37 +17,39 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "MessagingService", "Messagi
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "MessagingServiceInfo", "MessagingServiceInfo\MessagingServiceInfo.fsproj", "{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Analytics", "Analytics\Analytics.fsproj", "{DC51F3E0-1283-4499-B969-E6A2BCE597A6}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Analytics", "Analytics\Analytics.fsproj", "{DC51F3E0-1283-4499-B969-E6A2BCE597A6}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmDefaults", "ClmDefaults\ClmDefaults.fsproj", "{1DFD0B16-A295-4DED-9B7B-2FCF2E423498}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ClmDefaults", "ClmDefaults\ClmDefaults.fsproj", "{1DFD0B16-A295-4DED-9B7B-2FCF2E423498}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmGenerator", "ClmGenerator\ClmGenerator.fsproj", "{A0817568-0DF9-4D24-AD18-AB214F165463}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ClmGenerator", "ClmGenerator\ClmGenerator.fsproj", "{A0817568-0DF9-4D24-AD18-AB214F165463}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmImpure", "ClmImpure\ClmImpure.fsproj", "{EF40DDA7-D21C-47DD-98E9-D7A21716B655}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ClmImpure", "ClmImpure\ClmImpure.fsproj", "{EF40DDA7-D21C-47DD-98E9-D7A21716B655}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGen", "ContGen\ContGen.fsproj", "{11568075-C54B-49B9-B794-3AD43EED5784}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ContGen", "ContGen\ContGen.fsproj", "{11568075-C54B-49B9-B794-3AD43EED5784}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ContGenAdm", "ContGenAdm\ContGenAdm.fsproj", "{5B02BB58-49F5-4808-AFDE-6F9CB80BFE93}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ContGenAdm", "ContGenAdm\ContGenAdm.fsproj", "{5B02BB58-49F5-4808-AFDE-6F9CB80BFE93}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Messaging", "Messaging\Messaging.fsproj", "{4C730455-0E4A-481E-80CF-89DF140B18A1}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Messaging", "Messaging\Messaging.fsproj", "{4C730455-0E4A-481E-80CF-89DF140B18A1}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MessagingAdm", "MessagingAdm\MessagingAdm.fsproj", "{C016A545-BE40-4B54-B056-66ED4B5BF1BC}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "MessagingAdm", "MessagingAdm\MessagingAdm.fsproj", "{C016A545-BE40-4B54-B056-66ED4B5BF1BC}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Model", "Model\Model.fsproj", "{4DE532EF-F5CF-4401-89FF-B898A097FFD3}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Model", "Model\Model.fsproj", "{4DE532EF-F5CF-4401-89FF-B898A097FFD3}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NoSql", "NoSql\NoSql.fsproj", "{7E7517F1-12BE-4C73-B4CD-F41A86FD4572}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "NoSql", "NoSql\NoSql.fsproj", "{7E7517F1-12BE-4C73-B4CD-F41A86FD4572}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "OdeSolver", "OdeSolver\OdeSolver.fsproj", "{9303A749-D996-43B1-87B9-7B07D9C2996E}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "OdeSolver", "OdeSolver\OdeSolver.fsproj", "{9303A749-D996-43B1-87B9-7B07D9C2996E}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ServiceProxy", "ServiceProxy\ServiceProxy.fsproj", "{3BC819CF-2A2D-4CA2-8F7E-25F45651E1E7}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ServiceProxy", "ServiceProxy\ServiceProxy.fsproj", "{3BC819CF-2A2D-4CA2-8F7E-25F45651E1E7}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SolverRunner", "SolverRunner\SolverRunner.fsproj", "{B4D52F23-611B-4000-9B95-234F3F1C1683}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "SolverRunner", "SolverRunner\SolverRunner.fsproj", "{B4D52F23-611B-4000-9B95-234F3F1C1683}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WorkerNodeService", "WorkerNodeService\WorkerNodeService.fsproj", "{3CD5643D-58F5-429B-B8A5-09D1D48856E8}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "WorkerNodeService", "WorkerNodeService\WorkerNodeService.fsproj", "{3CD5643D-58F5-429B-B8A5-09D1D48856E8}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WorkerNodeServiceInfo", "WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj", "{D2D869C2-7E4C-4A2E-8063-CA9DB24F8763}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "WorkerNodeServiceInfo", "WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj", "{D2D869C2-7E4C-4A2E-8063-CA9DB24F8763}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WorkNodeAdm", "WorkNodeAdm\WorkNodeAdm.fsproj", "{C08FF4E6-63B1-4C4E-B7A0-17B5050B82CF}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "WorkNodeAdm", "WorkNodeAdm\WorkNodeAdm.fsproj", "{C08FF4E6-63B1-4C4E-B7A0-17B5050B82CF}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ClmTests", "ClmTests\ClmTests.fsproj", "{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -241,6 +243,14 @@ Global
 		{C08FF4E6-63B1-4C4E-B7A0-17B5050B82CF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C08FF4E6-63B1-4C4E-B7A0-17B5050B82CF}.Release|x64.ActiveCfg = Release|x64
 		{C08FF4E6-63B1-4C4E-B7A0-17B5050B82CF}.Release|x64.Build.0 = Release|x64
+		{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}.Debug|x64.Build.0 = Debug|Any CPU
+		{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}.Release|x64.ActiveCfg = Release|Any CPU
+		{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

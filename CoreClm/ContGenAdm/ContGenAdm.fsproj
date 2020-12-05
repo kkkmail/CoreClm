@@ -22,4 +22,10 @@
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="ContGenAdmCommandLine.fs" />
+    <Compile Include="ContGenAdmTasks.fs" />
+    <Compile Include="ContGenAdmProgram.fs" />
+  </ItemGroup>
+
 </Project>
