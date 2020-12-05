@@ -356,31 +356,31 @@ module ServiceInfo =
             | None -> Ok None
 
 
-    type IMessagingService =
-        abstract getVersion : unit -> ClmResult<MessagingDataVersion>
-        abstract sendMessage : Message -> UnitResult
-        abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
-        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
-
-
-    /// https://gist.github.com/dgfitch/661656
-    [<ServiceContract(ConfigurationName = MessagingWcfServiceName)>]
-    type IMessagingWcfService =
-
-        [<OperationContract(Name = "getVersion")>]
-        abstract getVersion : u:byte[] -> byte[]
-
-        [<OperationContract(Name = "sendMessage")>]
-        abstract sendMessage : m:byte[] -> byte[]
-
-        [<OperationContract(Name = "tryPeekMessage")>]
-        abstract tryPeekMessage : c:byte[] -> byte[]
-
-        [<OperationContract(Name = "tryDeleteFromServer")>]
-        abstract tryDeleteFromServer : cm:byte[] -> byte[]
-
-
-    type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])
+//    type IMessagingService =
+//        abstract getVersion : unit -> ClmResult<MessagingDataVersion>
+//        abstract sendMessage : Message -> UnitResult
+//        abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
+//        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
+//
+//
+//    /// https://gist.github.com/dgfitch/661656
+//    [<ServiceContract(ConfigurationName = MessagingWcfServiceName)>]
+//    type IMessagingWcfService =
+//
+//        [<OperationContract(Name = "getVersion")>]
+//        abstract getVersion : u:byte[] -> byte[]
+//
+//        [<OperationContract(Name = "sendMessage")>]
+//        abstract sendMessage : m:byte[] -> byte[]
+//
+//        [<OperationContract(Name = "tryPeekMessage")>]
+//        abstract tryPeekMessage : c:byte[] -> byte[]
+//
+//        [<OperationContract(Name = "tryDeleteFromServer")>]
+//        abstract tryDeleteFromServer : cm:byte[] -> byte[]
+//
+//
+//    type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])
 
 
     [<Literal>]

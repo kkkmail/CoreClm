@@ -18,4 +18,10 @@
     <ProjectReference Include="..\Messaging\Messaging.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="MsgAdmCommandLine.fs" />
+    <Compile Include="MsgAdmTasks.fs" />
+    <Compile Include="MsgAdmProgram.fs" />
+  </ItemGroup>
+
 </Project>
