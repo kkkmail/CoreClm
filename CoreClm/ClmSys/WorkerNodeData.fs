@@ -1,7 +1,15 @@
 ﻿namespace ClmSys
 
 open System
+
 open Softellect.Sys.Core
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
+
 open ClmSys.GeneralData
 open ClmSys.MessagingData
 open ClmSys.WorkerNodePrimitives
@@ -30,10 +38,10 @@ module WorkerNodeData =
             workerNodeServiceName : WorkerNodeServiceName
         }
 
-        member s.serviceName = s.workerNodeServiceName.value.value
-        member s.serviceUrl = getServiceUrlImpl s.workerNodeServiceAddress.value s.workerNodeServicePort.value s.serviceName
-        member s.wcfServiceName = toValidServiceName s.serviceName
-        member s.wcfServiceUrl = getWcfServiceUrlImpl s.workerNodeServiceAddress.value s.workerNodeServicePort.value s.wcfServiceName
+        //member s.serviceName = s.workerNodeServiceName.value.value
+        //member s.serviceUrl = getServiceUrlImpl s.workerNodeServiceAddress.value s.workerNodeServicePort.value s.serviceName
+        //member s.wcfServiceName = toValidServiceName s.serviceName
+        //member s.wcfServiceUrl = getWcfServiceUrlImpl s.workerNodeServiceAddress.value s.workerNodeServicePort.value s.wcfServiceName
 
 
     type WorkerNodeServiceInfo =
@@ -68,8 +76,8 @@ module WorkerNodeData =
                     w.workerNodeSvcInfo.workerNodeServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.workerNodeSvcInfo.workerNodeServiceAddress
                     w.workerNodeSvcInfo.workerNodeServicePort.value.value > 0, sprintf "%A is invalid" w.workerNodeSvcInfo.workerNodeServicePort
 
-                    w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
-                    w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
+                    //w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
+                    //w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
                 ]
                 |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
 

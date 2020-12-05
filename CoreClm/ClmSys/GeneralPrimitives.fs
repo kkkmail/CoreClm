@@ -16,16 +16,19 @@ module GeneralPrimitives =
     let minutesPerHour = 60<minute/hour>
 
 
-    let DefaultContGenServicePort = DefaultServicePort
-    let DefaultContGenServiceAddress = "localhost"
+    let defaultContGenNetTcpServicePort = defaultServicePort
+    let defaultContGenHttpServicePort = defaultContGenNetTcpServicePort + 1
+    let defaultContGenServiceAddress = "localhost"
 
 
-    let DefaultWorkerNodeServicePort = 20000 + DefaultServicePort
-    let DefaultWorkerNodeServiceAddress = "localhost"
+    let defaultWorkerNodeNetTcpServicePort = 20000 + defaultServicePort
+    let defaultWorkerNodeHttpServicePort = defaultWorkerNodeNetTcpServicePort + 1
+    let defaultWorkerNodeServiceAddress = "localhost"
 
 
-    let DefaultMessagingServicePort = 40000 + DefaultServicePort
-    let DefaultMessagingServiceAddress = "localhost"
+    let defaultMessagingNetTcpServicePort = 40000 + defaultServicePort
+    let defaultMessagingHttpServicePort = defaultMessagingNetTcpServicePort + 1
+    let defaultMessagingServiceAddress = "localhost"
 
 
 //    type ServiceAddress =

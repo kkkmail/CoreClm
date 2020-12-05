@@ -30,7 +30,7 @@ module VersionInfo =
     /// Default port on which messaging communication is performed.
     /// TODO kk:20200412 - There seems to be some conflict between how to use default service port and registry key where to store the information.
     //let DefaultServicePort = 5000 + messagingDataVersion.value
-    let DefaultServicePort = 0600
+    let defaultServicePort = 0600
 
 
     /// Increment fractional part by 0.0001, e.g. 1.0000 -> 1.0001 if an updated version can read the previous version format.

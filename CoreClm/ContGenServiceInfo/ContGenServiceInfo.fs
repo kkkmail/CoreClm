@@ -4,9 +4,19 @@ open System
 open System.ServiceModel
 open System.Threading
 open FSharp.Configuration
+
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
 
+open ClmSys.VersionInfo
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.GeneralData
@@ -117,8 +127,8 @@ module ServiceInfo =
                     ContGenAppSettings.ContGenSvcAddress <- w.contGenSvcInfo.contGenServiceAddress.value.value
                     ContGenAppSettings.ContGenSvcPort <- w.contGenSvcInfo.contGenServicePort.value.value
 
-                    ContGenAppSettings.MsgSvcAddress <- w.messagingSvcInfo.messagingServiceAddress.value.value
-                    ContGenAppSettings.MsgSvcPort <- w.messagingSvcInfo.messagingServicePort.value.value
+                    ContGenAppSettings.MsgSvcAddress <- w.messagingSvcInfo.messagingServiceAccessInfo.serviceAddress.value
+                    ContGenAppSettings.MsgSvcPort <- w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServicePort.value
 
                     ContGenAppSettings.MinUsefulEe <- w.contGenInfo.minUsefulEe.value
                     ContGenAppSettings.PartitionerId <- w.contGenInfo.partitionerId.value.value
@@ -172,17 +182,26 @@ module ServiceInfo =
 
                 messagingSvcInfo =
                     {
-                        messagingServiceAddress =
-                            match ContGenAppSettings.MsgSvcAddress with
-                            | EmptyString -> MessagingServiceAddress.defaultValue
-                            | s -> s |> ServiceAddress |> MessagingServiceAddress
+                        messagingServiceAccessInfo =
+                            {
+                                serviceAddress =
+                                    match ContGenAppSettings.MsgSvcAddress with
+                                    | EmptyString -> defaultMessagingServiceAddress
+                                    | s -> s
+                                    |> ServiceAddress
 
-                        messagingServicePort =
-                            match ContGenAppSettings.MsgSvcPort with
-                            | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
-                            | _ -> MessagingServicePort.defaultValue
+                                httpServicePort = 0
+                                httpServiceName = 0
 
-                        messagingServiceName = messagingServiceName
+                                netTcpServicePort =
+                                    match ContGenAppSettings.MsgSvcPort with
+                                    | n  when n > 0 -> n
+                                    | _ -> defaultMessagingNetTcpServicePort
+                                    |> ServicePort
+
+                                netTcpServiceName = messagingServiceName
+                            }
+                        messagingDataVersion = messagingDataVersion
                     }
             }
         w

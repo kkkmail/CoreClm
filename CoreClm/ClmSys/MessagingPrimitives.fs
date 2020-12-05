@@ -6,36 +6,25 @@ open Softellect.Messaging.Primitives
 open GeneralPrimitives
 
 module MessagingPrimitives =
+    let x = 1
 
-//    type MessagingClientName =
-//        | MessagingClientName of string
+//    type ServiceName
+//        with
+//        member n.messagingClientName = MessagingClientName n.value
 //
-//        member this.value = let (MessagingClientName v) = this in v
-
-
-    type ServiceName
-        with
-        member n.messagingClientName = MessagingClientName n.value
-
-
-    type MessagingServiceAddress =
-        | MessagingServiceAddress of ServiceAddress
-
-        member this.value = let (MessagingServiceAddress v) = this in v
-        static member defaultValue = DefaultMessagingServiceAddress |> ServiceAddress |> MessagingServiceAddress
-
-
-    type MessagingServicePort =
-        | MessagingServicePort of ServicePort
-
-        member this.value = let (MessagingServicePort v) = this in v
-        static member defaultValue = DefaultMessagingServicePort |> ServicePort |> MessagingServicePort
-
-
-//    type MessagingServiceName =
-//        | MessagingServiceName of ServiceName
 //
-//        member this.value = let (MessagingServiceName v) = this in v
+//    type MessagingServiceAddress =
+//        | MessagingServiceAddress of ServiceAddress
+//
+//        member this.value = let (MessagingServiceAddress v) = this in v
+//        static member defaultValue = DefaultMessagingServiceAddress |> ServiceAddress |> MessagingServiceAddress
+//
+//
+//    type MessagingServicePort =
+//        | MessagingServicePort of ServicePort
+//
+//        member this.value = let (MessagingServicePort v) = this in v
+//        static member defaultValue = DefaultMessagingServicePort |> ServicePort |> MessagingServicePort
 
 
-    let messagingServiceName = "MessagingService" |> ServiceName |> MessagingServiceName
+//    let messagingServiceName = "MessagingService" |> ServiceName |> MessagingServiceName

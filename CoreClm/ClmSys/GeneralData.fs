@@ -1,11 +1,20 @@
 ﻿namespace ClmSys
 
 open System
+
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
+
 open ClmSys.VersionInfo
 open ClmSys.Logging
 open GeneralPrimitives
 open ContGenPrimitives
-open Softellect.Sys.Core
+
 
 module GeneralData =
 
@@ -33,12 +42,12 @@ module GeneralData =
         serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
 
 
-    let getServiceUrlImpl (ServiceAddress serviceAddress) (ServicePort servicePort) serviceName =
-        "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
+    //let getServiceUrlImpl (ServiceAddress serviceAddress) (ServicePort servicePort) serviceName =
+    //    "tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
-    let getWcfServiceUrlImpl (ServiceAddress serviceAddress) (ServicePort servicePort) serviceName =
-        "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
+    //let getWcfServiceUrlImpl (ServiceAddress serviceAddress) (ServicePort servicePort) serviceName =
+    //    "net.tcp://" + serviceAddress + ":" + (servicePort.ToString()) + "/" + serviceName
 
 
     type ResultDataId

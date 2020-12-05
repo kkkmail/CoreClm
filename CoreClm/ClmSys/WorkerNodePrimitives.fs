@@ -1,6 +1,12 @@
 ﻿namespace ClmSys
 
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
 
 open GeneralPrimitives
 
@@ -10,14 +16,15 @@ module WorkerNodePrimitives =
         | WorkerNodeServiceAddress of ServiceAddress
 
         member this.value = let (WorkerNodeServiceAddress v) = this in v
-        static member defaultValue = DefaultWorkerNodeServiceAddress |> ServiceAddress |> WorkerNodeServiceAddress
+        static member defaultValue = defaultWorkerNodeServiceAddress |> ServiceAddress |> WorkerNodeServiceAddress
 
 
     type WorkerNodeServicePort =
         | WorkerNodeServicePort of ServicePort
 
         member this.value = let (WorkerNodeServicePort v) = this in v
-        static member defaultValue = DefaultWorkerNodeServicePort |> ServicePort |> WorkerNodeServicePort
+        static member defaultNetTcpValue = defaultWorkerNodeNetTcpServicePort |> ServicePort |> WorkerNodeServicePort
+        static member defaultHttpValue = defaultWorkerNodeHttpServicePort |> ServicePort |> WorkerNodeServicePort
 
 
     type WorkerNodeServiceName =
@@ -26,7 +33,8 @@ module WorkerNodePrimitives =
         member this.value = let (WorkerNodeServiceName v) = this in v
 
 
-    let workerNodeServiceName = "WorkerNodeService" |> ServiceName |> WorkerNodeServiceName
+    let workerNodeNetTcpServiceName = "WorkerNodeNetTcpService" |> ServiceName |> WorkerNodeServiceName
+    let workerNodeHttpServiceName = "WorkerNodeHttpService" |> ServiceName |> WorkerNodeServiceName
 
 
     type WorkerNodeId =

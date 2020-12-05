@@ -2,7 +2,14 @@
 
 open System
 open System.ServiceModel
+
 open Softellect.Sys.Core
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
 
 open ClmSys
 open GeneralPrimitives
@@ -22,9 +29,9 @@ module ContGenData =
             contGenServiceName : ContGenServiceName
         }
 
-        member private s.serviceName = s.contGenServiceName.value.value
-        member s.wcfServiceName = toValidServiceName s.serviceName
-        member s.wcfServiceUrl = getWcfServiceUrlImpl s.contGenServiceAddress.value s.contGenServicePort.value s.wcfServiceName
+        //member private s.serviceName = s.contGenServiceName.value.value
+        //member s.wcfServiceName = toValidServiceName s.serviceName
+        //member s.wcfServiceUrl = getWcfServiceUrlImpl s.contGenServiceAddress.value s.contGenServicePort.value s.wcfServiceName
 
 
     type ContGenWcfSvcShutDownInfo =
@@ -56,8 +63,8 @@ module ContGenData =
                     w.contGenSvcInfo.contGenServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.contGenSvcInfo.contGenServiceAddress
                     w.contGenSvcInfo.contGenServicePort.value.value > 0, sprintf "%A is invalid" w.contGenSvcInfo.contGenServicePort
 
-                    w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
-                    w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
+                    //w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
+                    //w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
 
                     w.contGenInfo.partitionerId.value.value <> Guid.Empty, sprintf "%A is invalid" w.contGenInfo.partitionerId
                     w.contGenInfo.lastAllowedNodeErr.value > 0<minute>, sprintf "%A is invalid" w.contGenInfo.lastAllowedNodeErr

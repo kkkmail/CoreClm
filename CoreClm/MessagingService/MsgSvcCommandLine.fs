@@ -1,7 +1,15 @@
 ﻿namespace MessagingService
 
 open Argu
+
 open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
+
+open ClmSys.VersionInfo
 open ClmSys.MessagingData
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
@@ -58,13 +66,14 @@ module SvcCommandLine =
         | Save a -> MsgSvcArgs.Save a
 
 
-    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
-    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
+    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
 
 
     let loadSettings p =
         let w = loadMsgServiceSettings()
+        let a = w.messagingSvcInfo.messagingServiceAccessInfo
 
         let w1 =
             {
@@ -75,9 +84,15 @@ module SvcCommandLine =
 
                 messagingSvcInfo =
                     {
-                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
-                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
-                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
+                        messagingServiceAccessInfo =
+                            {
+                                serviceAddress = tryGetMsgServiceAddress p |> Option.defaultValue a.serviceAddress
+                                httpServicePort = a.httpServicePort
+                                httpServiceName = a.httpServiceName
+                                netTcpServicePort = tryGetMsgServicePort p |> Option.defaultValue a.netTcpServicePort
+                                netTcpServiceName = a.netTcpServiceName
+                            }
+                        messagingDataVersion = messagingDataVersion
                     }
             }
 

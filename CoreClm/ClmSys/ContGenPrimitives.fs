@@ -1,7 +1,14 @@
 ﻿namespace ClmSys
 
 open System
+
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
 
 open GeneralPrimitives
 open WorkerNodePrimitives
@@ -16,14 +23,15 @@ module ContGenPrimitives =
         | ContGenServiceAddress of ServiceAddress
 
         member this.value = let (ContGenServiceAddress v) = this in v
-        static member defaultValue = DefaultContGenServiceAddress |> ServiceAddress |> ContGenServiceAddress
+        static member defaultValue = defaultContGenServiceAddress |> ServiceAddress |> ContGenServiceAddress
 
 
     type ContGenServicePort =
         | ContGenServicePort of ServicePort
 
         member this.value = let (ContGenServicePort v) = this in v
-        static member defaultValue = DefaultContGenServicePort |> ServicePort |> ContGenServicePort
+        static member defaultNetTcpValue = defaultContGenNetTcpServicePort |> ServicePort |> ContGenServicePort
+        static member defaultHttpValue = defaultContGenHttpServicePort |> ServicePort |> ContGenServicePort
 
 
     type ContGenServiceName =
@@ -32,7 +40,8 @@ module ContGenPrimitives =
         member this.value = let (ContGenServiceName v) = this in v
 
 
-    let contGenServiceName = "ContGenService" |> ServiceName |> ContGenServiceName
+    let contGenNetTcpServiceName = "ContGenNetTcpService" |> ServiceName |> ContGenServiceName
+    let contGenHttpServiceName = "ContGenHttpService" |> ServiceName |> ContGenServiceName
 
 
     type MinUsefulEe =
