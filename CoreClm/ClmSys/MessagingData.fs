@@ -3,9 +3,11 @@
 open System
 
 open Softellect.Sys.Core
+open Softellect.Wcf.Common
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
 
 open GeneralData
 open MessagingPrimitives
@@ -35,16 +37,17 @@ module MessagingData =
     //        msgSvcAccessInfo : MessagingServiceAccessInfo
     //    }
 
-    type MessagingInfo =
-        {
-            expirationTime : TimeSpan
-        }
+    //type MessagingInfo =
+    //    {
+    //        expirationTime : TimeSpan
+    //    }
 
 
     type MsgSettings =
         {
-            messagingInfo : MessagingInfo
+            messagingInfo : MessagingServiceInfo
             messagingSvcInfo : MessagingServiceAccessInfo
+            communicationType : WcfCommunicationType
         }
 
         member w.isValid() =
@@ -60,7 +63,3 @@ module MessagingData =
             match r with
             | true, _ -> Ok()
             | false, s -> s |> InvalidSettings |> MsgSettingsErr |> MessagingServiceErr |> Error
-
-
-    /// Currently they are the same but this may change.
-    type MessagingServiceInfo = MsgSettings

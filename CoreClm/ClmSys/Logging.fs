@@ -34,7 +34,9 @@ module Logging =
 
         member d.message = d.logData.ToString()
 
+
     type LogMessage = LogMessage<ClmError>
+
 
     let logAgent = MailboxProcessor.Start <| fun inbox ->
         let rec logLoop () = async {

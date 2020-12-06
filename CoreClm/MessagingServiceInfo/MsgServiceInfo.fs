@@ -399,9 +399,11 @@ module ServiceInfo =
                 let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
                 let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
                 try
-                    MsgAppSettings.MessagingServiceAddress <- h.httpServiceAddress.value
+                    MsgAppSettings.MessagingServiceAddress <- n.netTcpServiceAddress.value
                     MsgAppSettings.MessagingHttpServicePort <- h.httpServicePort.value
                     MsgAppSettings.MessagingNetTcpServicePort <- n.netTcpServicePort.value
+                    MsgAppSettings.MessagingServiceCommunicationType <- w.communicationType.value
+
                     MsgAppSettings.ExpirationTimeInMinutes <- int w.messagingInfo.expirationTime.TotalMinutes
 
                     Ok()
@@ -436,13 +438,20 @@ module ServiceInfo =
         let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
         let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
 
+        let expirationTimeInMinutes =
+            match MsgAppSettings.ExpirationTimeInMinutes with
+            | n  when n > 0 -> TimeSpan.FromMinutes(float n)
+            | _ -> MessagingServiceInfo.defaultExpirationTime
+
         {
             messagingInfo =
                 {
-                    expirationTime = TimeSpan.FromMinutes(float MsgAppSettings.ExpirationTimeInMinutes)
+                    expirationTime = expirationTimeInMinutes
+                    messagingDataVersion = messagingDataVersion
                 }
 
             messagingSvcInfo = messagingSvcInfo
+            communicationType = WcfCommunicationType.tryCreate  MsgAppSettings.MessagingServiceCommunicationType |> Option.defaultValue NetTcpCommunication
         }
 
 

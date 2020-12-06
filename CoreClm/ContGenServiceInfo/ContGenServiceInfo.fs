@@ -131,15 +131,15 @@ module ServiceInfo =
                 let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
 
                 try
-                    ContGenAppSettings.ContGenServiceAddress <- h.httpServiceAddress.value
+                    ContGenAppSettings.ContGenServiceAddress <- n.netTcpServiceAddress.value
                     ContGenAppSettings.ContGenServiceHttpPort <- h.httpServicePort.value
                     ContGenAppSettings.ContGenServiceNetTcpPort <- n.netTcpServicePort.value
-                    ContGenAppSettings.ContGenServiceCommunicationType <- w.contGenCommType.ToString()
+                    ContGenAppSettings.ContGenServiceCommunicationType <- w.contGenCommType.value
 
-                    ContGenAppSettings.MessagingServiceAddress <- mh.httpServiceAddress.value
+                    ContGenAppSettings.MessagingServiceAddress <- mn.netTcpServiceAddress.value
                     ContGenAppSettings.MessagingHttpServicePort <- mh.httpServicePort.value
                     ContGenAppSettings.MessagingNetTcpServicePort <- mn.netTcpServicePort.value
-                    ContGenAppSettings.MessagingServiceCommunicationType <- w.messagingCommType.ToString()
+                    ContGenAppSettings.MessagingServiceCommunicationType <- w.messagingCommType.value
 
                     ContGenAppSettings.MinUsefulEe <- w.contGenInfo.minUsefulEe.value
                     ContGenAppSettings.PartitionerId <- w.contGenInfo.partitionerId.value.value
@@ -192,11 +192,7 @@ module ServiceInfo =
             | _ -> defaultContGenNetTcpServicePort
             |> ServicePort
 
-        let getCommunicationType s =
-            match s with
-            | "HttpCommunication" -> HttpCommunication
-            | _ -> NetTcpCommunication
-
+        let getCommunicationType s = WcfCommunicationType.tryCreate s |> Option.defaultValue NetTcpCommunication
         let contGenServiceCommunicationType = getCommunicationType ContGenAppSettings.ContGenServiceCommunicationType 
         let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort
         let messagingServiceCommunicationType = getCommunicationType ContGenAppSettings.MessagingServiceCommunicationType
@@ -232,68 +228,6 @@ module ServiceInfo =
                 messagingSvcInfo = messagingSvcInfo
                 messagingCommType = messagingServiceCommunicationType
             }
-
-        //let w =
-        //    {
-        //        contGenInfo =
-        //            {
-        //                minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
-
-        //                partitionerId =
-        //                    match ContGenAppSettings.PartitionerId with
-        //                    | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
-        //                    | _ -> defaultPartitionerId
-
-        //                lastAllowedNodeErr =
-        //                    match ContGenAppSettings.LastAllowedNodeErrInMinutes with
-        //                    | p when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
-        //                    | _ -> LastAllowedNodeErr.defaultValue
-
-        //                earlyExitCheckFreq =
-        //                    match ContGenAppSettings.EarlyExitCheckFrequencyInMinutes with
-        //                    | p when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
-        //                    | _ -> EarlyExitCheckFreq.defaultValue
-        //            }
-
-        //        contGenSvcInfo = (failwith "") |> ContGenServiceAccessInfo
-        //            //{
-        //            //    contGenServiceAddress =
-        //            //        match ContGenAppSettings.ContGenServiceAddress with
-        //            //        | EmptyString -> ContGenServiceAddress.defaultValue
-        //            //        | s -> s |> ServiceAddress |> ContGenServiceAddress
-
-        //            //    contGenServicePort =
-        //            //        match ContGenAppSettings.ContGenSvcPort with
-        //            //        | n when n > 0 -> n |> ServicePort |> ContGenServicePort
-        //            //        | _ -> ContGenServicePort.defaultValue
-
-        //            //    contGenServiceName = contGenServiceName
-        //            //}
-
-        //        messagingSvcInfo = 0
-        //            //{
-        //            //    messagingServiceAccessInfo =
-        //            //        {
-        //            //            serviceAddress =
-        //            //                match ContGenAppSettings.MessagingServiceAddress with
-        //            //                | EmptyString -> defaultMessagingServiceAddress
-        //            //                | s -> s
-        //            //                |> ServiceAddress
-
-        //            //            httpServicePort = 0
-        //            //            httpServiceName = 0
-
-        //            //            netTcpServicePort =
-        //            //                match ContGenAppSettings.MsgSvcPort with
-        //            //                | n  when n > 0 -> n
-        //            //                | _ -> defaultMessagingNetTcpServicePort
-        //            //                |> ServicePort
-
-        //            //            netTcpServiceName = messagingServiceName
-        //            //        }
-        //            //    messagingDataVersion = messagingDataVersion
-        //            //}
-        //    }
         w
 
 

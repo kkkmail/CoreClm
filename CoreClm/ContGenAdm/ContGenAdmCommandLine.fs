@@ -4,6 +4,26 @@ open Argu
 
 open Softellect.Sys.Logging
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
+open Softellect.Sys.Core
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingErrors
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.ClmErrors
 open Clm.Substances
@@ -191,39 +211,51 @@ module AdmCommandLine =
     let tryGetY0 (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | Y0 i -> Some i | _ -> None)
     let tryGetTEnd (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | TEnd i -> Some i | _ -> None)
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
-    let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
-    let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
+    let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
     let tryGetRunQueueIdToModify p = p |> List.tryPick (fun e -> match e with | RunQueueIdToModify e -> e |> RunQueueId |> Some | _ -> None)
 
 
     let loadSettings p =
         let w = loadContGenSettings()
+        let contGenInfo = { w.contGenInfo with partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId }
+        let h = w.contGenSvcInfo.value.httpServiceInfo
+        let n = w.contGenSvcInfo.value.netTcpServiceInfo
+        let contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue n.netTcpServiceAddress
+        let contGenHttpServicePort = tryGetContGenServicePort p |> Option.defaultValue h.httpServicePort
+        let contGenNetTcpServicePort = tryGetContGenServicePort p |> Option.defaultValue n.netTcpServicePort
+        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenHttpServicePort contGenNetTcpServicePort
 
         let w1 =
             {
-                contGenSvcInfo =
-                    {
-                        contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
-                        contGenServicePort = tryGetContGenServicePort p |> Option.defaultValue w.contGenSvcInfo.contGenServicePort
-                        contGenServiceName = w.contGenSvcInfo.contGenServiceName
-                    }
-
-                messagingSvcInfo = w.messagingSvcInfo
-
-                contGenInfo =
-                    {
-                        minUsefulEe = w.contGenInfo.minUsefulEe
-                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
-                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
-                        earlyExitCheckFreq = w.contGenInfo.earlyExitCheckFreq
-                    }
+                w with
+                    contGenInfo = contGenInfo
+                    contGenSvcInfo = contGenSvcInfo
             }
+            //{
+            //    contGenSvcInfo =
+            //        {
+            //            contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
+            //            contGenServicePort = tryGetContGenServicePort p |> Option.defaultValue w.contGenSvcInfo.contGenServicePort
+            //            contGenServiceName = w.contGenSvcInfo.contGenServiceName
+            //        }
+
+            //    messagingSvcInfo = w.messagingSvcInfo
+
+            //    contGenInfo =
+            //        {
+            //            minUsefulEe = w.contGenInfo.minUsefulEe
+            //            partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
+            //            lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+            //            earlyExitCheckFreq = w.contGenInfo.earlyExitCheckFreq
+            //        }
+            //}
 
         printfn "loadSettings: w1 = %A" w1
         w1
 
 
-    let getContGenServiceAccessInfo p = (loadSettings p).contGenSvcInfo
+    //let getContGenServiceAccessInfo p = (loadSettings p).contGenSvcInfo
 
 
     let getCancellationTypeOpt p =
@@ -248,8 +280,8 @@ module AdmCommandLine =
     let tryCancelRunQueueImpl (logger : Logger) p =
         match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with
         | Some q, Some c ->
-            let i = getContGenServiceAccessInfo p
-            let h = ContGenResponseHandler i :> IContGenService
+            let s = loadSettings p
+            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType) :> IContGenService
             h.tryCancelRunQueue q c |> reportResult logger "tryCancelRunQueueImpl"
         | _ -> Ok()
 
@@ -257,8 +289,8 @@ module AdmCommandLine =
     let tryRequestResultsImpl (logger : Logger) p =
         match tryGetRunQueueIdToModify p, getResultNotificationTypeOpt p with
         | Some q, Some c ->
-            let i = getContGenServiceAccessInfo p
-            let h = ContGenResponseHandler i :> IContGenService
+            let s = loadSettings p
+            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType) :> IContGenService
             h.tryRequestResults q c  |> reportResult logger "tryRequestResultsImpl"
         | _ -> Ok()
 

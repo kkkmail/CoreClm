@@ -9,6 +9,7 @@ open Softellect.Messaging.Primitives
 open Softellect.Sys.MessagingClientErrors
 open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.Client
+open Softellect.Messaging.ServiceInfo
 
 open Clm.ModelParams
 open ClmSys.SolverRunnerPrimitives

@@ -2,6 +2,7 @@
 
 open Argu
 open Softellect.Sys.ServiceInstaller
+open Softellect.Messaging.Primitives
 open ClmSys.MessagingData
 open ClmSys.Logging
 open ClmSys.MessagingPrimitives
@@ -22,7 +23,7 @@ module ServiceTasks =
     let runService l (_ : list<MessagingConfigParam>, i) = startMsgWcfServiceRun l i
 
 
-    let serviceInfo =
+    let serviceInfo : ServiceInfo<(list<MessagingConfigParam> * MessagingServiceInfo), MsgWcfSvcShutDownInfo> =
         {
             serviceName = messagingServiceName.value
             runService = runService

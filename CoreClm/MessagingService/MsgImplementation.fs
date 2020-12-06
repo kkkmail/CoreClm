@@ -1,5 +1,17 @@
 ﻿namespace MessagingService
 
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingErrors
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
+
 open System.ServiceModel
 open ClmSys.Logging
 open ClmSys.MessagingData
@@ -9,25 +21,30 @@ open Messaging.Service
 open ServiceProxy.MsgServiceProxy
 open ClmSys.ClmErrors
 open DbData.Configuration
-open ClmSys
+open ClmSys.VersionInfo
 
 module ServiceImplementation =
 
-    let x = 1
-
-    let mutable serviceAccessInfo = getServiceAccessInfo []
+    let mutable serviceSettings = getServiceSettings []
 
 
-    //let private createMessagingService logger (i : MessagingServiceInfo) : MessagingService =
-    //    let d : MessagingServiceData =
-    //        {
-    //            messagingServiceProxy = MessagingServiceProxy.create getMsgSvcConnectionString
-    //            expirationTime = i.messagingInfo.expirationTime
-    //        }
+    let private tryCreateMessagingData logger (i : MsgSettings) =
+        let serviceProxy = createMessagingServiceProxy getMsgSvcConnectionString
 
-    //    let service = MessagingService d
-    //    createMessagingServiceEventHandlers logger service
-    //    service
+        let serviceData : MessagingServiceData =
+            {
+                messagingServiceInfo =
+                    {
+                        expirationTime = i.messagingInfo.expirationTime
+                        messagingDataVersion = messagingDataVersion
+                    }
+
+                messagingServiceProxy = serviceProxy
+                communicationType = i.communicationType
+            }
+
+        let msgServiceDataRes = tryGetMsgServiceData i.messagingSvcInfo.messagingServiceAccessInfo logger serviceData
+        msgServiceDataRes
 
 
     //let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> createMessagingService Logger.log4net serviceAccessInfo |> Ok)

@@ -8,6 +8,20 @@ open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
+open Softellect.Sys.Core
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingErrors
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.VersionInfo
 open ClmSys.MessagingData
@@ -73,37 +87,26 @@ module SvcCommandLine =
 
     let loadSettings p =
         let w = loadMsgServiceSettings()
-        let a = w.messagingSvcInfo.messagingServiceAccessInfo
+        let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
+        let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
 
-        let w1 =
-            {
-                messagingInfo =
-                    {
-                        expirationTime = w.messagingInfo.expirationTime
-                    }
+        let serviceAddress = tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
+        let netTcpServicePort = tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
+        let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
+        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName
+        let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
+        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
 
-                messagingSvcInfo =
-                    {
-                        messagingServiceAccessInfo =
-                            {
-                                serviceAddress = tryGetMsgServiceAddress p |> Option.defaultValue a.serviceAddress
-                                httpServicePort = a.httpServicePort
-                                httpServiceName = a.httpServiceName
-                                netTcpServicePort = tryGetMsgServicePort p |> Option.defaultValue a.netTcpServicePort
-                                netTcpServiceName = a.netTcpServiceName
-                            }
-                        messagingDataVersion = messagingDataVersion
-                    }
-            }
+        let w1 = {w with messagingSvcInfo = messagingSvcInfo}
 
         w1
 
 
-    let getServiceAccessInfoImpl b p =
+    let getServiceSettingsImpl b p =
         let load() = loadSettings p
         let tryGetSave() = tryGetSaveSettings p
         getMsgServiceInfo (load, tryGetSave) b
 
 
-    let getServiceAccessInfo = getServiceAccessInfoImpl false
-    let saveSettings p = getServiceAccessInfoImpl true p |> ignore
+    let getServiceSettings = getServiceSettingsImpl false
+    let saveSettings p = getServiceSettingsImpl true p |> ignore
