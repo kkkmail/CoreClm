@@ -19,29 +19,27 @@ module ContGenPrimitives =
     let DefaultMinEe = 0.000_1
 
 
-    type ContGenServiceAddress =
-        | ContGenServiceAddress of ServiceAddress
+    //type ContGenServiceAddress =
+    //    | ContGenServiceAddress of ServiceAddress
 
-        member this.value = let (ContGenServiceAddress v) = this in v
-        static member defaultValue = defaultContGenServiceAddress |> ServiceAddress |> ContGenServiceAddress
+    //    member this.value = let (ContGenServiceAddress v) = this in v
+    //    static member defaultValue = defaultContGenServiceAddress |> ServiceAddress |> ContGenServiceAddress
 
 
-    type ContGenServicePort =
-        | ContGenServicePort of ServicePort
+    //type ContGenServicePort =
+    //    | ContGenServicePort of ServicePort
 
-        member this.value = let (ContGenServicePort v) = this in v
-        static member defaultNetTcpValue = defaultContGenNetTcpServicePort |> ServicePort |> ContGenServicePort
-        static member defaultHttpValue = defaultContGenHttpServicePort |> ServicePort |> ContGenServicePort
+    //    member this.value = let (ContGenServicePort v) = this in v
+    //    static member defaultNetTcpValue = defaultContGenNetTcpServicePort |> ServicePort |> ContGenServicePort
+    //    static member defaultHttpValue = defaultContGenHttpServicePort |> ServicePort |> ContGenServicePort
 
 
     type ContGenServiceName =
         | ContGenServiceName of ServiceName
 
         member this.value = let (ContGenServiceName v) = this in v
-
-
-    let contGenNetTcpServiceName = "ContGenNetTcpService" |> ServiceName |> ContGenServiceName
-    let contGenHttpServiceName = "ContGenHttpService" |> ServiceName |> ContGenServiceName
+        static member httpServiceName = "ContGenHttpService" |> ServiceName |> ContGenServiceName
+        static member netTcpServiceName = "ContGenNetTcpService" |> ServiceName |> ContGenServiceName
 
 
     type MinUsefulEe =

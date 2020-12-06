@@ -47,17 +47,19 @@ module MessagingData =
             messagingSvcInfo : MessagingServiceAccessInfo
         }
 
-        //member w.isValid() =
-        //    let r =
-        //        [
-        //            w.messagingSvcInfo.messagingServiceAccessInfo.serviceAddress.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAccessInfo.serviceAddress
-        //            w.messagingSvcInfo.messagingServiceAccessInfo.servicePort.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
-        //        ]
-        //        |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
+        member w.isValid() =
+            let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
 
-        //    match r with
-        //    | true, _ -> Ok()
-        //    | false, s -> s |> InvalidSettings |> MsgSettingsErr |> MessagingServiceErr |> Error
+            let r =
+                [
+                    h.httpServiceAddress.value <> EmptyString, sprintf "%A is invalid" h.httpServiceAddress
+                    h.httpServicePort.value > 0, sprintf "%A is invalid" h.httpServicePort.value
+                ]
+                |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
+
+            match r with
+            | true, _ -> Ok()
+            | false, s -> s |> InvalidSettings |> MsgSettingsErr |> MessagingServiceErr |> Error
 
 
     /// Currently they are the same but this may change.

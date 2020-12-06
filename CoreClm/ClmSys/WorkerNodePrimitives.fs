@@ -35,6 +35,7 @@ module WorkerNodePrimitives =
 
     let workerNodeNetTcpServiceName = "WorkerNodeNetTcpService" |> ServiceName |> WorkerNodeServiceName
     let workerNodeHttpServiceName = "WorkerNodeHttpService" |> ServiceName |> WorkerNodeServiceName
+    let workerNodeServiceName = workerNodeNetTcpServiceName
 
 
     type WorkerNodeId =

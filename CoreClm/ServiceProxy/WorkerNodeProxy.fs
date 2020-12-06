@@ -1,5 +1,7 @@
 ﻿namespace ServiceProxy
 
+open Softellect.Messaging.Primitives
+
 open NoSql.FileSystemTypes
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.GeneralPrimitives
@@ -38,7 +40,7 @@ module WorkerNodeProxy =
         }
 
         static member create (i : WorkerNodeProxyData) =
-            let name = workerNodeServiceName.value.messagingClientName
+            let name = MessagingClientName workerNodeServiceName.value.value
 
             {
                 saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name

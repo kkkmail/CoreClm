@@ -26,6 +26,7 @@ open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
 open Clm.ModelParams
+open ClmSys.MessagingPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.MessagingPrimitives
@@ -395,9 +396,12 @@ module ServiceInfo =
         member w.trySaveSettings() =
             match w.isValid() with
             | Ok() ->
+                let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
+                let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
                 try
-                    MsgAppSettings.MsgSvcAddress <- w.messagingSvcInfo.messagingServiceAddress.value.value
-                    MsgAppSettings.MsgSvcPort <- w.messagingSvcInfo.messagingServicePort.value.value
+                    MsgAppSettings.MessagingServiceAddress <- h.httpServiceAddress.value
+                    MsgAppSettings.MessagingHttpServicePort <- h.httpServicePort.value
+                    MsgAppSettings.MessagingNetTcpServicePort <- n.netTcpServicePort.value
                     MsgAppSettings.ExpirationTimeInMinutes <- int w.messagingInfo.expirationTime.TotalMinutes
 
                     Ok()
@@ -409,26 +413,36 @@ module ServiceInfo =
     let loadMsgServiceSettings() =
         MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
 
+        let messagingServiceAddress =
+            match MsgAppSettings.MessagingServiceAddress with
+            | EmptyString -> defaultMessagingServiceAddress
+            | s -> s
+            |> ServiceAddress
+
+        let messagingHttpServicePort =
+            match MsgAppSettings.MessagingHttpServicePort with
+            | n  when n > 0 -> n
+            | _ -> defaultMessagingHttpServicePort
+            |> ServicePort
+
+        let messagingNetTcpServicePort =
+            match MsgAppSettings.MessagingNetTcpServicePort with
+            | n  when n > 0 -> n
+            | _ -> defaultMessagingNetTcpServicePort
+            |> ServicePort
+
+        let httpServiceInfo = HttpServiceAccessInfo.create messagingServiceAddress messagingHttpServicePort messagingHttpServiceName.value
+        let netTcpServiceInfo = NetTcpServiceAccessInfo.create messagingServiceAddress messagingNetTcpServicePort messagingNetTcpServiceName.value
+        let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
+        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
+
         {
             messagingInfo =
                 {
                     expirationTime = TimeSpan.FromMinutes(float MsgAppSettings.ExpirationTimeInMinutes)
                 }
 
-            messagingSvcInfo =
-                {
-                    messagingServiceAddress =
-                        match MsgAppSettings.MsgSvcAddress with
-                        | EmptyString -> MessagingServiceAddress.defaultValue
-                        | s -> s |> ServiceAddress |> MessagingServiceAddress
-
-                    messagingServicePort =
-                        match MsgAppSettings.MsgSvcPort with
-                        | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
-                        | _ -> MessagingServicePort.defaultValue
-
-                    messagingServiceName = messagingServiceName
-                }
+            messagingSvcInfo = messagingSvcInfo
         }
 
 
