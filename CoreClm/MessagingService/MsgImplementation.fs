@@ -9,6 +9,7 @@ open Softellect.Wcf.Service
 open Softellect.Messaging.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
+open Softellect.Sys.WcfErrors
 open Softellect.Messaging.Client
 open Softellect.Messaging.Proxy
 
@@ -28,9 +29,7 @@ module ServiceImplementation =
     let mutable serviceSettings = getServiceSettings []
 
 
-    let private tryCreateMessagingData logger (i : MsgSettings) =
-        let serviceProxy = createMessagingServiceProxy getMsgSvcConnectionString
-
+    let tryCreateMessagingServiceData logger (i : MsgSettings) : Result<MessagingWcfServiceData, WcfError> =
         let serviceData : MessagingServiceData =
             {
                 messagingServiceInfo =
@@ -39,12 +38,27 @@ module ServiceImplementation =
                         messagingDataVersion = messagingDataVersion
                     }
 
-                messagingServiceProxy = serviceProxy
+                messagingServiceProxy = createMessagingServiceProxy getMsgSvcConnectionString
                 communicationType = i.communicationType
             }
 
         let msgServiceDataRes = tryGetMsgServiceData i.messagingSvcInfo.messagingServiceAccessInfo logger serviceData
         msgServiceDataRes
+
+
+    let tryRunMessagingService dr =
+        match dr with
+        | Ok data ->
+            match MessagingWcfServiceImpl.tryGetService data with
+            | Ok host ->
+                match host.run() with
+                | Ok() -> Ok host
+                | Error e -> Error e
+            | Error e -> Error e
+        | Error e -> Error e
+
+
+    //let messagingServiceData = Lazy<Result<MessagingWcfServiceData, WcfError>>(fun () -> tryCreateMessagingServiceData (failwith "") serviceSettings)
 
 
     //let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> createMessagingService Logger.log4net serviceAccessInfo |> Ok)

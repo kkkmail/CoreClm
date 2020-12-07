@@ -39,6 +39,8 @@
     <PackageReference Include="FSharp.Configuration" Version="1.5.0" />
     <PackageReference Include="FSharp.Data" Version="3.3.3" />
     <PackageReference Include="log4net" Version="2.0.12" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="5.0.0" />
     <PackageReference Include="Softellect.Messaging" Version="0.0.1-alpha.109" />
     <PackageReference Include="Softellect.Sys" Version="0.0.1-alpha.109" />
     <PackageReference Include="Softellect.Wcf" Version="0.0.1-alpha.109" />

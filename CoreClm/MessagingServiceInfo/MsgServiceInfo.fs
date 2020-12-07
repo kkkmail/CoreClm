@@ -8,6 +8,7 @@ open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.Logging
+open Softellect.Sys.WcfErrors
 open Softellect.Sys.MessagingErrors
 open Softellect.Wcf.Common
 open Softellect.Wcf.Service
@@ -227,6 +228,10 @@ module ServiceInfo =
     type MessagingClient = MessagingClient<ClmMessageData, ClmError>
     type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
     type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
+    //type MessagingWcfServiceData = WcfServiceData<MessagingServiceData, WcfError>
+    type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData, ClmError>>
+    //type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData, ClmError>, WcfError>
+    //: Result<WcfServiceData<MessagingServiceData<ClmMessageData, ClmError>>, WcfError>
     type Message = Message<ClmMessageData>
     type MessageInfo = MessageInfo<ClmMessageData>
     type MessagingService = MessagingService<ClmMessageData, ClmError>

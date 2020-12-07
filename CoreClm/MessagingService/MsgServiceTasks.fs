@@ -20,10 +20,10 @@ module ServiceTasks =
             |> List.choose id
 
 
-    let runService l (_ : list<MessagingConfigParam>, i) = startMsgWcfServiceRun l i
+    let runService l (_ : list<MessagingConfigParam>, i) = tryStartMsgWcfServiceRun l i
 
 
-    let serviceInfo : ServiceInfo<(list<MessagingConfigParam> * MessagingServiceInfo), MsgWcfSvcShutDownInfo> =
+    let serviceInfo : ServiceInfo<(list<MessagingConfigParam> * MsgSettings), MsgWcfSvcShutDownInfo> =
         {
             serviceName = messagingServiceName.value
             runService = runService
@@ -33,6 +33,6 @@ module ServiceTasks =
         }
 
 
-    let getParams p = MessagingConfigParam.fromParseResults p, getServiceAccessInfo (p.GetAllResults())
+    let getParams p = MessagingConfigParam.fromParseResults p, getServiceSettings (p.GetAllResults())
     let getSaveSettings (p : ParseResults<MessagingServiceRunArgs>) () = p.GetAllResults() |> saveSettings
-    type MessagingServiceTask = ServiceTask<MessagingWindowsService, (list<MessagingConfigParam> * MessagingServiceInfo), MessagingServiceRunArgs>
+    type MessagingServiceTask = ServiceTask<MessagingWindowsService, (list<MessagingConfigParam> * MsgSettings), MessagingServiceRunArgs>
