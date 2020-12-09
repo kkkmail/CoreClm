@@ -8,7 +8,7 @@ open Argu
 open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open MessagingService.ServiceTasks
-open MessagingService.MsgWindowsService
+//open MessagingService.MsgWindowsService
 open ClmSys.ExitErrorCodes
 
 module Program =
@@ -30,14 +30,31 @@ module Program =
     //        printfn "%s" exn.Message
     //        UnknownException
 
-    let createHostBuilder args =
-        Host.CreateDefaultBuilder(args)
+    let createHostBuilder() =
+        Host.CreateDefaultBuilder()
             .UseWindowsService()
             .ConfigureServices(fun hostContext services -> services.AddHostedService<MsgWorker>() |> ignore)
 
 
     [<EntryPoint>]
-    let main args =
-        createHostBuilder(args).Build().Run()
+    let main argv =
+        let runHost() = createHostBuilder().Build().Run()
 
-        0
+        try
+            let parser = ArgumentParser.Create<MsgSvcArguArgs>(programName = messagingProgramName)
+            let results = (parser.Parse argv).GetAllResults() |> MsgSvcArgs.fromArgu convertArgs
+
+            let run p =
+                getParams p |> ignore
+                runHost
+
+            match MessagingServiceTask.tryCreate run getSaveSettings results with
+            | Some task -> task.run()
+            | None ->  runHost()
+
+            CompletedSuccessfully
+
+        with
+        | exn ->
+            printfn "%s" exn.Message
+            UnknownException

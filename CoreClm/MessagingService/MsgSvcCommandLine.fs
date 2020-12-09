@@ -2,7 +2,7 @@
 
 open Argu
 
-open Softellect.Sys.ServiceInstaller
+open ClmSys.ClmWorker
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
@@ -43,18 +43,14 @@ module SvcCommandLine =
                 match this with
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
-                | MsgSaveSettings -> "saves settings to the Registry."
+                | MsgSaveSettings -> "saves settings to the config file."
 
 
-    type MsgSvcArgs = SvcArguments<MessagingServiceRunArgs>
+    type MsgSvcArgs = WorkerArguments<MessagingServiceRunArgs>
 
     and
         [<CliPrefix(CliPrefix.None)>]
         MsgSvcArguArgs =
-        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
-        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-        | [<Unique>] [<First>] Start
-        | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<MessagingServiceRunArgs>
         | [<Unique>] [<First>] [<AltCommandLine("s")>] Save of ParseResults<MessagingServiceRunArgs>
 
@@ -62,20 +58,12 @@ module SvcCommandLine =
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
-                | Install -> "install messaging service."
-                | Uninstall -> "uninstall messaging service."
-                | Start _ -> "start messaging service."
-                | Stop -> "stop messaging service."
                 | Run _ -> "run messaging service from command line without installing."
-                | Save _ -> "save parameters into the registry."
+                | Save _ -> "save parameters into the config file."
 
 
     let convertArgs s =
         match s with
-        | Install -> MsgSvcArgs.Install
-        | Uninstall -> MsgSvcArgs.Uninstall
-        | Start -> MsgSvcArgs.Start
-        | Stop -> MsgSvcArgs.Stop
         | Run a -> MsgSvcArgs.Run a
         | Save a -> MsgSvcArgs.Save a
 

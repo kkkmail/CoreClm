@@ -22,8 +22,6 @@
   <ItemGroup>
     <Compile Include="MsgSvcCommandLine.fs" />
     <Compile Include="MsgImplementation.fs" />
-    <Compile Include="MsgWindowsService.fs" />
-    <Compile Include="MsgInstaller.fs" />
     <Compile Include="MsgServiceTasks.fs" />
     <Compile Include="MsgWorker.fs" />
     <Compile Include="MsgProgram.fs" />

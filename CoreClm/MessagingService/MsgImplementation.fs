@@ -29,7 +29,9 @@ module ServiceImplementation =
     let mutable serviceSettings = getServiceSettings []
 
 
-    let tryCreateMessagingServiceData logger (i : MsgSettings) : Result<MessagingWcfServiceData, WcfError> =
+    let tryCreateMessagingServiceData logger : Result<MessagingWcfServiceData, WcfError> =
+        let i = getServiceSettings []
+
         let serviceData : MessagingServiceData =
             {
                 messagingServiceInfo =
@@ -46,19 +48,19 @@ module ServiceImplementation =
         msgServiceDataRes
 
 
-    let tryRunMessagingService dr =
-        match dr with
-        | Ok data ->
-            match MessagingWcfServiceImpl.tryGetService data with
-            | Ok host ->
-                match host.run() with
-                | Ok() -> Ok host
-                | Error e -> Error e
-            | Error e -> Error e
-        | Error e -> Error e
+    //let tryRunMessagingService dr =
+    //    match dr with
+    //    | Ok data ->
+    //        match MessagingWcfServiceImpl.tryGetService data with
+    //        | Ok host ->
+    //            match host.run() with
+    //            | Ok() -> Ok host
+    //            | Error e -> Error e
+    //        | Error e -> Error e
+    //    | Error e -> Error e
 
 
-    //let messagingServiceData = Lazy<Result<MessagingWcfServiceData, WcfError>>(fun () -> tryCreateMessagingServiceData (failwith "") serviceSettings)
+    let messagingServiceData = Lazy<Result<MessagingWcfServiceData, WcfError>>(fun () -> tryCreateMessagingServiceData (failwith ""))
 
 
     //let private messagingService = new Lazy<ClmResult<MessagingService>>(fun () -> createMessagingService Logger.log4net serviceAccessInfo |> Ok)

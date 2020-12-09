@@ -33,6 +33,7 @@
     <Compile Include="WorkerNodeData.fs" />
     <Compile Include="ContGenData.fs" />
     <Compile Include="ContGenAdmData.fs" />
+    <Compile Include="ClmWorker.fs" />
   </ItemGroup>
 
   <ItemGroup>
