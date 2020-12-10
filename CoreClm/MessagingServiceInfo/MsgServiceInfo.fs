@@ -3,6 +3,7 @@
 open System
 open System.ServiceModel
 
+open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.MessagingPrimitives
@@ -327,23 +328,26 @@ module ServiceInfo =
         with
 
         member w.trySaveSettings() =
+            let toErr e = e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
+
             match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
             | Ok(), Ok provider ->
                 let mh = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
                 let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
                 try
-                    provider.trySet messagingServiceAddress mn.netTcpServiceAddress.value |> ignore
+                    let r = provider.trySet messagingServiceAddress mn.netTcpServiceAddress.value
+                    printfn "r = %A" r
                     provider.trySet messagingHttpServicePort mh.httpServicePort.value |> ignore
                     provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
                     provider.trySet messagingServiceCommunicationType w.communicationType.value |> ignore
 
                     provider.trySet expirationTimeInMinutes (int w.messagingInfo.expirationTime.TotalMinutes) |> ignore
 
-                    Ok()
+                    provider.trySave() |> Rop.bindError toErr
                 with
-                | e -> e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
+                | e -> toErr e
             | Error e, _ -> Error e
-            | _, Error e -> e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
+            | _, Error e -> toErr e
 
 
     let loadMsgServiceSettings() =
@@ -400,16 +404,19 @@ module ServiceInfo =
                 | _ -> NetTcpCommunication
             | _ -> NetTcpCommunication
 
-        {
-            messagingInfo =
-                {
-                    expirationTime = expirationTimeInMinutes
-                    messagingDataVersion = messagingDataVersion
-                }
+        let w =
+            {
+                messagingInfo =
+                    {
+                        expirationTime = expirationTimeInMinutes
+                        messagingDataVersion = messagingDataVersion
+                    }
 
-            messagingSvcInfo = messagingSvcInfo
-            communicationType = messagingServiceCommunicationType
-        }
+                messagingSvcInfo = messagingSvcInfo
+                communicationType = messagingServiceCommunicationType
+            }
+
+        w
 
 
     let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =

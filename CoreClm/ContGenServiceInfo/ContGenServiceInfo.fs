@@ -4,6 +4,7 @@ open System
 open System.ServiceModel
 open System.Threading
 
+open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.AppSettings
@@ -133,6 +134,8 @@ module ServiceInfo =
         with
 
         member w.trySaveSettings() =
+            let toErr e = e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
+
             match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
             | Ok(), Ok provider ->
                 let h = w.contGenSvcInfo.value.httpServiceInfo
@@ -156,11 +159,11 @@ module ServiceInfo =
                     provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
                     provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
 
-                    Ok()
+                    provider.trySave() |> Rop.bindError toErr
                 with
-                | e -> e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
+                | e -> toErr e
             | Error e, _ -> Error e
-            | _, Error e -> e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
+            | _, Error e -> toErr e
 
 
     let loadContGenSettings() =

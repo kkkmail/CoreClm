@@ -25,8 +25,9 @@
     <Compile Include="MsgServiceTasks.fs" />
     <Compile Include="MsgWorker.fs" />
     <Compile Include="MsgProgram.fs" />
-    <None Include="app.config" />
-    <None Include="db.config" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

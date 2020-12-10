@@ -11,6 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj" />
     <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj" />
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
