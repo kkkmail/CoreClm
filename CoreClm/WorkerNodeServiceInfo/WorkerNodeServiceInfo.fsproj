@@ -15,4 +15,8 @@
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="WorkerNodeServiceInfo.fs" />
+  </ItemGroup>
+
 </Project>

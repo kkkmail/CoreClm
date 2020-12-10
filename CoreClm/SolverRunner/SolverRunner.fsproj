@@ -22,4 +22,8 @@
     <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="SolverRunnerTasks.fs" />
+  </ItemGroup>
+
 </Project>

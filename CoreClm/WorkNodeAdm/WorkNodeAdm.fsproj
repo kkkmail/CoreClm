@@ -18,4 +18,10 @@
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="WorkerNodeAdmCommandLine.fs" />
+    <Compile Include="WorkerNodeAdmTasks.fs" />
+    <Compile Include="WorkerNodeAdmProgram.fs" />
+  </ItemGroup>
+
 </Project>

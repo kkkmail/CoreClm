@@ -14,6 +14,11 @@
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Compile Include="ContGenCommandLine.fs" />
+    <Compile Include="ContGenWindowsService.fs" />
+    <Compile Include="ContGenInstaller.fs" />
+    <Compile Include="ContGenServiceTasks.fs" />
+    <Compile Include="ContGenProgram.fs" />
   </ItemGroup>
 
   <ItemGroup>

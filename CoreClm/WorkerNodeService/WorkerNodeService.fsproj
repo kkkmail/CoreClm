@@ -22,4 +22,13 @@
     <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="WorkerNodeCommandLine.fs" />
+    <Compile Include="WorkerNodeImplementation.fs" />
+    <Compile Include="WorkerNodeWindowsService.fs" />
+    <Compile Include="WorkerNodeInstaller.fs" />
+    <Compile Include="WorkerNodeServiceTasks.fs" />
+    <Compile Include="WorkerNodeProgram.fs" />
+  </ItemGroup>
+
 </Project>

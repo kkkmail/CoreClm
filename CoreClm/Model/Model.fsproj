@@ -15,4 +15,8 @@
     <ProjectReference Include="..\DbData\DbData.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="ModelData.fs" />
+  </ItemGroup>
+
 </Project>

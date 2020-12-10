@@ -9,4 +9,9 @@
     <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="ChartExt.fs" />
+    <Compile Include="Visualization.fs" />
+  </ItemGroup>
+
 </Project>
