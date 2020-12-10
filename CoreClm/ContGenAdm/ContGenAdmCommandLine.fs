@@ -232,30 +232,9 @@ module AdmCommandLine =
                     contGenInfo = contGenInfo
                     contGenSvcInfo = contGenSvcInfo
             }
-            //{
-            //    contGenSvcInfo =
-            //        {
-            //            contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
-            //            contGenServicePort = tryGetContGenServicePort p |> Option.defaultValue w.contGenSvcInfo.contGenServicePort
-            //            contGenServiceName = w.contGenSvcInfo.contGenServiceName
-            //        }
-
-            //    messagingSvcInfo = w.messagingSvcInfo
-
-            //    contGenInfo =
-            //        {
-            //            minUsefulEe = w.contGenInfo.minUsefulEe
-            //            partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
-            //            lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
-            //            earlyExitCheckFreq = w.contGenInfo.earlyExitCheckFreq
-            //        }
-            //}
 
         printfn "loadSettings: w1 = %A" w1
         w1
-
-
-    //let getContGenServiceAccessInfo p = (loadSettings p).contGenSvcInfo
 
 
     let getCancellationTypeOpt p =

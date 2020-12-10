@@ -2,7 +2,6 @@
 
 open System
 open System.ServiceModel
-open FSharp.Configuration
 
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
@@ -10,6 +9,7 @@ open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.Logging
 open Softellect.Sys.WcfErrors
 open Softellect.Sys.MessagingErrors
+open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
 open Softellect.Wcf.Service
 open Softellect.Messaging.Primitives
@@ -200,30 +200,6 @@ module ServiceInfo =
             | PartitionerMsg m -> m.messageSize
             | WorkerNodeMsg m -> m.messageSize
 
-//        member this.keepInMemory() =
-//            match this.getMessageSize() with
-//            | SmallSize -> true
-//            | MediumSize -> false
-//            | LargeSize -> false
-
-//        member this.getInfo() =
-//            let s = (sprintf "%A" this)
-//            s.Substring(0, min s.Length MessageData.maxInfoLength)
-
-
-//    type MessageRecipientInfo =
-//        {
-//            recipient : MessagingClientId
-//            deliveryType : MessageDeliveryType
-//        }
-//
-//
-//    type MessageInfo =
-//        {
-//            recipientInfo : MessageRecipientInfo
-//            messageData : MessageData
-//        }
-
 
     type MessagingClient = MessagingClient<ClmMessageData, ClmError>
     type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
@@ -273,29 +249,6 @@ module ServiceInfo =
                     }
                 messageData = this.messageData |> WorkerNodeMsg |> UserMsg
             }
-
-
-    //type MessageType =
-    //    | IncomingMessage
-    //    | OutgoingMessage
-
-
-    ///// TODO kk:20190930 - The name is not good.
-    //type MessageDataInfo =
-    //    {
-    //        messageId : MessageId
-    //        dataVersion : MessagingDataVersion
-    //        sender : MessagingClientId
-    //        recipientInfo : MessageRecipientInfo
-    //        createdOn : DateTime
-    //    }
-
-
-    //type Message =
-    //    {
-    //        messageDataInfo : MessageDataInfo
-    //        messageData : MessageData
-    //    }
 
 
     type MessageWithOptionalData =
@@ -362,79 +315,65 @@ module ServiceInfo =
             | None -> Ok None
 
 
-//    type IMessagingService =
-//        abstract getVersion : unit -> ClmResult<MessagingDataVersion>
-//        abstract sendMessage : Message -> UnitResult
-//        abstract tryPeekMessage : MessagingClientId -> ClmResult<Message option>
-//        abstract tryDeleteFromServer : (MessagingClientId * MessageId) -> UnitResult
-//
-//
-//    /// https://gist.github.com/dgfitch/661656
-//    [<ServiceContract(ConfigurationName = MessagingWcfServiceName)>]
-//    type IMessagingWcfService =
-//
-//        [<OperationContract(Name = "getVersion")>]
-//        abstract getVersion : u:byte[] -> byte[]
-//
-//        [<OperationContract(Name = "sendMessage")>]
-//        abstract sendMessage : m:byte[] -> byte[]
-//
-//        [<OperationContract(Name = "tryPeekMessage")>]
-//        abstract tryPeekMessage : c:byte[] -> byte[]
-//
-//        [<OperationContract(Name = "tryDeleteFromServer")>]
-//        abstract tryDeleteFromServer : cm:byte[] -> byte[]
-//
-//
-//    type WcfCommunicator = (IMessagingWcfService-> byte[] -> byte[])
-
-
-    [<Literal>]
-    let MsgAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\MessagingService\app.config"
-
-
-    type MsgAppSettings = AppSettings<MsgAppConfigFile>
+    // TODO kk:20201209 - Duplicate...
+    let messagingServiceAddress = ConfigKey "MessagingServiceAddress"
+    let messagingHttpServicePort = ConfigKey "MessagingHttpServicePort"
+    let messagingNetTcpServicePort = ConfigKey "MessagingNetTcpServicePort"
+    let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
+    let expirationTimeInMinutes = ConfigKey "ExpirationTimeInMinutes"
 
 
     type MsgSettings
         with
-        member w.trySaveSettings() =
-            match w.isValid() with
-            | Ok() ->
-                let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
-                let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
-                try
-                    MsgAppSettings.MessagingServiceAddress <- n.netTcpServiceAddress.value
-                    MsgAppSettings.MessagingHttpServicePort <- h.httpServicePort.value
-                    MsgAppSettings.MessagingNetTcpServicePort <- n.netTcpServicePort.value
-                    MsgAppSettings.MessagingServiceCommunicationType <- w.communicationType.value
 
-                    MsgAppSettings.ExpirationTimeInMinutes <- int w.messagingInfo.expirationTime.TotalMinutes
+        member w.trySaveSettings() =
+            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
+            | Ok(), Ok provider ->
+                let mh = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
+                let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
+                try
+                    provider.trySet messagingServiceAddress mn.netTcpServiceAddress.value |> ignore
+                    provider.trySet messagingHttpServicePort mh.httpServicePort.value |> ignore
+                    provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
+                    provider.trySet messagingServiceCommunicationType w.communicationType.value |> ignore
+
+                    provider.trySet expirationTimeInMinutes (int w.messagingInfo.expirationTime.TotalMinutes) |> ignore
 
                     Ok()
                 with
                 | e -> e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
-            | Error e -> Error e
+            | Error e, _ -> Error e
+            | _, Error e -> e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
 
 
     let loadMsgServiceSettings() =
-        MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
+        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
 
         let messagingServiceAddress =
-            match MsgAppSettings.MessagingServiceAddress with
-            | EmptyString -> defaultMessagingServiceAddress
-            | s -> s
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetString messagingServiceAddress with
+                | Ok (Some EmptyString) -> defaultMessagingServiceAddress
+                | Ok (Some s) -> s
+                | _ -> defaultMessagingServiceAddress
+            | _ -> defaultMessagingServiceAddress
             |> ServiceAddress
 
         let messagingHttpServicePort =
-            match MsgAppSettings.MessagingHttpServicePort with
-            | n  when n > 0 -> n
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetInt messagingHttpServicePort with
+                | Ok (Some n) when n > 0 -> n
+                | _ -> defaultMessagingHttpServicePort
             | _ -> defaultMessagingHttpServicePort
             |> ServicePort
 
         let messagingNetTcpServicePort =
-            match MsgAppSettings.MessagingNetTcpServicePort with
-            | n  when n > 0 -> n
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetInt messagingNetTcpServicePort with
+                | Ok (Some n) when n > 0 -> n
+                | _ -> defaultMessagingNetTcpServicePort
             | _ -> defaultMessagingNetTcpServicePort
             |> ServicePort
 
@@ -444,9 +383,22 @@ module ServiceInfo =
         let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
 
         let expirationTimeInMinutes =
-            match MsgAppSettings.ExpirationTimeInMinutes with
-            | n  when n > 0 -> TimeSpan.FromMinutes(float n)
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetInt expirationTimeInMinutes with
+                | Ok (Some n) when n > 0 -> TimeSpan.FromMinutes(float n)
+                | _ -> MessagingServiceInfo.defaultExpirationTime
             | _ -> MessagingServiceInfo.defaultExpirationTime
+
+        let getCommunicationType s = WcfCommunicationType.tryCreate s |> Option.defaultValue NetTcpCommunication
+
+        let messagingServiceCommunicationType =
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetString messagingServiceCommunicationType with
+                | Ok (Some s) -> getCommunicationType s
+                | _ -> NetTcpCommunication
+            | _ -> NetTcpCommunication
 
         {
             messagingInfo =
@@ -456,7 +408,7 @@ module ServiceInfo =
                 }
 
             messagingSvcInfo = messagingSvcInfo
-            communicationType = WcfCommunicationType.tryCreate  MsgAppSettings.MessagingServiceCommunicationType |> Option.defaultValue NetTcpCommunication
+            communicationType = messagingServiceCommunicationType
         }
 
 

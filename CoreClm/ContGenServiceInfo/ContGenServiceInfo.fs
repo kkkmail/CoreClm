@@ -3,10 +3,10 @@
 open System
 open System.ServiceModel
 open System.Threading
-open FSharp.Configuration
 
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
 open Softellect.Messaging.Primitives
 open Softellect.Sys.Core
@@ -112,18 +112,29 @@ module ServiceInfo =
         abstract tryRequestResults : q:byte[] -> byte[]
 
 
-    [<Literal>]
-    let ContGenAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\ContGenService\app.config"
+    let contGenServiceAddress = ConfigKey "ContGenServiceAddress"
+    let contGenServiceHttpPort = ConfigKey "ContGenServiceHttpPort"
+    let contGenServiceNetTcpPort = ConfigKey "ContGenServiceNetTcpPort"
+    let contGenServiceCommunicationType = ConfigKey "ContGenServiceCommunicationType"
 
+    // TODO kk:20201209 - Duplicate...
+    let messagingServiceAddress = ConfigKey "MessagingServiceAddress"
+    let messagingHttpServicePort = ConfigKey "MessagingHttpServicePort"
+    let messagingNetTcpServicePort = ConfigKey "MessagingNetTcpServicePort"
+    let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
 
-    type ContGenAppSettings = AppSettings<ContGenAppConfigFile>
+    let minUsefulEe = ConfigKey "MinUsefulEe"
+    let partitionerId = ConfigKey "PartitionerId"
+    let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
+    let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
 
 
     type ContGenSettings
         with
+
         member w.trySaveSettings() =
-            match w.isValid() with
-            | Ok() ->
+            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
+            | Ok(), Ok provider ->
                 let h = w.contGenSvcInfo.value.httpServiceInfo
                 let n = w.contGenSvcInfo.value.netTcpServiceInfo
 
@@ -131,87 +142,135 @@ module ServiceInfo =
                 let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
 
                 try
-                    ContGenAppSettings.ContGenServiceAddress <- n.netTcpServiceAddress.value
-                    ContGenAppSettings.ContGenServiceHttpPort <- h.httpServicePort.value
-                    ContGenAppSettings.ContGenServiceNetTcpPort <- n.netTcpServicePort.value
-                    ContGenAppSettings.ContGenServiceCommunicationType <- w.contGenCommType.value
+                    provider.trySet contGenServiceAddress n.netTcpServiceAddress.value |> ignore
+                    provider.trySet contGenServiceHttpPort h.httpServicePort.value |> ignore
+                    provider.trySet contGenServiceNetTcpPort n.netTcpServicePort.value |> ignore
+                    provider.trySet contGenServiceCommunicationType w.contGenCommType.value |> ignore
 
-                    ContGenAppSettings.MessagingServiceAddress <- mn.netTcpServiceAddress.value
-                    ContGenAppSettings.MessagingHttpServicePort <- mh.httpServicePort.value
-                    ContGenAppSettings.MessagingNetTcpServicePort <- mn.netTcpServicePort.value
-                    ContGenAppSettings.MessagingServiceCommunicationType <- w.messagingCommType.value
+                    provider.trySet messagingServiceAddress mn.netTcpServiceAddress.value |> ignore
+                    provider.trySet messagingHttpServicePort mh.httpServicePort.value |> ignore
+                    provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
+                    provider.trySet messagingServiceCommunicationType w.messagingCommType.value |> ignore
 
-                    ContGenAppSettings.MinUsefulEe <- w.contGenInfo.minUsefulEe.value
-                    ContGenAppSettings.PartitionerId <- w.contGenInfo.partitionerId.value.value
-                    ContGenAppSettings.LastAllowedNodeErrInMinutes <- w.contGenInfo.lastAllowedNodeErr.value / 1<minute>
+                    provider.trySet minUsefulEe w.contGenInfo.minUsefulEe.value |> ignore
+                    provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
+                    provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
 
                     Ok()
                 with
                 | e -> e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
-            | Error e -> Error e
+            | Error e, _ -> Error e
+            | _, Error e -> e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
 
 
     let loadContGenSettings() =
-        ContGenAppSettings.SelectExecutableFile(getFileName contGenServiceProgramName)
+        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
 
         let contGenInfo =
-            {
-                minUsefulEe = ContGenAppSettings.MinUsefulEe |> MinUsefulEe
+            match providerRes with
+            | Ok provider ->
+                {
+                    minUsefulEe =
+                        match provider.tryGetDecimal minUsefulEe with
+                        | Ok (Some ee) -> ee |> double |> MinUsefulEe
+                        | _ -> MinUsefulEe.defaultValue
 
-                partitionerId =
-                    match ContGenAppSettings.PartitionerId with
-                    | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
-                    | _ -> defaultPartitionerId
+                    partitionerId =
+                        match provider.tryGetGuid partitionerId with
+                        | Ok (Some p) when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
+                        | _ -> defaultPartitionerId
 
-                lastAllowedNodeErr =
-                    match ContGenAppSettings.LastAllowedNodeErrInMinutes with
-                    | p when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
-                    | _ -> LastAllowedNodeErr.defaultValue
+                    lastAllowedNodeErr =
+                        match provider.tryGetInt lastAllowedNodeErrInMinutes with
+                        | Ok (Some p) when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
+                        | _ -> LastAllowedNodeErr.defaultValue
 
-                earlyExitCheckFreq =
-                    match ContGenAppSettings.EarlyExitCheckFrequencyInMinutes with
-                    | p when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
-                    | _ -> EarlyExitCheckFreq.defaultValue
-            }
+                    earlyExitCheckFreq =
+                        match provider.tryGetInt earlyExitCheckFrequencyInMinutes with
+                        | Ok (Some p) when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
+                        | _ -> EarlyExitCheckFreq.defaultValue
+                }
+            | _ ->
+                {
+                    minUsefulEe = MinUsefulEe.defaultValue
+                    partitionerId = defaultPartitionerId
+                    lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
+                    earlyExitCheckFreq = EarlyExitCheckFreq.defaultValue
+                }
 
         let contGenServiceAddress =
-            match ContGenAppSettings.ContGenServiceAddress with
-            | EmptyString -> defaultContGenServiceAddress
-            | s -> s
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetString contGenServiceAddress with
+                | Ok (Some EmptyString) -> defaultContGenServiceAddress
+                | Ok (Some s) -> s
+                | _ -> defaultContGenServiceAddress
+            | _ -> defaultContGenServiceAddress
             |> ServiceAddress
 
         let contGenServiceHttpPort =
-            match ContGenAppSettings.ContGenServiceHttpPort with
-            | n when n > 0 -> n
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetInt contGenServiceHttpPort with
+                | Ok (Some n) when n > 0 -> n
+                | _ -> defaultContGenHttpServicePort
             | _ -> defaultContGenHttpServicePort
             |> ServicePort
 
         let contGenServiceNetTcpPort =
-            match ContGenAppSettings.ContGenServiceNetTcpPort with
-            | n when n > 0 -> n
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetInt contGenServiceNetTcpPort with
+                | Ok (Some n) when n > 0 -> n
+                | _ -> defaultContGenNetTcpServicePort
             | _ -> defaultContGenNetTcpServicePort
             |> ServicePort
 
         let getCommunicationType s = WcfCommunicationType.tryCreate s |> Option.defaultValue NetTcpCommunication
-        let contGenServiceCommunicationType = getCommunicationType ContGenAppSettings.ContGenServiceCommunicationType 
+
+        let contGenServiceCommunicationType =
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetString contGenServiceCommunicationType with
+                | Ok (Some s) -> getCommunicationType s
+                | _ -> NetTcpCommunication
+            | _ -> NetTcpCommunication
+
         let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort
-        let messagingServiceCommunicationType = getCommunicationType ContGenAppSettings.MessagingServiceCommunicationType
+
+        let messagingServiceCommunicationType =
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetString messagingServiceCommunicationType with
+                | Ok (Some s) -> getCommunicationType s
+                | _ -> NetTcpCommunication
+            | _ -> NetTcpCommunication
 
         let serviceAddress =
-            match ContGenAppSettings.MessagingServiceAddress with
-            | EmptyString -> defaultMessagingServiceAddress
-            | s -> s
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetString messagingServiceAddress with
+                | Ok (Some EmptyString) -> defaultMessagingServiceAddress
+                | Ok (Some s) -> s
+                | _ -> defaultMessagingServiceAddress
+            | _ -> defaultMessagingServiceAddress
             |> ServiceAddress
 
         let httpServicePort =
-            match ContGenAppSettings.MessagingNetTcpServicePort with
-            | n  when n > 0 -> n
-            | _ -> defaultMessagingNetTcpServicePort
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetInt messagingHttpServicePort with
+                | Ok (Some n) when n > 0 -> n
+                | _ -> defaultMessagingHttpServicePort
+            | _ -> defaultMessagingHttpServicePort
             |> ServicePort
 
         let netTcpServicePort =
-            match ContGenAppSettings.MessagingNetTcpServicePort with
-            | n  when n > 0 -> n
+            match providerRes with
+            | Ok provider ->
+                match provider.tryGetInt messagingNetTcpServicePort with
+                | Ok (Some n) when n > 0 -> n
+                | _ -> defaultMessagingNetTcpServicePort
             | _ -> defaultMessagingNetTcpServicePort
             |> ServicePort
 
@@ -228,6 +287,7 @@ module ServiceInfo =
                 messagingSvcInfo = messagingSvcInfo
                 messagingCommType = messagingServiceCommunicationType
             }
+
         w
 
 

@@ -32,6 +32,9 @@ module GeneralData =
     let Nl = "\r\n"
 
 
+    let appSettingsFile = "appsettings.json"
+
+
     let getVersionImpl getter p =
         match getter p with
         | Some x -> x

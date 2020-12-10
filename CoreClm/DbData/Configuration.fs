@@ -4,6 +4,7 @@ open System
 open System.Data.SQLite
 open Softellect.Sys.Core
 open Softellect.Sys.Retry
+open Softellect.Sys.AppSettings
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralPrimitives
@@ -36,13 +37,22 @@ module Configuration =
     let ClmConnectionStringValue = "Server=localhost;Database=" + ClmDbName + ";Integrated Security=SSPI"
 
 
-    let private getClmConnectionStringImpl() =
-        ContGenAppSettings.SelectExecutableFile(getFileName contGenServiceProgramName)
+    let clmConnectioStringKey = ConfigKey "Clm"
+    let msgSvcConnectioStringKey = ConfigKey "MsgSvc"
 
-        match ContGenAppSettings.ConnectionStrings.Clm with
-        | EmptyString -> ClmConnectionStringValue
-        | s -> s
+
+    let private getConnectionString fileName connKey defaultValue =
+        match AppSettingsProvider.tryCreate fileName with
+        | Ok provider ->
+            match provider.tryGetConnectionString connKey with
+            | Ok (Some EmptyString) -> defaultValue
+            | Ok (Some s) -> s
+            | _ -> defaultValue
+        | _ -> defaultValue
         |> ConnectionString
+
+
+    let private getClmConnectionStringImpl() = getConnectionString appSettingsFile clmConnectioStringKey ClmConnectionStringValue
 
 
     let private clmConnectionString = Lazy<ConnectionString>(getClmConnectionStringImpl)
@@ -65,13 +75,7 @@ module Configuration =
     let MsgSvcConnectionStringValue = "Server=localhost;Database=" + MsgSvcDbName + ";Integrated Security=SSPI"
 
 
-    let private getMsgSvcConnectionStringImpl() =
-        MsgAppSettings.SelectExecutableFile(getFileName messagingProgramName)
-
-        match MsgAppSettings.ConnectionStrings.MsgSvc with
-        | EmptyString -> MsgSvcConnectionStringValue
-        | s -> s
-        |> ConnectionString
+    let private getMsgSvcConnectionStringImpl() = getConnectionString appSettingsFile msgSvcConnectioStringKey MsgSvcConnectionStringValue
 
 
     let private msgSvcConnectionString = Lazy<ConnectionString>(getMsgSvcConnectionStringImpl)
