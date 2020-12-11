@@ -210,29 +210,23 @@ module ServiceInfo =
         new (i : WorkerNodeServiceAccessInfo) = WorkerNodeResponseHandler(i.wcfServiceUrl)
 
 
-    let workerNodeId = ConfigKey "WorkerNodeId"
     let workerNodeName = ConfigKey "WorkerNodeName"
-    let partitionerId = ConfigKey "PartitionerId"
+    let WorkerNodeServiceAddress = ConfigKey "WorkerNodeServiceAddress"
+    let WorkerNodeServiceHttpPort = ConfigKey "WorkerNodeServiceHttpPort"
+    let WorkerNodeServiceNetTcpPort = ConfigKey "WorkerNodeServiceNetTcpPort"
+    let workerNoWorkerNodeServiceCommunicationTypedeName = ConfigKey "WorkerNodeServiceCommunicationType"
+    let workerNodeName = ConfigKey "WorkerNodeName"
+    let workerNodeId = ConfigKey "WorkerNodeId"
+    
+    let messagingServiceAddress = ConfigKey "MessagingServiceAddress"
+    let messagingHttpServicePort = ConfigKey "MessagingHttpServicePort"
+    let messagingNetTcpServicePort = ConfigKey "MessagingNetTcpServicePort"
+    let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
+        
     let noOfCores = ConfigKey "NoOfCores"
-    let nodePriority = ConfigKey "NodePriority"
+    let partitionerId = ConfigKey "PartitionerId"
     let isInactive = ConfigKey "IsInactive"
-    
-    
-//    <add key="WorkerNodeServiceAddress" value=""/>
-//    <add key="WorkerNodeServiceHttpPort" value="0"/>
-//    <add key="WorkerNodeServiceNetTcpPort" value="0"/>
-//    <add key="WorkerNodeServiceCommunicationType" value="NetTcpCommunication"/>
-//    <add key="WorkerNodeName" value=""/>
-//    <add key="WorkerNodeId" value="{00000000-0000-0000-0000-000000000000}" />
-//    <add key="NoOfCores" value="0"/>
-//    <add key="MessagingServiceAddress" value="localhost"/>
-//    <add key="MessagingHttpServicePort" value="0"/>
-//    <add key="MessagingNetTcpServicePort" value="0"/>
-//    <add key="MessagingServiceCommunicationType" value="NetTcpCommunication"/>
-//    <add key="PartitionerId" value="{00000000-0000-0000-0000-000000000000}"/>
-//    <add key="IsInactive" value="False"/>
-//    <add key="NodePriority" value="100"/>
-    
+    let nodePriority = ConfigKey "NodePriority"
     
 
     let loadWorkerNodeSettings() =
