@@ -3,7 +3,7 @@
 open System
 open Xunit
 open Xunit.Abstractions
-open Should
+open FluentAssertions
 open DbData.DatabaseTypes
 open DbData.Configuration
 open Clm.Model.ModelData
@@ -74,7 +74,7 @@ type ModelTests(output : ITestOutputHelper) =
                     |> List.map (fun (i, (a, b, c)) -> writeLine (sprintf "i = %A, s = %A, cg = %A, md = %A, diff = %A" i (allSubst.[i]) a b c))
                     |> ignore
 
-                diffUpdate.ShouldBeLessThan eps
+                diffUpdate.Should().BeLessThan(eps, "")
                 md
             | Error e ->
                 writeLine (sprintf "Failed to load model data with error: %A." e)

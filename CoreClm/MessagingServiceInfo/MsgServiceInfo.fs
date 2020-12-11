@@ -271,11 +271,11 @@ module ServiceInfo =
         | DummyConfig
 
 
-    type MsgWcfSvcShutDownInfo =
-        {
-            //serviceHost : ServiceHost
-            serviceHost : int
-        }
+//    type MsgWcfSvcShutDownInfo =
+//        {
+//            //serviceHost : ServiceHost
+//            serviceHost : int
+//        }
 
 
     type RunQueue

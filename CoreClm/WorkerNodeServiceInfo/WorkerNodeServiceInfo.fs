@@ -2,7 +2,26 @@
 
 open System
 open System.Threading
-open FSharp.Configuration
+
+open Softellect.Sys
+open Softellect.Sys.Core
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.WcfErrors
+open Softellect.Sys.MessagingErrors
+open Softellect.Sys.AppSettings
+open Softellect.Wcf.Common
+open Softellect.Wcf.Client
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
+
 open ClmSys.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
@@ -10,7 +29,6 @@ open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodeData
 open System.ServiceModel
-open ClmSys.Wcf
 open ClmSys.WorkerNodeErrors
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
@@ -26,10 +44,10 @@ module ServiceInfo =
     let WorkerNodeWcfServiceName = "WorkerNodeWcfService"
 
 
-    type WrkNodeWcfSvcShutDownInfo =
-        {
-            wrkNodeServiceHost : ServiceHost
-        }
+//    type WrkNodeWcfSvcShutDownInfo =
+//        {
+//            wrkNodeServiceHost : ServiceHost
+//        }
 
 
     type WorkerNodeConfigParam =
@@ -192,15 +210,32 @@ module ServiceInfo =
         new (i : WorkerNodeServiceAccessInfo) = WorkerNodeResponseHandler(i.wcfServiceUrl)
 
 
-    [<Literal>]
-    let WorkerNodeAppConfigFile = __SOURCE_DIRECTORY__ + @"\..\WorkerNodeService\app.config"
-
-
-    type WorkerNodeAppSettings = AppSettings<WorkerNodeAppConfigFile>
-
+    let workerNodeId = ConfigKey "WorkerNodeId"
+    let workerNodeName = ConfigKey "WorkerNodeName"
+    let partitionerId = ConfigKey "PartitionerId"
+    let noOfCores = ConfigKey "NoOfCores"
+    let nodePriority = ConfigKey "NodePriority"
+    let isInactive = ConfigKey "IsInactive"
+    
+    
+//    <add key="WorkerNodeServiceAddress" value=""/>
+//    <add key="WorkerNodeServiceHttpPort" value="0"/>
+//    <add key="WorkerNodeServiceNetTcpPort" value="0"/>
+//    <add key="WorkerNodeServiceCommunicationType" value="NetTcpCommunication"/>
+//    <add key="WorkerNodeName" value=""/>
+//    <add key="WorkerNodeId" value="{00000000-0000-0000-0000-000000000000}" />
+//    <add key="NoOfCores" value="0"/>
+//    <add key="MessagingServiceAddress" value="localhost"/>
+//    <add key="MessagingHttpServicePort" value="0"/>
+//    <add key="MessagingNetTcpServicePort" value="0"/>
+//    <add key="MessagingServiceCommunicationType" value="NetTcpCommunication"/>
+//    <add key="PartitionerId" value="{00000000-0000-0000-0000-000000000000}"/>
+//    <add key="IsInactive" value="False"/>
+//    <add key="NodePriority" value="100"/>
+    
+    
 
     let loadWorkerNodeSettings() =
-        WorkerNodeAppSettings.SelectExecutableFile(getFileName workerNodeServiceProgramName)
 
         {
             workerNodeInfo =

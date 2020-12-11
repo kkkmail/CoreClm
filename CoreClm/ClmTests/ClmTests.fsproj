@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <Compile Include="Tests.fs" />
-    <Compile Include="Program.fs" />
     <Compile Include="ModelTests.fs" />
   </ItemGroup>
 
@@ -30,6 +29,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Clm\Clm.fsproj" />
+    <ProjectReference Include="..\Model\Model.fsproj" />
   </ItemGroup>
 
 </Project>
