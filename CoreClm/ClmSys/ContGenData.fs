@@ -34,23 +34,6 @@ module ContGenData =
             let n = NetTcpServiceAccessInfo.create address netTcpPort ContGenServiceName.netTcpServiceName.value
             ServiceAccessInfo.create h n |> ContGenServiceAccessInfo
 
-        //{
-        //    contGenServiceAddress : ContGenServiceAddress
-        //    contGenServicePort : ContGenServicePort
-        //    contGenServiceName : ContGenServiceName
-        //}
-
-        //member private s.serviceName = s.contGenServiceName.value.value
-        //member s.wcfServiceName = toValidServiceName s.serviceName
-        //member s.wcfServiceUrl = getWcfServiceUrlImpl s.contGenServiceAddress.value s.contGenServicePort.value s.wcfServiceName
-
-
-    type ContGenWcfSvcShutDownInfo =
-        {
-//            contGenServiceHost : ServiceHost
-            contGenServiceHost : int
-        }
-
 
     type ContGenInfo =
         {
@@ -93,4 +76,3 @@ module ContGenData =
             match r with
             | true, _ -> Ok()
             | false, s -> s |> InvalidSettings |> ContGenSettingsErr |> ContGenServiceErr |> Error
-

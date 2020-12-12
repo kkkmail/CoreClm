@@ -12,30 +12,12 @@ open GeneralPrimitives
 
 module WorkerNodePrimitives =
 
-    type WorkerNodeServiceAddress =
-        | WorkerNodeServiceAddress of ServiceAddress
-
-        member this.value = let (WorkerNodeServiceAddress v) = this in v
-        static member defaultValue = defaultWorkerNodeServiceAddress |> ServiceAddress |> WorkerNodeServiceAddress
-
-
-    type WorkerNodeServicePort =
-        | WorkerNodeServicePort of ServicePort
-
-        member this.value = let (WorkerNodeServicePort v) = this in v
-        static member defaultNetTcpValue = defaultWorkerNodeNetTcpServicePort |> ServicePort |> WorkerNodeServicePort
-        static member defaultHttpValue = defaultWorkerNodeHttpServicePort |> ServicePort |> WorkerNodeServicePort
-
-
     type WorkerNodeServiceName =
         | WorkerNodeServiceName of ServiceName
 
         member this.value = let (WorkerNodeServiceName v) = this in v
-
-
-    let workerNodeNetTcpServiceName = "WorkerNodeNetTcpService" |> ServiceName |> WorkerNodeServiceName
-    let workerNodeHttpServiceName = "WorkerNodeHttpService" |> ServiceName |> WorkerNodeServiceName
-    let workerNodeServiceName = workerNodeNetTcpServiceName
+        static member netTcpServiceName = "WorkerNodeNetTcpService" |> ServiceName |> WorkerNodeServiceName
+        static member httpServiceName = "WorkerNodeHttpService" |> ServiceName |> WorkerNodeServiceName
 
 
     type WorkerNodeId =

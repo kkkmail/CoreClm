@@ -41,6 +41,7 @@ module Visualization =
             (p.initData.binaryInfo.allSubstData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
             |> List.map (fun (n, d) -> n + ": " + d)
             |> String.concat ", "
+            |> toDescription ""
 
 
         let getAminoAcidsImpl () =

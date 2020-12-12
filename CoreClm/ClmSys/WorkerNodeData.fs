@@ -8,6 +8,7 @@ open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.MessagingServiceErrors
+open Softellect.Wcf.Common
 open Softellect.Messaging.ServiceInfo
 
 open ClmSys.GeneralData
@@ -32,16 +33,14 @@ module WorkerNodeData =
 
 
     type WorkerNodeServiceAccessInfo =
-        {
-            workerNodeServiceAddress : WorkerNodeServiceAddress
-            workerNodeServicePort : WorkerNodeServicePort
-            workerNodeServiceName : WorkerNodeServiceName
-        }
+        | WorkerNodeServiceAccessInfo of ServiceAccessInfo
 
-        //member s.serviceName = s.workerNodeServiceName.value.value
-        //member s.serviceUrl = getServiceUrlImpl s.workerNodeServiceAddress.value s.workerNodeServicePort.value s.serviceName
-        //member s.wcfServiceName = toValidServiceName s.serviceName
-        //member s.wcfServiceUrl = getWcfServiceUrlImpl s.workerNodeServiceAddress.value s.workerNodeServicePort.value s.wcfServiceName
+        member w.value = let (WorkerNodeServiceAccessInfo v) = w in v
+
+        static member create address httpPort netTcpPort =
+            let h = HttpServiceAccessInfo.create address httpPort WorkerNodeServiceName.httpServiceName.value
+            let n = NetTcpServiceAccessInfo.create address netTcpPort WorkerNodeServiceName.netTcpServiceName.value
+            ServiceAccessInfo.create h n |> WorkerNodeServiceAccessInfo
 
 
     type WorkerNodeServiceInfo =
@@ -62,7 +61,9 @@ module WorkerNodeData =
         {
             workerNodeInfo : WorkerNodeInfo
             workerNodeSvcInfo : WorkerNodeServiceAccessInfo
+            workerNodeCommunicationType : WcfCommunicationType
             messagingSvcInfo : MessagingServiceAccessInfo
+            messagingCommunicationType : WcfCommunicationType
         }
 
         member w.isValid() =
@@ -73,11 +74,11 @@ module WorkerNodeData =
                     w.workerNodeInfo.noOfCores >= 0, sprintf "noOfCores: %A is invalid" w.workerNodeInfo.noOfCores
                     w.workerNodeInfo.partitionerId.value.value <> Guid.Empty, sprintf "%A is invalid" w.workerNodeInfo.partitionerId
 
-                    w.workerNodeSvcInfo.workerNodeServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.workerNodeSvcInfo.workerNodeServiceAddress
-                    w.workerNodeSvcInfo.workerNodeServicePort.value.value > 0, sprintf "%A is invalid" w.workerNodeSvcInfo.workerNodeServicePort
-
-                    //w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
-                    //w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
+//                    w.workerNodeSvcInfo.workerNodeServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.workerNodeSvcInfo.workerNodeServiceAddress
+//                    w.workerNodeSvcInfo.workerNodeServicePort.value.value > 0, sprintf "%A is invalid" w.workerNodeSvcInfo.workerNodeServicePort
+//
+//                    w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
+//                    w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
                 ]
                 |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
 

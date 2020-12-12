@@ -34,6 +34,8 @@ open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerData
+open MessagingServiceInfo.ServiceInfo
+open ContGenServiceInfo.ServiceInfo
 
 module ServiceInfo =
 
@@ -191,8 +193,8 @@ module ServiceInfo =
 
 
     /// Low level WCF messaging client.
-    type WorkerNodeResponseHandler private (url) =
-        let tryGetWcfService() = tryGetWcfService<IWorkerNodeWcfService> url
+    type WorkerNodeResponseHandler private (url, communicationType) =
+        let tryGetWcfService() = tryGetWcfService<IWorkerNodeWcfService> communicationType url
 
         let configureWcfErr e = e |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
         let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
@@ -207,102 +209,161 @@ module ServiceInfo =
             member _.monitor p = monitorImpl p
             member _.ping() = pingImpl()
 
-        new (i : WorkerNodeServiceAccessInfo) = WorkerNodeResponseHandler(i.wcfServiceUrl)
+        new (i : WorkerNodeServiceAccessInfo, communicationType) = WorkerNodeResponseHandler(i.value.getUrl communicationType, communicationType)
 
 
     let workerNodeName = ConfigKey "WorkerNodeName"
-    let WorkerNodeServiceAddress = ConfigKey "WorkerNodeServiceAddress"
-    let WorkerNodeServiceHttpPort = ConfigKey "WorkerNodeServiceHttpPort"
-    let WorkerNodeServiceNetTcpPort = ConfigKey "WorkerNodeServiceNetTcpPort"
-    let workerNoWorkerNodeServiceCommunicationTypedeName = ConfigKey "WorkerNodeServiceCommunicationType"
-    let workerNodeName = ConfigKey "WorkerNodeName"
+    let workerNodeServiceAddress = ConfigKey "WorkerNodeServiceAddress"
+    let workerNodeServiceHttpPort = ConfigKey "WorkerNodeServiceHttpPort"
+    let workerNodeServiceNetTcpPort = ConfigKey "WorkerNodeServiceNetTcpPort"
+    let workerNodeServiceCommunicationType = ConfigKey "WorkerNodeServiceCommunicationType"
     let workerNodeId = ConfigKey "WorkerNodeId"
-    
-    let messagingServiceAddress = ConfigKey "MessagingServiceAddress"
-    let messagingHttpServicePort = ConfigKey "MessagingHttpServicePort"
-    let messagingNetTcpServicePort = ConfigKey "MessagingNetTcpServicePort"
-    let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
-        
+
     let noOfCores = ConfigKey "NoOfCores"
-    let partitionerId = ConfigKey "PartitionerId"
     let isInactive = ConfigKey "IsInactive"
     let nodePriority = ConfigKey "NodePriority"
-    
 
-    let loadWorkerNodeSettings() =
 
-        {
-            workerNodeInfo =
+    let loadWorkerNodeServiceSettings providerRes =
+        let workerNodeServiceAddress = getServiceAddress providerRes workerNodeServiceAddress defaultContGenServiceAddress
+        let workerNodeServiceHttpPort = getServiceHttpPort providerRes workerNodeServiceHttpPort defaultContGenHttpServicePort
+        let workerNodeServiceNetTcpPort = getServiceNetTcpPort providerRes workerNodeServiceNetTcpPort defaultContGenNetTcpServicePort
+        let workerNodeServiceCommunicationType = getCommunicationType providerRes workerNodeServiceCommunicationType NetTcpCommunication
+
+        let workerNodeSvcInfo = WorkerNodeServiceAccessInfo.create workerNodeServiceAddress workerNodeServiceHttpPort workerNodeServiceNetTcpPort
+
+        (workerNodeSvcInfo, workerNodeServiceCommunicationType)
+
+
+    let tryGetWorkerNodeId (providerRes : AppSettingsProviderResult) n =
+        match providerRes with
+        | Ok provider ->
+            match provider.tryGetGuid n with
+            | Ok (Some p) when p <> Guid.Empty -> p |> MessagingClientId |> WorkerNodeId |> Some
+            | _ -> None
+        | _ -> None
+
+
+    let tryGetWorkerNodeName (providerRes : AppSettingsProviderResult) n =
+        match providerRes with
+        | Ok provider ->
+            match provider.tryGetString n with
+            | Ok (Some EmptyString) -> None
+            | Ok (Some s) -> s |> WorkerNodeName |> Some
+            | _ -> None
+        | _ -> None
+
+
+    let getNoOfCores (providerRes : AppSettingsProviderResult) n d =
+        match providerRes with
+        | Ok provider ->
+            match provider.tryGetInt n with
+            | Ok (Some k) when k >= 0 -> k
+            | _ -> d
+        | _ -> d
+
+
+    let getNodePriority (providerRes : AppSettingsProviderResult) n d =
+        match providerRes with
+        | Ok provider ->
+            match provider.tryGetInt n with
+            | Ok (Some k) when k >= 0 -> k
+            | _ -> d
+        | _ -> d
+        |> WorkerNodePriority
+
+
+    let getIsInactive (providerRes : AppSettingsProviderResult) n d =
+        match providerRes with
+        | Ok provider ->
+            match provider.tryGetBool n with
+            | Ok (Some b) -> b
+            | _ -> d
+        | _ -> d
+
+
+    let tryLoadWorkerNodeInfo (providerRes : AppSettingsProviderResult) =
+        match tryGetWorkerNodeId providerRes workerNodeId, tryGetWorkerNodeName providerRes workerNodeName with
+        | Some i, Some n ->
+            let defaultNoOfCores =
+                match Environment.ProcessorCount with
+                | 1 -> 1
+                | 2 -> 1
+                | 3 -> 2
+                | _ -> (Environment.ProcessorCount / 2) + 1
+
+            let w =
                 {
-                    workerNodeId = WorkerNodeAppSettings.WorkerNodeId |> MessagingClientId |> WorkerNodeId
-                    workerNodeName  = WorkerNodeAppSettings.WorkerNodeName |> WorkerNodeName
-
-                    partitionerId =
-                        match WorkerNodeAppSettings.PartitionerId with
-                        | p when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
-                        | _ -> defaultPartitionerId
-
-                    noOfCores = WorkerNodeAppSettings.NoOfCores
-                    nodePriority = WorkerNodeAppSettings.NodePriority |> WorkerNodePriority
-                    isInactive = WorkerNodeAppSettings.IsInactive
+                    workerNodeId = i
+                    workerNodeName  = n
+                    partitionerId = getPartitionerId providerRes partitionerId defaultPartitionerId
+                    noOfCores = getNoOfCores providerRes noOfCores defaultNoOfCores
+                    nodePriority = getNodePriority providerRes nodePriority WorkerNodePriority.defaultValue.value
+                    isInactive = getIsInactive providerRes isInactive true
                     lastErrorDateOpt = None
                 }
 
-            workerNodeSvcInfo =
+            Some w
+        | _ -> None
+
+
+    let tryLoadWorkerNodeSettings() =
+        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
+        let (workerNodeSvcInfo, workerNodeServiceCommunicationType) = loadWorkerNodeServiceSettings providerRes
+        let (messagingSvcInfo, messagingServiceCommunicationType) = loadMessagingSettings providerRes
+
+        match tryLoadWorkerNodeInfo providerRes with
+        | Some info ->
+            let w =
                 {
-                    workerNodeServiceAddress =
-                        match WorkerNodeAppSettings.WorkerNodeSvcAddress with
-                        | EmptyString -> WorkerNodeServiceAddress.defaultValue
-                        | s -> s |> ServiceAddress |> WorkerNodeServiceAddress
-
-                    workerNodeServicePort =
-                        match WorkerNodeAppSettings.WorkerNodeSvcPort with
-                        | n when n > 0 -> n |> ServicePort |> WorkerNodeServicePort
-                        | _ -> WorkerNodeServicePort.defaultValue
-
-                    workerNodeServiceName = workerNodeServiceName
+                    workerNodeInfo = info
+                    workerNodeSvcInfo = workerNodeSvcInfo
+                    workerNodeCommunicationType = workerNodeServiceCommunicationType
+                    messagingSvcInfo = messagingSvcInfo
+                    messagingCommunicationType = messagingServiceCommunicationType
                 }
 
-            messagingSvcInfo =
-                {
-                    messagingServiceAddress =
-                        match WorkerNodeAppSettings.MsgSvcAddress with
-                        | EmptyString -> MessagingServiceAddress.defaultValue
-                        | s -> s |> ServiceAddress |> MessagingServiceAddress
+            Some w
+        | None -> None
 
-                    messagingServicePort =
-                        match WorkerNodeAppSettings.MsgSvcPort with
-                        | n  when n > 0 -> n |> ServicePort |> MessagingServicePort
-                        | _ -> MessagingServicePort.defaultValue
 
-                    messagingServiceName = messagingServiceName
-                }
-        }
+    let updateWWorkerNodeServiceSettings (provider : AppSettingsProvider) (w : WorkerNodeServiceAccessInfo) (ct : WcfCommunicationType)  =
+        let h = w.value.httpServiceInfo
+        let n = w.value.netTcpServiceInfo
+
+        provider.trySet workerNodeServiceAddress n.netTcpServiceAddress.value |> ignore
+        provider.trySet workerNodeServiceHttpPort h.httpServicePort.value |> ignore
+        provider.trySet workerNodeServiceNetTcpPort n.netTcpServicePort.value |> ignore
+        provider.trySet workerNodeServiceCommunicationType ct.value |> ignore
 
 
     type WorkerNodeSettings
         with
         member w.trySaveSettings() =
-            match w.isValid() with
-            | Ok() ->
+            let toErr e = e |> WrkSettingExn |> WrkSettingsErr |> WorkerNodeErr |> Error
+
+            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
+            | Ok(), Ok provider ->
+                let v = w.workerNodeInfo
+                let wh = w.workerNodeSvcInfo.value.httpServiceInfo
+                let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
+
                 try
-                    WorkerNodeAppSettings.WorkerNodeName <- w.workerNodeInfo.workerNodeName.value
-                    WorkerNodeAppSettings.WorkerNodeId <- w.workerNodeInfo.workerNodeId.value.value
-                    WorkerNodeAppSettings.NoOfCores <- w.workerNodeInfo.noOfCores
-                    WorkerNodeAppSettings.PartitionerId <- w.workerNodeInfo.partitionerId.value.value
-                    WorkerNodeAppSettings.IsInactive <- w.workerNodeInfo.isInactive
-                    WorkerNodeAppSettings.NodePriority <- w.workerNodeInfo.nodePriority.value
+                    provider.trySet workerNodeName v.workerNodeName |> ignore
+                    provider.trySet workerNodeId v.workerNodeId.value.value |> ignore
+                    provider.trySet noOfCores v.noOfCores |> ignore
+                    provider.trySet partitionerId v.partitionerId.value.value |> ignore
+                    provider.trySet isInactive v.isInactive |> ignore
+                    provider.trySet nodePriority v.nodePriority.value |> ignore
 
-                    WorkerNodeAppSettings.WorkerNodeSvcAddress <- w.workerNodeSvcInfo.workerNodeServiceAddress.value.value
-                    WorkerNodeAppSettings.WorkerNodeSvcPort <- w.workerNodeSvcInfo.workerNodeServicePort.value.value
+                    updateWWorkerNodeServiceSettings provider w.workerNodeSvcInfo w.workerNodeCommunicationType
+                    updateMessagingSettings provider w.messagingSvcInfo w.messagingCommunicationType
 
-                    WorkerNodeAppSettings.MsgSvcAddress <- w.messagingSvcInfo.messagingServiceAddress.value.value
-                    WorkerNodeAppSettings.MsgSvcPort <- w.messagingSvcInfo.messagingServicePort.value.value
-
-                    Ok()
+                    provider.trySave() |> Rop.bindError toErr
                 with
-                | e -> e |> WrkSettingExn |> WrkSettingsErr |> WorkerNodeErr |> Error
-            | Error e -> Error e
+                | e -> toErr e
+            | Error e, _ -> Error e
+            | _, Error e -> toErr e
 
 
     let getWorkerNodeServiceAccessInfo (loadSettings, tryGetSaveSettings) b =

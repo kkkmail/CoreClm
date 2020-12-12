@@ -13,6 +13,7 @@
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
+    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
