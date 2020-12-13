@@ -2,32 +2,20 @@
 
 open Argu
 
-open ClmSys.ClmWorker
 open Softellect.Sys.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
-open Softellect.Sys.Core
-open Softellect.Sys.Primitives
-open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.Logging
-open Softellect.Sys.MessagingErrors
 open Softellect.Wcf.Common
-open Softellect.Wcf.Service
-open Softellect.Messaging.Primitives
-open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
-open Softellect.Messaging.Client
-open Softellect.Messaging.Proxy
-open Softellect.Sys.MessagingClientErrors
-open Softellect.Sys.MessagingServiceErrors
+open Softellect.Sys.WcfErrors
 
+open ClmSys.ClmWorker
 open ClmSys.VersionInfo
 open ClmSys.MessagingData
-open ClmSys.GeneralPrimitives
-open ClmSys.MessagingPrimitives
 open MessagingServiceInfo.ServiceInfo
+
+open ServiceProxy.MsgServiceProxy
+open DbData.Configuration
 
 module SvcCommandLine =
 
@@ -85,7 +73,7 @@ module SvcCommandLine =
         let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
         let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
 
-        let w1 = {w with messagingSvcInfo = messagingSvcInfo}
+        let w1 = { w with messagingSvcInfo = messagingSvcInfo }
 
         w1
 
@@ -98,3 +86,25 @@ module SvcCommandLine =
 
     let getServiceSettings = getServiceSettingsImpl false
     let saveSettings p = getServiceSettingsImpl true p |> ignore
+
+
+    let tryGetMessagingServiceData logger : Result<MessagingWcfServiceData, WcfError> =
+        let i = getServiceSettings []
+
+        let serviceData =
+            {
+                messagingServiceInfo =
+                    {
+                        expirationTime = i.messagingInfo.expirationTime
+                        messagingDataVersion = messagingDataVersion
+                    }
+
+                messagingServiceProxy = createMessagingServiceProxy getMsgSvcConnectionString
+                communicationType = i.communicationType
+            }
+
+        let msgServiceDataRes = tryGetMsgServiceData i.messagingSvcInfo.messagingServiceAccessInfo logger serviceData
+        msgServiceDataRes
+
+
+    let messagingServiceData = Lazy<Result<MessagingWcfServiceData, WcfError>>(fun () -> tryGetMessagingServiceData Logger.defaultValue)

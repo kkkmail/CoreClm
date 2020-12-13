@@ -1,9 +1,30 @@
 ﻿namespace ContGenService
 
-open Argu
-open ClmSys.GeneralData
-open ClmSys.ServiceInstaller
 open System
+open Argu
+
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
+open Softellect.Sys.Core
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingErrors
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
+
+open ClmSys.GeneralData
+open ClmSys.ClmWorker
 open ClmSys.VersionInfo
 open ClmSys.Logging
 open Messaging.ServiceResponse
@@ -20,15 +41,9 @@ open ClmSys.ContGenData
 open Clm.ModelParams
 open DbData.Configuration
 open ContGenServiceInfo.ServiceInfo
+open ContGenService.ContGenWcfService
 
 module SvcCommandLine =
-
-    type ContGenServiceData =
-        {
-            modelRunnerData : ModelRunnerDataWithProxy
-            contGenServiceAccessInfo : ContGenServiceAccessInfo
-        }
-
 
     [<CliPrefix(CliPrefix.Dash)>]
     type ContGenRunArgs =
@@ -47,7 +62,7 @@ module SvcCommandLine =
                 | SvcAddress _ -> "cont gen service ip address / name."
                 | SvcPort _ -> "cont gen service port."
                 | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
-                | SaveSettings -> "saves settings to the Registry."
+                | SaveSettings -> "saves settings to config file."
                 | Partitioner _ -> "messaging client id of a partitioner service."
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
@@ -55,10 +70,6 @@ module SvcCommandLine =
     and
         [<CliPrefix(CliPrefix.None)>]
         ContGenSvcArguArgs =
-        | [<Unique>] [<First>] [<AltCommandLine("i")>] Install
-        | [<Unique>] [<First>] [<AltCommandLine("u")>] Uninstall
-        | [<Unique>] [<First>] Start
-        | [<Unique>] [<First>] Stop
         | [<Unique>] [<First>] [<AltCommandLine("r")>] Run of ParseResults<ContGenRunArgs>
         | [<Unique>] [<First>] [<AltCommandLine("s")>] Save of ParseResults<ContGenRunArgs>
 
@@ -66,36 +77,65 @@ module SvcCommandLine =
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
-                | Install -> "install ContGen service."
-                | Uninstall -> "uninstall ContGen service."
-                | Start -> "start ContGen service."
-                | Stop -> "stop ContGen service."
                 | Run _ -> "run ContGen service from command line without installing."
-                | Save _ -> "save parameters into the registry."
+                | Save _ -> "save parameters into config file."
 
 
-    type ContGenSvcArgs = SvcArguments<ContGenRunArgs>
+    type ContGenSvcArgs = WorkerArguments<ContGenRunArgs>
 
 
     let convertArgs s =
         match s with
-        | Install -> ContGenSvcArgs.Install
-        | Uninstall -> ContGenSvcArgs.Uninstall
-        | Start -> ContGenSvcArgs.Start
-        | Stop -> ContGenSvcArgs.Stop
         | Run a -> ContGenSvcArgs.Run a
         | Save a -> ContGenSvcArgs.Save a
 
 
-    let tryGetServerAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> ContGenServiceAddress |> Some | _ -> None)
-    let tryGetServerPort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> ContGenServicePort |> Some | _ -> None)
+    let tryGetServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
 
     let tryGeMinUsefulEe p = p |> List.tryPick (fun e -> match e with | MinimumUsefulEe p -> p |> MinUsefulEe |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | SaveSettings -> Some () | _ -> None)
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
 
-    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
-    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
+    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+
+
+    let loadContGenInfo (c : ContGenInfo) p =
+        let contGenInfo =
+            {
+                minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue c.minUsefulEe
+                partitionerId = tryGetPartitioner p |> Option.defaultValue c.partitionerId
+                lastAllowedNodeErr = c.lastAllowedNodeErr
+                earlyExitCheckFreq = c.earlyExitCheckFreq
+            }
+
+        contGenInfo
+
+
+    let loadContGenServiceAccessInfo (c : ContGenServiceAccessInfo) p =
+        let h = c.value.httpServiceInfo
+        let n = c.value.netTcpServiceInfo
+
+        let serviceAddress = tryGetServiceAddress p |> Option.defaultValue h.httpServiceAddress
+        let netTcpServicePort = tryGetServicePort p |> Option.defaultValue n.netTcpServicePort
+        let contGenSvcInfo = ContGenServiceAccessInfo.create serviceAddress h.httpServicePort netTcpServicePort
+
+        contGenSvcInfo
+
+
+    let loadMessagingServiceAccessInfo (m : MessagingServiceAccessInfo) p =
+        let h = m.messagingServiceAccessInfo.httpServiceInfo
+        let n = m.messagingServiceAccessInfo.netTcpServiceInfo
+
+        let serviceAddress = tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
+        let netTcpServicePort = tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
+        let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
+        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName
+        let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
+        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
+
+        messagingSvcInfo
 
 
     let loadSettings p =
@@ -103,28 +143,10 @@ module SvcCommandLine =
 
         let w1 =
             {
-
-                contGenInfo =
-                    {
-                        minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue w.contGenInfo.minUsefulEe
-                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId
-                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
-                        earlyExitCheckFreq = w.contGenInfo.earlyExitCheckFreq
-                    }
-
-                contGenSvcInfo =
-                    {
-                        contGenServiceAddress = tryGetServerAddress p |> Option.defaultValue w.contGenSvcInfo.contGenServiceAddress
-                        contGenServicePort = tryGetServerPort p |> Option.defaultValue w.contGenSvcInfo.contGenServicePort
-                        contGenServiceName = w.contGenSvcInfo.contGenServiceName
-                    }
-
-                messagingSvcInfo =
-                    {
-                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
-                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
-                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
-                    }
+                w with
+                    contGenInfo = loadContGenInfo w.contGenInfo p
+                    contGenSvcInfo = loadContGenServiceAccessInfo w.contGenSvcInfo p
+                    messagingSvcInfo = loadMessagingServiceAccessInfo w.messagingSvcInfo p
             }
 
         w1
@@ -137,8 +159,9 @@ module SvcCommandLine =
 
 
     /// TODO kk:20200517 - Propagate early exit info to command line parameters.
-    let getContGenServiceData (logger : Logger) (p : list<ContGenRunArgs>) =
-        let w = loadSettings p
+    //  (p : list<ContGenRunArgs>)
+    let tryGetContGenServiceData (logger : Logger) =
+        let w = loadSettings []
         printfn "getContGenServiceData: w = %A" w
 
         let i =

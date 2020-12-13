@@ -18,6 +18,8 @@ open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
 
 open ClmSys.VersionInfo
 open ClmSys.MessagingPrimitives
@@ -111,6 +113,17 @@ module ServiceInfo =
 
         [<OperationContract(Name = "tryRequestResults")>]
         abstract tryRequestResults : q:byte[] -> byte[]
+
+
+    ////type MessagingClient = MessagingClient<ClmMessageData, ClmError>
+    ////type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
+    ////type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
+    //type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData, ClmError>>
+    //type Message = Message<ClmMessageData>
+    //type MessageInfo = MessageInfo<ClmMessageData>
+    //type MessagingService = MessagingService<ClmMessageData, ClmError>
+    //type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
+    //type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
 
 
     let contGenServiceAddress = ConfigKey "ContGenServiceAddress"

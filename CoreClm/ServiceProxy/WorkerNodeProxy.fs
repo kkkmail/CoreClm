@@ -40,7 +40,7 @@ module WorkerNodeProxy =
         }
 
         static member create (i : WorkerNodeProxyData) =
-            let name = MessagingClientName workerNodeServiceName.value.value
+            let name = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
 
             {
                 saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name

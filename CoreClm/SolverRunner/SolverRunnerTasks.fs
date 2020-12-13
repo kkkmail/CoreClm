@@ -1,7 +1,8 @@
 ﻿namespace SolverRunner
 
 open Microsoft.FSharp.Core
-open ClmSys.GeneralData
+
+open Softellect.Sys.Core
 open Clm.ModelInit
 open Clm.ModelParams
 open Clm.ChartData
@@ -20,7 +21,6 @@ open ClmSys.SolverRunnerErrors
 open ClmSys.GeneralPrimitives
 open System.Threading
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.ClmErrors
 open System
 
 module SolverRunnerTasks =
