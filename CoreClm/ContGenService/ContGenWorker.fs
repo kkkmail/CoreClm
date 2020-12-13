@@ -5,19 +5,29 @@ open System.Threading.Tasks
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
+open Softellect.Sys.Logging
 open Softellect.Wcf.Common
 open Softellect.Wcf.Service
+open Softellect.Sys.WcfErrors
+
 //open ContGenService.ServiceImplementation
+open ClmSys.ClmErrors
 open ContGenServiceInfo.ServiceInfo
 open ContGenService.ContGenWcfService
+open ContGenService.SvcCommandLine
 
-type MsgWorker(logger: ILogger<MsgWorker>) =
+type ContGenWorker(logger: ILogger<ContGenWorker>) =
     inherit BackgroundService()
 
     static let tyGetHost() =
-        match messagingServiceData.Value with
-        | Ok data -> ContGenWcfServiceImpl.tryGetService data
-        | Error e -> Error e
+        match contGenServiceData.Value with
+        | Ok data ->
+            match tryGetServiceData data.contGenServiceAccessInfo.value Logger.defaultValue data with
+            | Ok serviceData -> ContGenWcfServiceImpl.tryGetService serviceData
+            | Error e -> Error e
+        | Error e ->
+            // TODO kk:20201213 - Here we are forced to "downgrade" the error type because there is no conversion.
+            e.ToString() |> WcfCriticalErr |> Error
 
     static let hostRes = Lazy<WcfResult<WcfService>>(fun () -> tyGetHost())
 

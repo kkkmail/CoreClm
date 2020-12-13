@@ -6,7 +6,6 @@ open ClmSys.Logging
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmWorker
 open ContGenService.SvcCommandLine
-open ContGenService.ContGenWcfService
 
 module ContGenServiceTasks =
 

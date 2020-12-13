@@ -2,6 +2,10 @@
 
 open FSharp.Data
 open System
+open FSharp.Data.Sql
+open System.Data.SQLite
+open Dapper
+open System.Data.Common
 
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
@@ -15,13 +19,9 @@ open ClmSys.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
-open MessagingServiceInfo.ServiceInfo
-open FSharp.Data.Sql
-open System.Data.SQLite
-open Dapper
-open System.Data.Common
 open Clm.ModelParams
 open ClmSys.MessagingData
+open MessagingServiceInfo.ServiceInfo
 
 // ! Must be the last to open !
 open Configuration

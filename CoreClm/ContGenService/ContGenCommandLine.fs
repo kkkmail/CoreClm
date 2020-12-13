@@ -42,6 +42,7 @@ open ClmSys.ContGenData
 open Clm.ModelParams
 open DbData.Configuration
 open ContGenServiceInfo.ServiceInfo
+open ServiceProxy.ModelRunnerProxy
 
 module SvcCommandLine =
 
