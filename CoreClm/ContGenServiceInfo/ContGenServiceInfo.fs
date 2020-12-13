@@ -115,6 +115,14 @@ module ServiceInfo =
         abstract tryRequestResults : q:byte[] -> byte[]
 
 
+    type ContGenServiceData =
+        {
+            modelRunnerData : ModelRunnerDataWithProxy
+            contGenServiceAccessInfo : ContGenServiceAccessInfo
+        }
+
+
+
     ////type MessagingClient = MessagingClient<ClmMessageData, ClmError>
     ////type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
     ////type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>

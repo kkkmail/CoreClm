@@ -15,6 +15,7 @@ open Softellect.Sys.Logging
 open Softellect.Sys.MessagingErrors
 open Softellect.Wcf.Common
 open Softellect.Wcf.Service
+open Softellect.Sys.WcfErrors
 open Softellect.Messaging.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
@@ -44,13 +45,6 @@ open ContGenServiceInfo.ServiceInfo
 
 module ContGenWcfService =
 
-    type ContGenServiceData =
-        {
-            modelRunnerData : ModelRunnerDataWithProxy
-            contGenServiceAccessInfo : ContGenServiceAccessInfo
-        }
-
-
     type ContGenService() =
 
         interface IContGenService with
@@ -70,3 +64,6 @@ module ContGenWcfService =
 
 
     type ContGenWcfServiceImpl = WcfService<ContGenWcfService, IContGenWcfService, ContGenServiceData>
+
+
+    let contGenServiceData = Lazy<Result<MessagingWcfServiceData, WcfError>>(fun () -> tryCreateMessagingServiceData (Logger.defaultValue))

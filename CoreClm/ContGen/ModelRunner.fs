@@ -29,6 +29,7 @@ open ServiceProxy.MsgProcessorProxy
 open Messaging.Client
 open ModelGenerator
 open ClmSys.MessagingData
+open ServiceProxy.ModelRunnerProxy
 
 module ModelRunner =
 
@@ -287,50 +288,6 @@ module ModelRunner =
             maxMessages = maxMessages
             onError = fun f -> f |> OnGetMessagesErr |> ProcessMessageErr |> ModelRunnerErr
             addError = ClmError.addError
-        }
-
-
-    type RunnerProxy =
-        {
-            getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
-            createMessagingEventHandlers : Logger -> MessageProcessorProxy -> unit
-        }
-
-
-    type RunnerData =
-        {
-            getConnectionString : unit -> ConnectionString
-            minUsefulEe : MinUsefulEe
-            resultLocation : string
-            earlyExitInfoOpt : EarlyExitInfo option
-            lastAllowedNodeErr : LastAllowedNodeErr
-        }
-
-
-    type RunModelProxy
-        with
-        static member create (d : RunnerData) s =
-            {
-                minUsefulEe = d.minUsefulEe
-                sendRunModelMessage = s
-                loadModelData = loadModelData d.getConnectionString
-                earlyExitInfo = d.earlyExitInfoOpt
-            }
-
-
-    type RunnerDataWithProxy =
-        {
-            runnerData : RunnerData
-            messageProcessorProxy : MessageProcessorProxy
-        }
-
-
-    type ModelRunnerDataWithProxy =
-        {
-            runnerData : RunnerData
-            runnerProxy : RunnerProxy
-            messagingClientAccessInfo : MessagingClientAccessInfo
-            logger : Logger
         }
 
 

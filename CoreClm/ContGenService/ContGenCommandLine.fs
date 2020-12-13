@@ -27,6 +27,7 @@ open ClmSys.GeneralData
 open ClmSys.ClmWorker
 open ClmSys.VersionInfo
 open ClmSys.Logging
+open ClmSys.ClmErrors
 open Messaging.ServiceResponse
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
@@ -41,9 +42,15 @@ open ClmSys.ContGenData
 open Clm.ModelParams
 open DbData.Configuration
 open ContGenServiceInfo.ServiceInfo
-open ContGenService.ContGenWcfService
 
 module SvcCommandLine =
+
+    type ContGenServiceData =
+        {
+            modelRunnerData : ModelRunnerDataWithProxy
+            contGenServiceAccessInfo : ContGenServiceAccessInfo
+        }
+
 
     [<CliPrefix(CliPrefix.Dash)>]
     type ContGenRunArgs =
@@ -160,64 +167,66 @@ module SvcCommandLine =
 
     /// TODO kk:20200517 - Propagate early exit info to command line parameters.
     //  (p : list<ContGenRunArgs>)
-    let tryGetContGenServiceData (logger : Logger) =
-        let w = loadSettings []
-        printfn "getContGenServiceData: w = %A" w
+    // Result<ContGenServiceData, ClmError>
+    let tryGetContGenServiceData (logger : Logger) p : Result<ContGenServiceData, ClmError> =
+        let w = loadSettings p
+        failwith ""
+        //printfn "getContGenServiceData: w = %A" w
 
-        let i =
-            {
-                msgClientId = w.contGenInfo.partitionerId.messagingClientId
-                msgSvcAccessInfo = w.messagingSvcInfo
-            }
+        //let i =
+        //    {
+        //        msgClientId = w.contGenInfo.partitionerId.messagingClientId
+        //        msgSvcAccessInfo = w.messagingSvcInfo
+        //    }
 
-        let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
-            let i =
-                {
-                    messagingClientName = contGenServiceName.value.messagingClientName
-                    storageType = getClmConnectionString |> MsSqlDatabase
-                }
+        //let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
+        //    let i =
+        //        {
+        //            messagingClientName = contGenServiceName.value.messagingClientName
+        //            storageType = getClmConnectionString |> MsSqlDatabase
+        //        }
 
-            let messagingClientData =
-                {
-                    msgAccessInfo = d
-                    messagingService = MsgResponseHandler d
-                    msgClientProxy = MessagingClientProxy.create i d.msgClientId
-                    expirationTime = MessagingClientData.defaultExpirationTime
-                }
+        //    let messagingClientData =
+        //        {
+        //            msgAccessInfo = d
+        //            messagingService = MsgResponseHandler d
+        //            msgClientProxy = MessagingClientProxy.create i d.msgClientId
+        //            expirationTime = MessagingClientData.defaultExpirationTime
+        //        }
 
-            let messagingClient = MessagingClient messagingClientData
-            messagingClient.messageProcessorProxy
+        //    let messagingClient = MessagingClient messagingClientData
+        //    messagingClient.messageProcessorProxy
 
-        let data =
-            {
-                modelRunnerData =
-                    {
-                        runnerData =
-                            {
-                                getConnectionString = getClmConnectionString
-                                minUsefulEe = MinUsefulEe.defaultValue
-                                resultLocation = DefaultResultLocationFolder
+        //let data =
+        //    {
+        //        modelRunnerData =
+        //            {
+        //                runnerData =
+        //                    {
+        //                        getConnectionString = getClmConnectionString
+        //                        minUsefulEe = MinUsefulEe.defaultValue
+        //                        resultLocation = DefaultResultLocationFolder
 
-                                earlyExitInfoOpt =
-                                    Some { EarlyExitInfo.defaultValue with
-                                            frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
+        //                        earlyExitInfoOpt =
+        //                            Some { EarlyExitInfo.defaultValue with
+        //                                    frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
 
-                                lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
-                            }
+        //                        lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+        //                    }
 
-                        runnerProxy =
-                            {
-                                getMessageProcessorProxy = getMessageProcessorProxy
-                                createMessagingEventHandlers = createMessagingClientEventHandlers
-                            }
+        //                runnerProxy =
+        //                    {
+        //                        getMessageProcessorProxy = getMessageProcessorProxy
+        //                        createMessagingEventHandlers = createMessagingClientEventHandlers
+        //                    }
 
-                        messagingClientAccessInfo = i
-                        logger = logger
-                    }
+        //                messagingClientAccessInfo = i
+        //                logger = logger
+        //            }
 
-                contGenServiceAccessInfo = w.contGenSvcInfo
-            }
+        //        contGenServiceAccessInfo = w.contGenSvcInfo
+        //    }
 
-        match w.isValid() with
-        | Ok() -> Ok data
-        | Error e -> Error e
+        //match w.isValid() with
+        //| Ok() -> Ok data
+        //| Error e -> Error e

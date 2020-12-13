@@ -1,5 +1,32 @@
 ﻿namespace ServiceProxy
 
+open Softellect.Sys.Rop
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.Client
+open Softellect.Messaging.ServiceInfo
+
+open Clm.ModelParams
+open ClmSys.SolverRunnerPrimitives
+open ContGenServiceInfo.ServiceInfo
+open ClmSys.ClmErrors
+open ClmSys.ContGenPrimitives
+open ClmSys.TimerEvents
+open ClmSys.GeneralPrimitives
+open ClmSys.WorkerNodeData
+open ClmSys.ModelRunnerErrors
+open MessagingServiceInfo.ServiceInfo
+open ClmSys.WorkerNodePrimitives
+open ClmSys.Logging
+open DbData.DatabaseTypes
+open ServiceProxy.MsgProcessorProxy
+open ClmSys.MessagingData
+
 open Clm.ModelParams
 open Clm.CalculationData
 open DbData.DatabaseTypes
@@ -138,3 +165,47 @@ module ModelRunnerProxy =
             {
                 loadRunQueueProgress = fun () -> loadRunQueueProgress c
             }
+
+
+    type RunnerProxy =
+        {
+            getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
+            createMessagingEventHandlers : Logger -> MessageProcessorProxy -> unit
+        }
+
+
+    type RunnerData =
+        {
+            getConnectionString : unit -> ConnectionString
+            minUsefulEe : MinUsefulEe
+            resultLocation : string
+            earlyExitInfoOpt : EarlyExitInfo option
+            lastAllowedNodeErr : LastAllowedNodeErr
+        }
+
+
+    type RunModelProxy
+        with
+        static member create (d : RunnerData) s =
+            {
+                minUsefulEe = d.minUsefulEe
+                sendRunModelMessage = s
+                loadModelData = loadModelData d.getConnectionString
+                earlyExitInfo = d.earlyExitInfoOpt
+            }
+
+
+    type RunnerDataWithProxy =
+        {
+            runnerData : RunnerData
+            messageProcessorProxy : MessageProcessorProxy
+        }
+
+
+    type ModelRunnerDataWithProxy =
+        {
+            runnerData : RunnerData
+            runnerProxy : RunnerProxy
+            messagingClientAccessInfo : MessagingClientAccessInfo
+            logger : Logger
+        }

@@ -3,9 +3,10 @@
 open Argu
 open ClmSys.ClmErrors
 open ClmSys.Logging
-open ContGenService.SvcCommandLine
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmWorker
+open ContGenService.SvcCommandLine
+open ContGenService.ContGenWcfService
 
 module ContGenServiceTasks =
 
@@ -19,6 +20,6 @@ module ContGenServiceTasks =
     //    }
 
 
-    let getParams logger (p : ParseResults<ContGenRunArgs>) = getContGenServiceData logger (p.GetAllResults())
+    let getParams logger (p : ParseResults<ContGenRunArgs>) = tryGetContGenServiceData logger (p.GetAllResults())
     let getSaveSettings (p : ParseResults<ContGenRunArgs>) () = p.GetAllResults() |> saveSettings
     type ContGenServiceTask = WorkerTask<ClmResult<ContGenServiceData>, ContGenRunArgs>
