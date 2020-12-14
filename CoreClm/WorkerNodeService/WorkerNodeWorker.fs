@@ -1,4 +1,4 @@
-﻿namespace ContGenService
+﻿namespace WorkerNodeService
 
 open System.Threading
 open System.Threading.Tasks
@@ -11,18 +11,19 @@ open Softellect.Wcf.Service
 open Softellect.Sys.WcfErrors
 
 open ClmSys.ClmErrors
-open ContGenServiceInfo.ServiceInfo
-open ContGenService.ContGenWcfService
-open ContGenService.SvcCommandLine
+open WorkerNodeServiceInfo.ServiceInfo
+open WorkerNodeService.WorkerNodeWcfService
+open WorkerNodeService.SvcCommandLine
+open WorkerNodeService.ServiceImplementation
 
-type ContGenWorker(logger: ILogger<ContGenWorker>) =
+type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
     inherit BackgroundService()
 
     static let tyGetHost() =
-        match contGenServiceData.Value with
+        match serviceAccessInfo with
         | Ok data ->
-            match tryGetServiceData data.contGenServiceAccessInfo.value Logger.defaultValue data with
-            | Ok serviceData -> ContGenWcfServiceImpl.tryGetService serviceData
+            match tryGetServiceData data.workerNodeServiceAccessInfo.value Logger.defaultValue data with
+            | Ok serviceData -> WorkerNodeWcfServiceImpl.tryGetService serviceData
             | Error e -> Error e
         | Error e ->
             // TODO kk:20201213 - Here we are forced to "downgrade" the error type because there is no conversion.

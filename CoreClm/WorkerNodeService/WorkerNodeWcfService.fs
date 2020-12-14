@@ -41,4 +41,4 @@ module WorkerNodeWcfService =
             member _.ping b = tryReply ping toPingError b
 
 
-    type WorkerNodeWcfServiceImpl = WcfService<WorkerNodeWcfService, IWorkerNodeWcfService, ContGenServiceData>
+    type WorkerNodeWcfServiceImpl = WcfService<WorkerNodeWcfService, IWorkerNodeWcfService, WorkerNodeServiceInfo>
