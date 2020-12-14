@@ -13,6 +13,8 @@ open ContGenService.SvcCommandLine
 
 module ContGenWcfService =
 
+    type ContGenWcfServiceData = WcfServiceData<ContGenServiceData>
+
     let contGenServiceData = Lazy<Result<ContGenServiceData, ClmError>>(fun () -> tryGetContGenServiceData (Logger.defaultValue) [])
 
 
@@ -23,33 +25,6 @@ module ContGenWcfService =
 
 
     let private modelRunner = new Lazy<ClmResult<ModelRunner>>(tryCreateModelRunner)
-
-    //type ContGenServiceData =
-    //    {
-    //        modelRunnerData : ModelRunnerDataWithProxy
-    //        contGenServiceAccessInfo : ContGenServiceAccessInfo
-    //    }
-
-
-    ////type MessagingClient = MessagingClient<ClmMessageData, ClmError>
-    ////type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
-    ////type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
-    type ContGenWcfServiceData = WcfServiceData<ContGenServiceData>
-    //type Message = Message<ClmMessageData>
-    //type MessageInfo = MessageInfo<ClmMessageData>
-    //type MessagingService = MessagingService<ClmMessageData, ClmError>
-    //type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
-    //type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
-
-
-    //type ContGenService() =
-
-    //    interface IContGenService with
-    //        member _.tryCancelRunQueue r c = failwith "123456"
-    //        member _.tryRequestResults r n = failwith "123456"
-
-    //    //abstract tryCancelRunQueue : RunQueueId -> CancellationType -> UnitResult
-    //    //abstract tryRequestResults : RunQueueId -> ResultNotificationType -> UnitResult
 
 
     type ContGenWcfService() =
@@ -64,21 +39,3 @@ module ContGenWcfService =
 
 
     type ContGenWcfServiceImpl = WcfService<ContGenWcfService, IContGenWcfService, ContGenServiceData>
-
-
-    let tryGetServiceData serviceAccessInfo wcfLogger serviceData =
-        match WcfServiceAccessInfo.tryCreate serviceAccessInfo  with
-        | Ok i ->
-            {
-                wcfServiceAccessInfo = i
-
-                wcfServiceProxy =
-                    {
-                        wcfLogger = wcfLogger
-                    }
-
-                serviceData = serviceData
-                setData = fun _ -> ignore()
-            }
-            |> Ok
-        | Error e -> Error e

@@ -17,27 +17,27 @@ open ClmSys.WorkerNodeErrors
 
 module WindowsService =
 
-    let private serviceName = workerNodeServiceName
-
-
-    let private workerNodeRunner : Lazy<ClmResult<WorkerNodeRunner>> =
-        new Lazy<ClmResult<WorkerNodeRunner>>(fun () -> WorkerNodeRunner.create serviceAccessInfo)
-
-
-    [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
-    type WorkerNodeWcfService() =
-        let toConfigureError f = f |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
-        let toMonitorError f = f |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
-        let toPingError f = f |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
-
-        let configure c = workerNodeRunner.Value |> Rop.bind (fun e -> e.configure c)
-        let monitor (_ : WorkerNodeMonitorParam) = workerNodeRunner.Value |> Rop.bind (fun e -> e.getState() |> Ok)
-        let ping () = workerNodeRunner.Value |> Rop.bind (fun _ -> Ok())
-
-        interface IWorkerNodeWcfService with
-            member _.configure b = tryReply configure toConfigureError b
-            member _.monitor b = tryReply monitor toMonitorError b
-            member _.ping b = tryReply ping toPingError b
+//    let private serviceName = workerNodeServiceName
+//
+//
+//    let private workerNodeRunner : Lazy<ClmResult<WorkerNodeRunner>> =
+//        new Lazy<ClmResult<WorkerNodeRunner>>(fun () -> WorkerNodeRunner.create serviceAccessInfo)
+//
+//
+//    [<ServiceBehavior(IncludeExceptionDetailInFaults = true, InstanceContextMode = InstanceContextMode.Single)>]
+//    type WorkerNodeWcfService() =
+//        let toConfigureError f = f |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+//        let toMonitorError f = f |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+//        let toPingError f = f |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+//
+//        let configure c = workerNodeRunner.Value |> Rop.bind (fun e -> e.configure c)
+//        let monitor (_ : WorkerNodeMonitorParam) = workerNodeRunner.Value |> Rop.bind (fun e -> e.getState() |> Ok)
+//        let ping () = workerNodeRunner.Value |> Rop.bind (fun _ -> Ok())
+//
+//        interface IWorkerNodeWcfService with
+//            member _.configure b = tryReply configure toConfigureError b
+//            member _.monitor b = tryReply monitor toMonitorError b
+//            member _.ping b = tryReply ping toPingError b
 
 
     let startWrkNodeWcfServiceRun (logger : Logger) (j : ClmResult<WorkerNodeServiceInfo>) : WrkNodeWcfSvcShutDownInfo option =

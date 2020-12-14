@@ -19,6 +19,7 @@
     <ProjectReference Include="..\NoSql\NoSql.fsproj" />
     <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
+    <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj" />
     <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
   </ItemGroup>
 
@@ -26,6 +27,8 @@
     <Compile Include="WorkerNodeCommandLine.fs" />
     <Compile Include="WorkerNodeImplementation.fs" />
     <Compile Include="WorkerNodeServiceTasks.fs" />
+    <Compile Include="WorkerNodeWcfService.fs" />
+    <Compile Include="WorkerNodeWorker.fs" />
     <Compile Include="WorkerNodeProgram.fs" />
   </ItemGroup>
 

@@ -2,6 +2,29 @@
 
 open System
 open Argu
+
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys
+open Softellect.Sys.Rop
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
+open Softellect.Sys.Core
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingErrors
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
+
 open ClmSys.GeneralData
 open ClmSys
 open ClmSys.Logging
@@ -25,7 +48,6 @@ open ClmSys.WorkerNodeErrors
 open ClmSys.WorkerNodePrimitives
 open ClmSys.MessagingPrimitives
 open ServiceProxy.SolverRunner
-open ClmSys.Rop
 open SolverRunner.SolverRunnerTasks
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.MessagingData
@@ -42,7 +64,7 @@ module ServiceImplementation =
         results |> getServiceAccessInfo
 
 
-    type WorkerNodeMessageResult = MessageProcessorResult<WorkerNodeRunnerState * UnitResult>
+    type WorkerNodeMessageResult = MessageProcessorResult<WorkerNodeRunnerState * UnitResult, ClmError>
 
 
     type WorkerNodeRunnerState
@@ -253,6 +275,7 @@ module ServiceImplementation =
             g, result
         | StartedWorkerNode -> s, Ok()
 
+
     type OnProcessMessageProxy =
         {
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
@@ -306,7 +329,7 @@ module ServiceImplementation =
 
     let onProcessMessage (proxy : OnProcessMessageProxy) s (m : Message) =
         match m.messageData with
-        | WorkerNodeMsg x ->
+        | UserMsg (WorkerNodeMsg x) ->
             match x with
             | RunModelWrkMsg d ->
                 //printfn "onProcessMessage: RunModelWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId d.runningProcessData.runQueueId
@@ -467,6 +490,7 @@ module ServiceImplementation =
                 onProcessMessage = onProcessMessage (onProcessMessageProxy i w.solverRunnerProxy)
                 maxMessages = WorkerNodeRunnerState.maxMessages
                 onError = fun f -> f |> OnGetMessagesErr |> WorkerNodeErr
+                addError = fun a b -> a + b
             }
 
 
@@ -493,55 +517,57 @@ module ServiceImplementation =
     type WorkerNodeRunner
         with
         static member create (j : ClmResult<WorkerNodeServiceInfo>) =
-            let logger = Logger.log4net
-            let className = "WorkerNodeService"
-            let toError e = e |> WorkerNodeServiceErr |> Error
-            let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
+            failwith ""
 
-            let msgDbLocation = getFileName MsgDatabase
-            let connStrSqlite = @"Data Source=" + msgDbLocation + ";Version=3;foreign keys=true"
-            logger.logInfoString (sprintf "%s: Using local database: '%s'." className msgDbLocation)
-            
-            match j with
-            | Ok i ->
-                let w =
-                    let messagingClientAccessInfo = i.messagingClientAccessInfo
-                    let h = MsgResponseHandler messagingClientAccessInfo
-                    logger.logInfoString (sprintf "%s: Created MsgResponseHandler: %A" className h)
-
-                    let j =
-                        {
-                            messagingClientName = workerNodeServiceName.value.messagingClientName
-                            storageType = connStrSqlite |> SqliteConnectionString |> SqliteDatabase
-                        }
-
-                    let messagingClientData =
-                        {
-                            msgAccessInfo = messagingClientAccessInfo
-                            messagingService = h
-                            msgClientProxy = MessagingClientProxy.create j messagingClientAccessInfo.msgClientId
-                            expirationTime = MessagingClientData.defaultExpirationTime
-                        }
-
-                    let messagingClient = MessagingClient messagingClientData
-
-                    match messagingClient.start() with
-                    | Ok() ->
-                        let n =
-                            {
-                                workerNodeServiceInfo = i
-                                workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyData.defaultValue
-                                messageProcessorProxy = messagingClient.messageProcessorProxy
-                                minUsefulEe = MinUsefulEe.defaultValue
-                            }
-                            |> createServiceImpl logger
-
-                        match n with
-                        | Ok v ->
-                            createMessagingClientEventHandlers logger messagingClient.messageProcessorProxy
-                            Ok v
-                        | Error e -> addError UnableToCreateWorkerNodeServiceErr e
-                    | Error e -> addError UnableToStartMessagingClientErr e
-
-                w
-            | Error e -> Error e                
+//            let logger = Logger.log4net
+//            let className = "WorkerNodeService"
+//            let toError e = e |> WorkerNodeServiceErr |> Error
+//            let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
+//
+//            let msgDbLocation = getFileName MsgDatabase
+//            let connStrSqlite = @"Data Source=" + msgDbLocation + ";Version=3;foreign keys=true"
+//            logger.logInfoString (sprintf "%s: Using local database: '%s'." className msgDbLocation)
+//
+//            match j with
+//            | Ok i ->
+//                let w =
+//                    let messagingClientAccessInfo = i.messagingClientAccessInfo
+//                    let h = MsgResponseHandler messagingClientAccessInfo
+//                    logger.logInfoString (sprintf "%s: Created MsgResponseHandler: %A" className h)
+//
+//                    let j =
+//                        {
+//                            messagingClientName = workerNodeServiceName.value.messagingClientName
+//                            storageType = connStrSqlite |> SqliteConnectionString |> SqliteDatabase
+//                        }
+//
+//                    let messagingClientData =
+//                        {
+//                            msgAccessInfo = messagingClientAccessInfo
+//                            messagingService = h
+//                            msgClientProxy = MessagingClientProxy.create j messagingClientAccessInfo.msgClientId
+//                            expirationTime = MessagingClientData.defaultExpirationTime
+//                        }
+//
+//                    let messagingClient = MessagingClient messagingClientData
+//
+//                    match messagingClient.start() with
+//                    | Ok() ->
+//                        let n =
+//                            {
+//                                workerNodeServiceInfo = i
+//                                workerNodeProxy = WorkerNodeProxy.create WorkerNodeProxyData.defaultValue
+//                                messageProcessorProxy = messagingClient.messageProcessorProxy
+//                                minUsefulEe = MinUsefulEe.defaultValue
+//                            }
+//                            |> createServiceImpl logger
+//
+//                        match n with
+//                        | Ok v ->
+//                            createMessagingClientEventHandlers logger messagingClient.messageProcessorProxy
+//                            Ok v
+//                        | Error e -> addError UnableToCreateWorkerNodeServiceErr e
+//                    | Error e -> addError UnableToStartMessagingClientErr e
+//
+//                w
+//            | Error e -> Error e
