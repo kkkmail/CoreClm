@@ -23,6 +23,7 @@ open Softellect.Messaging.Proxy
 open Softellect.Sys.MessagingClientErrors
 open Softellect.Sys.MessagingServiceErrors
 
+open ClmSys.VersionInfo
 open ClmSys.WorkerNodeData
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
@@ -103,47 +104,63 @@ module SvcCommandLine =
 
 
     let loadSettings p =
-//        let w = loadWorkerNodeSettings()
+        match tryLoadWorkerNodeSettings() with
+        | Some w ->
+            let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
+            let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
 
-        let w1 = failwith ""
-//            {
-//                workerNodeInfo =
-//                    {
-//                        workerNodeId = tryGetClientId p |> Option.defaultValue w.workerNodeInfo.workerNodeId
-//                        workerNodeName = tryGetNodeName p |> Option.defaultValue w.workerNodeInfo.workerNodeName
-//                        partitionerId = tryGetPartitioner p |> Option.defaultValue w.workerNodeInfo.partitionerId
-//
-//                        noOfCores =
-//                            let n = tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
-//                            max 0 (min n Environment.ProcessorCount)
-//
-//                        nodePriority =
-//                            match w.workerNodeInfo.nodePriority.value with
-//                            | x when x <= 0 -> WorkerNodePriority.defaultValue
-//                            | _ -> w.workerNodeInfo.nodePriority
-//
-//                        isInactive = tryGetInactive p |> Option.defaultValue w.workerNodeInfo.isInactive
-//                        lastErrorDateOpt = w.workerNodeInfo.lastErrorDateOpt
-//                    }
-//
-//                workerNodeSvcInfo =
-//                    {
-//                        workerNodeServiceAddress = tryGetServiceAddress p |> Option.defaultValue w.workerNodeSvcInfo.workerNodeServiceAddress
-//                        workerNodeServicePort = tryGetServicePort p |> Option.defaultValue w.workerNodeSvcInfo.workerNodeServicePort
-//                        workerNodeServiceName = w.workerNodeSvcInfo.workerNodeServiceName
-//                    }
-//
-//                messagingSvcInfo =
-//                    {
-//                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
-//                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
-//                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
-//                    }
-//            }
+            let w1 =
+                {
+                    workerNodeInfo =
+                        {
+                            workerNodeId = tryGetClientId p |> Option.defaultValue w.workerNodeInfo.workerNodeId
+                            workerNodeName = tryGetNodeName p |> Option.defaultValue w.workerNodeInfo.workerNodeName
+                            partitionerId = tryGetPartitioner p |> Option.defaultValue w.workerNodeInfo.partitionerId
 
-        printfn "loadSettings: w1 = %A" w1
-        w1
+                            noOfCores =
+                                let n = tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
+                                max 0 (min n Environment.ProcessorCount)
 
+                            nodePriority =
+                                match w.workerNodeInfo.nodePriority.value with
+                                | x when x <= 0 -> WorkerNodePriority.defaultValue
+                                | _ -> w.workerNodeInfo.nodePriority
+
+                            isInactive = tryGetInactive p |> Option.defaultValue w.workerNodeInfo.isInactive
+                            lastErrorDateOpt = w.workerNodeInfo.lastErrorDateOpt
+                        }
+
+                    workerNodeSvcInfo =
+                        { w.workerNodeSvcInfo.value with
+                            netTcpServiceInfo =
+                                { wn with
+                                    netTcpServiceAddress = tryGetServiceAddress p |> Option.defaultValue wn.netTcpServiceAddress
+                                    netTcpServicePort = tryGetServicePort p |> Option.defaultValue wn.netTcpServicePort
+                                }
+                        }
+                        |> WorkerNodeServiceAccessInfo
+
+                    workerNodeCommunicationType = w.workerNodeCommunicationType
+
+                    messagingSvcInfo =
+                        { w.messagingSvcInfo with
+                            messagingServiceAccessInfo =
+                                { w.messagingSvcInfo.messagingServiceAccessInfo with
+                                    netTcpServiceInfo =
+                                        { mn with
+                                            netTcpServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue mn.netTcpServiceAddress
+                                            netTcpServicePort = tryGetMsgServicePort p |> Option.defaultValue mn.netTcpServicePort
+                                        }
+                                }
+                            messagingDataVersion = messagingDataVersion
+                        }
+
+                    messagingCommunicationType = w.messagingCommunicationType
+                }
+
+            printfn "loadSettings: w1 = %A" w1
+            w1
+        | None -> invalidOp "Unable to load settings."
 
     let getServiceAccessInfoImpl b p =
         let load() = loadSettings p

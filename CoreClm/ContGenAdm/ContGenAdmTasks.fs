@@ -54,7 +54,7 @@ module ContGenAdmTasks =
                 | Ok() ->
                     match getGenerateModelCode p with
                     | true ->
-                        printfn "Genetrating model..."
+                        printfn "Generating model..."
                         let proxy = GenerateModelProxy.create getClmConnectionString
 
                         match generateModel proxy t with
