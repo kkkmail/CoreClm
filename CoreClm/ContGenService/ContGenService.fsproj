@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj" />
     <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj" />
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />

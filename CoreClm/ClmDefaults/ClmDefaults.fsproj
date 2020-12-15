@@ -11,6 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Compile Include="DefaultValuesExt.fs" />
     <Compile Include="DefaultValues\000\Defaults_000_000.fs" />
     <Compile Include="DefaultValues\000\Defaults_000_007.fs" />
