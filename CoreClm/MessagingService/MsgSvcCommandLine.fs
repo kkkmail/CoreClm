@@ -31,7 +31,7 @@ module SvcCommandLine =
                 match this with
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
-                | MsgSaveSettings -> "saves settings to the config file."
+                | MsgSaveSettings -> "saves settings into config file."
 
 
     type MsgSvcArgs = WorkerArguments<MessagingServiceRunArgs>

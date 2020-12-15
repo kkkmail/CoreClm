@@ -1,13 +1,37 @@
 ﻿namespace MessagingAdm
 
 open System.Threading
+
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
+open Softellect.Sys.Core
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingErrors
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
+
 open MessagingServiceInfo.ServiceInfo
 open MessagingAdm.AdmCommandLine
 open System
 
 module MsgAdmTasks =
 
-    let monitorService (service : IMessagingService) =
+    let monitorService (service : MessagingService) =
     ////let monitorService (service : IMessagingWcfService) =
     //    let i = 30_000
 
@@ -29,20 +53,20 @@ module MsgAdmTasks =
         ignore()
 
 
-    let stopService (service : IMessagingService) = ignore() // service.configureService (MsgWorkState ShuttingDown)
-    let startService (service : IMessagingService) = ignore() // service.configureService (MsgWorkState CanTransmitMessages)
+    let stopService (service : MessagingService) = () // service.configureService (MsgWorkState ShuttingDown)
+    let startService (service : MessagingService) = () // service.configureService (MsgWorkState CanTransmitMessages)
 
     type MsgAdmTask =
-        | MonitorMsgServiceTask of IMessagingService
-        | StartMsgServiceTask of IMessagingService
-        | StopMsgServiceTask of IMessagingService
+        | MonitorMsgServiceTask of MessagingService
+        | StartMsgServiceTask of MessagingService
+        | StopMsgServiceTask of MessagingService
 
 
         member task.run () =
             match task with
             | MonitorMsgServiceTask s -> monitorService s
-            | StartMsgServiceTask s -> startService s |> ignore
-            | StopMsgServiceTask s -> stopService s |> ignore
+            | StartMsgServiceTask s -> startService s
+            | StopMsgServiceTask s -> stopService s
 
         static member private tryCreateMonitorTask s p =
             p |> List.tryPick (fun e -> match e with | MonitorMsgService -> s |> MonitorMsgServiceTask |> Some | _ -> None)

@@ -1,6 +1,30 @@
 ﻿namespace MessagingAdm
 
 open Argu
+
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.ServiceInstaller
+open Softellect.Sys.Primitives
+open Softellect.Sys.Core
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.ServiceInfo
+open Softellect.Sys.Core
+open Softellect.Sys.Primitives
+open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Logging
+open Softellect.Sys.MessagingErrors
+open Softellect.Wcf.Common
+open Softellect.Wcf.Service
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Service
+open Softellect.Messaging.Client
+open Softellect.Messaging.Proxy
+open Softellect.Sys.MessagingClientErrors
+open Softellect.Sys.MessagingServiceErrors
+
 open ClmSys.MessagingData
 open ClmSys.GeneralPrimitives
 open ClmSys.MessagingPrimitives
@@ -29,33 +53,34 @@ module AdmCommandLine =
                 | StopMsgService _ -> "stop messaging service."
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
-                | MsgSaveSettings -> "saves settings to the Registry."
+                | MsgSaveSettings -> "saves settings into config file."
 
 
-    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> MessagingServiceAddress |> Some | _ -> None)
-    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> MessagingServicePort |> Some | _ -> None)
+    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort  |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
 
 
     let loadSettings p =
         let w = loadMsgServiceSettings()
+        failwith ""
 
-        let w1 =
-            {
-                messagingInfo =
-                    {
-                        expirationTime = w.messagingInfo.expirationTime
-                    }
-
-                messagingSvcInfo =
-                    {
-                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
-                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
-                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
-                    }
-            }
-
-        w1
+//        let w1 =
+//            {
+//                messagingInfo =
+//                    {
+//                        expirationTime = w.messagingInfo.expirationTime
+//                    }
+//
+//                messagingSvcInfo =
+//                    {
+//                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
+//                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
+//                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
+//                    }
+//            }
+//
+//        w1
 
 
     let getServiceAccessInfoImpl b p =

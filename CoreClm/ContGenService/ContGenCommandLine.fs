@@ -70,7 +70,7 @@ module SvcCommandLine =
                 | SvcAddress _ -> "cont gen service ip address / name."
                 | SvcPort _ -> "cont gen service port."
                 | MinimumUsefulEe _ -> "minimum useful ee to generate charts. Set to 0.0 to generate all charts."
-                | SaveSettings -> "saves settings to config file."
+                | SaveSettings -> "saves settings into config file."
                 | Partitioner _ -> "messaging client id of a partitioner service."
                 | MsgSvcAddress _ -> "messaging server ip address / name."
                 | MsgSvcPort _ -> "messaging server port."
