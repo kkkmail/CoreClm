@@ -49,10 +49,6 @@ module Program =
                 getParams Logger.defaultValue p |> ignore
                 runHost
 
-            //match ContGenServiceTask.tryCreate run getSaveSettings results with
-            //| Some task -> task.run()
-            //| None -> runHost()
-
             match WorkerNodeServiceTask.tryCreate run getSaveSettings results with
             | Some task -> task.run()
             | None -> runHost()

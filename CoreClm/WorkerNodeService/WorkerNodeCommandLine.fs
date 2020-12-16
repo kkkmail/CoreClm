@@ -104,7 +104,10 @@ module SvcCommandLine =
 
 
     let loadSettings p =
-        match tryLoadWorkerNodeSettings() with
+        let workerNodeId = tryGetClientId p
+        let workerNodeName = tryGetNodeName p
+
+        match tryLoadWorkerNodeSettings workerNodeId workerNodeName with
         | Some w ->
             let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
             let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
@@ -112,9 +115,7 @@ module SvcCommandLine =
             let w1 =
                 {
                     workerNodeInfo =
-                        {
-                            workerNodeId = tryGetClientId p |> Option.defaultValue w.workerNodeInfo.workerNodeId
-                            workerNodeName = tryGetNodeName p |> Option.defaultValue w.workerNodeInfo.workerNodeName
+                        { w.workerNodeInfo with
                             partitionerId = tryGetPartitioner p |> Option.defaultValue w.workerNodeInfo.partitionerId
 
                             noOfCores =
@@ -168,5 +169,5 @@ module SvcCommandLine =
         getWorkerNodeServiceAccessInfo (load, trySave) b
 
 
-    let getServiceAccessInfo = getServiceAccessInfoImpl false
+    let getServiceAccessInfo p = getServiceAccessInfoImpl false p
     let saveSettings p = getServiceAccessInfoImpl true p |> ignore

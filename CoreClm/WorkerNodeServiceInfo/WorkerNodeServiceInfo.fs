@@ -282,8 +282,11 @@ module ServiceInfo =
         | _ -> d
 
 
-    let tryLoadWorkerNodeInfo (providerRes : AppSettingsProviderResult) =
-        match tryGetWorkerNodeId providerRes workerNodeId, tryGetWorkerNodeName providerRes workerNodeName with
+    let tryLoadWorkerNodeInfo (providerRes : AppSettingsProviderResult) nodeIdOpt nameOpt =
+        let io = nodeIdOpt |> Option.orElseWith (fun () -> tryGetWorkerNodeId providerRes workerNodeId)
+        let no = nameOpt |> Option.orElseWith (fun () -> tryGetWorkerNodeName providerRes workerNodeName)
+
+        match io, no with
         | Some i, Some n ->
             let defaultNoOfCores =
                 match Environment.ProcessorCount with
@@ -307,12 +310,12 @@ module ServiceInfo =
         | _ -> None
 
 
-    let tryLoadWorkerNodeSettings() =
+    let tryLoadWorkerNodeSettings nodeIdOpt nameOpt =
         let providerRes = AppSettingsProvider.tryCreate appSettingsFile
         let (workerNodeSvcInfo, workerNodeServiceCommunicationType) = loadWorkerNodeServiceSettings providerRes
         let (messagingSvcInfo, messagingServiceCommunicationType) = loadMessagingSettings providerRes
 
-        match tryLoadWorkerNodeInfo providerRes with
+        match tryLoadWorkerNodeInfo providerRes nodeIdOpt nameOpt with
         | Some info ->
             let w =
                 {
@@ -327,7 +330,7 @@ module ServiceInfo =
         | None -> None
 
 
-    let updateWWorkerNodeServiceSettings (provider : AppSettingsProvider) (w : WorkerNodeServiceAccessInfo) (ct : WcfCommunicationType)  =
+    let updateWorkerNodeServiceSettings (provider : AppSettingsProvider) (w : WorkerNodeServiceAccessInfo) (ct : WcfCommunicationType)  =
         let h = w.value.httpServiceInfo
         let n = w.value.netTcpServiceInfo
 
@@ -349,14 +352,14 @@ module ServiceInfo =
                 let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
 
                 try
-                    provider.trySet workerNodeName v.workerNodeName |> ignore
+                    provider.trySet workerNodeName v.workerNodeName.value |> ignore
                     provider.trySet workerNodeId v.workerNodeId.value.value |> ignore
                     provider.trySet noOfCores v.noOfCores |> ignore
                     provider.trySet partitionerId v.partitionerId.value.value |> ignore
                     provider.trySet isInactive v.isInactive |> ignore
                     provider.trySet nodePriority v.nodePriority.value |> ignore
 
-                    updateWWorkerNodeServiceSettings provider w.workerNodeSvcInfo w.workerNodeCommunicationType
+                    updateWorkerNodeServiceSettings provider w.workerNodeSvcInfo w.workerNodeCommunicationType
                     updateMessagingSettings provider w.messagingSvcInfo w.messagingCommunicationType
 
                     provider.trySave() |> Rop.bindError toErr

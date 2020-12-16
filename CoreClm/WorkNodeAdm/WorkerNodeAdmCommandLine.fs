@@ -96,7 +96,10 @@ module AdmCommandLine =
 
 
     let loadSettings p =
-        let w = tryLoadWorkerNodeSettings()
+        let workerNodeId = tryGetClientId p
+        let workerNodeName = tryGetNodeName p
+
+        let w = tryLoadWorkerNodeSettings workerNodeId workerNodeName
         failwith ""
 
 //        let w1 =
