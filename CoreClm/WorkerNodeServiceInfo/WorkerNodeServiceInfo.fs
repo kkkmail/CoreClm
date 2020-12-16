@@ -225,9 +225,9 @@ module ServiceInfo =
 
 
     let loadWorkerNodeServiceSettings providerRes =
-        let workerNodeServiceAddress = getServiceAddress providerRes workerNodeServiceAddress defaultContGenServiceAddress
-        let workerNodeServiceHttpPort = getServiceHttpPort providerRes workerNodeServiceHttpPort defaultContGenHttpServicePort
-        let workerNodeServiceNetTcpPort = getServiceNetTcpPort providerRes workerNodeServiceNetTcpPort defaultContGenNetTcpServicePort
+        let workerNodeServiceAddress = getServiceAddress providerRes workerNodeServiceAddress defaultWorkerNodeServiceAddress
+        let workerNodeServiceHttpPort = getServiceHttpPort providerRes workerNodeServiceHttpPort defaultWorkerNodeHttpServicePort
+        let workerNodeServiceNetTcpPort = getServiceNetTcpPort providerRes workerNodeServiceNetTcpPort defaultWorkerNodeNetTcpServicePort
         let workerNodeServiceCommunicationType = getCommunicationType providerRes workerNodeServiceCommunicationType NetTcpCommunication
 
         let workerNodeSvcInfo = WorkerNodeServiceAccessInfo.create workerNodeServiceAddress workerNodeServiceHttpPort workerNodeServiceNetTcpPort

@@ -81,7 +81,7 @@ module SvcCommandLine =
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
-                | Run _ -> "run worker node service from command line without installing."
+                | Run _ -> "run worker node service from command line."
                 | Save _ -> "save parameters into config file."
 
 

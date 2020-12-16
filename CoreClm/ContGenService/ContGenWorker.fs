@@ -10,7 +10,6 @@ open Softellect.Wcf.Common
 open Softellect.Wcf.Service
 open Softellect.Sys.WcfErrors
 
-//open ContGenService.ServiceImplementation
 open ClmSys.ClmErrors
 open ContGenServiceInfo.ServiceInfo
 open ContGenService.ContGenWcfService
