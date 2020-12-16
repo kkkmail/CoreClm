@@ -18,17 +18,17 @@ module GeneralPrimitives =
 
     let defaultContGenNetTcpServicePort = defaultServicePort
     let defaultContGenHttpServicePort = defaultContGenNetTcpServicePort + 1
-    let defaultContGenServiceAddress = "localhost"
+    let defaultContGenServiceAddress = "127.0.0.1"
 
 
     let defaultWorkerNodeNetTcpServicePort = 20000 + defaultServicePort
     let defaultWorkerNodeHttpServicePort = defaultWorkerNodeNetTcpServicePort + 1
-    let defaultWorkerNodeServiceAddress = "localhost"
+    let defaultWorkerNodeServiceAddress = "127.0.0.1"
 
 
     let defaultMessagingNetTcpServicePort = 40000 + defaultServicePort
     let defaultMessagingHttpServicePort = defaultMessagingNetTcpServicePort + 1
-    let defaultMessagingServiceAddress = "localhost"
+    let defaultMessagingServiceAddress = "127.0.0.1"
 
 
 //    type ServiceAddress =
