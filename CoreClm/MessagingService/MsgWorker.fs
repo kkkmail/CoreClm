@@ -15,7 +15,10 @@ type MsgWorker(logger: ILogger<MsgWorker>) =
 
     static let tyGetHost() =
         match messagingServiceData.Value with
-        | Ok data -> MessagingWcfServiceImpl.tryGetService data
+        | Ok data ->
+            let service = MessagingWcfServiceImpl.tryGetService data
+            MessagingService.tryStart() |> ignore
+            service
         | Error e -> Error e
 
     static let hostRes = Lazy<WcfResult<WcfService>>(fun () -> tyGetHost())

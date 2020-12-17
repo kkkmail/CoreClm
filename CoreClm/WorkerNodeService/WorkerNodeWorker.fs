@@ -23,7 +23,10 @@ type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
         match serviceAccessInfo with
         | Ok data ->
             match tryGetServiceData data.workerNodeServiceAccessInfo.value Logger.defaultValue data with
-            | Ok serviceData -> WorkerNodeWcfServiceImpl.tryGetService serviceData
+            | Ok serviceData ->
+                let service = WorkerNodeWcfServiceImpl.tryGetService serviceData
+                tryStartWorkerNodeRunner() |> ignore
+                service
             | Error e -> Error e
         | Error e ->
             // TODO kk:20201213 - Here we are forced to "downgrade" the error type because there is no conversion.

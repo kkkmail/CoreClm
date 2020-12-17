@@ -377,7 +377,7 @@ module ModelRunner =
                         messageProcessorProxy = messagingClient
                     }
 
-                let runner = new Runner(data)
+                let runner = Runner(data)
 
                 {
                     modelGenerator = createModelGenerator d.logger d.runnerData.getConnectionString

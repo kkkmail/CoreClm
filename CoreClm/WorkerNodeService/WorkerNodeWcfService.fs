@@ -26,6 +26,12 @@ module WorkerNodeWcfService =
         new Lazy<ClmResult<WorkerNodeRunner>>(fun () -> WorkerNodeRunner.create serviceAccessInfo)
 
 
+    let tryStartWorkerNodeRunner() =
+        match workerNodeRunner.Value with
+        | Ok service -> service.start() |> Ok
+        | Error e -> Error e
+
+
     type WorkerNodeWcfService() =
         let toConfigureError f = f |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
         let toMonitorError f = f |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr

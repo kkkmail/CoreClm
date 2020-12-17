@@ -22,7 +22,10 @@ type ContGenWorker(logger: ILogger<ContGenWorker>) =
         match contGenServiceData.Value with
         | Ok data ->
             match tryGetServiceData data.contGenServiceAccessInfo.value Logger.defaultValue data with
-            | Ok serviceData -> ContGenWcfServiceImpl.tryGetService serviceData
+            | Ok serviceData ->
+                let service = ContGenWcfServiceImpl.tryGetService serviceData
+                tryStartModelRunner() |> ignore
+                service
             | Error e -> Error e
         | Error e ->
             // TODO kk:20201213 - Here we are forced to "downgrade" the error type because there is no conversion.

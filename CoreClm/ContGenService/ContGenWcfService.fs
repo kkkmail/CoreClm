@@ -27,6 +27,12 @@ module ContGenWcfService =
     let private modelRunner = new Lazy<ClmResult<ModelRunner>>(tryCreateModelRunner)
 
 
+    let tryStartModelRunner() =
+        match modelRunner.Value with
+        | Ok service -> service.start() |> Ok
+        | Error e -> Error e
+
+
     type ContGenWcfService() =
         let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> TryCancelRunQueueErr |> ContGenServiceErr
         let toRequestResultsError f = f |> TryRequestResultsWcfErr |> TryRequestResultsErr |> ContGenServiceErr
