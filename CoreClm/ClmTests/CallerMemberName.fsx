@@ -29,7 +29,7 @@ type TestClass() =
     let add x y = x + y
 
     let add2 y =
-        tracer.doTrace("From partialy applied function.")
+        tracer.doTrace("From partially applied function.")
         add 2 y
 
     member this.doNothing() =
