@@ -22,6 +22,7 @@ open Softellect.Messaging.Proxy
 open Softellect.Sys.MessagingClientErrors
 open Softellect.Sys.MessagingServiceErrors
 
+open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
@@ -310,6 +311,20 @@ module ServiceInfo =
         | _ -> None
 
 
+    type WorkerNodeSettingsProxy<'P> =
+        {
+            tryGetClientId : 'P -> WorkerNodeId option
+            tryGetNodeName : 'P -> WorkerNodeName option
+            tryGetPartitioner : 'P -> PartitionerId option
+            tryGetNoOfCores : 'P -> int option
+            tryGetInactive : 'P -> bool option
+            tryGetServiceAddress : 'P -> ServiceAddress option
+            tryGetServicePort : 'P -> ServicePort option
+            tryGetMsgServiceAddress : 'P -> ServiceAddress option
+            tryGetMsgServicePort : 'P -> ServicePort option
+        }
+
+
     let tryLoadWorkerNodeSettings nodeIdOpt nameOpt =
         let providerRes = AppSettingsProvider.tryCreate appSettingsFile
         let (workerNodeSvcInfo, workerNodeServiceCommunicationType) = loadWorkerNodeServiceSettings providerRes
@@ -327,6 +342,66 @@ module ServiceInfo =
                 }
 
             Some w
+        | None -> None
+
+
+    let tryLoadSettings (proxy : WorkerNodeSettingsProxy<'P>) (p : 'P) =
+        let workerNodeId = proxy.tryGetClientId p
+        let workerNodeName = proxy.tryGetNodeName p
+
+        match tryLoadWorkerNodeSettings workerNodeId workerNodeName with
+        | Some w ->
+            let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
+            let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
+
+            let w1 =
+                {
+                    workerNodeInfo =
+                        { w.workerNodeInfo with
+                            partitionerId = proxy.tryGetPartitioner p |> Option.defaultValue w.workerNodeInfo.partitionerId
+
+                            noOfCores =
+                                let n = proxy.tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
+                                max 0 (min n Environment.ProcessorCount)
+
+                            nodePriority =
+                                match w.workerNodeInfo.nodePriority.value with
+                                | x when x <= 0 -> WorkerNodePriority.defaultValue
+                                | _ -> w.workerNodeInfo.nodePriority
+
+                            isInactive = proxy.tryGetInactive p |> Option.defaultValue w.workerNodeInfo.isInactive
+                            lastErrorDateOpt = w.workerNodeInfo.lastErrorDateOpt
+                        }
+
+                    workerNodeSvcInfo =
+                        { w.workerNodeSvcInfo.value with
+                            netTcpServiceInfo =
+                                { wn with
+                                    netTcpServiceAddress = proxy.tryGetServiceAddress p |> Option.defaultValue wn.netTcpServiceAddress
+                                    netTcpServicePort = proxy.tryGetServicePort p |> Option.defaultValue wn.netTcpServicePort
+                                }
+                        }
+                        |> WorkerNodeServiceAccessInfo
+
+                    workerNodeCommunicationType = w.workerNodeCommunicationType
+
+                    messagingSvcInfo =
+                        { w.messagingSvcInfo with
+                            messagingServiceAccessInfo =
+                                { w.messagingSvcInfo.messagingServiceAccessInfo with
+                                    netTcpServiceInfo =
+                                        { mn with
+                                            netTcpServiceAddress = proxy.tryGetMsgServiceAddress p |> Option.defaultValue mn.netTcpServiceAddress
+                                            netTcpServicePort = proxy.tryGetMsgServicePort p |> Option.defaultValue mn.netTcpServicePort
+                                        }
+                                }
+                            messagingDataVersion = messagingDataVersion
+                        }
+
+                    messagingCommunicationType = w.messagingCommunicationType
+                }
+
+            Some w1
         | None -> None
 
 
