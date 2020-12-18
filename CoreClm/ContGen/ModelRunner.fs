@@ -370,7 +370,6 @@ module ModelRunner =
 
             match messagingClient.start() with
             | Ok() ->
-//                d.runnerProxy.createMessagingEventHandlers d.logger messagingClient
                 let data =
                     {
                         runnerData = d.runnerData

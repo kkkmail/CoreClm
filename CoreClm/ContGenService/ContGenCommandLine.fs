@@ -189,12 +189,12 @@ module SvcCommandLine =
             let messagingClientData =
                 {
                     msgAccessInfo = d
-//                    messagingService = MsgResponseHandler d
                     communicationType = NetTcpCommunication
                     msgClientProxy = createMessagingClientProxy i d.msgClientId
                     expirationTime = MessagingClientData.defaultExpirationTime
                 }
 
+            printfn "tryGetContGenServiceData::Calling MessagingClient messagingClientData..."
             let messagingClient = MessagingClient messagingClientData
             messagingClient.messageProcessorProxy
 
@@ -218,7 +218,6 @@ module SvcCommandLine =
                         runnerProxy =
                             {
                                 getMessageProcessorProxy = getMessageProcessorProxy
-//                                createMessagingEventHandlers = createMessagingClientEventHandlers
                             }
 
                         messagingClientAccessInfo = i

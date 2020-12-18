@@ -170,7 +170,6 @@ module ModelRunnerProxy =
     type RunnerProxy =
         {
             getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
-//            createMessagingEventHandlers : Logger -> MessageProcessorProxy -> unit
         }
 
 
