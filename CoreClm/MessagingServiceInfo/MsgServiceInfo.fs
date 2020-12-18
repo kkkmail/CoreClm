@@ -330,6 +330,12 @@ module ServiceInfo =
             | _, Error e -> toErr e
 
 
+    type MsgServiceSettingsProxy<'P> =
+        {
+            tryGetMsgServiceAddress : 'P -> ServiceAddress option
+            tryGetMsgServicePort : 'P -> ServicePort option
+        }
+
     let loadMsgServiceSettings() =
         let providerRes = AppSettingsProvider.tryCreate appSettingsFile
         let (messagingSvcInfo, messagingServiceCommunicationType) = loadMessagingSettings providerRes
@@ -355,6 +361,23 @@ module ServiceInfo =
             }
 
         w
+
+
+    let loadSettingsImpl (proxy : MsgServiceSettingsProxy<'P>) p =
+        let w = loadMsgServiceSettings()
+        let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
+        let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
+
+        let serviceAddress = proxy.tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
+        let netTcpServicePort = proxy.tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
+        let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
+        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName
+        let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
+        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
+
+        let w1 = { w with messagingSvcInfo = messagingSvcInfo }
+
+        w1
 
 
     let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =

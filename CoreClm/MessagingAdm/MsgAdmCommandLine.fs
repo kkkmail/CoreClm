@@ -56,31 +56,16 @@ module AdmCommandLine =
                 | MsgSaveSettings -> "saves settings into config file."
 
 
-    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort  |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
 
 
-    let loadSettings p =
-        let w = loadMsgServiceSettings()
-        failwith ""
+    let private proxy =
+        {
+            tryGetMsgServiceAddress = fun p -> p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+            tryGetMsgServicePort = fun p -> p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+        }
 
-//        let w1 =
-//            {
-//                messagingInfo =
-//                    {
-//                        expirationTime = w.messagingInfo.expirationTime
-//                    }
-//
-//                messagingSvcInfo =
-//                    {
-//                        messagingServiceAddress = tryGetMsgServiceAddress p |> Option.defaultValue w.messagingSvcInfo.messagingServiceAddress
-//                        messagingServicePort = tryGetMsgServicePort p |> Option.defaultValue w.messagingSvcInfo.messagingServicePort
-//                        messagingServiceName = w.messagingSvcInfo.messagingServiceName
-//                    }
-//            }
-//
-//        w1
+    let loadSettings p = loadSettingsImpl proxy p
 
 
     let getServiceAccessInfoImpl b p =

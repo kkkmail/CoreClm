@@ -56,26 +56,15 @@ module SvcCommandLine =
         | Save a -> MsgSvcArgs.Save a
 
 
-    let tryGetMsgServiceAddress p = p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
-    let tryGetMsgServicePort p = p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | MsgSaveSettings -> Some () | _ -> None)
 
+    let private proxy =
+        {
+            tryGetMsgServiceAddress = fun p -> p |> List.tryPick (fun e -> match e with | MsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+            tryGetMsgServicePort = fun p -> p |> List.tryPick (fun e -> match e with | MsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+        }
 
-    let loadSettings p =
-        let w = loadMsgServiceSettings()
-        let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
-        let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
-
-        let serviceAddress = tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
-        let netTcpServicePort = tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
-        let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
-        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName
-        let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
-        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
-
-        let w1 = { w with messagingSvcInfo = messagingSvcInfo }
-
-        w1
+    let loadSettings p = loadSettingsImpl proxy p
 
 
     let getServiceSettingsImpl b p =
