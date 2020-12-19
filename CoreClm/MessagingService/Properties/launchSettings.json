@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MessagingService": {
+      "commandName": "Project",
+      "commandLineArgs": "s -save"
+    }
+  }
+}

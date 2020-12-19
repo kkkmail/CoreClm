@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
+    <ProjectReference Include="..\Clm\Clm.fsproj" />
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
+    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
+    <ProjectReference Include="..\NoSql\NoSql.fsproj" />
+    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
+    <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj" />
+    <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="WorkerNodeCommandLine.fs" />
+    <Compile Include="WorkerNodeImplementation.fs" />
+    <Compile Include="WorkerNodeServiceTasks.fs" />
+    <Compile Include="WorkerNodeWcfService.fs" />
+    <Compile Include="WorkerNodeWorker.fs" />
+    <Compile Include="WorkerNodeProgram.fs" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="log4net.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

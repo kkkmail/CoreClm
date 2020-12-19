@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
+    <ProjectReference Include="..\Clm\Clm.fsproj" />
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
+    <ProjectReference Include="..\DbData\DbData.fsproj" />
+    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="MsgSvcCommandLine.fs" />
+    <Compile Include="MsgServiceTasks.fs" />
+    <Compile Include="MsgImplementation.fs" />
+    <Compile Include="MsgWorker.fs" />
+    <Compile Include="MsgProgram.fs" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
