@@ -10,10 +10,7 @@ open Softellect.Wcf.Common
 open Softellect.Wcf.Service
 open Softellect.Sys.WcfErrors
 
-open ClmSys.ClmErrors
-open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.WorkerNodeWcfService
-open WorkerNodeService.SvcCommandLine
 open WorkerNodeService.ServiceImplementation
 
 type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =

@@ -15,39 +15,22 @@ module GeneralPrimitives =
     let secondsPerMinute = 60<second/minute>
     let minutesPerHour = 60<minute/hour>
 
+    let localHost = "127.0.0.1"
+
 
     let defaultContGenNetTcpServicePort = defaultServicePort
     let defaultContGenHttpServicePort = defaultContGenNetTcpServicePort + 1
-    let defaultContGenServiceAddress = "127.0.0.1"
+    let defaultContGenServiceAddress = localHost
 
 
     let defaultWorkerNodeNetTcpServicePort = 20000 + defaultServicePort
     let defaultWorkerNodeHttpServicePort = defaultWorkerNodeNetTcpServicePort + 1
-    let defaultWorkerNodeServiceAddress = "127.0.0.1"
+    let defaultWorkerNodeServiceAddress = localHost
 
 
     let defaultMessagingNetTcpServicePort = 40000 + defaultServicePort
     let defaultMessagingHttpServicePort = defaultMessagingNetTcpServicePort + 1
-    let defaultMessagingServiceAddress = "127.0.0.1"
-
-
-//    type ServiceAddress =
-//        | ServiceAddress of string
-//
-//        member this.value = let (ServiceAddress v) = this in v
-//
-//
-//    type ServicePort =
-//        | ServicePort of int
-//
-//        member this.value = let (ServicePort v) = this in v
-
-
-//    type ServiceName =
-//        | ServiceName of string
-//
-//        member this.value = let (ServiceName v) = this in (v + " - " + versionNumberValue.value + "." + messagingDataVersion.value.ToString())
-//        member this.originalValue = let (ServiceName v) = this in v
+    let defaultMessagingServiceAddress = localHost
 
 
     type ConnectionString =

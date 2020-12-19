@@ -1,43 +1,20 @@
 ﻿namespace ServiceProxy
 
-open Softellect.Sys.Rop
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Messaging.Primitives
-open Softellect.Sys.MessagingClientErrors
-open Softellect.Sys.MessagingServiceErrors
-open Softellect.Messaging.Client
 open Softellect.Messaging.ServiceInfo
 
 open Clm.ModelParams
-open ClmSys.SolverRunnerPrimitives
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.TimerEvents
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
-open ClmSys.ModelRunnerErrors
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodePrimitives
 open ClmSys.Logging
 open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
-open ClmSys.MessagingData
-
-open Clm.ModelParams
 open Clm.CalculationData
-open DbData.DatabaseTypes
 open NoSql.FileSystemTypes
-open ClmSys.GeneralPrimitives
-open ClmSys.ContGenPrimitives
-open ClmSys.ClmErrors
-open ClmSys.WorkerNodePrimitives
-open MessagingServiceInfo.ServiceInfo
-open ClmSys.WorkerNodeData
-open ContGenServiceInfo.ServiceInfo
 
 module ModelRunnerProxy =
 

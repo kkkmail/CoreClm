@@ -74,7 +74,7 @@ type ModelTests(output : ITestOutputHelper) =
                     |> List.map (fun (i, (a, b, c)) -> writeLine (sprintf "i = %A, s = %A, cg = %A, md = %A, diff = %A" i (allSubst.[i]) a b c))
                     |> ignore
 
-                diffUpdate.Should().BeLessThan(eps, "")
+                diffUpdate.Should().BeLessThan(eps, "") |> ignore
                 md
             | Error e ->
                 writeLine (sprintf "Failed to load model data with error: %A." e)

@@ -4,22 +4,12 @@ open System
 open System.ServiceModel
 open System.Threading
 
-open Softellect.Messaging
 open Softellect.Sys
-open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
-open Softellect.Messaging.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.ServiceInstaller
 open Softellect.Sys.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
-open Softellect.Wcf.Common
-open Softellect.Wcf.Service
 
 open ClmSys.VersionInfo
 open ClmSys.MessagingPrimitives

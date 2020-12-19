@@ -2,7 +2,6 @@
 
 open System
 open Softellect.Sys.Rop
-open Softellect.Sys.TimerEvents
 
 open Clm.ModelParams
 open ClmSys.ClmErrors
@@ -90,5 +89,5 @@ module ModelGenerator =
         logger.logInfoString "createModelGenerator: Creating model generator..."
         let proxy = GenerateAllProxy.create c
         let e = fun () -> generateAll proxy
-        let h = new ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelGenerator - generateAll")
+        let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelGenerator - generateAll")
         h

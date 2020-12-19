@@ -5,7 +5,6 @@ open Argu
 open Softellect.Sys.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Sys.Logging
-open Softellect.Wcf.Common
 open Softellect.Messaging.Service
 open Softellect.Sys.WcfErrors
 

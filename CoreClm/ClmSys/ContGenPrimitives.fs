@@ -3,12 +3,7 @@
 open System
 
 open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.ServiceInstaller
 open Softellect.Sys.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingServiceErrors
-open Softellect.Messaging.ServiceInfo
 
 open GeneralPrimitives
 open WorkerNodePrimitives

@@ -1,10 +1,7 @@
 ﻿namespace MessagingService
 
 open Argu
-open Softellect.Sys.Logging
-open Softellect.Messaging.Primitives
 open ClmSys.MessagingData
-open ClmSys.MessagingPrimitives
 open ClmSys.ClmWorker
 open MessagingService.SvcCommandLine
 open MessagingServiceInfo.ServiceInfo

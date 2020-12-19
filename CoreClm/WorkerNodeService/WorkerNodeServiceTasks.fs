@@ -2,10 +2,8 @@
 
 open Argu
 open ClmSys.ClmErrors
-open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open WorkerNodeService.SvcCommandLine
-open ClmSys.WorkerNodePrimitives
 open ClmSys.ClmWorker
 
 module ServiceTasks =

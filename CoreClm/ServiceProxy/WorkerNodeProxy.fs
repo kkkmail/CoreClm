@@ -9,7 +9,6 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerErrors
 open ClmSys.WorkerNodePrimitives
-open ClmSys.MessagingPrimitives
 
 module WorkerNodeProxy =
 

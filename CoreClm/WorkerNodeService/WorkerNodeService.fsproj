@@ -15,7 +15,6 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
-    <ProjectReference Include="..\Messaging\Messaging.fsproj" />
     <ProjectReference Include="..\NoSql\NoSql.fsproj" />
     <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />

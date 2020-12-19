@@ -1,11 +1,9 @@
 ﻿namespace ClmSys
 
 open System
-open System.Diagnostics
 open Softellect.Sys.Logging
 open log4net
 open log4net.Core
-open Softellect.Sys.Logging
 open ClmErrors
 
 module Logging =

@@ -16,7 +16,7 @@
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
-    <ProjectReference Include="..\Messaging\Messaging.fsproj" />
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

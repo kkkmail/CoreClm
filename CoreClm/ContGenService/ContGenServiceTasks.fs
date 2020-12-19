@@ -2,8 +2,6 @@
 
 open Argu
 open ClmSys.ClmErrors
-open ClmSys.Logging
-open ClmSys.ContGenPrimitives
 open ClmSys.ClmWorker
 open ContGenService.SvcCommandLine
 

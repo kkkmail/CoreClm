@@ -11,9 +11,6 @@ open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRates
 
-open Softellect.Sys.Core
-
-
 module ModelParams =
 
     [<Literal>]

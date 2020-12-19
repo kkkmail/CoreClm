@@ -37,7 +37,7 @@ module GeneralErrors =
             }
 
 
-    let tracer = new Tracer()
+    let tracer = Tracer()
 
 
     type FileError =

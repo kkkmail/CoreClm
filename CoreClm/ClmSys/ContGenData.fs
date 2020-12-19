@@ -1,14 +1,8 @@
 ﻿namespace ClmSys
 
 open System
-open System.ServiceModel
 
 open Softellect.Sys.Core
-open Softellect.Sys.ServiceInstaller
-open Softellect.Sys.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
 open Softellect.Wcf.Common
 
@@ -20,7 +14,6 @@ open ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
-open ClmSys.MessagingData
 
 module ContGenData =
 

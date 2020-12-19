@@ -105,12 +105,12 @@ module Reactions =
         member this.forwardRate =
             match this with
             | Forward r -> Some r.forwardRate
-            | Backward r -> None
+            | Backward _ -> None
             | Reversible r -> Some r.forwardRate
 
         member this.backwardRate =
             match this with
-            | Forward r -> None
+            | Forward _ -> None
             | Backward r -> Some r.backwardRate
             | Reversible r -> Some r.backwardRate
 

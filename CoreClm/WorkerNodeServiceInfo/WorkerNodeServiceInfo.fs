@@ -4,23 +4,12 @@ open System
 open System.Threading
 
 open Softellect.Sys
-open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.Logging
-open Softellect.Sys.WcfErrors
-open Softellect.Sys.MessagingErrors
 open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
 open Softellect.Wcf.Client
-open Softellect.Wcf.Service
-open Softellect.Messaging.Primitives
 open Softellect.Messaging.ServiceInfo
-open Softellect.Messaging.Service
-open Softellect.Messaging.Client
-open Softellect.Messaging.Proxy
-open Softellect.Sys.MessagingClientErrors
-open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
@@ -31,11 +20,9 @@ open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodeData
 open System.ServiceModel
 open ClmSys.WorkerNodeErrors
-open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerData
-open MessagingServiceInfo.ServiceInfo
 open ContGenServiceInfo.ServiceInfo
 
 module ServiceInfo =
@@ -45,12 +32,6 @@ module ServiceInfo =
 
     [<Literal>]
     let WorkerNodeWcfServiceName = "WorkerNodeWcfService"
-
-
-//    type WrkNodeWcfSvcShutDownInfo =
-//        {
-//            wrkNodeServiceHost : ServiceHost
-//        }
 
 
     type WorkerNodeConfigParam =

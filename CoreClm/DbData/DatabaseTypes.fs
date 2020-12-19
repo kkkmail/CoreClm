@@ -10,7 +10,6 @@ open Softellect.Sys.MessagingPrimitives
 
 open ClmSys.VersionInfo
 open Clm.Substances
-open ClmSys.GeneralData
 open Clm.ModelParams
 open Clm.CalculationData
 open Clm.ReactionRates
@@ -18,11 +17,9 @@ open DynamicSql
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.WorkerNodeData
-open ClmSys
 open ClmSys.PartitionerData
 
 // ! Must be the last to open !
@@ -325,7 +322,7 @@ module DatabaseTypes =
     type RunQueue
         with
 
-        static member tryCreate i d (r : RunQueueTableRow) =
+        static member tryCreate d (r : RunQueueTableRow) =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 {
@@ -405,13 +402,13 @@ module DatabaseTypes =
                 match s with
                 | Some (Some v) -> r.startedOn <- Some v
                 | Some None-> r.startedOn <- None
-                | None -> ignore()
+                | None -> ()
 
                 r.modifiedOn <- DateTime.Now
 
                 match u with
                 | true -> r.runQueueStatusId <- q.runQueueStatus.value
-                | false -> ignore()
+                | false -> ()
 
                 Ok()
 

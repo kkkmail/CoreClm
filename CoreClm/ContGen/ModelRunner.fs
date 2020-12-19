@@ -1,15 +1,8 @@
 ﻿namespace ContGen
 
 open Softellect.Sys.Rop
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
 open Softellect.Messaging.Primitives
-open Softellect.Sys.MessagingClientErrors
-open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.Client
-open Softellect.Messaging.ServiceInfo
 
 open Clm.ModelParams
 open ClmSys.SolverRunnerPrimitives
@@ -26,10 +19,7 @@ open ClmSys.WorkerNodePrimitives
 open ClmSys.Logging
 open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
-open Messaging.Client
 open ModelGenerator
-open ClmSys.MessagingData
-open ServiceProxy.ModelRunnerProxy
 
 module ModelRunner =
 

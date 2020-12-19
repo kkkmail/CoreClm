@@ -3,7 +3,6 @@
 open Clm.Substances
 open Microsoft.FSharp.Core
 
-open Clm.Substances
 open Clm.ModelParams
 open Clm.ChartData
 open FSharp.Plotly

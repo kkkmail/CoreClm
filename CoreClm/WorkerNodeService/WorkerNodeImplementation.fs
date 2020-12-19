@@ -3,30 +3,14 @@
 open System
 open Argu
 
-open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Sys
-open Softellect.Sys.Rop
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
-open Softellect.Sys.Core
-open Softellect.Sys.Primitives
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.Logging
-open Softellect.Sys.MessagingErrors
 open Softellect.Wcf.Common
-open Softellect.Wcf.Service
 open Softellect.Messaging.Primitives
-open Softellect.Messaging.ServiceInfo
-open Softellect.Messaging.Service
 open Softellect.Messaging.Client
 open Softellect.Messaging.Proxy
-open Softellect.Sys.MessagingClientErrors
-open Softellect.Sys.MessagingServiceErrors
 
-open ClmSys.GeneralData
-open ClmSys
 open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open ClmSys.TimerEvents
@@ -35,8 +19,6 @@ open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.SvcCommandLine
 open ServiceProxy.MsgServiceProxy
 open MessagingServiceInfo.ServiceInfo
-open Messaging.Client
-open Messaging.ServiceResponse
 open Clm.ModelParams
 open ServiceProxy.WorkerNodeProxy
 open ServiceProxy.MsgProcessorProxy
@@ -46,7 +28,6 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeErrors
 open ClmSys.WorkerNodePrimitives
-open ClmSys.MessagingPrimitives
 open ServiceProxy.SolverRunner
 open SolverRunner.SolverRunnerTasks
 open ClmSys.SolverRunnerPrimitives
@@ -119,7 +100,7 @@ module ServiceImplementation =
             messageData = r |> SaveResultPrtMsg
         }.getMessageInfo()
         |> proxy.sendMessage
-        |> bindError (addError OnSaveResultErr (SendResultMessageError (proxy.partitionerId.messagingClientId, r.resultDataId)))
+        |> Rop.bindError (addError OnSaveResultErr (SendResultMessageError (proxy.partitionerId.messagingClientId, r.resultDataId)))
 
 
     let onSaveCharts (proxy : SendMessageProxy) (r : ChartGenerationResult) =
@@ -133,7 +114,7 @@ module ServiceImplementation =
                 messageData = c |> SaveChartsPrtMsg
             }.getMessageInfo()
             |> proxy.sendMessage
-            |> bindError (addError OnSaveChartsErr (SendChartMessageError (proxy.partitionerId.messagingClientId, c.resultDataId)))
+            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageError (proxy.partitionerId.messagingClientId, c.resultDataId)))
         | NotGeneratedCharts ->
             printfn "onSaveCharts: No charts."
             Ok()
@@ -187,7 +168,7 @@ module ServiceImplementation =
                             messageData = UpdateProgressPrtMsg p
                         }.getMessageInfo()
                         |> proxy.sendMessageProxy.sendMessage
-                        |> bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
+                        |> Rop.bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
                     Some { rs with runnerState = { rs.runnerState with progress = p.progress; lastUpdated = DateTime.Now } }, result
                 | None -> None, p.runQueueId |> UnableToFindMappingErr |> OnUpdateProgressErr |> WorkerNodeErr |> Error
@@ -244,7 +225,7 @@ module ServiceImplementation =
                 let r2 = proxy.tryDeleteWorkerNodeRunModelData d.runningProcessData.runQueueId
                 s, combineUnitResults res r2
 
-        w, result |> bindError (addError OnRunModelErr CannotRunModelErr)
+        w, result |> Rop.bindError (addError OnRunModelErr CannotRunModelErr)
 
 
     type OnStartProxy =

@@ -2,7 +2,6 @@
 
 open System
 open System.Data.SQLite
-open Softellect.Sys.Core
 open Softellect.Sys.Retry
 open Softellect.Sys.AppSettings
 
@@ -13,9 +12,6 @@ open System.Data.SqlClient
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralData
-open ContGenServiceInfo.ServiceInfo
-open MessagingServiceInfo.ServiceInfo
-
 
 module Configuration =
 

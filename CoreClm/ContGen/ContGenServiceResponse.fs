@@ -1,6 +1,5 @@
 ﻿namespace ContGen
 
-open Softellect.Wcf.Common
 open Softellect.Wcf.Client
 
 open ContGenServiceInfo.ServiceInfo

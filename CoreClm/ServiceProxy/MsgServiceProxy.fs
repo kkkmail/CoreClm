@@ -6,10 +6,8 @@ open Softellect.Messaging.Primitives
 open Softellect.Messaging.Proxy
 
 open MessagingServiceInfo.ServiceInfo
-open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open DbData.MsgSvcDatabaseTypes
-open System
 open ClmSys.GeneralPrimitives
 
 module MsgServiceProxy =
@@ -26,20 +24,7 @@ module MsgServiceProxy =
         }
 
 
-    ///// Provides IO proxy for messaging client.
-    ///// Currently it is assumed that messaging client may NOT have SQL server at its disposal.
-    //type MessagingClientProxy =
-    //    {
-    //        tryPickIncomingMessage : unit -> ClmResult<Message option>
-    //        tryPickOutgoingMessage : unit -> ClmResult<Message option>
-    //        saveMessage : Message -> UnitResult
-    //        tryDeleteMessage : MessageId -> UnitResult
-    //        deleteExpiredMessages : TimeSpan -> UnitResult
-    //    }
-
     let createMessagingClientProxy (i : MessagingClientProxyInfo) (c : MessagingClientId) =
-        let name = i.messagingClientName
-
         let getMessageSize (e : MessageData<ClmMessageData>) =
             match e with
             | SystemMsg _ -> SmallSize
@@ -50,7 +35,7 @@ module MsgServiceProxy =
             {
                 tryPickIncomingMessage = fun () -> tryPickIncomingMessage g c
                 tryPickOutgoingMessage = fun () -> tryPickOutgoingMessage g c
-                saveMessage = fun m -> saveMessage g m
+                saveMessage = saveMessage g
                 tryDeleteMessage = deleteMessage g
                 deleteExpiredMessages = deleteExpiredMessages g
                 getMessageSize = getMessageSize
@@ -62,7 +47,7 @@ module MsgServiceProxy =
             {
                 tryPickIncomingMessage = fun () -> tryPickIncomingMessageSqlite connectionString c
                 tryPickOutgoingMessage = fun () -> tryPickOutgoingMessageSqlite connectionString c
-                saveMessage = fun m -> saveMessageSqlite connectionString m
+                saveMessage = saveMessageSqlite connectionString
                 tryDeleteMessage = deleteMessageSqlite connectionString
                 deleteExpiredMessages = deleteExpiredMessagesSqlite connectionString
                 getMessageSize = getMessageSize
@@ -71,15 +56,6 @@ module MsgServiceProxy =
                 addError = fun a b -> a + b
             }
 
-
-    ///// Provides IO proxy for messaging service.
-    //type MessagingServiceProxy =
-    //    {
-    //        tryPickMessage : MessagingClientId -> ClmResult<Message option>
-    //        saveMessage : Message -> UnitResult
-    //        deleteMessage : MessageId -> UnitResult
-    //        deleteExpiredMessages : TimeSpan -> UnitResult
-    //    }
 
     let createMessagingServiceProxy (g : unit -> ConnectionString) =
         {

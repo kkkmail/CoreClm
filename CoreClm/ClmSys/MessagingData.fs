@@ -1,16 +1,12 @@
 ﻿namespace ClmSys
 
-open System
-
 open Softellect.Sys.Core
 open Softellect.Wcf.Common
-open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
 
 open GeneralData
-open MessagingPrimitives
 open ClmSys.ClmErrors
 
 module MessagingData =

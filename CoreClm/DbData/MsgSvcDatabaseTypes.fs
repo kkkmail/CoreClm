@@ -15,9 +15,7 @@ open Softellect.Sys.MessagingClientErrors
 open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.VersionInfo
-open ClmSys.GeneralData
 open ClmSys.ClmErrors
-open ClmSys.MessagingPrimitives
 open ClmSys.GeneralPrimitives
 open Clm.ModelParams
 open ClmSys.MessagingData
@@ -177,7 +175,7 @@ module MsgSvcDatabaseTypes =
     ///                when matched then
     ///                    update set senderId = source.senderId, recipientId = source.recipientId, dataVersion = source.dataVersion, deliveryTypeId = source.deliveryTypeId, messageData = source.messageData, createdOn = source.createdOn;
     let saveMessage c (m : Message) =
-        let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
+//        let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
         let g() =
             use conn = getOpenConn c
@@ -235,7 +233,7 @@ module MsgSvcDatabaseTypes =
                     and dataVersion = @dataVersion
                     and createdOn < @createdOn", MsgSvcConnectionStringValue>(connectionString)
 
-            let result = cmd.Execute(messagingDataVersion.value, DateTime.Now - expirationTime)
+            let _ = cmd.Execute(messagingDataVersion.value, DateTime.Now - expirationTime)
             Ok()
 
         tryDbFun g
@@ -288,9 +286,9 @@ module MsgSvcDatabaseTypes =
                     ("@createdOn", m.messageDataInfo.createdOn |> box)
                 ]
                 |> dict
-                |> fun d -> Dapper.DynamicParameters(d)
+                |> fun d -> DynamicParameters(d)
 
-            let result = executeSqlite connectionString sql data
+            let _ = executeSqlite connectionString sql data
             Ok()
 
         tryDbFun g
@@ -324,7 +322,7 @@ module MsgSvcDatabaseTypes =
             cmd.Parameters.Add(SQLiteParameter("@dataVersion", messagingDataVersion.value)) |> ignore
             cmd.Parameters.Add(SQLiteParameter("@createdOn", DateTime.Now - expirationTime)) |> ignore
 
-            let result = cmd.ExecuteNonQuery()
+            let _ = cmd.ExecuteNonQuery()
             Ok()
 
         tryDbFun g

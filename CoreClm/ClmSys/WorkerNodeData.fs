@@ -3,16 +3,10 @@
 open System
 
 open Softellect.Sys.Core
-open Softellect.Sys.ServiceInstaller
-open Softellect.Sys.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingServiceErrors
 open Softellect.Wcf.Common
 open Softellect.Messaging.ServiceInfo
 
 open ClmSys.GeneralData
-open ClmSys.MessagingData
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodeErrors

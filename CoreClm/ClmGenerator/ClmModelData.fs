@@ -233,7 +233,7 @@ module ClmModelData =
         member data.getReactions rnd rateProvider n =
             match data with
             | RandomChoiceModel m ->
-                let x = m.getReactions rnd rateProvider n
+                let _ = m.getReactions rnd rateProvider n
 
                 let b =
                     match rateProvider.tryGetModel n |> Option.bind (fun m -> m.getAllReactions() |> Some) with

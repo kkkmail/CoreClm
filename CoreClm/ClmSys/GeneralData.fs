@@ -3,15 +3,8 @@
 open System
 
 open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.ServiceInstaller
-open Softellect.Sys.Primitives
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingServiceErrors
-open Softellect.Messaging.ServiceInfo
 
 open ClmSys.VersionInfo
-open ClmSys.Logging
 open GeneralPrimitives
 open ContGenPrimitives
 

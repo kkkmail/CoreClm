@@ -1,26 +1,16 @@
 ﻿namespace WorkerNodeService
 
 open System
-open Argu
-
 open Softellect.Sys
 open Softellect.Wcf.Service
 
-open ClmSys.Logging
 open ClmSys.WorkerNodeData
 open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.ServiceImplementation
-open WorkerNodeService.SvcCommandLine
-open ClmSys.WorkerNodePrimitives
 open ClmSys.ClmErrors
-open System.ServiceModel
-open ClmSys
 open ClmSys.WorkerNodeErrors
 
 module WorkerNodeWcfService =
-
-//    let private serviceName = workerNodeServiceName
-
 
     let private workerNodeRunner : Lazy<ClmResult<WorkerNodeRunner>> =
         new Lazy<ClmResult<WorkerNodeRunner>>(fun () -> WorkerNodeRunner.create serviceAccessInfo)

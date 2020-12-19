@@ -7,7 +7,6 @@ open Argu
 open ContGenServiceInfo.ServiceInfo
 open ContGenService.SvcCommandLine
 open ContGenService.ContGenServiceTasks
-open ContGenService.ContGenWcfService
 open ClmSys.ExitErrorCodes
 open ClmSys.Logging
 

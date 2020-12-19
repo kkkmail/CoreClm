@@ -4,26 +4,8 @@ open Argu
 
 open Softellect.Sys.Logging
 open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.ServiceInstaller
 open Softellect.Sys.Primitives
-open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingServiceErrors
-open Softellect.Messaging.ServiceInfo
-open Softellect.Sys.Core
-open Softellect.Sys.Primitives
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.Logging
-open Softellect.Sys.MessagingErrors
 open Softellect.Wcf.Common
-open Softellect.Wcf.Service
-open Softellect.Messaging.Primitives
-open Softellect.Messaging.ServiceInfo
-open Softellect.Messaging.Service
-open Softellect.Messaging.Client
-open Softellect.Messaging.Proxy
-open Softellect.Sys.MessagingClientErrors
-open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.ClmErrors
 open Clm.Substances

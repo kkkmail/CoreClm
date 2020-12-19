@@ -192,7 +192,7 @@ module SolverRunnerTasks =
     let plotAllResults t (i : PlotResultsInfo) =
         let plotAll () =
             let pdi = getPlotDataInfo i.runSolverData.modelData.modelData.modelDataParams.modelInfo.clmDefaultValueId
-            let plotter = new Plotter(pdi, i.chartData)
+            let plotter = Plotter(pdi, i.chartData)
 
             {
                 resultDataId = i.resultDataWithId.resultDataId
@@ -265,7 +265,7 @@ module SolverRunnerTasks =
                                     let m = async { proxy.runSolver() }
                                     Async.Start m
                                     printfn "SolverRunner.RunSolver - started."
-                                | RunningSolver -> ignore()
+                                | RunningSolver -> ()
                                 return! RunningSolver |> loop
                             | NotifyOfResults t ->
                                 printfn "SolverRunner.NotifyOfResults: %A" t
@@ -291,7 +291,7 @@ module SolverRunnerTasks =
     let getSolverRunner (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
         let logIfFailed errMessage result =
             match result with
-            | Ok() -> ignore()
+            | Ok() -> ()
             | Error e -> SolverRunnerCriticalError.fromErrMessage (errMessage + ":" + e.ToString()) |> proxy.logCrit |> ignore
 
         let updateFinalProgress errMessage = proxy.updateProgress >> (logIfFailed errMessage)
