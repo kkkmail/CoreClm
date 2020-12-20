@@ -405,9 +405,7 @@ module Substances =
             let (Peptide p) = peptide
             p |> List.map (fun a -> a.enantiomer) |> Peptide
 
-        member peptide.aminoAcids =
-            let (Peptide p) = peptide
-            p
+        member peptide.aminoAcids = let (Peptide p) = peptide in p
 
         member peptide.name =
             peptide.aminoAcids
@@ -429,10 +427,21 @@ module Substances =
 
             (count true, count false)
 
+        /// Number of (L, R) amino acids in a peptide
         member peptide.noOfAminoAcids =
             let (Peptide p) = peptide
             let count a = p |> List.sumBy (fun b -> if a = b then 1 else 0)
             AminoAcid.all |> List.map (fun a -> L a |> count, R a |> count)
+
+
+        /// Number of amino acid equal to input amino acid a in a peptide.
+        member peptide.noOfAminoAcid a =
+            let (Peptide p) = peptide
+
+            match (p |> List.sumBy (fun b -> if a = b then 1 else 0)) with
+            | 0 -> None
+            | n -> Some n
+
 
         static member private create m n =
             let rec makePeptide acc l =
@@ -459,6 +468,21 @@ module Substances =
         static member getPeptides (m : MaxPeptideLength) n =
             [ for i in 2..m.length -> Peptide.create i n]
             |> List.concat
+
+
+    type ActivatedPeptide =
+        | ActivatedPeptide of Peptide
+
+        member a.length = let (ActivatedPeptide p) = a in p.length
+        member a.atoms = let (ActivatedPeptide p) = a in p.atoms
+        member a.enantiomer = let (ActivatedPeptide p) = a in ActivatedPeptide p.enantiomer
+        member a.name = let (ActivatedPeptide p) = a in p.name + "*"
+        override a.ToString() = a.name
+        member a.noOfLR = let (ActivatedPeptide p) = a in p.noOfLR
+        member a.aminoAcids = let (ActivatedPeptide p) = a in p.aminoAcids
+        member a.noOfAminoAcids = let (ActivatedPeptide p) = a in p.noOfAminoAcids
+        member a.noOfAminoAcid b = let (ActivatedPeptide p) = a in p.noOfAminoAcid b
+        member a.peptide = let (ActivatedPeptide p) = a in p
 
 
     type Sugar =
@@ -510,6 +534,7 @@ module Substances =
         | Simple of AchiralSubst
         | Chiral of ChiralAminoAcid
         | PeptideChain of Peptide
+        | ActivatedPeptideChain of ActivatedPeptide
         | ChiralSug of ChiralSugar
         | Sum of SumSubst
 
@@ -518,6 +543,7 @@ module Substances =
             | Simple f -> f |> Simple
             | Chiral c -> c.enantiomer |> Chiral
             | PeptideChain p -> p.enantiomer |> PeptideChain
+            | ActivatedPeptideChain p -> p.enantiomer |> ActivatedPeptideChain
             | ChiralSug s -> s.enantiomer |> ChiralSug
             | Sum s -> s |> Sum
 
@@ -527,6 +553,7 @@ module Substances =
             | Chiral c -> c.name
             | ChiralSug s -> s.name
             | PeptideChain p -> p.name
+            | ActivatedPeptideChain p -> p.name
             | Sum s -> s.name
 
         override substance.ToString() = substance.name
@@ -538,10 +565,8 @@ module Substances =
                 match c = a with
                 | true -> Some 1
                 | false -> None
-            | PeptideChain (Peptide p) ->
-                match (p |> List.sumBy (fun b -> if a = b then 1 else 0)) with
-                | 0 -> None
-                | n -> Some n
+            | PeptideChain p -> p.noOfAminoAcid a
+            | ActivatedPeptideChain p -> p.noOfAminoAcid a
             | ChiralSug _ -> None
             | Sum _ -> None
 
@@ -550,6 +575,7 @@ module Substances =
             | Simple _ -> true
             | Chiral _ -> false
             | PeptideChain _ -> false
+            | ActivatedPeptideChain _ -> false
             | ChiralSug _ -> false
             | Sum _ -> false
 
@@ -558,6 +584,7 @@ module Substances =
             | Simple f -> f.atoms
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
+            | ActivatedPeptideChain p -> p.atoms
             | ChiralSug s -> s.atoms
             | Sum _ -> 0
 
@@ -566,6 +593,7 @@ module Substances =
             | Simple _ -> false
             | Chiral _ -> true
             | PeptideChain _ -> true
+            | ActivatedPeptideChain _ -> true
             | ChiralSug _ -> false
             | Sum _ -> false
 
@@ -574,6 +602,7 @@ module Substances =
             | Simple _ -> false
             | Chiral _ -> false
             | PeptideChain _ -> false
+            | ActivatedPeptideChain _ -> false
             | ChiralSug _ -> true
             | Sum _ -> false
 
@@ -582,6 +611,7 @@ module Substances =
             | Simple _ -> 0
             | Chiral c -> c.atoms
             | PeptideChain p -> p.atoms
+            | ActivatedPeptideChain a -> a.length
             | ChiralSug _ -> 0
             | Sum _ -> 0
 
@@ -590,6 +620,7 @@ module Substances =
             | Simple _ -> []
             | Chiral c -> [ c ]
             | PeptideChain p -> p.aminoAcids
+            | ActivatedPeptideChain a -> a.aminoAcids
             | ChiralSug _ -> []
             | Sum _ -> []
 

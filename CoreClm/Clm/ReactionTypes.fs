@@ -15,16 +15,22 @@ module ReactionTypes =
         | DestructionName
         | CatalyticSynthesisName
         | EnCatalyticSynthesisName
+        | ActivatedCatalyticSynthesisName
         | CatalyticDestructionName
         | EnCatalyticDestructionName
+        | ActivatedCatalyticDestructionName
         | LigationName
         | CatalyticLigationName
         | EnCatalyticLigationName
+        | ActivatedFwdCatalyticLigationName
+        | ActivatedBkwCatalyticLigationName
         | SedimentationDirectName
         | SedimentationAllName
         | RacemizationName
         | CatalyticRacemizationName
         | EnCatalyticRacemizationName
+        | ActivatedCatalyticRacemizationName
+        | ActivationName
 
         member this.name =
             match this with
@@ -36,16 +42,22 @@ module ReactionTypes =
             | DestructionName -> "destruction"
             | CatalyticSynthesisName -> "catalytic synthesis"
             | EnCatalyticSynthesisName -> "catalytic synthesis with energy consumption"
+            | ActivatedCatalyticSynthesisName -> "activated catalytic synthesis with energy consumption"
             | CatalyticDestructionName -> "catalytic destruction"
             | EnCatalyticDestructionName -> "catalytic destruction with energy consumption"
+            | ActivatedCatalyticDestructionName -> "activated catalytic destruction with energy consumption"
             | LigationName -> "ligation"
             | CatalyticLigationName -> "catalytic ligation"
             | EnCatalyticLigationName -> "catalytic ligation with energy consumption"
+            | ActivatedFwdCatalyticLigationName -> "activated forward catalytic ligation with energy consumption"
+            | ActivatedBkwCatalyticLigationName -> "activated backward catalytic ligation with energy consumption"
             | SedimentationDirectName -> "sedimentation direct"
             | SedimentationAllName -> "sedimentation all"
             | RacemizationName -> "racemization"
             | CatalyticRacemizationName -> "catalytic racemization"
             | EnCatalyticRacemizationName -> "catalytic racemization with energy consumption"
+            | ActivatedCatalyticRacemizationName -> "activated catalytic racemization with energy consumption"
+            | ActivationName -> "activation"
 
         static member all =
             [
@@ -57,16 +69,22 @@ module ReactionTypes =
                 DestructionName
                 CatalyticSynthesisName
                 EnCatalyticSynthesisName
+                ActivatedCatalyticSynthesisName
                 CatalyticDestructionName
                 EnCatalyticDestructionName
+                ActivatedCatalyticDestructionName
                 LigationName
                 CatalyticLigationName
                 EnCatalyticLigationName
+                ActivatedFwdCatalyticLigationName
+                ActivatedBkwCatalyticLigationName
                 SedimentationDirectName
                 SedimentationAllName
                 RacemizationName
                 CatalyticRacemizationName
                 EnCatalyticRacemizationName
+                ActivatedCatalyticRacemizationName
+                ActivationName
             ]
 
 
@@ -287,6 +305,44 @@ module ReactionTypes =
             c
 
 
+    type ActivatedSynthCatalyst =
+        | ActivatedSynthCatalyst of ActivatedPeptide
+
+        member c.enantiomer =
+            let (ActivatedSynthCatalyst a) = c
+            a.enantiomer |> ActivatedSynthCatalyst
+
+
+    type ActivatedCatalyticSynthesisReaction =
+        | ActivatedCatalyticSynthesisReaction of (SynthesisReaction * ActivatedSynthCatalyst)
+
+        member r.info =
+            let (ActivatedCatalyticSynthesisReaction (a, (ActivatedSynthCatalyst c))) = r
+            let pi = c |> ActivatedPeptideChain
+            let po = c.peptide |> PeptideChain
+
+            {
+                input = a.info.input @ [ (pi, 1) ]
+                output = a.info.output @ [ (po, 1) ]
+            }
+
+        member r.enantiomer =
+            let (ActivatedCatalyticSynthesisReaction (a, c)) = r
+            (a.enantiomer, c.enantiomer) |> ActivatedCatalyticSynthesisReaction
+
+        member r.withEnantiomerCatalyst =
+            let (ActivatedCatalyticSynthesisReaction (a, c)) = r
+            (a, c.enantiomer) |> ActivatedCatalyticSynthesisReaction
+
+        member r.baseReaction =
+            let (ActivatedCatalyticSynthesisReaction (a, _)) = r
+            a
+
+        member r.catalyst =
+            let (ActivatedCatalyticSynthesisReaction (_, b)) = r
+            b
+
+
     type DestrCatalyst =
         | DestrCatalyst of Peptide
 
@@ -367,6 +423,44 @@ module ReactionTypes =
             c
 
 
+    type ActivatedDestrCatalyst =
+        | ActivatedDestrCatalyst of ActivatedPeptide
+
+        member c.enantiomer =
+            let (ActivatedDestrCatalyst a) = c
+            a.enantiomer |> ActivatedDestrCatalyst
+
+
+    type ActivatedCatalyticDestructionReaction =
+        | ActivatedCatalyticDestructionReaction of (DestructionReaction * ActivatedDestrCatalyst)
+
+        member r.info =
+            let (ActivatedCatalyticDestructionReaction (a, (ActivatedDestrCatalyst c))) = r
+            let pi = c |> ActivatedPeptideChain
+            let po = c.peptide |> PeptideChain
+
+            {
+                input = a.info.input @ [ (pi, 1)]
+                output = a.info.output @ [ (po, 1) ]
+            }
+
+        member r.enantiomer =
+            let (ActivatedCatalyticDestructionReaction (a, c)) = r
+            (a.enantiomer, c.enantiomer) |> ActivatedCatalyticDestructionReaction
+
+        member r.withEnantiomerCatalyst =
+            let (ActivatedCatalyticDestructionReaction (a, c)) = r
+            (a, c.enantiomer) |> ActivatedCatalyticDestructionReaction
+
+        member r.baseReaction =
+            let (ActivatedCatalyticDestructionReaction (a, _)) = r
+            a
+
+        member r.catalyst =
+            let (ActivatedCatalyticDestructionReaction (_, b)) = r
+            b
+
+
     /// A directed pair of amino acids forming peptide bond.
     /// leftAminoAcid is the amino acid on the left side of the bond and
     /// rightAminoAcid is on the right side of the bond.
@@ -415,7 +509,7 @@ module ReactionTypes =
             let (LigationReaction (a, b)) = r
             let sa = toSubstName a
             let sb = toSubstName b
-            sprintf "LigationReaction: %s + %s <-> %s" sa sb (sa + sb)
+            $"LigationReaction: {sa} + {sb} <-> {sa + sb}"
 
 
     type PeptideBondData =
@@ -578,6 +672,100 @@ module ReactionTypes =
             sprintf "EnCatalyticLigationReaction: %s + %s + %s + %s <-> %s + %s + %s" sa sb sc ss (sa + sb) sc "waste"
 
 
+    /// Activated catalysts, which catalyze forward ligation reaction, e.g. A + BC + R* -> ABC + R
+    /// Since R* is an activated catalyst, then technically it is not preserved as it is transformed into non activated form (R).
+    type ActivatedFwdLigCatalyst =
+        | ActivatedFwdLigCatalyst of ActivatedPeptide
+
+        member c.enantiomer =
+            let (ActivatedFwdLigCatalyst a) = c
+            a.enantiomer |> ActivatedFwdLigCatalyst
+
+
+    type ActivatedFwdCatalyticLigationReaction =
+        | ActivatedFwdCatalyticLigationReaction of (LigationReaction * ActivatedFwdLigCatalyst)
+
+        member r.info =
+            let (ActivatedFwdCatalyticLigationReaction (LigationReaction (a, b), ActivatedFwdLigCatalyst c)) = r
+            let pi = c |> ActivatedPeptideChain
+            let po = c.peptide |> PeptideChain
+
+            {
+                input = [ (Substance.fromList a, 1); (Substance.fromList b, 1); (pi, 1) ]
+                output = [ (Substance.fromList (a @ b), 1); (po, 1) ]
+            }
+
+        member r.enantiomer =
+            let (ActivatedFwdCatalyticLigationReaction (l, c)) = r
+            (l.enantiomer, c.enantiomer) |> ActivatedFwdCatalyticLigationReaction
+
+        member r.baseReaction =
+            let (ActivatedFwdCatalyticLigationReaction (a, _)) = r
+            a
+
+        member r.catalyst =
+            let (ActivatedFwdCatalyticLigationReaction (_, b)) = r
+            b
+
+        member r.withEnantiomerCatalyst =
+            let (ActivatedFwdCatalyticLigationReaction (a, c)) = r
+            (a, c.enantiomer) |> ActivatedFwdCatalyticLigationReaction
+
+        override r.ToString() =
+            let (ActivatedFwdCatalyticLigationReaction (LigationReaction (a, b), ActivatedFwdLigCatalyst c)) = r
+            let sa = toSubstName a
+            let sb = toSubstName b
+            $"{nameof(ActivatedFwdCatalyticLigationReaction)}: {sa} + {sb} + {c.name} -> {sa + sb} + {c.peptide.name}"
+
+
+    /// Activated catalysts, which catalyze backward ligation reaction, e.g. A + BC + R <- ABC + R*
+    /// Since R* is an activated catalyst, then technically it is not preserved as it is transformed into non activated form (R).
+    /// Note that it is different from forward reaction catalyzed by activated catalyst: A + BC + R* -> ABC + R because
+    /// activated catalyst enters on a different side of equation.
+    type ActivatedBkwLigCatalyst =
+        | ActivatedBkwLigCatalyst of ActivatedPeptide
+
+        member c.enantiomer =
+            let (ActivatedBkwLigCatalyst a) = c
+            a.enantiomer |> ActivatedBkwLigCatalyst
+
+
+    type ActivatedBkwCatalyticLigationReaction =
+        | ActivatedBkwCatalyticLigationReaction of (LigationReaction * ActivatedBkwLigCatalyst)
+
+        member r.info =
+            let (ActivatedBkwCatalyticLigationReaction (LigationReaction (a, b), ActivatedBkwLigCatalyst c)) = r
+            let pi = c |> ActivatedPeptideChain
+            let po = c.peptide |> PeptideChain
+
+            {
+                input = [ (Substance.fromList a, 1); (Substance.fromList b, 1); (pi, 1) ]
+                output = [ (Substance.fromList (a @ b), 1); (po, 1) ]
+            }
+
+        member r.enantiomer =
+            let (ActivatedBkwCatalyticLigationReaction (l, c)) = r
+            (l.enantiomer, c.enantiomer) |> ActivatedBkwCatalyticLigationReaction
+
+        member r.baseReaction =
+            let (ActivatedBkwCatalyticLigationReaction (a, _)) = r
+            a
+
+        member r.catalyst =
+            let (ActivatedBkwCatalyticLigationReaction (_, b)) = r
+            b
+
+        member r.withEnantiomerCatalyst =
+            let (ActivatedBkwCatalyticLigationReaction (a, c)) = r
+            (a, c.enantiomer) |> ActivatedBkwCatalyticLigationReaction
+
+        override r.ToString() =
+            let (ActivatedBkwCatalyticLigationReaction (LigationReaction (a, b), ActivatedBkwLigCatalyst c)) = r
+            let sa = toSubstName a
+            let sb = toSubstName b
+            $"{nameof(ActivatedBkwCatalyticLigationReaction)}: {sa} + {sb} + {c.peptide.name} <- {sa + sb} + {c.name}"
+
+
     /// A resolving agent, which forms insoluble diasteriomeric salt with one of the enantiomer of some amino acid (or, in general, peptide as well).
     type SedDirAgent =
         | SedDirAgent of list<ChiralAminoAcid>
@@ -722,6 +910,57 @@ module ReactionTypes =
             c
 
 
+    type ActivatedRacemCatalyst =
+        | ActivatedRacemCatalyst of ActivatedPeptide
+
+        member c.enantiomer =
+            let (ActivatedRacemCatalyst a) = c
+            a.enantiomer |> ActivatedRacemCatalyst
+
+
+    type ActivatedCatalyticRacemizationReaction =
+        | ActivatedCatalyticRacemizationReaction of (RacemizationReaction * ActivatedRacemCatalyst)
+
+        member r.info =
+            let (ActivatedCatalyticRacemizationReaction (a, (ActivatedRacemCatalyst c))) = r
+            let pi = c |> ActivatedPeptideChain
+            let po = c.peptide |> PeptideChain
+
+            {
+                input = a.info.input @ [ (pi, 1) ]
+                output = a.info.output @ [ (po, 1) ]
+            }
+
+        member r.enantiomer =
+            let (ActivatedCatalyticRacemizationReaction (a, c)) = r
+            (a.enantiomer, c.enantiomer) |> ActivatedCatalyticRacemizationReaction
+
+        member r.withEnantiomerCatalyst =
+            let (ActivatedCatalyticRacemizationReaction (a, c)) = r
+            (a, c.enantiomer) |> ActivatedCatalyticRacemizationReaction
+
+        member r.baseReaction =
+            let (ActivatedCatalyticRacemizationReaction (a, _)) = r
+            a
+
+        member r.catalyst =
+            let (ActivatedCatalyticRacemizationReaction (_, b)) = r
+            b
+
+
+    type ActivationReaction =
+        | ActivationReaction of ChiralSugar * Peptide
+
+        member r.info =
+            let (ActivationReaction (s, p)) = r
+            {
+                input = [ (ChiralSug s, 1); (PeptideChain p, 1) ]
+                output = [ (Simple Waste, 1); (p |> ActivatedPeptide |> ActivatedPeptideChain, 1) ]
+            }
+
+        member r.enantiomer = let (ActivationReaction (s, p)) = r in ActivationReaction (s.enantiomer, p.enantiomer)
+
+
     let inline getName i = ((^T) : (member name : 'T) (i))
     let inline getInfo i = ((^T) : (member info : 'T) (i))
 
@@ -735,16 +974,22 @@ module ReactionTypes =
         | Destruction of DestructionReaction
         | CatalyticSynthesis of CatalyticSynthesisReaction
         | EnCatalyticSynthesis of EnCatalyticSynthesisReaction
+        | ActivatedCatalyticSynthesis of ActivatedCatalyticSynthesisReaction
         | CatalyticDestruction of CatalyticDestructionReaction
         | EnCatalyticDestruction of EnCatalyticDestructionReaction
+        | ActivatedCatalyticDestruction of ActivatedCatalyticDestructionReaction
         | Ligation of LigationReaction
         | CatalyticLigation of CatalyticLigationReaction
         | EnCatalyticLigation of EnCatalyticLigationReaction
+        | ActivatedFwdCatalyticLigation of ActivatedFwdCatalyticLigationReaction
+        | ActivatedBkwCatalyticLigation of ActivatedBkwCatalyticLigationReaction
         | SedimentationDirect of SedimentationDirectReaction
         | SedimentationAll of SedimentationAllReaction
         | Racemization of RacemizationReaction
         | CatalyticRacemization of CatalyticRacemizationReaction
         | EnCatalyticRacemization of EnCatalyticRacemizationReaction
+        | ActivatedCatalyticRacemization of ActivatedCatalyticRacemizationReaction
+        | Activation of ActivationReaction
 
         member r.name =
             match r with
@@ -756,16 +1001,22 @@ module ReactionTypes =
             | Destruction _ -> DestructionName
             | CatalyticSynthesis _ -> CatalyticSynthesisName
             | EnCatalyticSynthesis _ -> EnCatalyticSynthesisName
+            | ActivatedCatalyticSynthesis _ -> ActivatedCatalyticSynthesisName
             | CatalyticDestruction _ -> CatalyticDestructionName
             | EnCatalyticDestruction _ -> EnCatalyticDestructionName
+            | ActivatedCatalyticDestruction _ -> ActivatedCatalyticDestructionName
             | Ligation _ -> LigationName
             | CatalyticLigation _ -> CatalyticLigationName
             | EnCatalyticLigation _ -> EnCatalyticLigationName
+            | ActivatedFwdCatalyticLigation _ -> ActivatedFwdCatalyticLigationName
+            | ActivatedBkwCatalyticLigation _ -> ActivatedBkwCatalyticLigationName
             | SedimentationDirect _ -> SedimentationDirectName
             | SedimentationAll _ -> SedimentationAllName
             | Racemization _ -> RacemizationName
             | CatalyticRacemization _ -> CatalyticRacemizationName
             | EnCatalyticRacemization _ -> EnCatalyticRacemizationName
+            | ActivatedCatalyticRacemization _ -> ActivatedCatalyticRacemizationName
+            | Activation _ -> ActivationName
 
         member r.info =
             match r with
@@ -777,16 +1028,22 @@ module ReactionTypes =
             | Destruction r -> r.info
             | CatalyticSynthesis r -> r.info
             | EnCatalyticSynthesis r -> r.info
+            | ActivatedCatalyticSynthesis r -> r.info
             | CatalyticDestruction r -> r.info
             | EnCatalyticDestruction r -> r.info
+            | ActivatedCatalyticDestruction r -> r.info
             | Ligation r -> r.info
             | CatalyticLigation r -> r.info
             | EnCatalyticLigation r -> r.info
+            | ActivatedFwdCatalyticLigation r -> r.info
+            | ActivatedBkwCatalyticLigation r -> r.info
             | SedimentationDirect r -> r.info
             | SedimentationAll r -> r.info
             | Racemization r -> r.info
             | CatalyticRacemization r -> r.info
             | EnCatalyticRacemization r -> r.info
+            | ActivatedCatalyticRacemization r -> r.info
+            | Activation r -> r.info
 
         member r.enantiomer =
             match r with
@@ -798,16 +1055,22 @@ module ReactionTypes =
             | Destruction r -> r.enantiomer |> Destruction
             | CatalyticSynthesis r -> r.enantiomer |> CatalyticSynthesis
             | EnCatalyticSynthesis r -> r.enantiomer |> EnCatalyticSynthesis
+            | ActivatedCatalyticSynthesis r -> r.enantiomer |> ActivatedCatalyticSynthesis
             | CatalyticDestruction r -> r.enantiomer |> CatalyticDestruction
             | EnCatalyticDestruction r -> r.enantiomer |> EnCatalyticDestruction
+            | ActivatedCatalyticDestruction r -> r.enantiomer |> ActivatedCatalyticDestruction
             | Ligation r -> r.enantiomer |> Ligation
             | CatalyticLigation r -> r.enantiomer |> CatalyticLigation
             | EnCatalyticLigation r -> r.enantiomer |> EnCatalyticLigation
+            | ActivatedFwdCatalyticLigation r -> r.enantiomer |> ActivatedFwdCatalyticLigation
+            | ActivatedBkwCatalyticLigation r -> r.enantiomer |> ActivatedBkwCatalyticLigation
             | SedimentationDirect r -> r.enantiomer |> SedimentationDirect
             | SedimentationAll r -> SedimentationAll r // There are no enantiomers here.
             | Racemization r -> r.enantiomer |> Racemization
             | CatalyticRacemization r -> r.enantiomer |> CatalyticRacemization
             | EnCatalyticRacemization r -> r.enantiomer |> EnCatalyticRacemization
+            | ActivatedCatalyticRacemization r -> r.enantiomer |> ActivatedCatalyticRacemization
+            | Activation r -> r.enantiomer |> Activation
 
         member r.addInfo =
             match r with
@@ -819,13 +1082,19 @@ module ReactionTypes =
             | Destruction _ -> None
             | CatalyticSynthesis _ -> None
             | EnCatalyticSynthesis _ -> None
+            | ActivatedCatalyticSynthesis _ -> None
             | CatalyticDestruction _ -> None
             | EnCatalyticDestruction _ -> None
+            | ActivatedCatalyticDestruction _ -> None
             | Ligation r -> r.peptideBond.ToString() |> Some
             | CatalyticLigation r -> r.baseReaction.peptideBond.ToString() |> Some
             | EnCatalyticLigation r -> r.baseReaction.peptideBond.ToString() |> Some
+            | ActivatedFwdCatalyticLigation r -> r.baseReaction.peptideBond.ToString() |> Some
+            | ActivatedBkwCatalyticLigation r -> r.baseReaction.peptideBond.ToString() |> Some
             | SedimentationDirect _ -> None
             | SedimentationAll _ -> None
             | Racemization _ -> None
             | CatalyticRacemization _ -> None
             | EnCatalyticRacemization _ -> None
+            | ActivatedCatalyticRacemization _ -> None
+            | Activation _ -> None
