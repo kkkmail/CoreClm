@@ -45,6 +45,8 @@
     <Compile Include="ReactionRateModels\EnCatalyticSynthesisModels\EnCatalyticSynthesisRandomModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticSynthesisModels\EnCatalyticSynthesisSimilarModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticSynthesisModels\EnCatalyticSynthesisModel.fs" />
+    <Compile Include="ReactionRateModels\EnCatalyticSynthesisModels\ActivatedCatalyticSynthesisRandomModel.fs" />
+    <Compile Include="ReactionRateModels\EnCatalyticSynthesisModels\ActivatedCatalyticSynthesisSimilarModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticSynthesisModels\ActivatedCatalyticSynthesisModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticLigationModels\EnCatalyticLigationRandomModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticLigationModels\EnCatalyticLigationSimilarModel.fs" />
