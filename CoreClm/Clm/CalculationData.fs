@@ -83,13 +83,18 @@ module CalculationData =
             synthCatalysts : list<SynthCatalyst>
             sugSynthCatalysts : list<SugCatalyst>
             enSynthCatalysts : list<EnSynthCatalyst>
+            acSynthCatalysts : list<AcSynthCatalyst>
             destrCatalysts : list<DestrCatalyst>
             enDestrCatalysts : list<EnDestrCatalyst>
+            acDestrCatalysts : list<AcDestrCatalyst>
             ligCatalysts : list<LigCatalyst>
             enLigCatalysts : list<EnLigCatalyst>
+            acFwdLigCatalysts : list<AcFwdLigCatalyst>
+            acBkwLigCatalysts : list<AcBkwLigCatalyst>
             ligationPairs : list<LigationReaction>
             racemCatalysts : list<RacemizationCatalyst>
             enRacemCatalysts : list<EnRacemCatalyst>
+            acRacemCatalysts : list<AcRacemCatalyst>
 
             sedDirReagents : Map<AminoAcid, list<SedDirReagent>>
             sedDirAgents : list<SedDirAgent>
@@ -131,13 +136,18 @@ module CalculationData =
                 synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
                 sugSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SugCatalyst p)
                 enSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnSynthCatalyst p)
+                acSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> p |> ActivatedPeptide |> AcSynthCatalyst)
                 destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
                 enDestrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnDestrCatalyst p)
+                acDestrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> p |> ActivatedPeptide |> AcDestrCatalyst)
                 ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
                 enLigCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnLigCatalyst p)
+                acFwdLigCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> p |> ActivatedPeptide |> AcFwdLigCatalyst)
+                acBkwLigCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> p |> ActivatedPeptide |> AcBkwLigCatalyst)
                 ligationPairs = ligationPairs
                 racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
                 enRacemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnRacemCatalyst p)
+                acRacemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> p |> ActivatedPeptide |> AcRacemCatalyst)
                 sedDirReagents = aminoAcids |> List.map (fun a -> (a, simReagents a)) |> Map.ofList
 
                 sedDirAgents =

@@ -194,22 +194,22 @@ module ClmModelData =
             | SugarSynthesisName -> sugLen
             | DestructionName -> int64 si.chiralAminoAcids.Length
             | CatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length)
-            | EnCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length) * sugLen * 2L
-            | AcCatalyticSynthesisName -> failwith ""
+            | EnCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.enSynthCatalysts.Length) * sugLen * 2L
+            | AcCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.acSynthCatalysts.Length)
             | CatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length)
-            | EnCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length) * sugLen * 2L
-            | AcCatalyticDestructionName -> failwith ""
+            | EnCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.enDestrCatalysts.Length) * sugLen * 2L
+            | AcCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.acDestrCatalysts.Length
             | LigationName -> int64 si.ligationPairs.Length
             | CatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length)
-            | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length) * sugLen * 2L
-            | AcFwdCatalyticLigationName -> failwith ""
-            | AcBkwCatalyticLigationName -> failwith ""
+            | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.enLigCatalysts.Length) * sugLen * 2L
+            | AcFwdCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.acFwdLigCatalysts.Length)
+            | AcBkwCatalyticLigationName -> failwith (int64 si.ligationReactions.Length) * (int64 si.acBkwLigCatalysts.Length)
             | SedimentationDirectName -> (int64 si.allChains.Length) * (int64 si.allChains.Length)
             | SedimentationAllName -> int64 si.chiralAminoAcids.Length
             | RacemizationName -> int64 si.chiralAminoAcids.Length
             | CatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length)
-            | EnCatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length) * sugLen * 2L
-            | AcCatalyticRacemizationName -> failwith ""
+            | EnCatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.enRacemCatalysts.Length) * sugLen * 2L
+            | AcCatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.acRacemCatalysts.Length)
             | ActivationName -> failwith ""
 
         member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
