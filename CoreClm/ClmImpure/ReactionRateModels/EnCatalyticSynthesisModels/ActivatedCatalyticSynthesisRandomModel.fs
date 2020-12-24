@@ -23,13 +23,11 @@ module ActivatedCatalyticSynthesisRandomModel =
         let calculateActivatedCatSynthRates rnd t (ActivatedCatalyticSynthesisReaction (s, c)) =
             {
                 reaction = s
-                enCatalyst = c
-                energySource = u
+                acCatalyst = c
                 getCatEnantiomer = getEnantiomer
-                getEnergySourceEnantiomer = getEnantiomer
-                enCatReactionCreator = ActivatedCatalyticSynthesisReaction
+                acCatReactionCreator = ActivatedCatalyticSynthesisReaction
                 getBaseRates = p.synthesisModel.getRates rnd
-                eeParams = p.acCatSynthRndParam.enCatSynthRndEeParams
+                eeParams = p.acCatSynthRndParam.acCatSynthRndEeParams
                 rateGenerationType = t
                 rnd = rnd
             }

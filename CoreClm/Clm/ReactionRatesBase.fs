@@ -325,7 +325,7 @@ module ReactionRatesBase =
             getCatEnantiomer : 'C -> 'C
             acCatReactionCreator : ('R * 'C) -> 'RC
             getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-            eeParams : EnCatRatesEeParam
+            eeParams : ActivatedCatRatesEeParam
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
         }

@@ -5,43 +5,41 @@ open Clm.ReactionTypes
 open Clm.ReactionRatesBase
 open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
-open ClmImpure.ReactionRateModels.EnCatalyticSynthesisRandomModel
+open ClmImpure.ReactionRateModels.ActivatedCatalyticSynthesisRandomModel
 
-module EnCatalyticSynthesisSimilarModel =
+module ActivatedCatalyticSynthesisSimilarModel =
 
-    type EnCatalyticSynthesisSimilarParamWithModel =
+    type ActivatedCatalyticSynthesisSimilarParamWithModel =
         {
-            enCatSynthModel : EnCatalyticSynthesisRandomModel
+            acCatSynthModel : ActivatedCatalyticSynthesisRandomModel
             aminoAcids : list<AminoAcid>
-            enCatSynthSimParam : EnCatRatesSimilarityParam
+            acCatSynthSimParam : ActivatedCatRatesSimilarityParam
         }
 
 
-    type EnCatalyticSynthesisSimilarModel (p : EnCatalyticSynthesisSimilarParamWithModel) =
-        let calculateSimRatesImpl rnd t (EnCatalyticSynthesisReaction (s, c, u)) =
+    type ActivatedCatalyticSynthesisSimilarModel (p : ActivatedCatalyticSynthesisSimilarParamWithModel) =
+        let calculateSimRatesImpl rnd t (ActivatedCatalyticSynthesisReaction (s, c)) =
             let (SynthesisReaction a) = s
             {
                 reaction = s
-                enCatalyst = c
-                energySource = u
+                acCatalyst = c
                 getReactionData = fun _ -> p.aminoAcids
                 inverse = fun (SynthesisReaction r) -> r.aminoAcid
                 getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
-                getEnergySourceEnantiomer = getEnantiomer
-                enCatReactionCreator = EnCatalyticSynthesisReaction
-                getCatReactEnantiomer = getEnantiomer
+                acCatReactionCreator = ActivatedCatalyticSynthesisReaction
                 simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
-                getBaseRates = p.enCatSynthModel.inputParams.synthesisModel.getRates rnd
-                getBaseCatRates = p.enCatSynthModel.getRates rnd t
-                enSimParams = p.enCatSynthSimParam
-                eeParams = p.enCatSynthModel.inputParams.enCatSynthRndParam.enCatSynthRndEeParams
-                rateDictionary = p.enCatSynthModel.rateDictionary
+                getCatReactEnantiomer = getEnantiomer
+                getBaseRates = p.acCatSynthModel.inputParams.synthesisModel.getRates rnd
+                getBaseCatRates = p.acCatSynthModel.getRates rnd t
+                acSimParams = p.acCatSynthSimParam
+                eeParams = p.acCatSynthModel.inputParams.acCatSynthRndParam.acCatSynthRndEeParams
+                rateDictionary = p.acCatSynthModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
             }
-            |> calculateEnSimRates
+            |> calculateActivatedSimRates
 
         member _.getRates rnd t r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
-        member _.getAllRates() = getAllRatesImpl p.enCatSynthModel.rateDictionary
+        member _.getAllRates() = getAllRatesImpl p.acCatSynthModel.rateDictionary

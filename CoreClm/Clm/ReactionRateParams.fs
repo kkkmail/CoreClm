@@ -300,28 +300,42 @@ module ReactionRateParams =
         | EnCatLigSimParam of EnCatalyticLigationSimilarParam
 
 
-    type ActivatedCatalyticLigationRandomParam =
+    type ActivatedFwdCatalyticLigationRandomParam =
         {
             ligationParam : LigationParam
-            acCatLigRndEeParams : ActivatedCatRatesEeParam
+            acFwdCatLigRndEeParams : ActivatedCatRatesEeParam
         }
 
 
-    type ActivatedCatalyticLigationSimilarParam =
+    type ActivatedFwdCatalyticLigationSimilarParam =
         {
-            acCatLigSimParam : ActivatedCatRatesSimilarityParam
-            acCatLigParam : ActivatedCatalyticLigationRandomParam
+            acFwdCatLigSimParam : ActivatedCatRatesSimilarityParam
+            acFwdCatLigParam : ActivatedFwdCatalyticLigationRandomParam
         }
 
 
     type ActivatedFwdCatalyticLigationParam =
-        | ActivatedFwdCatLigRndParam of ActivatedCatalyticLigationRandomParam
-        | ActivatedFwdCatLigSimParam of ActivatedCatalyticLigationSimilarParam
-
-
-    type ActivatedFwdCatalyticLigationParam =
-        | ActivatedFwdCatLigRndParam of ActivatedCatalyticLigationRandomParam
+        | ActivatedFwdCatLigRndParam of ActivatedFwdCatalyticLigationRandomParam
         | ActivatedFwdCatLigSimParam of ActivatedFwdCatalyticLigationSimilarParam
+
+
+    type ActivatedBkwCatalyticLigationRandomParam =
+        {
+            ligationParam : LigationParam
+            acBkwCatLigRndEeParams : ActivatedCatRatesEeParam
+        }
+
+
+    type ActivatedBkwCatalyticLigationSimilarParam =
+        {
+            acBkwCatLigSimParam : ActivatedCatRatesSimilarityParam
+            acBkwCatLigParam : ActivatedBkwCatalyticLigationRandomParam
+        }
+
+
+    type ActivatedBkwCatalyticLigationParam =
+        | ActivatedBkwCatLigRndParam of ActivatedBkwCatalyticLigationRandomParam
+        | ActivatedBkwCatLigSimParam of ActivatedBkwCatalyticLigationSimilarParam
 
 
     type RacemizationRandomParam =
@@ -371,3 +385,22 @@ module ReactionRateParams =
     type EnCatalyticRacemizationParam =
         | EnCatRacemRndParam of EnCatalyticRacemizationRandomParam
         | EnCatRacemSimParam of EnCatalyticRacemizationSimilarParam
+
+
+    type ActivatedCatalyticRacemizationRandomParam =
+        {
+            racemizationParam : RacemizationParam
+            acCatRacemRndEeParams : EnCatRatesEeParam
+        }
+
+
+    type ActivatedCatalyticRacemizationSimilarParam =
+        {
+            acCatRacemParam : ActivatedCatalyticRacemizationRandomParam
+            acCatRacemSimParam : ActivatedCatRatesSimilarityParam
+        }
+
+
+    type ActivatedCatalyticRacemizationParam =
+        | ActivatedCatRacemRndParam of ActivatedCatalyticRacemizationRandomParam
+        | ActivatedCatRacemSimParam of ActivatedCatalyticRacemizationSimilarParam
