@@ -296,7 +296,7 @@ module ReactionRatesBase =
         }
 
 
-    type ActivatedCatRatesEeParam =
+    type AcCatRatesEeParam =
         {
             rateMultiplierDistr : RateMultiplierDistribution
             acEeDistribution : EeDistribution option
@@ -309,7 +309,7 @@ module ReactionRatesBase =
             }
 
 
-    type ActivatedCatRatesSimilarityParam =
+    type AcCatRatesSimilarityParam =
         {
             acCatRatesSimGeneration : CatRatesSimGeneration
             getRateMultiplierDistr : RateMultiplierDistributionGetter
@@ -318,18 +318,18 @@ module ReactionRatesBase =
         }
 
 
-    type ActivatedCatRatesInfo<'R, 'C, 'RC> =
+    type AcCatRatesInfo<'R, 'C, 'RC> =
         {
             reaction : 'R
             acCatalyst : 'C
             getCatEnantiomer : 'C -> 'C
             acCatReactionCreator : ('R * 'C) -> 'RC
             getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-            eeParams : ActivatedCatRatesEeParam
+            eeParams : AcCatRatesEeParam
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
         }
 
 
-    let calculateActivatedCatRates<'R, 'C, 'RC> (i : ActivatedCatRatesInfo<'R, 'C, 'RC>) : RelatedReactions<'RC> =
+    let calculateAcCatRates<'R, 'C, 'RC> (i : AcCatRatesInfo<'R, 'C, 'RC>) : RelatedReactions<'RC> =
         failwith ""

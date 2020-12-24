@@ -88,23 +88,23 @@ module ReactionRateParams =
         | EnCatSynthSimParam of EnCatalyticSynthesisSimilarParam
 
 
-    type ActivatedCatalyticSynthesisRandomParam =
+    type AcCatalyticSynthesisRandomParam =
         {
             synthesisParam : SynthesisParam
-            acCatSynthRndEeParams : ActivatedCatRatesEeParam
+            acCatSynthRndEeParams : AcCatRatesEeParam
         }
 
 
-    type ActivatedCatalyticSynthesisSimilarParam =
+    type AcCatalyticSynthesisSimilarParam =
         {
-            acCatSynthParam : ActivatedCatalyticSynthesisRandomParam
-            acCatSynthSimParam : ActivatedCatRatesSimilarityParam
+            acCatSynthParam : AcCatalyticSynthesisRandomParam
+            acCatSynthSimParam : AcCatRatesSimilarityParam
         }
 
 
-    type ActivatedCatalyticSynthesisParam =
-        | ActivatedCatSynthRndParam of ActivatedCatalyticSynthesisRandomParam
-        | ActivatedCatSynthSimParam of ActivatedCatalyticSynthesisSimilarParam
+    type AcCatalyticSynthesisParam =
+        | AcCatSynthRndParam of AcCatalyticSynthesisRandomParam
+        | AcCatSynthSimParam of AcCatalyticSynthesisSimilarParam
 
 
     type DestructionRandomParam =
@@ -157,23 +157,23 @@ module ReactionRateParams =
         | EnCatDestrSimParam of EnCatalyticDestructionSimilarParam
 
 
-    type ActivatedCatalyticDestructionRandomParam =
+    type AcCatalyticDestructionRandomParam =
         {
             destructionParam : DestructionParam
-            acCatDestrRndEeParams : ActivatedCatRatesEeParam
+            acCatDestrRndEeParams : AcCatRatesEeParam
         }
 
 
-    type ActivatedCatalyticDestructionSimilarParam =
+    type AcCatalyticDestructionSimilarParam =
         {
             acCatDestrParam : EnCatalyticDestructionRandomParam
             acCatDestrSimParam : EnCatRatesSimilarityParam
         }
 
 
-    type ActivatedCatalyticDestructionParam =
-        | ActivatedCatDestrRndParam of ActivatedCatalyticDestructionRandomParam
-        | ActivatedCatDestrSimParam of ActivatedCatalyticDestructionSimilarParam
+    type AcCatalyticDestructionParam =
+        | AcCatDestrRndParam of AcCatalyticDestructionRandomParam
+        | AcCatDestrSimParam of AcCatalyticDestructionSimilarParam
 
 
     type SedDirRatesEeParam =
@@ -300,42 +300,42 @@ module ReactionRateParams =
         | EnCatLigSimParam of EnCatalyticLigationSimilarParam
 
 
-    type ActivatedFwdCatalyticLigationRandomParam =
+    type AcFwdCatalyticLigationRandomParam =
         {
             ligationParam : LigationParam
-            acFwdCatLigRndEeParams : ActivatedCatRatesEeParam
+            acFwdCatLigRndEeParams : AcCatRatesEeParam
         }
 
 
-    type ActivatedFwdCatalyticLigationSimilarParam =
+    type AcFwdCatalyticLigationSimilarParam =
         {
-            acFwdCatLigSimParam : ActivatedCatRatesSimilarityParam
-            acFwdCatLigParam : ActivatedFwdCatalyticLigationRandomParam
+            acFwdCatLigSimParam : AcCatRatesSimilarityParam
+            acFwdCatLigParam : AcFwdCatalyticLigationRandomParam
         }
 
 
-    type ActivatedFwdCatalyticLigationParam =
-        | ActivatedFwdCatLigRndParam of ActivatedFwdCatalyticLigationRandomParam
-        | ActivatedFwdCatLigSimParam of ActivatedFwdCatalyticLigationSimilarParam
+    type AcFwdCatalyticLigationParam =
+        | AcFwdCatLigRndParam of AcFwdCatalyticLigationRandomParam
+        | AcFwdCatLigSimParam of AcFwdCatalyticLigationSimilarParam
 
 
-    type ActivatedBkwCatalyticLigationRandomParam =
+    type AcBkwCatalyticLigationRandomParam =
         {
             ligationParam : LigationParam
-            acBkwCatLigRndEeParams : ActivatedCatRatesEeParam
+            acBkwCatLigRndEeParams : AcCatRatesEeParam
         }
 
 
-    type ActivatedBkwCatalyticLigationSimilarParam =
+    type AcBkwCatalyticLigationSimilarParam =
         {
-            acBkwCatLigSimParam : ActivatedCatRatesSimilarityParam
-            acBkwCatLigParam : ActivatedBkwCatalyticLigationRandomParam
+            acBkwCatLigSimParam : AcCatRatesSimilarityParam
+            acBkwCatLigParam : AcBkwCatalyticLigationRandomParam
         }
 
 
-    type ActivatedBkwCatalyticLigationParam =
-        | ActivatedBkwCatLigRndParam of ActivatedBkwCatalyticLigationRandomParam
-        | ActivatedBkwCatLigSimParam of ActivatedBkwCatalyticLigationSimilarParam
+    type AcBkwCatalyticLigationParam =
+        | AcBkwCatLigRndParam of AcBkwCatalyticLigationRandomParam
+        | AcBkwCatLigSimParam of AcBkwCatalyticLigationSimilarParam
 
 
     type RacemizationRandomParam =
@@ -387,20 +387,20 @@ module ReactionRateParams =
         | EnCatRacemSimParam of EnCatalyticRacemizationSimilarParam
 
 
-    type ActivatedCatalyticRacemizationRandomParam =
+    type AcCatalyticRacemizationRandomParam =
         {
             racemizationParam : RacemizationParam
-            acCatRacemRndEeParams : EnCatRatesEeParam
+            acCatRacemRndEeParams : AcCatRatesEeParam
         }
 
 
-    type ActivatedCatalyticRacemizationSimilarParam =
+    type AcCatalyticRacemizationSimilarParam =
         {
-            acCatRacemParam : ActivatedCatalyticRacemizationRandomParam
-            acCatRacemSimParam : ActivatedCatRatesSimilarityParam
+            acCatRacemParam : AcCatalyticRacemizationRandomParam
+            acCatRacemSimParam : AcCatRatesSimilarityParam
         }
 
 
-    type ActivatedCatalyticRacemizationParam =
-        | ActivatedCatRacemRndParam of ActivatedCatalyticRacemizationRandomParam
-        | ActivatedCatRacemSimParam of ActivatedCatalyticRacemizationSimilarParam
+    type AcCatalyticRacemizationParam =
+        | AcCatRacemRndParam of AcCatalyticRacemizationRandomParam
+        | AcCatRacemSimParam of AcCatalyticRacemizationSimilarParam

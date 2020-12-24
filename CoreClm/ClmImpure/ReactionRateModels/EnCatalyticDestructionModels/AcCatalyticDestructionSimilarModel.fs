@@ -5,20 +5,20 @@ open Clm.ReactionTypes
 open Clm.ReactionRatesBase
 open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
-open ClmImpure.ReactionRateModels.ActivatedCatalyticDestructionRandomModel
+open ClmImpure.ReactionRateModels.AcCatalyticDestructionRandomModel
 
-module ActivatedCatalyticDestructionSimilarModel =
+module AcCatalyticDestructionSimilarModel =
 
-    type ActivatedCatalyticDestructionSimilarParamWithModel =
+    type AcCatalyticDestructionSimilarParamWithModel =
         {
-            enCatDestrModel : ActivatedCatalyticDestructionRandomModel
+            enCatDestrModel : AcCatalyticDestructionRandomModel
             aminoAcids : list<AminoAcid>
-            enCatDestrSimParam : ActivatedCatRatesSimilarityParam
+            enCatDestrSimParam : AcCatRatesSimilarityParam
         }
 
 
-    type ActivatedCatalyticDestructionSimilarModel (p : ActivatedCatalyticDestructionSimilarParamWithModel) =
-        let calculateSimRatesImpl rnd t (ActivatedCatalyticDestructionReaction (s, c)) =
+    type AcCatalyticDestructionSimilarModel (p : AcCatalyticDestructionSimilarParamWithModel) =
+        let calculateSimRatesImpl rnd t (AcCatalyticDestructionReaction (s, c)) =
             let (DestructionReaction a) = s
             {
                 reaction = s
@@ -27,7 +27,7 @@ module ActivatedCatalyticDestructionSimilarModel =
                 inverse = fun (DestructionReaction r) -> r.aminoAcid
                 getMatchingReactionMult = fun x -> x
                 getCatEnantiomer = getEnantiomer
-                acCatReactionCreator = ActivatedCatalyticDestructionReaction
+                acCatReactionCreator = AcCatalyticDestructionReaction
                 simReactionCreator = (fun e -> [ a.createSameChirality e |> DestructionReaction ])
                 getCatReactEnantiomer = getEnantiomer
                 getBaseRates = p.enCatDestrModel.inputParams.destructionModel.getRates rnd
@@ -38,7 +38,7 @@ module ActivatedCatalyticDestructionSimilarModel =
                 rateGenerationType = t
                 rnd = rnd
             }
-            |> calculateActivatedSimRates
+            |> calculateAcSimRates
 
         member _.getRates rnd t r = calculateSimRatesImpl rnd t r
         member _.inputParams = p

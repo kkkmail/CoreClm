@@ -471,7 +471,7 @@ module ReactionRateFunctions =
         cr
 
 
-    type ActivatedCatRatesSimInfo<'A, 'R, 'C, 'RC when 'R : equality> =
+    type AcCatRatesSimInfo<'A, 'R, 'C, 'RC when 'R : equality> =
         {
             reaction : 'R
             acCatalyst : 'C
@@ -484,8 +484,8 @@ module ReactionRateFunctions =
             getCatReactEnantiomer : 'RC -> 'RC
             getBaseRates : 'R -> RateData
             getBaseCatRates : 'RC -> RateData
-            acSimParams : ActivatedCatRatesSimilarityParam
-            eeParams : ActivatedCatRatesEeParam
+            acSimParams : AcCatRatesSimilarityParam
+            eeParams : AcCatRatesEeParam
             rateDictionary : Dictionary<'RC, RateData>
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
@@ -504,5 +504,5 @@ module ReactionRateFunctions =
             }
 
 
-    let calculateActivatedSimRates i =
+    let calculateAcSimRates i =
         failwith ""
