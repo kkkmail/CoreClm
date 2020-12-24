@@ -81,3 +81,4 @@ module ReactionsExt =
             | CatalyticRacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> CatalyticRacemization))
             | EnCatalyticRacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> EnCatalyticRacemization))
             | AcCatalyticRacemizationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> AcCatalyticRacemization))
+            | ActivationRateModel m -> m.getAllRates() |> (createReactions (fun e -> e |> Activation))

@@ -56,6 +56,8 @@ open ClmImpure.ReactionRateModels.SedimentationDirectModel
 open ClmImpure.ReactionRateModelExtensions.SedimentationDirectModelExt
 open ClmImpure.ReactionRateModels.SedimentationAllModel
 open ClmImpure.ReactionRateModelExtensions.SedimentationAllModelExt
+open ClmImpure.ReactionRateModels.ActivationModel
+open ClmImpure.ReactionRateModelExtensions.ActivationModelExt
 
 module RateProvider =
 

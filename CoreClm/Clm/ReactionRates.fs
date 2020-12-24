@@ -189,6 +189,7 @@ module ReactionRates =
                 match v with
                 | AcCatRacemRndParam m -> [ m.racemizationParam |> RacemizationRateParam ]
                 | AcCatRacemSimParam m -> [ m.acCatRacemParam |> AcCatRacemRndParam |> AcCatalyticRacemizationRateParam ]
+            | ActivationRateParam _ -> []
 
 
     type ReactionRateModelParamUsage =

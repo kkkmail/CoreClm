@@ -305,19 +305,19 @@ module ReactionTypes =
             c
 
 
-    type ActivatedSynthCatalyst =
-        | ActivatedSynthCatalyst of ActivatedPeptide
+    type AcSynthCatalyst =
+        | AcSynthCatalyst of ActivatedPeptide
 
         member c.enantiomer =
-            let (ActivatedSynthCatalyst a) = c
-            a.enantiomer |> ActivatedSynthCatalyst
+            let (AcSynthCatalyst a) = c
+            a.enantiomer |> AcSynthCatalyst
 
 
     type AcCatalyticSynthesisReaction =
-        | AcCatalyticSynthesisReaction of (SynthesisReaction * ActivatedSynthCatalyst)
+        | AcCatalyticSynthesisReaction of (SynthesisReaction * AcSynthCatalyst)
 
         member r.info =
-            let (AcCatalyticSynthesisReaction (a, (ActivatedSynthCatalyst c))) = r
+            let (AcCatalyticSynthesisReaction (a, (AcSynthCatalyst c))) = r
             let pi = c |> ActivatedPeptideChain
             let po = c.peptide |> PeptideChain
 
@@ -423,19 +423,19 @@ module ReactionTypes =
             c
 
 
-    type ActivatedDestrCatalyst =
-        | ActivatedDestrCatalyst of ActivatedPeptide
+    type AcDestrCatalyst =
+        | AcDestrCatalyst of ActivatedPeptide
 
         member c.enantiomer =
-            let (ActivatedDestrCatalyst a) = c
-            a.enantiomer |> ActivatedDestrCatalyst
+            let (AcDestrCatalyst a) = c
+            a.enantiomer |> AcDestrCatalyst
 
 
     type AcCatalyticDestructionReaction =
-        | AcCatalyticDestructionReaction of (DestructionReaction * ActivatedDestrCatalyst)
+        | AcCatalyticDestructionReaction of (DestructionReaction * AcDestrCatalyst)
 
         member r.info =
-            let (AcCatalyticDestructionReaction (a, (ActivatedDestrCatalyst c))) = r
+            let (AcCatalyticDestructionReaction (a, (AcDestrCatalyst c))) = r
             let pi = c |> ActivatedPeptideChain
             let po = c.peptide |> PeptideChain
 
@@ -674,19 +674,19 @@ module ReactionTypes =
 
     /// Activated catalysts, which catalyze forward ligation reaction, e.g. A + BC + R* -> ABC + R
     /// Since R* is an activated catalyst, then technically it is not preserved as it is transformed into non activated form (R).
-    type ActivatedFwdLigCatalyst =
-        | ActivatedFwdLigCatalyst of ActivatedPeptide
+    type AcFwdLigCatalyst =
+        | AcFwdLigCatalyst of ActivatedPeptide
 
         member c.enantiomer =
-            let (ActivatedFwdLigCatalyst a) = c
-            a.enantiomer |> ActivatedFwdLigCatalyst
+            let (AcFwdLigCatalyst a) = c
+            a.enantiomer |> AcFwdLigCatalyst
 
 
     type AcFwdCatalyticLigationReaction =
-        | AcFwdCatalyticLigationReaction of (LigationReaction * ActivatedFwdLigCatalyst)
+        | AcFwdCatalyticLigationReaction of (LigationReaction * AcFwdLigCatalyst)
 
         member r.info =
-            let (AcFwdCatalyticLigationReaction (LigationReaction (a, b), ActivatedFwdLigCatalyst c)) = r
+            let (AcFwdCatalyticLigationReaction (LigationReaction (a, b), AcFwdLigCatalyst c)) = r
             let pi = c |> ActivatedPeptideChain
             let po = c.peptide |> PeptideChain
 
@@ -712,7 +712,7 @@ module ReactionTypes =
             (a, c.enantiomer) |> AcFwdCatalyticLigationReaction
 
         override r.ToString() =
-            let (AcFwdCatalyticLigationReaction (LigationReaction (a, b), ActivatedFwdLigCatalyst c)) = r
+            let (AcFwdCatalyticLigationReaction (LigationReaction (a, b), AcFwdLigCatalyst c)) = r
             let sa = toSubstName a
             let sb = toSubstName b
             $"{nameof(AcFwdCatalyticLigationReaction)}: {sa} + {sb} + {c.name} -> {sa + sb} + {c.peptide.name}"
@@ -722,19 +722,19 @@ module ReactionTypes =
     /// Since R* is an activated catalyst, then technically it is not preserved as it is transformed into non activated form (R).
     /// Note that it is different from forward reaction catalyzed by activated catalyst: A + BC + R* -> ABC + R because
     /// activated catalyst enters on a different side of equation.
-    type ActivatedBkwLigCatalyst =
-        | ActivatedBkwLigCatalyst of ActivatedPeptide
+    type AcBkwLigCatalyst =
+        | AcBkwLigCatalyst of ActivatedPeptide
 
         member c.enantiomer =
-            let (ActivatedBkwLigCatalyst a) = c
-            a.enantiomer |> ActivatedBkwLigCatalyst
+            let (AcBkwLigCatalyst a) = c
+            a.enantiomer |> AcBkwLigCatalyst
 
 
     type AcBkwCatalyticLigationReaction =
-        | AcBkwCatalyticLigationReaction of (LigationReaction * ActivatedBkwLigCatalyst)
+        | AcBkwCatalyticLigationReaction of (LigationReaction * AcBkwLigCatalyst)
 
         member r.info =
-            let (AcBkwCatalyticLigationReaction (LigationReaction (a, b), ActivatedBkwLigCatalyst c)) = r
+            let (AcBkwCatalyticLigationReaction (LigationReaction (a, b), AcBkwLigCatalyst c)) = r
             let pi = c |> ActivatedPeptideChain
             let po = c.peptide |> PeptideChain
 
@@ -760,7 +760,7 @@ module ReactionTypes =
             (a, c.enantiomer) |> AcBkwCatalyticLigationReaction
 
         override r.ToString() =
-            let (AcBkwCatalyticLigationReaction (LigationReaction (a, b), ActivatedBkwLigCatalyst c)) = r
+            let (AcBkwCatalyticLigationReaction (LigationReaction (a, b), AcBkwLigCatalyst c)) = r
             let sa = toSubstName a
             let sb = toSubstName b
             $"{nameof(AcBkwCatalyticLigationReaction)}: {sa} + {sb} + {c.peptide.name} <- {sa + sb} + {c.name}"
@@ -910,19 +910,19 @@ module ReactionTypes =
             c
 
 
-    type ActivatedRacemCatalyst =
-        | ActivatedRacemCatalyst of ActivatedPeptide
+    type AcRacemCatalyst =
+        | AcRacemCatalyst of ActivatedPeptide
 
         member c.enantiomer =
-            let (ActivatedRacemCatalyst a) = c
-            a.enantiomer |> ActivatedRacemCatalyst
+            let (AcRacemCatalyst a) = c
+            a.enantiomer |> AcRacemCatalyst
 
 
     type AcCatalyticRacemizationReaction =
-        | AcCatalyticRacemizationReaction of (RacemizationReaction * ActivatedRacemCatalyst)
+        | AcCatalyticRacemizationReaction of (RacemizationReaction * AcRacemCatalyst)
 
         member r.info =
-            let (AcCatalyticRacemizationReaction (a, (ActivatedRacemCatalyst c))) = r
+            let (AcCatalyticRacemizationReaction (a, (AcRacemCatalyst c))) = r
             let pi = c |> ActivatedPeptideChain
             let po = c.peptide |> PeptideChain
 

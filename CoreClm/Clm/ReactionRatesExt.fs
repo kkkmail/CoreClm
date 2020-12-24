@@ -218,3 +218,12 @@ module ReactionRatesExt =
             match p.modelParam with
             | AcCatalyticRacemizationRateParam (AcCatRacemRndParam d) -> Some (p.usage, d)
             | _ -> None
+
+
+    type ActivationParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | ActivationRateParam d -> Some (p.usage, d)
+            | _ -> None

@@ -24,6 +24,7 @@ open ClmImpure.ReactionRateModels.AcFwdCatalyticLigationModel
 open ClmImpure.ReactionRateModels.AcBkwCatalyticLigationModel
 open ClmImpure.ReactionRateModels.AcCatalyticDestructionModel
 open ClmImpure.ReactionRateModels.AcCatalyticRacemizationModel
+open ClmImpure.ReactionRateModels.ActivationModel
 
 module ReactionRateModelsAll =
 

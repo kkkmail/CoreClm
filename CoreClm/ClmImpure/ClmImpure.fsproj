@@ -15,6 +15,7 @@
     <Compile Include="ReactionRateModels\FoodCreationModel.fs" />
     <Compile Include="ReactionRateModels\WasteRemovalModel.fs" />
     <Compile Include="ReactionRateModels\WasteRecyclingModel.fs" />
+    <Compile Include="ReactionRateModels\ActivationModel.fs" />
     <Compile Include="ReactionRateModels\SyntehsisModels\SynthesisRandomModel.fs" />
     <Compile Include="ReactionRateModels\SyntehsisModels\SynthesisModel.fs" />
     <Compile Include="ReactionRateModels\SugarSynthesisModels\SugarSynthesisRandomModel.fs" />
@@ -74,6 +75,7 @@
     <Compile Include="ReactionRateModelExtensions\FoodCreationModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\WasteRemovalModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\WasteRecyclingModelExt.fs" />
+    <Compile Include="ReactionRateModelExtensions\ActivationModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SynthesisModels\SynthesisRandomModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SynthesisModels\SynthesisModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SugarSynthesisModels\SugarSynthesisRandomModelExt.fs" />

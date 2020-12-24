@@ -87,12 +87,17 @@ module ClmModelData =
             sugSynth : list<ChiralSugar * SugCatalyst>
             catSynthPairs : list<SynthesisReaction * SynthCatalyst>
             enCatSynth : list<SynthesisReaction * EnSynthCatalyst * ChiralSugar>
+            acCatSynth : list<SynthesisReaction * AcSynthCatalyst>
             catDestrPairs : list<DestructionReaction * DestrCatalyst>
             enCatDestr : list<DestructionReaction * EnDestrCatalyst * ChiralSugar>
+            acCatDestr : list<DestructionReaction * AcDestrCatalyst>
             catLigPairs : list<LigationReaction * LigCatalyst>
             enCatLig : list<LigationReaction * EnLigCatalyst * ChiralSugar>
+            acFwdCatLig : list<LigationReaction * AcFwdLigCatalyst>
+            acBkwCatLig : list<LigationReaction * AcBkwLigCatalyst>
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
             enCatRacem : list<RacemizationReaction * EnRacemCatalyst * ChiralSugar>
+            acCatRacem : list<RacemizationReaction * AcRacemCatalyst>
             sedDirPairs : list<ChiralAminoAcid * SedDirAgent>
         }
 
@@ -114,16 +119,22 @@ module ClmModelData =
             | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) data.substInfo.chiralAminoAcids
             | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) data.catSynthPairs
             | EnCatalyticSynthesisName -> createReactions (fun x -> EnCatalyticSynthesisReaction x |> EnCatalyticSynthesis) data.enCatSynth
+            | AcCatalyticSynthesisName -> createReactions (fun x -> AcCatalyticSynthesisReaction x |> AcCatalyticSynthesis) data.acCatSynth
             | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) data.catDestrPairs
             | EnCatalyticDestructionName -> createReactions (fun x -> EnCatalyticDestructionReaction x |> EnCatalyticDestruction) data.enCatDestr
+            | AcCatalyticDestructionName -> createReactions (fun x -> AcCatalyticDestructionReaction x |> AcCatalyticDestruction) data.acCatDestr
             | LigationName -> createReactions (fun x -> x |> Ligation) data.substInfo.ligationPairs
             | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) data.catLigPairs
             | EnCatalyticLigationName -> createReactions (fun x -> EnCatalyticLigationReaction x |> EnCatalyticLigation) data.enCatLig
+            | AcFwdCatalyticLigationName -> createReactions (fun x -> AcFwdCatalyticLigationReaction x |> AcFwdCatalyticLigation) data.acFwdCatLig
+            | AcBkwCatalyticLigationName -> createReactions (fun x -> AcBkwCatalyticLigationReaction x |> AcBkwCatalyticLigation) data.acBkwCatLig
             | SedimentationDirectName -> createReactions (fun (c, r) -> SedimentationDirectReaction ([ c ] |> SedDirReagent, r) |> SedimentationDirect) data.sedDirPairs
             | SedimentationAllName -> []
             | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) data.substInfo.chiralAminoAcids
-            | EnCatalyticRacemizationName -> createReactions (fun x -> EnCatalyticRacemizationReaction x |> EnCatalyticRacemization) data.enCatRacem
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
+            | EnCatalyticRacemizationName -> createReactions (fun x -> EnCatalyticRacemizationReaction x |> EnCatalyticRacemization) data.enCatRacem
+            | AcCatalyticRacemizationName -> createReactions (fun x -> AcCatalyticRacemizationReaction x |> AcCatalyticRacemization) data.acCatRacem
+            | ActivationName -> failwith ""
 
 
     let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
@@ -183,20 +194,23 @@ module ClmModelData =
             | SugarSynthesisName -> sugLen
             | DestructionName -> int64 si.chiralAminoAcids.Length
             | CatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length)
-            | EnCatalyticSynthesisName ->
-                (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length) * sugLen * 2L
+            | EnCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length) * sugLen * 2L
+            | AcCatalyticSynthesisName -> failwith ""
             | CatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length)
-            | EnCatalyticDestructionName ->
-                (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length) * sugLen * 2L
+            | EnCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length) * sugLen * 2L
+            | AcCatalyticDestructionName -> failwith ""
             | LigationName -> int64 si.ligationPairs.Length
             | CatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length)
             | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length) * sugLen * 2L
+            | AcFwdCatalyticLigationName -> failwith ""
+            | AcBkwCatalyticLigationName -> failwith ""
             | SedimentationDirectName -> (int64 si.allChains.Length) * (int64 si.allChains.Length)
             | SedimentationAllName -> int64 si.chiralAminoAcids.Length
             | RacemizationName -> int64 si.chiralAminoAcids.Length
             | CatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length)
-            | EnCatalyticRacemizationName ->
-                (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length) * sugLen * 2L
+            | EnCatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length) * sugLen * 2L
+            | AcCatalyticRacemizationName -> failwith ""
+            | ActivationName -> failwith ""
 
         member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
 
@@ -212,12 +226,17 @@ module ClmModelData =
                         sugSynth = generatePairs (si.sugSynthInfo st)
                         catSynthPairs = generatePairs (si.catSynthInfo st)
                         enCatSynth = generateTriples (si.enCatSynthInfo st)
+                        acCatSynth = failwith ""
                         catDestrPairs = generatePairs (si.catDestrInfo st)
                         enCatDestr = generateTriples (si.enCatDestrInfo st)
+                        acCatDestr = failwith ""
                         catLigPairs = generatePairs (si.catLigInfo st)
                         enCatLig = generateTriples (si.enCatLigInfo st)
+                        acFwdCatLig = failwith ""
+                        acBkwCatLig = failwith ""
                         catRacemPairs = generatePairs (si.catRacemInfo st)
                         enCatRacem = generateTriples (si.enCatRacemInfo st)
+                        acCatRacem = failwith ""
                         sedDirPairs = generatePairs (si.sedDirInfo st)
                     }
             }
