@@ -54,6 +54,9 @@
     <Compile Include="ReactionRateModels\EnCatalyticLigationModels\AcFwdCatalyticLigationRandomModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticLigationModels\AcFwdCatalyticLigationSimilarModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticLigationModels\AcFwdCatalyticLigationModel.fs" />
+    <Compile Include="ReactionRateModels\EnCatalyticLigationModels\AcBkwCatalyticLigationRandomModel.fs" />
+    <Compile Include="ReactionRateModels\EnCatalyticLigationModels\AcBkwCatalyticLigationSimilarModel.fs" />
+    <Compile Include="ReactionRateModels\EnCatalyticLigationModels\AcBkwCatalyticLigationModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticDestructionModels\EnCatalyticDestructionRandomModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticDestructionModels\EnCatalyticDestructionSimilarModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticDestructionModels\EnCatalyticDestructionModel.fs" />
