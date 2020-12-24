@@ -12,7 +12,7 @@ module AcCatalyticDestructionRandomModel =
 
     type AcCatalyticDestructionRandomParamWithModel =
         {
-            enCatDestrRndParam : AcCatalyticDestructionRandomParam
+            acCatDestrRndParam : AcCatalyticDestructionRandomParam
             destructionModel : DestructionModel
         }
 
@@ -27,7 +27,7 @@ module AcCatalyticDestructionRandomModel =
                 getCatEnantiomer = getEnantiomer
                 acCatReactionCreator = AcCatalyticDestructionReaction
                 getBaseRates = p.destructionModel.getRates rnd
-                eeParams = p.enCatDestrRndParam.acCatDestrRndEeParams
+                eeParams = p.acCatDestrRndParam.acCatDestrRndEeParams
                 rateGenerationType = t
                 rnd = rnd
             }

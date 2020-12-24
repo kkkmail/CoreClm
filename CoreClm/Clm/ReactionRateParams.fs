@@ -166,8 +166,8 @@ module ReactionRateParams =
 
     type AcCatalyticDestructionSimilarParam =
         {
-            acCatDestrParam : EnCatalyticDestructionRandomParam
-            acCatDestrSimParam : EnCatRatesSimilarityParam
+            acCatDestrParam : AcCatalyticDestructionRandomParam
+            acCatDestrSimParam : AcCatRatesSimilarityParam
         }
 
 
@@ -404,3 +404,7 @@ module ReactionRateParams =
     type AcCatalyticRacemizationParam =
         | AcCatRacemRndParam of AcCatalyticRacemizationRandomParam
         | AcCatRacemSimParam of AcCatalyticRacemizationSimilarParam
+
+
+    type ActivationParam =
+        | ActivationParam
