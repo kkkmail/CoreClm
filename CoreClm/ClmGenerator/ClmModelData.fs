@@ -198,12 +198,12 @@ module ClmModelData =
             | AcCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.acSynthCatalysts.Length)
             | CatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length)
             | EnCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.enDestrCatalysts.Length) * sugLen * 2L
-            | AcCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.acDestrCatalysts.Length
+            | AcCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.acDestrCatalysts.Length)
             | LigationName -> int64 si.ligationPairs.Length
             | CatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length)
             | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.enLigCatalysts.Length) * sugLen * 2L
             | AcFwdCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.acFwdLigCatalysts.Length)
-            | AcBkwCatalyticLigationName -> failwith (int64 si.ligationReactions.Length) * (int64 si.acBkwLigCatalysts.Length)
+            | AcBkwCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.acBkwLigCatalysts.Length)
             | SedimentationDirectName -> (int64 si.allChains.Length) * (int64 si.allChains.Length)
             | SedimentationAllName -> int64 si.chiralAminoAcids.Length
             | RacemizationName -> int64 si.chiralAminoAcids.Length
