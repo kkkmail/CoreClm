@@ -8,7 +8,6 @@ open DbData.DatabaseTypes
 open DbData.Configuration
 open Clm.Model.ModelData
 
-
 type ModelTests(output : ITestOutputHelper) =
 
     let writeLine s = output.WriteLine s

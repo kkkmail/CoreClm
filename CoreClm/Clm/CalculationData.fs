@@ -179,6 +179,14 @@ module CalculationData =
                 successNumberType = t
             }
 
+        member si.acPairsInfo t =
+            {
+                a = si.chiralSugars |> Array.ofList
+                b = si.peptideCatalysts |> Array.ofList
+                reactionName = ReactionName.ActivationName
+                successNumberType = t
+            }
+
         member si.catSynthInfo t =
             {
                 a = si.synthesisReactions |> Array.ofList

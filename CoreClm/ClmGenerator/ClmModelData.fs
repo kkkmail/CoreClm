@@ -99,6 +99,7 @@ module ClmModelData =
             enCatRacem : list<RacemizationReaction * EnRacemCatalyst * ChiralSugar>
             acCatRacem : list<RacemizationReaction * AcRacemCatalyst>
             sedDirPairs : list<ChiralAminoAcid * SedDirAgent>
+            acPairs : list<ChiralSugar * Peptide>
         }
 
         member data.getReactions rnd rateProvider t n =
@@ -134,7 +135,7 @@ module ClmModelData =
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
             | EnCatalyticRacemizationName -> createReactions (fun x -> EnCatalyticRacemizationReaction x |> EnCatalyticRacemization) data.enCatRacem
             | AcCatalyticRacemizationName -> createReactions (fun x -> AcCatalyticRacemizationReaction x |> AcCatalyticRacemization) data.acCatRacem
-            | ActivationName -> createReactions (fun x -> ActivationReaction x |> Activation) (failwith "")
+            | ActivationName -> createReactions (fun x -> ActivationReaction x |> Activation) data.acPairs
 
 
     let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
@@ -238,6 +239,7 @@ module ClmModelData =
                         enCatRacem = generateTriples (si.enCatRacemInfo st)
                         acCatRacem = generatePairs (si.acCatRacemInfo st)
                         sedDirPairs = generatePairs (si.sedDirInfo st)
+                        acPairs = generatePairs (si.acPairsInfo st)
                     }
             }
 
