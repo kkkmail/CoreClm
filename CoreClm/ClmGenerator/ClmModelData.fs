@@ -134,7 +134,7 @@ module ClmModelData =
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
             | EnCatalyticRacemizationName -> createReactions (fun x -> EnCatalyticRacemizationReaction x |> EnCatalyticRacemization) data.enCatRacem
             | AcCatalyticRacemizationName -> createReactions (fun x -> AcCatalyticRacemizationReaction x |> AcCatalyticRacemization) data.acCatRacem
-            | ActivationName -> failwith ""
+            | ActivationName -> createReactions (fun x -> ActivationReaction x |> Activation) (failwith "")
 
 
     let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
@@ -210,7 +210,7 @@ module ClmModelData =
             | CatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length)
             | EnCatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.enRacemCatalysts.Length) * sugLen * 2L
             | AcCatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.acRacemCatalysts.Length)
-            | ActivationName -> failwith ""
+            | ActivationName -> (int64 si.acSynthCatalysts.Length)
 
         member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
 
@@ -226,17 +226,17 @@ module ClmModelData =
                         sugSynth = generatePairs (si.sugSynthInfo st)
                         catSynthPairs = generatePairs (si.catSynthInfo st)
                         enCatSynth = generateTriples (si.enCatSynthInfo st)
-                        acCatSynth = failwith ""
+                        acCatSynth = generatePairs (si.acCatSynthInfo st)
                         catDestrPairs = generatePairs (si.catDestrInfo st)
                         enCatDestr = generateTriples (si.enCatDestrInfo st)
-                        acCatDestr = failwith ""
+                        acCatDestr = generatePairs (si.acCatDestrInfo st)
                         catLigPairs = generatePairs (si.catLigInfo st)
                         enCatLig = generateTriples (si.enCatLigInfo st)
-                        acFwdCatLig = failwith ""
-                        acBkwCatLig = failwith ""
+                        acFwdCatLig = generatePairs (si.acFwdCatLigInfo st)
+                        acBkwCatLig = generatePairs (si.acBkwCatLigInfo st)
                         catRacemPairs = generatePairs (si.catRacemInfo st)
                         enCatRacem = generateTriples (si.enCatRacemInfo st)
-                        acCatRacem = failwith ""
+                        acCatRacem = generatePairs (si.acCatRacemInfo st)
                         sedDirPairs = generatePairs (si.sedDirInfo st)
                     }
             }
