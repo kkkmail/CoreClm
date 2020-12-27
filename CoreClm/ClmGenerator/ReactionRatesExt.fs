@@ -226,7 +226,9 @@ module ReactionRatesExt =
 
     type ActivationModel
         with
-        member model.primaryDistribution = failwith ""
+        member model.primaryDistribution =
+            match model with
+            | ActivationRndModel m -> Some m.inputParams.activationDistribution
 
 
     type ReactionRateModel

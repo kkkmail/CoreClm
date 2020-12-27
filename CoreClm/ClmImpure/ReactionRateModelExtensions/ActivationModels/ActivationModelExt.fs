@@ -1,5 +1,6 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
+open Clm.CalculationData
 open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.ActivationRandomModel
 open ClmImpure.ReactionRateModels.ActivationModel
@@ -15,4 +16,6 @@ module ActivationModelExt =
             | ActivationRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate (p, m) = (p, m) |> ActivationRandomModel.tryCreate
+        static member tryCreate (si : SubstInfo) (p, m) =
+            (p, m)
+            |> ActivationRandomModel.tryCreate

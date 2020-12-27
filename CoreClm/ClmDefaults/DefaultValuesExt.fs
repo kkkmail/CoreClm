@@ -188,6 +188,48 @@ module DefaultValuesExt =
 
         // =======================================================================================
 
+        static member defaultAcCatSynthRndParamImpl (m, threshold, mult) catRateGenType =
+            {
+                synthesisParam = m
+
+                acCatSynthRndEeParams =
+                    {
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        acEeDistribution = defaultEeDistribution |> Some
+                    }
+            }
+
+        static member defaultAcCatSynthRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultAcCatSynthRndParamImpl (m, threshold, mult) catRateGenType
+            |> AcCatSynthRndParam
+            |> AcCatalyticSynthesisRateParam
+
+        static member defaultAcCatSynthSimParamImpl (m, threshold, mult) simThreshold catRateGenType =
+            {
+                acCatSynthParam = ReactionRateProviderParams.defaultAcCatSynthRndParamImpl (m, threshold, mult) (catRateGenType : CatalyticRateGenerationType)
+
+                acCatSynthSimParam =
+                    {
+                        acCatRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                    }
+            }
+
+        static member defaultAcCatSynthSimParam (m, threshold, mult) simThreshold catRateGenType =
+            ReactionRateProviderParams.defaultAcCatSynthSimParamImpl (m, threshold, mult) simThreshold catRateGenType
+            |> AcCatSynthSimParam
+            |> AcCatalyticSynthesisRateParam
+
+        // =======================================================================================
+
         static member defaultCatDestrRndParamImpl (m, threshold, mult) catRateGenType =
             {
                 destructionParam = m
@@ -269,6 +311,49 @@ module DefaultValuesExt =
             ReactionRateProviderParams.defaultEnCatDestrSimParamImpl (m, threshold, mult) simThreshold catRateGenType
             |> EnCatDestrSimParam
             |> EnCatalyticDestructionRateParam
+
+
+        // =======================================================================================
+
+        static member defaultAcCatDestrRndParamImpl (m, threshold, mult) catRateGenType =
+            {
+                destructionParam = m
+
+                acCatDestrRndEeParams =
+                    {
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        acEeDistribution = defaultEeDistribution |> Some
+                    }
+            }
+
+        static member defaultAcCatDestrRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultAcCatDestrRndParamImpl (m, threshold, mult) catRateGenType
+            |> AcCatDestrRndParam
+            |> AcCatalyticDestructionRateParam
+
+        static member defaultAcCatDestrSimParamImpl (m, threshold, mult) simThreshold catRateGenType =
+            {
+                acCatDestrParam = ReactionRateProviderParams.defaultAcCatDestrRndParamImpl (m, threshold, mult) (catRateGenType : CatalyticRateGenerationType)
+
+                acCatDestrSimParam =
+                    {
+                        acCatRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                    }
+            }
+
+        static member defaultAcCatDestrSimParam (m, threshold, mult) simThreshold catRateGenType =
+            ReactionRateProviderParams.defaultAcCatDestrSimParamImpl (m, threshold, mult) simThreshold catRateGenType
+            |> AcCatDestrSimParam
+            |> AcCatalyticDestructionRateParam
 
 
         // =======================================================================================
@@ -380,6 +465,92 @@ module DefaultValuesExt =
             ReactionRateProviderParams.defaultEnCatLigSimParamImpl (m, threshold, mult) simThreshold catRateGenType
             |> EnCatLigSimParam
             |> EnCatalyticLigationRateParam
+
+        // =======================================================================================
+
+        static member defaultAcFwdCatLigRndParamImpl (m, threshold, mult) catRateGenType =
+            {
+                ligationParam = m
+
+                acFwdCatLigRndEeParams =
+                    {
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        acEeDistribution = defaultEeDistribution |> Some
+                    }
+            }
+
+        static member defaultAcFwdCatLigRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultAcFwdCatLigRndParamImpl (m, threshold, mult) catRateGenType
+            |> AcFwdCatLigRndParam
+            |> AcFwdCatalyticLigationRateParam
+
+
+        static member defaultAcFwdCatLigSimParamImpl (m, threshold, mult) simThreshold (catRateGenType : CatalyticRateGenerationType) =
+            {
+                acFwdCatLigParam = ReactionRateProviderParams.defaultAcFwdCatLigRndParamImpl (m, threshold, mult) catRateGenType
+
+                acFwdCatLigSimParam =
+                    {
+                        acCatRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                    }
+            }
+
+        static member defaultAcFwdCatLigSimParam (m, threshold, mult) simThreshold catRateGenType =
+            ReactionRateProviderParams.defaultAcFwdCatLigSimParamImpl (m, threshold, mult) simThreshold catRateGenType
+            |> AcFwdCatLigSimParam
+            |> AcFwdCatalyticLigationRateParam
+
+        // =======================================================================================
+
+        static member defaultAcBkwCatLigRndParamImpl (m, threshold, mult) catRateGenType =
+            {
+                ligationParam = m
+
+                acBkwCatLigRndEeParams =
+                    {
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        acEeDistribution = defaultEeDistribution |> Some
+                    }
+            }
+
+        static member defaultAcBkwCatLigRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultAcBkwCatLigRndParamImpl (m, threshold, mult) catRateGenType
+            |> AcBkwCatLigRndParam
+            |> AcBkwCatalyticLigationRateParam
+
+
+        static member defaultAcBkwCatLigSimParamImpl (m, threshold, mult) simThreshold (catRateGenType : CatalyticRateGenerationType) =
+            {
+                acBkwCatLigParam = ReactionRateProviderParams.defaultAcBkwCatLigRndParamImpl (m, threshold, mult) catRateGenType
+
+                acBkwCatLigSimParam =
+                    {
+                        acCatRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                    }
+            }
+
+        static member defaultAcBkwCatLigSimParam (m, threshold, mult) simThreshold catRateGenType =
+            ReactionRateProviderParams.defaultAcBkwCatLigSimParamImpl (m, threshold, mult) simThreshold catRateGenType
+            |> AcBkwCatLigSimParam
+            |> AcBkwCatalyticLigationRateParam
 
         // =======================================================================================
 
@@ -517,3 +688,47 @@ module DefaultValuesExt =
             ReactionRateProviderParams.defaultEnCatRacemSimParamImpl (m, threshold, mult) simThreshold catRateGenType
             |> EnCatRacemSimParam
             |> EnCatalyticRacemizationRateParam
+
+
+        // =======================================================================================
+
+        static member defaultAcCatRacemRndParamImpl (m, threshold, mult) catRateGenType =
+            {
+                racemizationParam = m
+
+                acCatRacemRndEeParams =
+                    {
+                        rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
+                        acEeDistribution = defaultEeDistribution |> Some
+                    }
+            }
+
+        static member defaultAcCatRacemRndParam (m, threshold, mult) catRateGenType =
+            ReactionRateProviderParams.defaultAcCatRacemRndParamImpl (m, threshold, mult) catRateGenType
+            |> AcCatRacemRndParam
+            |> AcCatalyticRacemizationRateParam
+
+        static member defaultAcCatRacemSimParamImpl (m, threshold, mult) simThreshold catRateGenType =
+            {
+                acCatRacemParam = ReactionRateProviderParams.defaultAcCatRacemRndParamImpl (m, threshold, mult) (catRateGenType : CatalyticRateGenerationType)
+
+                acCatRacemSimParam =
+                    {
+                        acCatRatesSimGeneration =
+                            Distribution.createUniform { threshold = simThreshold; scale = None; shift = Some 1.0 }
+                            |>
+                            match catRateGenType.catRatesSimGenType with
+                            | DistrBased -> DistributionBased
+                            | FixedVal -> FixedValue
+
+                        getRateMultiplierDistr = deltaRateMultDistrGetter
+                        getForwardEeDistr = defaultEeDistributionGetter
+                        getBackwardEeDistr = defaultEeDistributionGetter
+                    }
+            }
+
+        static member defaultAcCatRacemSimParam (m, threshold, mult) simThreshold catRateGenType =
+            ReactionRateProviderParams.defaultAcCatRacemSimParamImpl (m, threshold, mult) simThreshold catRateGenType
+            |> AcCatRacemSimParam
+            |> AcCatalyticRacemizationRateParam
+

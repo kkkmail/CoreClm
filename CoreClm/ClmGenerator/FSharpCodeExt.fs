@@ -786,14 +786,16 @@ module FSharpCodeExt =
             | AcCatRacemSimParam q -> (q.toFSharpCode shift) + (shift + "|> " + "AcCatRacemSimParam" + Nl)
 
 
-
     type ActivationParam
         with
 
-        member p.toFSharpCode (shift : string) = failwith ""
-//            shift + "{" + Nl +
-//            shift + "    foodCreationRate = " + (doubleFSharpString p.foodCreationRate) + Nl +
-//            shift + "}" + Nl
+        member p.toFSharpCode (shift : string) =
+            match p with
+            | ActivationRndParam q ->
+                shift + "{" + Nl +
+                shift + "    activationDistribution = " + q.activationDistribution.toFSharpCode + Nl +
+                shift + "    forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
+                shift + "}" + Nl
 
 
     type ReactionRateModelParam

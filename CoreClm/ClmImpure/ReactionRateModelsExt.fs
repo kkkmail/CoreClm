@@ -23,22 +23,34 @@ open ClmImpure.ReactionRateModels.CatalyticDestructionModel
 open ClmImpure.ReactionRateModelExtensions.CatalyticDestructionModelExt
 open ClmImpure.ReactionRateModels.EnCatalyticDestructionModel
 open ClmImpure.ReactionRateModelExtensions.EnCatalyticDestructionModelExt
+open ClmImpure.ReactionRateModels.AcCatalyticDestructionModel
+open ClmImpure.ReactionRateModelExtensions.AcCatalyticDestructionModelExt
 open ClmImpure.ReactionRateModels.CatalyticLigationModel
 open ClmImpure.ReactionRateModelExtensions.CatalyticLigationModelExt
 open ClmImpure.ReactionRateModels.EnCatalyticLigationModel
 open ClmImpure.ReactionRateModelExtensions.EnCatalyticLigationModelExt
+open ClmImpure.ReactionRateModels.AcFwdCatalyticLigationModel
+open ClmImpure.ReactionRateModelExtensions.AcFwdCatalyticLigationModelExt
+open ClmImpure.ReactionRateModels.AcBkwCatalyticLigationModel
+open ClmImpure.ReactionRateModelExtensions.AcBkwCatalyticLigationModelExt
 open ClmImpure.ReactionRateModels.CatalyticRacemizationModel
 open ClmImpure.ReactionRateModelExtensions.CatalyticRacemizationModelExt
 open ClmImpure.ReactionRateModels.EnCatalyticRacemizationModel
 open ClmImpure.ReactionRateModelExtensions.EnCatalyticRacemizationModelExt
+open ClmImpure.ReactionRateModels.AcCatalyticRacemizationModel
+open ClmImpure.ReactionRateModelExtensions.AcCatalyticRacemizationModelExt
 open ClmImpure.ReactionRateModels.CatalyticSynthesisModel
 open ClmImpure.ReactionRateModelExtensions.CatalyticSynthesisModelExt
 open ClmImpure.ReactionRateModels.EnCatalyticSynthesisModel
 open ClmImpure.ReactionRateModelExtensions.EnCatalyticSynthesisModelExt
+open ClmImpure.ReactionRateModels.AcCatalyticSynthesisModel
+open ClmImpure.ReactionRateModelExtensions.AcCatalyticSynthesisModelExt
 open ClmImpure.ReactionRateModels.SedimentationDirectModel
 open ClmImpure.ReactionRateModelExtensions.SedimentationDirectModelExt
 open ClmImpure.ReactionRateModels.SedimentationAllModel
 open ClmImpure.ReactionRateModelExtensions.SedimentationAllModelExt
+open ClmImpure.ReactionRateModels.ActivationModel
+open ClmImpure.ReactionRateModelExtensions.ActivationModelExt
 
 module ReactionRateModelsExt =
 
@@ -56,16 +68,22 @@ module ReactionRateModelsExt =
                     DestructionModel.tryCreate
                     CatalyticSynthesisModel.tryCreate si
                     EnCatalyticSynthesisModel.tryCreate si
+                    AcCatalyticSynthesisModel.tryCreate si
                     CatalyticDestructionModel.tryCreate si
                     EnCatalyticDestructionModel.tryCreate si
+                    AcCatalyticDestructionModel.tryCreate si
                     LigationModel.tryCreate
                     CatalyticLigationModel.tryCreate si
                     EnCatalyticLigationModel.tryCreate si
+                    AcFwdCatalyticLigationModel.tryCreate si
+                    AcBkwCatalyticLigationModel.tryCreate si
                     SedimentationDirectModel.tryCreate si
                     SedimentationAllModel.tryCreate
                     RacemizationModel.tryCreate
                     CatalyticRacemizationModel.tryCreate si
                     EnCatalyticRacemizationModel.tryCreate si
+                    AcCatalyticRacemizationModel.tryCreate si
+                    ActivationModel.tryCreate si
                 ]
                 |> List.fold (fun acc r -> r acc) (p, [])
             )
