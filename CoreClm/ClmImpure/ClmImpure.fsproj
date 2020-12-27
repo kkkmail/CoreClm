@@ -15,7 +15,6 @@
     <Compile Include="ReactionRateModels\FoodCreationModel.fs" />
     <Compile Include="ReactionRateModels\WasteRemovalModel.fs" />
     <Compile Include="ReactionRateModels\WasteRecyclingModel.fs" />
-    <Compile Include="ReactionRateModels\ActivationModel.fs" />
     <Compile Include="ReactionRateModels\SyntehsisModels\SynthesisRandomModel.fs" />
     <Compile Include="ReactionRateModels\SyntehsisModels\SynthesisModel.fs" />
     <Compile Include="ReactionRateModels\SugarSynthesisModels\SugarSynthesisRandomModel.fs" />
@@ -70,12 +69,13 @@
     <Compile Include="ReactionRateModels\EnCatalyticRacemizationModels\AcCatalyticRacemizationRandomModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticRacemizationModels\AcCatalyticRacemizationSimilarModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticRacemizationModels\AcCatalyticRacemizationModel.fs" />
+    <Compile Include="ReactionRateModels\ActivationModels\ActivationRandomModel.fs" />
+    <Compile Include="ReactionRateModels\ActivationModels\ActivationModel.fs" />
     <Compile Include="ReactionRateModelsAll.fs" />
     <Compile Include="ReactionRateModelExtensions\ReactionRateModelExtBase.fs" />
     <Compile Include="ReactionRateModelExtensions\FoodCreationModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\WasteRemovalModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\WasteRecyclingModelExt.fs" />
-    <Compile Include="ReactionRateModelExtensions\ActivationModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SynthesisModels\SynthesisRandomModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SynthesisModels\SynthesisModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\SugarSynthesisModels\SugarSynthesisRandomModelExt.fs" />
@@ -128,6 +128,8 @@
     <Compile Include="ReactionRateModelExtensions\EnCatalyticRacemizationModels\AcCatalyticRacemizationRandomModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\EnCatalyticRacemizationModels\AcCatalyticRacemizationSimilarModelExt.fs" />
     <Compile Include="ReactionRateModelExtensions\EnCatalyticRacemizationModels\AcCatalyticRacemizationModelExt.fs" />
+    <Compile Include="ReactionRateModelExtensions\ActivationModels\ActivationRandomModelExt.fs" />
+    <Compile Include="ReactionRateModelExtensions\ActivationModels\ActivationModelExt.fs" />
     <Compile Include="ReactionRateModelsExt.fs" />
     <Compile Include="RateProvider.fs" />
     <Compile Include="ReactionsExt.fs" />

@@ -1,10 +1,9 @@
 ﻿namespace ClmImpure.ReactionRateModelExtensions
 
-open Clm.ReactionRateParams
-open Clm.ReactionRatesExt
 open ClmImpure.ReactionRateModelsAll
+open ClmImpure.ReactionRateModels.ActivationRandomModel
 open ClmImpure.ReactionRateModels.ActivationModel
-open ClmImpure.ReactionRateModelExtensions.ReactionRateModelExtBase
+open ClmImpure.ReactionRateModelExtensions.ActivationRandomModelExt
 
 module ActivationModelExt =
 
@@ -16,5 +15,4 @@ module ActivationModelExt =
             | ActivationRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate (p, m) =
-            tryCreateModel ActivationParam.paramGetter (fun d -> d |> ActivationModel |> ActivationRateModel) (p, m)
+        static member tryCreate (p, m) = (p, m) |> ActivationRandomModel.tryCreate

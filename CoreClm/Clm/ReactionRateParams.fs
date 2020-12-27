@@ -406,5 +406,12 @@ module ReactionRateParams =
         | AcCatRacemSimParam of AcCatalyticRacemizationSimilarParam
 
 
+    type ActivationRandomParam =
+        {
+            activationDistribution : Distribution
+            forwardScale : double option
+        }
+
+
     type ActivationParam =
-        | ActivationParam
+        | ActivationRndParam of ActivationRandomParam

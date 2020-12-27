@@ -220,10 +220,11 @@ module ReactionRatesExt =
             | _ -> None
 
 
-    type ActivationParam
+
+    type ActivationRandomParam
         with
 
         static member paramGetter (p : ReactionRateModelParamWithUsage) =
             match p.modelParam with
-            | ActivationRateParam d -> Some (p.usage, d)
+            | ActivationRateParam (ActivationRndParam d) -> Some (p.usage, d)
             | _ -> None
