@@ -11,8 +11,11 @@ module DefaultValuesExt =
     let withRowNumber a = a |> List.mapi (fun i e -> (int64 i, e))
 
 
-    let defaultRateMultiplierDistr threshold mult =
-        Distribution.createTriangular { threshold = threshold; scale = Some mult; shift = None } |> RateMultDistr
+    let defaultRateDistribution threshold mult =
+        Distribution.createTriangular { threshold = threshold; scale = Some mult; shift = None }
+
+
+    let defaultRateMultiplierDistr threshold mult = defaultRateDistribution threshold mult |> RateMultDistr
 
 
     let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
@@ -732,3 +735,18 @@ module DefaultValuesExt =
             |> AcCatRacemSimParam
             |> AcCatalyticRacemizationRateParam
 
+
+        // =======================================================================================
+
+        static member defaultActivationRndParamImpl (threshold, mult) =
+            {
+                activationDistribution = defaultRateDistribution threshold 1.0
+                forwardScale = Some mult
+            }
+
+        static member defaultActivationParamImpl (threshold, mult) =
+            ReactionRateProviderParams.defaultActivationRndParamImpl (threshold, mult)
+            |> ActivationRndParam
+            |> ActivationRateParam
+
+        // =======================================================================================
