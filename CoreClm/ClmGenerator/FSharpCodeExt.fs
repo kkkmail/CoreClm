@@ -794,7 +794,7 @@ module FSharpCodeExt =
             | ActivationRndParam q ->
                 shift + "{" + Nl +
                 shift + "    activationDistribution = " + q.activationDistribution.toFSharpCode + Nl +
-                shift + "    forwardScale = " + (doubleOptFSharpString p.forwardScale) + Nl +
+                shift + "    forwardScale = " + (doubleOptFSharpString q.forwardScale) + Nl +
                 shift + "}" + Nl
 
 
