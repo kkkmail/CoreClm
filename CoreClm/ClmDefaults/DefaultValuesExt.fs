@@ -735,7 +735,6 @@ module DefaultValuesExt =
             |> AcCatRacemSimParam
             |> AcCatalyticRacemizationRateParam
 
-
         // =======================================================================================
 
         static member defaultActivationRndParamImpl (threshold, mult) =

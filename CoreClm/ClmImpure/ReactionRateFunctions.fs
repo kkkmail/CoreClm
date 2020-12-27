@@ -488,10 +488,11 @@ module ReactionRateFunctions =
             eeParams : AcCatRatesEeParam
             rateDictionary : Dictionary<'RC, RateData>
             rateGenerationType : RateGenerationType
+            acRateType : AcRateType
             rnd : RandomValueGetter
         }
 
-        member i.toEnCatRatesInfo r c e =
+        member i.toAcCatRatesInfo r c e =
             {
                 reaction = r
                 acCatalyst = c
@@ -500,9 +501,132 @@ module ReactionRateFunctions =
                 getBaseRates = i.getBaseRates
                 eeParams = e
                 rateGenerationType = i.rateGenerationType
+                acRateType = i.acRateType
                 rnd = i.rnd
             }
 
 
-    let calculateAcSimRates i =
-        failwith ""
+    let calculateAcSimCatRates i s c e =
+        let reaction = (s, c) |> i.acCatReactionCreator
+        let related = i.toAcCatRatesInfo s c e |> calculateAcCatRates
+//        printfn "calculateSimCatRates: related = %A" related
+        updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
+
+
+    let getAcEeParams i cr cre rateMult d =
+        match d with
+        | true ->
+            {
+                rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
+                acFwdEeDistribution = i.acSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                acBkwEeDistribution = i.acSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+            }
+        | false -> AcCatRatesEeParam.defaultValue
+
+
+//    let getRateMult br cr cre =
+//        match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
+//        | Some (ReactionRate a), Some (ReactionRate b), _, _ ->
+//            match br.forwardRate with
+//            | Some (ReactionRate c) -> (a + b) / 2.0 / c
+//            | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
+//        | _, _, Some (ReactionRate a), Some (ReactionRate b) ->
+//            match br.backwardRate with
+//            | Some (ReactionRate c) -> (a + b) / 2.0 / c
+//            | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #2..."
+//        | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
+
+
+    let getAcSimNoRates i creator aa r =
+        aa
+        |> List.map (fun a -> creator a)
+        |> List.concat
+        |> List.map (fun e -> e, calculateAcSimCatRates i e i.acCatalyst AcCatRatesEeParam.defaultValue)
+
+
+    // (i : AcCatRatesSimInfo<'A, 'A, 'C, 'D>)
+    let chooseAcData i aa =
+        let a =
+            match i.acSimParams.acCatRatesSimGeneration with
+            | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
+            | FixedValue d ->
+                /// TODO kk:20200607 - Follow the description below.
+                /// Here we need to ensure that number of successes is NOT random but fixed
+                /// and that we always include the reactions with the same "data".
+                /// This probably should change and be controlled by distributions (as most of the things here), but not today.
+                let isDefined j x =
+                    let b = (i.inverse (i.reaction)) = x
+
+                    match b, d.value.distributionParams.threshold with
+                    | true, _ -> true
+                    | false, Some t -> (double j) < t * (double aa.Length)
+                    | false, None -> true
+
+                aa
+                |> List.map(fun a -> i.rnd.nextDouble(), a)
+                |> List.sortBy (fun (r, _) -> r)
+                |> List.mapi (fun j (_, a) -> a, isDefined j a)
+
+        a
+
+    let getAcSimRates (i : AcCatRatesSimInfo<'A, 'A, 'C, 'D>) aa getEeParams rateMult =
+//        printfn "getSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+
+        let x =
+            chooseAcData i aa
+            |> List.map (fun (e, b) -> e, b, match b with | true -> i.getMatchingReactionMult rateMult | false -> 0.0)
+
+//        x
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
+//        |> ignore
+//        printfn "\n"
+
+        let a =
+            x
+            |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
+            |> List.concat
+
+//        a
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
+//        |> ignore
+//        printfn "\n"
+
+        let b =
+            a
+            |> List.filter (fun (e, _, _) -> e <> i.reaction)
+            |> List.map (fun (e, b, m) -> e, calculateAcSimCatRates i e i.acCatalyst (getEeParams m b))
+
+//        b
+//        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
+//        |> List.sortBy (fun (a, _) -> a.ToString())
+//        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
+//        |> ignore
+//        printfn "\n"
+
+        b
+
+
+    let calculateAcSimRates<'A, 'R, 'C, 'RC when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'C, 'RC>) =
+        let r = (i.reaction, i.acCatalyst) |> i.acCatReactionCreator
+        let re = (i.reaction, i.getCatEnantiomer i.acCatalyst) |> i.acCatReactionCreator
+        let br = i.getBaseRates i.reaction // (bf, bb)
+        let cr = r |> i.getBaseCatRates // (f, b)
+        let aa = i.getReactionData i.reaction
+
+//        printfn "calculateSimRates: r = %s\n\n" (r.ToString())
+
+        match (cr.forwardRate, cr.backwardRate) with
+        | None, None -> getAcSimNoRates i i.simReactionCreator aa i.reaction
+        | _ ->
+            let cre = re |> i.getBaseCatRates
+            let rateMult = getRateMult br cr cre
+//            printfn "calculateSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
+            let getAcEeParams = getAcEeParams i cr cre
+            getAcSimRates i aa getAcEeParams rateMult
+        |> ignore
+
+        cr
