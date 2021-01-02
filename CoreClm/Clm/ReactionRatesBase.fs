@@ -12,14 +12,13 @@ module ReactionRatesBase =
         | RandomChoice
 
 
-    /// Specifies how activated catalysts affect base reactions, e,g, A <-> B.
-    ///     AcForwardRateOnly:  affects only A + C* -> B + C
-    ///     AcBackwardRateOnly: affects only A + C* <- B + C
-    ///     AcBothRates:        affects both A + C* <-> B + C
-    type AcRateType =
-        | AcForwardRateOnly
-        | AcBackwardRateOnly
-        | AcBothRates
+    type RateMult =
+        {
+            kf : double
+            kfe : double
+            kb : double
+            kbe : double
+        }
 
 
     /// Specifies how to apply similarity.
@@ -306,19 +305,133 @@ module ReactionRatesBase =
         }
 
 
-    type AcCatRatesEeParam =
+//    type AcRateType =
+//        | AcForwardRateOnly
+//        | AcBackwardRateOnly
+//
+//        // Not implemented yet.
+////        | AcBothRates
+////        | AcSameRates
+
+
+    type AcCatRatesFwdEeParam =
         {
             rateMultiplierDistr : RateMultiplierDistribution
             acFwdEeDistribution : EeDistribution option
-            acBkwEeDistribution : EeDistribution option
         }
+
+//        member p.acRateType = AcForwardRateOnly
 
         static member defaultValue =
             {
                 rateMultiplierDistr = NoneRateMult
                 acFwdEeDistribution = None
+            }
+
+
+        member p.rateMult gt rnd =
+            match gt with
+            | RandomChoice ->
+                match p.rateMultiplierDistr.nextDouble rnd, p.acFwdEeDistribution with
+                | Some k0, Some d ->
+                    let ee = d.nextDouble rnd
+                    {
+                        kf = k0 * (1.0 + ee)
+                        kfe = k0 * (1.0 - ee)
+                        kb = 1.0
+                        kbe = 1.0
+                    }
+                    |> Some
+                | _ -> None
+
+
+    type AcCatRatesBkwEeParam =
+        {
+            rateMultiplierDistr : RateMultiplierDistribution
+            acBkwEeDistribution : EeDistribution option
+        }
+
+//        member p.acRateType = AcBackwardRateOnly
+        static member defaultValue =
+            {
+                rateMultiplierDistr = NoneRateMult
                 acBkwEeDistribution = None
             }
+
+        member p.rateMult gt rnd =
+            match gt with
+            | RandomChoice ->
+                match p.rateMultiplierDistr.nextDouble rnd, p.acBkwEeDistribution with
+                | Some k0, Some d ->
+                    let ee = d.nextDouble rnd
+                    {
+                        kf = 1.0
+                        kfe = 1.0
+                        kb = k0 * (1.0 + ee)
+                        kbe = k0 * (1.0 - ee)
+                    }
+                    |> Some
+                | _ -> None
+
+// Not implemented yet.
+//    type AcCatRatesBothEeParam =
+//        {
+//            rateMultiplierDistr : RateMultiplierDistribution
+//            acFwdEeDistribution : EeDistribution option
+//            acBkwEeDistribution : EeDistribution option
+//        }
+//
+//        static member defaultValue =
+//            {
+//                rateMultiplierDistr = NoneRateMult
+//                acFwdEeDistribution = None
+//                acBkwEeDistribution = None
+//            }
+//
+//
+//    type AcCatRatesSameEeParam =
+//        {
+//            rateMultiplierDistr : RateMultiplierDistribution
+//            acEeDistribution : EeDistribution option
+//        }
+//
+//        static member defaultValue =
+//            {
+//                rateMultiplierDistr = NoneRateMult
+//                acEeDistribution = None
+//            }
+
+
+    /// Specifies how activated catalysts affect base reactions, e,g, A <-> B.
+    ///     AcForwardRateOnly:  affects only A + C* -> B + C
+    ///     AcBackwardRateOnly: affects only A + C* <- B + C
+    ///     AcBothRates:        affects both A + C* <-> B + C but they have different distributions.
+    ///     AcSameRates:        affects both A + C* <-> B + C but in the same way (they have the same multiplier).
+    type AcCatRatesEeParam =
+        | AcForwardRateOnly of AcCatRatesFwdEeParam
+        | AcBackwardRateOnly of AcCatRatesBkwEeParam
+
+        // Not implemented yet.
+//        | AcBothRates of AcCatRatesBothEeParam
+//        | AcSameRates of AcCatRatesSameEeParam
+
+//        member a.rateMultiplierDistr =
+//            match a with
+//            | AcForwardRateOnly p -> p.rateMultiplierDistr
+//            | AcBackwardRateOnly p -> p.rateMultiplierDistr
+//
+//
+//        member a.eeDistribution =
+//            match a with
+//            | AcForwardRateOnly p -> p.acFwdEeDistribution
+//            | AcBackwardRateOnly p -> p.acBkwEeDistribution
+
+        member a.rateMult gt rnd =
+            (gt, rnd)
+            ||>
+            match a with
+            | AcForwardRateOnly p -> p.rateMult
+            | AcBackwardRateOnly p -> p.rateMult
 
 
     type AcCatRatesSimilarityParam =
@@ -337,9 +450,8 @@ module ReactionRatesBase =
             getCatEnantiomer : 'C -> 'C
             acCatReactionCreator : ('R * 'C) -> 'RC
             getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-            eeParams : AcCatRatesEeParam
+            acEeParams : AcCatRatesEeParam
             rateGenerationType : RateGenerationType
-            acRateType : AcRateType
             rnd : RandomValueGetter
         }
 
@@ -351,35 +463,18 @@ module ReactionRatesBase =
         let re = (i.reaction, i.getCatEnantiomer i.acCatalyst) |> i.acCatReactionCreator
 
         let rf, rb, rfe, rbe =
-            let k =
-                match i.rateGenerationType with
-                | RandomChoice -> i.eeParams.rateMultiplierDistr.nextDouble i.rnd
-
-            match k, i.eeParams.acEeDistribution with
-            | Some k0, Some df ->
+            match  i.acEeParams.rateMult i.rateGenerationType i.rnd with
+            | Some r ->
                 let s0 = i.getBaseRates i.reaction
-                let fEe = df.nextDouble i.rnd
-
-                let k0f, k0b =
-                    match i.acRateType with
-                    | AcForwardRateOnly -> k0, 1.0
-                    | AcBackwardRateOnly -> 1.0, k0
-                    | AcBothRates -> k0, k0
-
-                let kf = k0f * (1.0 + fEe)
-                let kfe = k0f * (1.0 - fEe)
-
-                let kb = k0b * (1.0 + fEe)
-                let kbe = k0b * (1.0 - fEe)
 
                 let (rf, rfe) =
                     match s0.forwardRate with
-                    | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
+                    | Some (ReactionRate sf) -> (r.kf * sf |> ReactionRate |> Some, r.kfe * sf |> ReactionRate |> Some)
                     | None -> (None, None)
 
                 let (rb, rbe) =
                     match s0.backwardRate with
-                    | Some (ReactionRate sb) -> (kb * sb |> ReactionRate |> Some, kbe * sb |> ReactionRate |> Some)
+                    | Some (ReactionRate sb) -> (r.kb * sb |> ReactionRate |> Some, r.kbe * sb |> ReactionRate |> Some)
                     | None -> (None, None)
 
                 (rf, rb, rfe, rbe)
