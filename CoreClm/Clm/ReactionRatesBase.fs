@@ -305,13 +305,21 @@ module ReactionRatesBase =
         }
 
 
-//    type AcRateType =
-//        | AcForwardRateOnly
-//        | AcBackwardRateOnly
-//
+    type AcRateType =
+        | AcNone
+        | AcForwardRateOnly
+        | AcBackwardRateOnly
+
 //        // Not implemented yet.
 ////        | AcBothRates
 ////        | AcSameRates
+
+
+    type AcCatRatesNoneEeParam =
+        | AcCatRatesNoneEeParam
+
+        member p.rateMult gt rnd = None
+        member p.rateMultiplierDistr = NoneRateMult
 
 
     type AcCatRatesFwdEeParam =
@@ -408,8 +416,9 @@ module ReactionRatesBase =
     ///     AcBothRates:        affects both A + C* <-> B + C but they have different distributions.
     ///     AcSameRates:        affects both A + C* <-> B + C but in the same way (they have the same multiplier).
     type AcCatRatesEeParam =
-        | AcForwardRateOnly of AcCatRatesFwdEeParam
-        | AcBackwardRateOnly of AcCatRatesBkwEeParam
+        | AcNoneParam of AcCatRatesNoneEeParam
+        | AcForwardRateOnlyParam of AcCatRatesFwdEeParam
+        | AcBackwardRateOnlyParam of AcCatRatesBkwEeParam
 
         // Not implemented yet.
 //        | AcBothRates of AcCatRatesBothEeParam
@@ -430,8 +439,17 @@ module ReactionRatesBase =
             (gt, rnd)
             ||>
             match a with
-            | AcForwardRateOnly p -> p.rateMult
-            | AcBackwardRateOnly p -> p.rateMult
+            | AcNoneParam p -> p.rateMult
+            | AcForwardRateOnlyParam p -> p.rateMult
+            | AcBackwardRateOnlyParam p -> p.rateMult
+
+        member a.rateMultiplierDistr =
+            match a with
+            | AcNoneParam p -> p.rateMultiplierDistr
+            | AcForwardRateOnlyParam p -> p.rateMultiplierDistr
+            | AcBackwardRateOnlyParam p -> p.rateMultiplierDistr
+
+        static member defaultValue = AcNoneParam AcCatRatesNoneEeParam
 
 
     type AcCatRatesSimilarityParam =

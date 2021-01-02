@@ -175,13 +175,37 @@ module FSharpCodeExt =
             shift + "}" + Nl
 
 
-    type AcCatRatesEeParam
+    type AcCatRatesNoneEeParam
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + $"{nameof(AcCatRatesNoneEeParam)}" + Nl
+
+
+    type AcCatRatesFwdEeParam
         with
         member p.toFSharpCode (shift : string) =
             shift + "{" + Nl +
             shift + "    rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
-            shift + "    acEeDistribution = " + (toEeDistrOpt p.acEeDistribution) + Nl +
+            shift + "    acFwdEeDistribution = " + (toEeDistrOpt p.acFwdEeDistribution) + Nl +
             shift + "}" + Nl
+
+
+    type AcCatRatesBkwEeParam
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    rateMultiplierDistr = " + (p.rateMultiplierDistr.toFSharpCode) + Nl +
+            shift + "    acBkwEeDistribution = " + (toEeDistrOpt p.acBkwEeDistribution) + Nl +
+            shift + "}" + Nl
+
+
+    type AcCatRatesEeParam
+        with
+        member p.toFSharpCode (shift : string) =
+            match p with
+            | AcNoneParam p -> (p.toFSharpCode shift) + (shift + $"|> {nameof(AcNoneParam)}" + Nl)
+            | AcForwardRateOnlyParam p -> (p.toFSharpCode shift) + (shift + $"|> {nameof(AcForwardRateOnlyParam)}" + Nl)
+            | AcBackwardRateOnlyParam p -> (p.toFSharpCode shift) + (shift + $"|> {nameof(AcBackwardRateOnlyParam)}" + Nl)
 
 
     type FoodCreationParam

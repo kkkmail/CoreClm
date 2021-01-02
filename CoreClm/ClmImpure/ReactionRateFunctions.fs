@@ -9,7 +9,6 @@ open Clm.ReactionRates
 open Clm.ReactionRateParams
 open Clm.ReactionTypes
 
-
 module ReactionRateFunctions =
 
     let dictionaryToList (d : Dictionary<'R, (ReactionRate option * ReactionRate option)>) =
@@ -485,10 +484,9 @@ module ReactionRateFunctions =
             getBaseRates : 'R -> RateData
             getBaseCatRates : 'RC -> RateData
             acSimParams : AcCatRatesSimilarityParam
-            eeParams : AcCatRatesEeParam
+            acEeParams : AcCatRatesEeParam
             rateDictionary : Dictionary<'RC, RateData>
             rateGenerationType : RateGenerationType
-            acRateType : AcRateType
             rnd : RandomValueGetter
         }
 
@@ -499,9 +497,8 @@ module ReactionRateFunctions =
                 getCatEnantiomer = i.getCatEnantiomer
                 acCatReactionCreator = i.acCatReactionCreator
                 getBaseRates = i.getBaseRates
-                eeParams = e
+                acEeParams = e
                 rateGenerationType = i.rateGenerationType
-                acRateType = i.acRateType
                 rnd = i.rnd
             }
 
@@ -513,14 +510,40 @@ module ReactionRateFunctions =
         updateRelatedReactions i.rateDictionary i.getCatReactEnantiomer reaction related
 
 
-    let getAcEeParams i cr cre rateMult d =
+    let getAcEeParams i cr cre rateMult d  =
+        let x = i.acEeParams
+
+//        match d with
+//        | AcNone -> AcCatRatesEeParam.defaultValue
+//        | AcForwardRateOnly ->
+//            {
+//                rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
+//                acFwdEeDistribution = i.acSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+//            }
+//            |> AcForwardRateOnlyParam
+//        | AcBackwardRateOnly ->
+//            {
+//                rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
+//                acBkwEeDistribution = i.acSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+//            }
+//            |> AcBackwardRateOnlyParam
+
         match d with
         | true ->
-            {
-                rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
-                acFwdEeDistribution = i.acSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
-                acBkwEeDistribution = i.acSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
-            }
+            match i.acEeParams with
+            | AcNoneParam _ -> AcCatRatesEeParam.defaultValue
+            | AcForwardRateOnlyParam _ ->
+                {
+                    rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
+                    acFwdEeDistribution = i.acSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
+                }
+                |> AcForwardRateOnlyParam
+            | AcBackwardRateOnlyParam _ ->
+                {
+                    rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
+                    acBkwEeDistribution = i.acSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+                }
+                |> AcBackwardRateOnlyParam
         | false -> AcCatRatesEeParam.defaultValue
 
 
@@ -569,7 +592,7 @@ module ReactionRateFunctions =
 
         a
 
-    let getAcSimRates (i : AcCatRatesSimInfo<'A, 'A, 'C, 'D>) aa getEeParams rateMult =
+    let getAcSimRates (i : AcCatRatesSimInfo<'A, 'C, 'R, 'RC>) aa getEeParams rateMult =
 //        printfn "getSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =

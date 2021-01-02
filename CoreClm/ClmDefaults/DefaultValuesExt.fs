@@ -198,8 +198,9 @@ module DefaultValuesExt =
                 acCatSynthRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acEeDistribution = defaultEeDistribution |> Some
+                        acFwdEeDistribution = defaultEeDistribution |> Some
                     }
+                    |> AcForwardRateOnlyParam
             }
 
         static member defaultAcCatSynthRndParam (m, threshold, mult) catRateGenType =
@@ -325,8 +326,9 @@ module DefaultValuesExt =
                 acCatDestrRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acEeDistribution = defaultEeDistribution |> Some
+                        acFwdEeDistribution = defaultEeDistribution |> Some
                     }
+                    |> AcForwardRateOnlyParam
             }
 
         static member defaultAcCatDestrRndParam (m, threshold, mult) catRateGenType =
@@ -478,8 +480,9 @@ module DefaultValuesExt =
                 acFwdCatLigRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acEeDistribution = defaultEeDistribution |> Some
+                        acFwdEeDistribution = defaultEeDistribution |> Some
                     }
+                    |> AcForwardRateOnlyParam
             }
 
         static member defaultAcFwdCatLigRndParam (m, threshold, mult) catRateGenType =
@@ -521,8 +524,9 @@ module DefaultValuesExt =
                 acBkwCatLigRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acEeDistribution = defaultEeDistribution |> Some
+                        acBkwEeDistribution = defaultEeDistribution |> Some
                     }
+                    |> AcBackwardRateOnlyParam
             }
 
         static member defaultAcBkwCatLigRndParam (m, threshold, mult) catRateGenType =
@@ -702,8 +706,9 @@ module DefaultValuesExt =
                 acCatRacemRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acEeDistribution = defaultEeDistribution |> Some
+                        acFwdEeDistribution = defaultEeDistribution |> Some
                     }
+                    |> AcForwardRateOnlyParam
             }
 
         static member defaultAcCatRacemRndParam (m, threshold, mult) catRateGenType =

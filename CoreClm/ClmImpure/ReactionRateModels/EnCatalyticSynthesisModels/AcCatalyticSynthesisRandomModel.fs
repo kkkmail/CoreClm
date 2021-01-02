@@ -27,7 +27,7 @@ module AcCatalyticSynthesisRandomModel =
                 getCatEnantiomer = getEnantiomer
                 acCatReactionCreator = AcCatalyticSynthesisReaction
                 getBaseRates = p.synthesisModel.getRates rnd
-                eeParams = p.acCatSynthRndParam.acCatSynthRndEeParams
+                acEeParams = p.acCatSynthRndParam.acCatSynthRndEeParams
                 rateGenerationType = t
                 rnd = rnd
             }

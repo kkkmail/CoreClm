@@ -27,7 +27,7 @@ module AcCatalyticRacemizationRandomModel =
                 getCatEnantiomer = getEnantiomer
                 acCatReactionCreator = AcCatalyticRacemizationReaction
                 getBaseRates = p.racemizationModel.getRates rnd
-                eeParams = p.acCatRacemRndParam.acCatRacemRndEeParams
+                acEeParams = p.acCatRacemRndParam.acCatRacemRndEeParams
                 rateGenerationType = t
                 rnd = rnd
             }

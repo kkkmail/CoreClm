@@ -27,7 +27,7 @@ module AcFwdCatalyticLigationRandomModel =
                 getCatEnantiomer = getEnantiomer
                 acCatReactionCreator = AcFwdCatalyticLigationReaction
                 getBaseRates = p.ligationModel.getRates rnd
-                eeParams = p.acFwdCatLigationParam.acFwdCatLigRndEeParams
+                acEeParams = p.acFwdCatLigationParam.acFwdCatLigRndEeParams
                 rateGenerationType = t
                 rnd = rnd
             }
