@@ -18,8 +18,13 @@ module DefaultValuesExt =
 
     let defaultRateMultiplierDistr threshold mult = defaultRateDistribution threshold mult |> RateMultDistr
     let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
+    let defaultAcEeDistribution = EeDistribution.createBiDelta (Some 0.95)
 
-    let defaultBkwEeDistribution = EeDistribution.createTriDelta 0.5 (Some 0.95)
+
+    ///  We take that a default backward reaction with activated catalyst is less susceptible
+    /// to asymmetry between L and R.
+    let defaultAcBkwEeDistribution = EeDistribution.createTriDelta 0.5 (Some 0.95)
+
     let defaultEeDistributionGetter = DeltaEeDistributionGetter
     let deltaRateMultDistrGetter = DeltaRateMultDistrGetter
 
