@@ -7,7 +7,8 @@ open Clm.ReactionRateParams
 
 module DefaultValuesExt =
 
-    /// Converts a list of 'A into a list of tuples (i, 'A) where i is a zero based int64 element number in the original list.
+    /// Converts a list of 'A into a list of tuples (i, 'A) where i is a zero based int64 element number
+    /// in the original list.
     let withRowNumber a = a |> List.mapi (fun i e -> (int64 i, e))
 
 
@@ -16,9 +17,9 @@ module DefaultValuesExt =
 
 
     let defaultRateMultiplierDistr threshold mult = defaultRateDistribution threshold mult |> RateMultDistr
-
-
     let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
+
+    let defaultBkwEeDistribution = EeDistribution.createTriDelta 0.5 (Some 0.95)
     let defaultEeDistributionGetter = DeltaEeDistributionGetter
     let deltaRateMultDistrGetter = DeltaRateMultDistrGetter
 
