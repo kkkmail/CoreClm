@@ -20,7 +20,8 @@ module ModelData =
     let aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-    let allSubst = createAllSubst chiralAminoAcids peptides
+    let peptideCatalysts = getPeptideCatalysts peptides
+    let allSubst = createAllSubst chiralAminoAcids peptides peptideCatalysts
     let allInd = createAllInd allSubst
 
 

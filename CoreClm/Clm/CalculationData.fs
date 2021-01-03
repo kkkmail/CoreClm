@@ -60,7 +60,7 @@ module CalculationData =
         }
 
 
-    let createAllSubst chiralAminoAcids  peptides =
+    let createAllSubst chiralAminoAcids  peptides peptideCatalysts =
         Substance.allSimple
         @
         (chiralAminoAcids |> List.map (fun a -> Chiral a))
@@ -68,9 +68,12 @@ module CalculationData =
         (peptides |> List.map (fun p -> PeptideChain p))
         @
         (ChiralSugar.all |> List.map ChiralSug)
+        @
+        (peptideCatalysts |> List.map ActivatedPeptide |> List.map ActivatedPeptideChain)
 
 
     let createAllInd allSubst = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+    let getPeptideCatalysts (peptides : list<Peptide>) = peptides |> List.filter (fun p -> p.length > 2)
 
 
     type SubstInfo =
@@ -112,7 +115,8 @@ module CalculationData =
             let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
             let allLigChains = allChains |> List.filter(fun a -> a.Length < p.maxPeptideLength.length)
             let aminoAcids = AminoAcid.getAminoAcids p.numberOfAminoAcids
-            let allSubst = createAllSubst chiralAminoAcids peptides
+            let peptideCatalysts = getPeptideCatalysts peptides
+            let allSubst = createAllSubst chiralAminoAcids peptides peptideCatalysts
 
             let reagents =
                 allChains
@@ -127,9 +131,6 @@ module CalculationData =
                 |> List.distinct
                 |> List.sort
                 |> List.map LigationReaction
-
-
-            let peptideCatalysts = peptides |> List.filter (fun p -> p.length > 2)
 
             {
                 infoParam = p
@@ -519,7 +520,8 @@ module CalculationData =
             let maxPeptideLength = this.modelDataParams.modelInfo.maxPeptideLength
             let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
             let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-            let allSubst = createAllSubst chiralAminoAcids peptides
+            let peptideCatalysts = getPeptideCatalysts peptides
+            let allSubst = createAllSubst chiralAminoAcids peptides peptideCatalysts
             let allInd = createAllInd allSubst
 
             {
