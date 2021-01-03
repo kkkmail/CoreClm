@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
-
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
     <OutputType>Library</OutputType>

@@ -593,7 +593,7 @@ module ReactionRateFunctions =
         a
 
     let getAcSimRates (i : AcCatRatesSimInfo<'A, 'C, 'R, 'RC>) aa getEeParams rateMult =
-//        printfn "getSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+//        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =
             chooseAcData i aa
@@ -640,14 +640,14 @@ module ReactionRateFunctions =
         let cr = r |> i.getBaseCatRates // (f, b)
         let aa = i.getReactionData i.reaction
 
-//        printfn "calculateSimRates: r = %s\n\n" (r.ToString())
+//        printfn "calculateAcSimRates: r = %s\n\n" (r.ToString())
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None -> getAcSimNoRates i i.simReactionCreator aa i.reaction
         | _ ->
             let cre = re |> i.getBaseCatRates
             let rateMult = getRateMult br cr cre
-//            printfn "calculateSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
+//            printfn "calculateAcSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
             let getAcEeParams = getAcEeParams i cr cre
             getAcSimRates i aa getAcEeParams rateMult
         |> ignore

@@ -54,12 +54,12 @@ module Defaults_004_005_000 =
                 ligBackward = 0.010
 
                 acFwdCatLigSimilarity = 0.000_000_001
-                acFwdCatLigScarcity = 100_000.0
-                acFwdCatLigMultiplier = 0.001_0
+                acFwdCatLigScarcity = 0.000_000_001
+                acFwdCatLigMultiplier = 100_000.0
 
                 acBkwCatLigSimilarity = 0.000_000_001
-                acBkwCatLigScarcity = 100_000.0
-                acBkwCatLigMultiplier = 0.001_0
+                acBkwCatLigScarcity = 0.000_000_001
+                acBkwCatLigMultiplier = 100_000.0
 
                 sugarForward = 100.0
                 sugarBackward = 0.001
