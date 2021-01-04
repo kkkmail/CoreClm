@@ -18,7 +18,7 @@ module DefaultValuesExt =
 
     let defaultRateMultiplierDistr threshold mult = defaultRateDistribution threshold mult |> RateMultDistr
     let defaultEeDistribution = EeDistribution.createBiDelta (Some 0.95)
-    let defaultAcEeDistribution = EeDistribution.createBiDelta (Some 0.95)
+    let defaultAcFwdEeDistribution = EeDistribution.createBiDelta (Some 0.95)
 
 
     ///  We take that a default backward reaction with activated catalyst is less susceptible
@@ -204,7 +204,7 @@ module DefaultValuesExt =
                 acCatSynthRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acFwdEeDistribution = defaultEeDistribution |> Some
+                        acFwdEeDistribution = defaultAcFwdEeDistribution |> Some
                     }
                     |> AcForwardRateOnlyParam
             }
@@ -332,7 +332,7 @@ module DefaultValuesExt =
                 acCatDestrRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acFwdEeDistribution = defaultEeDistribution |> Some
+                        acFwdEeDistribution = defaultAcFwdEeDistribution |> Some
                     }
                     |> AcForwardRateOnlyParam
             }
@@ -486,7 +486,7 @@ module DefaultValuesExt =
                 acFwdCatLigRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acFwdEeDistribution = defaultEeDistribution |> Some
+                        acFwdEeDistribution = defaultAcFwdEeDistribution |> Some
                     }
                     |> AcForwardRateOnlyParam
             }
@@ -530,7 +530,7 @@ module DefaultValuesExt =
                 acBkwCatLigRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acBkwEeDistribution = defaultEeDistribution |> Some
+                        acBkwEeDistribution = defaultAcBkwEeDistribution |> Some
                     }
                     |> AcBackwardRateOnlyParam
             }
@@ -712,7 +712,7 @@ module DefaultValuesExt =
                 acCatRacemRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acFwdEeDistribution = defaultEeDistribution |> Some
+                        acFwdEeDistribution = defaultAcFwdEeDistribution |> Some
                     }
                     |> AcForwardRateOnlyParam
             }
