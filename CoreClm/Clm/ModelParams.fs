@@ -152,7 +152,14 @@ module ModelParams =
         }
 
 
-    let updateDescription d (lst : List<ClmDefaultValue>) = lst |> List.map (fun e -> { e with description = Some d })
+    /// Updates description with a given one if there none available at the source.
+    let private tryUpdateDescription d e =
+        match e.description with
+        | Some _ -> e
+        | None -> { e with description = Some d }
+
+
+    let updateDescription d lst = lst |> List.map (tryUpdateDescription d)
 
 
     /// Additional information needed to produce command line params for solver runner.

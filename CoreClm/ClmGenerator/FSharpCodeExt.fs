@@ -819,7 +819,8 @@ module FSharpCodeExt =
                 shift + "{" + Nl +
                 shift + "    activationDistribution = " + q.activationDistribution.toFSharpCode + Nl +
                 shift + "    forwardScale = " + (doubleOptFSharpString q.forwardScale) + Nl +
-                shift + "}" + Nl
+                shift + "}" + Nl +
+                shift + "|> ActivationRndParam" + Nl
 
 
     type ReactionRateModelParam

@@ -193,7 +193,7 @@ module ClmModelData =
             | WasteRemovalName -> 1L
             | WasteRecyclingName -> 1L
             | SynthesisName -> int64 si.chiralAminoAcids.Length
-            | SugarSynthesisName -> sugLen
+            | SugarSynthesisName -> sugLen * (int64 si.sugSynthCatalysts.Length)
             | DestructionName -> int64 si.chiralAminoAcids.Length
             | CatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length)
             | EnCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.enSynthCatalysts.Length) * sugLen * 2L

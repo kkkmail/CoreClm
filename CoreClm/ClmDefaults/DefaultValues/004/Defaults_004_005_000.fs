@@ -35,7 +35,40 @@ module Defaults_004_005_000 =
             sugarForward : double
             sugarBackward : double
             sugarScarcity : double
+            description : string option
         }
+
+        /// Feel free to change the values here in any way as long as they are not used for actual calculations.
+        /// Use: "ContGenAdm.exe add -i 4005000000 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
+        static member codeGenValue_001 =
+            {
+                activationScarcity = 0.001_000
+                activationMultiplier = 100_000.0
+
+                acCatSynthScarcity = 0.001_000
+                acCatSynthMultiplier = 100_000.0
+                acCatSynthSimilarity = 0.1
+
+                acCatDestrScarcity = 0.001_000
+                acCatDestrMultiplier = 100_000.0
+                acCatDestrSimilarity = 0.1
+
+                ligForward = 0.001
+                ligBackward = 0.010
+
+                acFwdCatLigSimilarity = 0.000_000_100
+                acFwdCatLigScarcity = 0.000_000_100
+                acFwdCatLigMultiplier = 100_000.0
+
+                acBkwCatLigSimilarity = 0.000_000_100
+                acBkwCatLigScarcity = 0.000_000_100
+                acBkwCatLigMultiplier = 100_000.0
+
+                sugarForward = 100.0
+                sugarBackward = 0.001
+                sugarScarcity = 0.001
+                description = Some "!!! FOR TESTING PURPOSES ONLY !!! DO NOT USE FOR ANY OTHER PURPOSES !!!"
+            }
 
         static member defaultValue =
             {
@@ -64,12 +97,17 @@ module Defaults_004_005_000 =
                 sugarForward = 100.0
                 sugarBackward = 0.001
                 sugarScarcity = 0.001
+                description = None
             }
 
 
     let data =
             [
+                // !!! Only one can be used here !!!
+                DefaultDataParam.codeGenValue_001
+
                 DefaultDataParam.defaultValue
+
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
 //                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0; acCatLigScarcity = 0.000_000_002 }
@@ -88,7 +126,7 @@ module Defaults_004_005_000 =
         let clmDefaultValueId = (4_005_000_000L + n) |> ClmDefaultValueId
         printfn "clmDefaultValueId = %A, e = %A" clmDefaultValueId e
 
-        let description = None
+        let description = e.description
         let catRateGenType = ByEnantiomerPairs FixedVal
         let successNumberType = ThresholdBased
 
