@@ -355,7 +355,7 @@ module ModelRunner =
                 p.modelRunner.stop()
                 p.messageProcessor.stop()
 
-        static member create (d : ModelRunnerDataWithProxy) =
+        static member create so (d : ModelRunnerDataWithProxy) =
             let messagingClient = d.runnerProxy.getMessageProcessorProxy d.messagingClientAccessInfo
 
             match messagingClient.start() with
@@ -369,7 +369,7 @@ module ModelRunner =
                 let runner = Runner(data)
 
                 {
-                    modelGenerator = createModelGenerator d.logger d.runnerData.getConnectionString
+                    modelGenerator = createModelGenerator d.logger so d.runnerData.getConnectionString
                     modelRunner = createModelRunner d.logger runner
                     tryCancelRunQueue = runner.tryCancelRunQueue
                     tryRequestResults = runner.tryRequestResults

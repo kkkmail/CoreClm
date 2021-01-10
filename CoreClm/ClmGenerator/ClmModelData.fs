@@ -34,6 +34,7 @@ module ClmModelData =
             updateFuncType : UpdateFuncType
             clmDefaultValueId : ClmDefaultValueId
             successNumberType : SuccessNumberType
+            seedValue : int option
         }
 
 
@@ -43,7 +44,7 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member create g (c : ClmTask) =
+        static member create so g (c : ClmTask) =
             match g c.clmTaskInfo.clmDefaultValueId with
             | Ok v ->
                 {
@@ -57,6 +58,7 @@ module ClmModelData =
                             updateFuncType = UseFunctions
                             clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
                             successNumberType = v.defaultRateParams.successNumberType
+                            seedValue = so
                         }
 
                     modelCommandLineParams = c.commandLineParams

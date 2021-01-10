@@ -43,6 +43,7 @@ module AdmCommandLine =
             runData : list<RunData>
             numberOfRepetitions : int
             generateModelCode : bool
+            seedValue : int option
         }
 
 
@@ -55,6 +56,7 @@ module AdmCommandLine =
         | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TaskTEnd of list<decimal>
         | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
         | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode
+        | [<Unique>] [<AltCommandLine("-v")>]               SeedValue of int
 
 
         with
@@ -68,6 +70,7 @@ module AdmCommandLine =
                 | TaskTEnd _ -> "value of tEnd."
                 | Repetitions _ -> "number of repetitions."
                 | GenerateModelCode -> "add in order to generate and save model code."
+                | SeedValue _ -> "optional seed value to be used during model generation."
 
 
     and
@@ -187,6 +190,10 @@ module AdmCommandLine =
         match p |> List.tryPick (fun e -> match e with | GenerateModelCode -> Some true | _ -> None) with
         | Some n -> n
         | None -> false
+
+
+    let getSeedValue (p :list<AddClmTaskArgs>) =
+        p |> List.tryPick (fun e -> match e with | SeedValue v -> Some v | _ -> None)
 
 
     let tryGetModelId (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)

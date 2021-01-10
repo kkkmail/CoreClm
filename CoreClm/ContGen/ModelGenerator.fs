@@ -78,16 +78,16 @@ module ModelGenerator =
     type GenerateAllProxy
         with
 
-        static member create c =
+        static member create so c =
             {
                 loadIncompleteClmTasks = fun () -> loadIncompleteClmTasks c
-                generateModel = (generateModel (GenerateModelProxy.create c)) >> (mapSuccessValue ())
+                generateModel = (generateModel (GenerateModelProxy.create so c)) >> (mapSuccessValue ())
             }
 
 
-    let createModelGenerator (logger : Logger) c =
+    let createModelGenerator (logger : Logger) so c =
         logger.logInfoString "createModelGenerator: Creating model generator..."
-        let proxy = GenerateAllProxy.create c
+        let proxy = GenerateAllProxy.create so c
         let e = fun () -> generateAll proxy
         let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelGenerator - generateAll")
         h

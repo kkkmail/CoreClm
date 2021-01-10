@@ -177,7 +177,7 @@ module Distributions =
             {
                 seed = seed
                 next = rnd.Next
-                nextN = (fun n -> rnd.Next(n))
+                nextN = rnd.Next
                 nextDouble = rnd.NextDouble
             }
 

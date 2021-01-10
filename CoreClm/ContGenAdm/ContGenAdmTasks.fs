@@ -27,6 +27,7 @@ module ContGenAdmTasks =
         let n = tryGetNumberOfAminoAcids p
         let m = tryGetMaxPeptideLength p
         let c = tryGetCommandLineParams p
+        let so = getSeedValue p
 
         match i, n, m, c with
         | Some i, Some n, Some m, Some c ->
@@ -55,7 +56,7 @@ module ContGenAdmTasks =
                     match getGenerateModelCode p with
                     | true ->
                         printfn "Generating model..."
-                        let proxy = GenerateModelProxy.create getClmConnectionString
+                        let proxy = GenerateModelProxy.create so getClmConnectionString
 
                         match generateModel proxy t with
                         | Ok model ->

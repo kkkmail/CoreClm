@@ -23,7 +23,7 @@ open ClmSys.ClmErrors
 module ClmModel =
 
     type ClmModel (modelParams : ModelGenerationParams, modelDataId : ModelDataId, clmTaskId : ClmTaskId) =
-        let rnd = RandomValueGetter.create()
+        let rnd = RandomValueGetter.create modelParams.seedValue
         let generationType = RandomChoice
         let reactionShift = reactionShift modelParams.updateFuncType
         let seedValue = rnd.seed
