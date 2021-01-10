@@ -38,6 +38,7 @@ module CatalyticRacemizationSimilarModel =
                 rateDictionary = p.catRacemModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateSimRates
 

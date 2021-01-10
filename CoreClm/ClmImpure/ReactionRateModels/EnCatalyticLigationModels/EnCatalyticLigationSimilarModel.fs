@@ -38,6 +38,7 @@ module EnCatalyticLigationSimilarModel =
                 rateDictionary = p.enCatLigModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = DictionaryUpdateType.getEnCatDefaultValue()
             }
             |> calculateEnSimRates
 

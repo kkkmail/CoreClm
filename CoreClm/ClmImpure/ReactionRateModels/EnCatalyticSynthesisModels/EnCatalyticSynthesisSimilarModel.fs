@@ -39,6 +39,7 @@ module EnCatalyticSynthesisSimilarModel =
                 rateDictionary = p.enCatSynthModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateEnSimRates
 

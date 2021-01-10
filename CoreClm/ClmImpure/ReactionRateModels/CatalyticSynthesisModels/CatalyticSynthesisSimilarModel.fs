@@ -37,6 +37,7 @@ module CatalyticSynthesisSimilarModel =
                 rateDictionary = p.catSynthModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateSimRates
 

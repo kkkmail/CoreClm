@@ -37,6 +37,7 @@ module AcCatalyticSynthesisSimilarModel =
                 rateDictionary = p.acCatSynthModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateAcSimRates
 

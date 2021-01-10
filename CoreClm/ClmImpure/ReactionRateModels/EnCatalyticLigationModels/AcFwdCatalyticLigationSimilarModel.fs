@@ -36,6 +36,7 @@ module AcFwdCatalyticLigationSimilarModel =
                 rateDictionary = p.acFwdCatLigModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = DictionaryUpdateType.getAcFwdCatDefaultValue()
             }
             |> calculateAcSimRates
 

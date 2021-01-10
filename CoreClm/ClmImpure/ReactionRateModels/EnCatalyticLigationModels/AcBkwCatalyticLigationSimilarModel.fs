@@ -36,6 +36,7 @@ module AcBkwCatalyticLigationSimilarModel =
                 rateDictionary = p.acBkwCatLigModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = DictionaryUpdateType.getAcBkwCatDefaultValue()
             }
             |> calculateAcSimRates
 

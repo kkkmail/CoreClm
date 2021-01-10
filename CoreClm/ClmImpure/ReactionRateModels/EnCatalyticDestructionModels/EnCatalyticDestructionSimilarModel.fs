@@ -39,6 +39,7 @@ module EnCatalyticDestructionSimilarModel =
                 rateDictionary = p.enCatDestrModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateEnSimRates
 

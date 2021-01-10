@@ -37,6 +37,7 @@ module CatalyticDestructionSimilarModel =
                 rateDictionary = p.catDestrModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateSimRates
 

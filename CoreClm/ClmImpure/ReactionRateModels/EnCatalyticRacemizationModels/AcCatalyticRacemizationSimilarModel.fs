@@ -37,6 +37,7 @@ module AcCatalyticRacemizationSimilarModel =
                 rateDictionary = p.acCatRacemModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateAcSimRates
 

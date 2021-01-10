@@ -39,6 +39,7 @@ module EnCatalyticRacemizationSimilarModel =
                 rateDictionary = p.enCatRacemModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateEnSimRates
 

@@ -37,6 +37,7 @@ module AcCatalyticDestructionSimilarModel =
                 rateDictionary = p.acCatDestrModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateAcSimRates
 

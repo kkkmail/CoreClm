@@ -38,6 +38,7 @@ module CatalyticLigationSimilarModel =
                 rateDictionary = p.catLigModel.rateDictionary
                 rateGenerationType = t
                 rnd = rnd
+                dictionaryUpdateType = AllRateData
             }
             |> calculateSimRates
 
