@@ -11,6 +11,11 @@ open Clm.ReactionTypes
 
 module ReactionRateFunctions =
 
+    /// TODO kk:20210110 - Temporary hack to allow changing getLigDefaultValue from command line.
+    /// Refactor if found useful
+    let mutable useNonOptionalRateDataOnly = false
+
+
     /// Some of the dictionaries (e.g. [en/ac] catalytic related ones) may become extremely large.
     /// Subsequently for such dictionaries we may want to store only non-optional data in the dictionary.
     type DictionaryUpdateType =
@@ -23,7 +28,14 @@ module ReactionRateFunctions =
         | NonOptionalRateDataOnly
 
 
-        static member getLigDefaultValue() = NonOptionalRateDataOnly
+        static member getLigDefaultValue() =
+            let retVal =
+                match useNonOptionalRateDataOnly with
+                | false -> AllRateData
+                | true -> NonOptionalRateDataOnly
+
+            printfn $"getLigDefaultValue: retVal = {retVal}"
+            retVal
 
         static member getEnCatDefaultValue() = DictionaryUpdateType.getLigDefaultValue()
         static member getAcFwdCatDefaultValue() = DictionaryUpdateType.getLigDefaultValue()

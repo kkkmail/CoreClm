@@ -11,6 +11,7 @@ open ClmSys.ContGenPrimitives
 open ContGen.ModelRunner
 open ContGen.ModelGenerator
 open ServiceProxy.ModelGeneratorProxy
+open ClmImpure
 
 module ContGenAdmTasks =
 
@@ -28,6 +29,10 @@ module ContGenAdmTasks =
         let m = tryGetMaxPeptideLength p
         let c = tryGetCommandLineParams p
         let so = getSeedValue p
+
+        let useNonOptionalRateDataOnly = getUseNonOptionalRateDataOnly p
+        printfn $"addClmTask: useNonOptionalRateDataOnly = {useNonOptionalRateDataOnly}"
+        ReactionRateFunctions.useNonOptionalRateDataOnly <- useNonOptionalRateDataOnly
 
         match i, n, m, c with
         | Some i, Some n, Some m, Some c ->

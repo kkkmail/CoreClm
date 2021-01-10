@@ -57,6 +57,7 @@ module AdmCommandLine =
         | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
         | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode
         | [<Unique>] [<AltCommandLine("-v")>]               SeedValue of int
+        | [<Unique>] [<AltCommandLine("-u")>]               UseNonOptionalRateDataOnly of bool
 
 
         with
@@ -71,6 +72,7 @@ module AdmCommandLine =
                 | Repetitions _ -> "number of repetitions."
                 | GenerateModelCode -> "add in order to generate and save model code."
                 | SeedValue _ -> "optional seed value to be used during model generation."
+                | UseNonOptionalRateDataOnly _ -> "sets ReactionRateFunctions.useNonOptionalRateDataOnly to a given value."
 
 
     and
@@ -194,6 +196,12 @@ module AdmCommandLine =
 
     let getSeedValue (p :list<AddClmTaskArgs>) =
         p |> List.tryPick (fun e -> match e with | SeedValue v -> Some v | _ -> None)
+
+
+    let getUseNonOptionalRateDataOnly (p :list<AddClmTaskArgs>) =
+        match p |> List.tryPick (fun e -> match e with | UseNonOptionalRateDataOnly v -> Some v | _ -> None) with
+        | Some n -> n
+        | None -> false
 
 
     let tryGetModelId (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)
