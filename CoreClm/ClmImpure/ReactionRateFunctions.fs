@@ -42,18 +42,33 @@ module ReactionRateFunctions =
         static member getAcBkwCatDefaultValue() = DictionaryUpdateType.getLigDefaultValue()
 
 
-    let updateDictionary<'R>
+    let updateDictionary<'R, 'C>
         (t : DictionaryUpdateType)
-        (d : Dictionary<'R, RateData>)
+        (d : DictionaryData<'R, 'C>)
         (data : RateData)
         (r : 'R) =
-        let update() = if d.ContainsKey r |> not then d.Add(r, data)
+        let reactionKey = d.getReactionKey r
+
+        let hasKey() =
+            match d.keySet with
+            | Some s -> s.Contains reactionKey
+            | None -> false
+
+        let updateKey() =
+            match d.keySet with
+            | Some s -> s.Add reactionKey |> ignore
+            | None -> ()
+
+        let update() = if d.rateDictionary.ContainsKey r |> not then d.rateDictionary.Add(r, data)
+        let updateIfNoKey() = if hasKey() |> not then update()
 
         match t, data.forwardRate, data.forwardRate with
         | AllRateData, _, _ -> update()
-        | NonOptionalRateDataOnly, Some _, _ -> update()
-        | NonOptionalRateDataOnly, _, Some _ -> update()
+        | NonOptionalRateDataOnly, Some _, _ -> updateIfNoKey()
+        | NonOptionalRateDataOnly, _, Some _ -> updateIfNoKey()
         | _ -> ()
+
+        updateKey()
 
 
     let dictionaryToList (d : Dictionary<'R, (ReactionRate option * ReactionRate option)>) =
@@ -63,14 +78,14 @@ module ReactionRateFunctions =
         |> List.sortBy (fun (k, _) -> k)
 
 
-    let updatePrimaryReactions<'R>
+    let updatePrimaryReactions<'R, 'C>
         (t : DictionaryUpdateType)
-        (d : Dictionary<'R, RateData>)
+        (d : DictionaryData<'R, 'C>)
         (getEnantiomer : 'R -> 'R)
         (primary : RateData)
         (r : 'R) =
-        if d.Count > 0 && (d.Count % 1_000_000) = 0
-        then printfn "updatePrimaryReactions::d.Count = %A for type: %A. Something is not right." d.Count (typedefof<'R>)
+        if d.rateDictionary.Count > 0 && (d.rateDictionary.Count % 1_000_000) = 0
+        then printfn "updatePrimaryReactions::d.Count = %A for type: %A. Something is not right." d.rateDictionary.Count (typedefof<'R>)
 
         let enantiomer = getEnantiomer r
 
@@ -81,9 +96,9 @@ module ReactionRateFunctions =
         updateDictionary t d primary enantiomer
 
 
-    let updateSimilarReactions<'R>
+    let updateSimilarReactions<'R, 'C>
         (t : DictionaryUpdateType)
-        (d : Dictionary<'R, RateData>)
+        (d : DictionaryData<'R, 'C>)
         (getEnantiomer : 'R -> 'R)
         (similar : list<ReactionRateData<'R>>) =
 //        similar |> List.map (fun e -> if d.ContainsKey e.reaction |> not then d.Add(e.reaction, e.rateData)) |> ignore
@@ -93,9 +108,9 @@ module ReactionRateFunctions =
         similar |> List.map (fun e -> updateDictionary t d e.rateData (getEnantiomer e.reaction)) |> ignore
 
 
-    let updateRelatedReactions<'R>
+    let updateRelatedReactions<'R, 'C>
         (t : DictionaryUpdateType)
-        (d : Dictionary<'R, RateData>)
+        (d : DictionaryData<'R, 'C>)
         (getEnantiomer : 'R -> 'R)
         (r : 'R)
         (x : RelatedReactions<'R>) =
@@ -105,20 +120,20 @@ module ReactionRateFunctions =
         x.primary
 
 
-    let getRatesImpl<'R>
+    let getRatesImpl<'R, 'C>
         (t : DictionaryUpdateType)
-        (rateDictionary : Dictionary<'R, RateData>)
+        (d : DictionaryData<'R, 'C>)
         (getEnantiomer : 'R -> 'R)
         (calculateRates : 'R -> RelatedReactions<'R>)
         (reaction : 'R)  =
-        match rateDictionary.TryGetValue reaction with
+        match d.rateDictionary.TryGetValue reaction with
         | true, rates -> rates
         | false, _ ->
             calculateRates reaction
-            |> updateRelatedReactions t rateDictionary getEnantiomer reaction
+            |> updateRelatedReactions t d getEnantiomer reaction
 
 
-    let getRatesAllRateDataImpl<'R> = getRatesImpl<'R> AllRateData
+    let getRatesAllRateDataImpl<'R, 'C> = getRatesImpl<'R, 'C> AllRateData
 
 
     //let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
@@ -175,7 +190,7 @@ module ReactionRateFunctions =
 
             simParams : CatRatesSimilarityParam
             eeParams : CatRatesEeParam
-            rateDictionary : Dictionary<'RC, RateData>
+            dictionaryData : DictionaryData<'RC, 'C>
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
             dictionaryUpdateType : DictionaryUpdateType
@@ -198,7 +213,7 @@ module ReactionRateFunctions =
         let reaction = (s, c) |> i.catReactionCreator
         let related = i.toCatRatesInfo s c e |> calculateCatRates
 //        printfn "calculateSimCatRates: related = %A" related
-        updateRelatedReactions i.dictionaryUpdateType i.rateDictionary i.getCatReactEnantiomer reaction related
+        updateRelatedReactions i.dictionaryUpdateType i.dictionaryData i.getCatReactEnantiomer reaction related
 
 
     let getEeParams i cr cre rateMult d =
@@ -326,7 +341,7 @@ module ReactionRateFunctions =
         let calculateSedDirRates s c ee =
             let reaction = (s, c) |> SedimentationDirectReaction
             let related = calculateSedDirRates { i.sedDirRatesInfo with sedFormingSubst = s; sedDirAgent = c; eeParams = ee }
-            updateRelatedReactions AllRateData i.rateDictionary (fun e -> e.enantiomer) reaction related
+            updateRelatedReactions AllRateData i.dictionaryData (fun e -> e.enantiomer) reaction related
 
         match cr.forwardRate with
         | None ->
@@ -392,7 +407,7 @@ module ReactionRateFunctions =
             getBaseCatRates : 'RCS -> RateData
             enSimParams : EnCatRatesSimilarityParam
             eeParams : EnCatRatesEeParam
-            rateDictionary : Dictionary<'RCS, RateData>
+            dictionaryData : DictionaryData<'RCS, ('C * 'S)>
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
             dictionaryUpdateType : DictionaryUpdateType
@@ -417,7 +432,7 @@ module ReactionRateFunctions =
         let reaction = (s, c, i.energySource) |> i.enCatReactionCreator
         let related = i.toEnCatRatesInfo s c e |> calculateEnCatRates
 //        printfn "calculateSimEnCatRates: related = %A" related
-        updateRelatedReactions i.dictionaryUpdateType i.rateDictionary i.getCatReactEnantiomer reaction related
+        updateRelatedReactions i.dictionaryUpdateType i.dictionaryData i.getCatReactEnantiomer reaction related
 
 
     let getEnEeParams i cr cre rateMult d =
@@ -544,7 +559,7 @@ module ReactionRateFunctions =
             getBaseCatRates : 'RC -> RateData
             acSimParams : AcCatRatesSimilarityParam
             acEeParams : AcCatRatesEeParam
-            rateDictionary : Dictionary<'RC, RateData>
+            dictionaryData : DictionaryData<'RC, 'C>
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
             dictionaryUpdateType : DictionaryUpdateType
@@ -567,12 +582,10 @@ module ReactionRateFunctions =
         let reaction = (s, c) |> i.acCatReactionCreator
         let related = i.toAcCatRatesInfo s c e |> calculateAcCatRates
 //        printfn "calculateSimCatRates: related = %A" related
-        updateRelatedReactions i.dictionaryUpdateType i.rateDictionary i.getCatReactEnantiomer reaction related
+        updateRelatedReactions i.dictionaryUpdateType i.dictionaryData i.getCatReactEnantiomer reaction related
 
 
     let getAcEeParams i cr cre rateMult d  =
-        let x = i.acEeParams
-
 //        match d with
 //        | AcNone -> AcCatRatesEeParam.defaultValue
 //        | AcForwardRateOnly ->

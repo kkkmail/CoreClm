@@ -8,6 +8,19 @@ open Clm.Substances
 open Clm.ReactionRatesBase
 
 module ReactionRateParams =
+
+    /// !!! Internally mutable structure !!!
+    type DictionaryData<'R, 'C> =
+        {
+            keySet : HashSet<'C> option
+            getReactionKey : 'R -> 'C
+            rateDictionary : Dictionary<'R, RateData>
+        }
+
+
+    type DictionaryData<'R> = DictionaryData<'R, 'R>
+
+
     type FoodCreationParam =
         {
             foodCreationRate : double
@@ -223,7 +236,7 @@ module ReactionRateParams =
             aminoAcids : list<AminoAcid>
             reagents : Map<AminoAcid, list<SedDirReagent>>
             simParams : SedDirSimilarityParam
-            rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
+            dictionaryData : DictionaryData<SedimentationDirectReaction>
         }
 
 
