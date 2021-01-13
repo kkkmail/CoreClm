@@ -12,5 +12,5 @@ module SedimentationAllRandomModel =
     type SedimentationAllRandomModel (p : SedimentationAllRandomParam) =
         inherit RateModel<SedimentationAllRandomParam, SedimentationAllReaction>(p)
         let calculateRates rnd _ = getForwardRates (p.forwardScale, p.sedimentationAllDistribution.nextDouble rnd |> Some)
-        member model.getRates rnd r = getRatesAllRateDataImpl model.rateDictionary getEnantiomer (calculateRates rnd) r
+        member model.getRates rnd r = getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd) r
 

@@ -15,4 +15,4 @@ module SynthesisRandomModel =
             let d = p.synthesisDistribution
             getRates (p.forwardScale, d.nextDouble rnd |> Some) (p.backwardScale, d.nextDouble rnd |> Some)
 
-        member model.getRates rnd r = getRatesAllRateDataImpl model.rateDictionary getEnantiomer (calculateRates rnd) r
+        member model.getRates rnd r = getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd) r

@@ -1,25 +1,10 @@
 ﻿namespace Clm
 
-open System.Collections.Generic
-open FSharp.Collections
 open Clm.Distributions
 open Clm.ReactionTypes
-open Clm.Substances
 open Clm.ReactionRatesBase
 
 module ReactionRateParams =
-
-    /// !!! Internally mutable structure !!!
-    type DictionaryData<'R, 'C> =
-        {
-            keySet : HashSet<'C> option
-            getReactionKey : 'R -> 'C
-            rateDictionary : Dictionary<'R, RateData>
-        }
-
-
-    type DictionaryData<'R> = DictionaryData<'R, 'R>
-
 
     type FoodCreationParam =
         {
@@ -226,17 +211,6 @@ module ReactionRateParams =
             sedDirSimBaseDistribution : Distribution
             getRateMultiplierDistr : RateMultiplierDistributionGetter
             getEeDistr : EeDistributionGetter
-        }
-
-
-    type SedDirRatesSimInfo =
-        {
-            sedDirRatesInfo : SedDirRatesInfo
-
-            aminoAcids : list<AminoAcid>
-            reagents : Map<AminoAcid, list<SedDirReagent>>
-            simParams : SedDirSimilarityParam
-            dictionaryData : DictionaryData<SedimentationDirectReaction>
         }
 
 

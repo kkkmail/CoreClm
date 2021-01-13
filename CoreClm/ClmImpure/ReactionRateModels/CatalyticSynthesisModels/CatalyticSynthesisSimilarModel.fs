@@ -34,10 +34,9 @@ module CatalyticSynthesisSimilarModel =
                 getBaseCatRates = p.catSynthModel.getRates rnd t
                 simParams = p.catSynthSimParam
                 eeParams = p.catSynthModel.inputParams.catSynthRndParam.catSynthRndEeParams
-                rateDictionary = p.catSynthModel.rateDictionary
+                dictionaryData = p.catSynthModel.dictionaryData
                 rateGenerationType = t
                 rnd = rnd
-                dictionaryUpdateType = AllRateData
             }
             |> calculateSimRates
 

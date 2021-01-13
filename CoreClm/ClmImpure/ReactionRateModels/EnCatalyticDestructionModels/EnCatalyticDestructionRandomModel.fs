@@ -35,4 +35,4 @@ module EnCatalyticDestructionRandomModel =
             }
             |> calculateEnCatRates
 
-        member model.getRates rnd t r = getRatesAllRateDataImpl model.rateDictionary getEnantiomer (calculateEnCatDestrRates rnd t) r
+        member model.getRates rnd t r = getRatesImpl model.dictionaryData getEnantiomer (calculateEnCatDestrRates rnd t) r

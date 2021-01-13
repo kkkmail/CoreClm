@@ -16,4 +16,4 @@ module ActivationRandomModel =
             let d = p.activationDistribution
             getRates (p.forwardScale, d.nextDouble rnd |> Some) (None, None)
 
-        member model.getRates rnd r = getRatesAllRateDataImpl model.rateDictionary getEnantiomer (calculateRates rnd) r
+        member model.getRates rnd r = getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd) r
