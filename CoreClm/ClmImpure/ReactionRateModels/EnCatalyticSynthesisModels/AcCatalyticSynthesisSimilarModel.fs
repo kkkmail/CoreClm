@@ -18,6 +18,8 @@ module AcCatalyticSynthesisSimilarModel =
 
 
     type AcCatalyticSynthesisSimilarModel (p : AcCatalyticSynthesisSimilarParamWithModel) =
+        let dictionaryData = toDictionaryData p.acCatSynthModel.rateDictionary
+
         let calculateSimRatesImpl rnd t (AcCatalyticSynthesisReaction (s, c)) =
             let (SynthesisReaction a) = s
             {
@@ -34,10 +36,9 @@ module AcCatalyticSynthesisSimilarModel =
                 getBaseCatRates = p.acCatSynthModel.getRates rnd t
                 acSimParams = p.acCatSynthSimParam
                 acEeParams = p.acCatSynthModel.inputParams.acCatSynthRndParam.acCatSynthRndEeParams
-                rateDictionary = p.acCatSynthModel.rateDictionary
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
-                dictionaryUpdateType = AllRateData
             }
             |> calculateAcSimRates
 

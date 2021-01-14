@@ -1,5 +1,6 @@
 ﻿namespace ClmImpure.ReactionRateModels
 
+open System.Collections.Generic
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRatesBase
@@ -19,26 +20,39 @@ module CatalyticLigationSimilarModel =
 
 
     type CatalyticLigationSimilarModel (p : CatalyticLigationSimilarParamWithModel) =
+        let dictionaryData =
+            match DictionaryUpdateType.getEnCatLigValue() with
+            | AllRateData -> toDictionaryData p.catLigModel.rateDictionary
+            | NonOptionalRateDataOnly ->
+                {
+                    keySetData =
+                        {
+                            keySet = HashSet<LigCatalyst>()
+                            getReactionKey = fun (r : CatalyticLigationReaction) -> r.catalyst
+                        }
+                        |> Some
+                    rateDictionary = p.catLigModel.rateDictionary
+                }
+
         let calculateSimRatesImpl rnd t (CatalyticLigationReaction (s, c)) =
             let (LigationReaction a) = s
             {
                 reaction = s
                 catalyst = c
                 getReactionData = fun r -> p.peptideBondData.findSameBondSymmetry r.peptideBond
-                getMatchingReactionMult = fun x -> x
+                getMatchingReactionMult = id
                 inverse = fun r -> r.peptideBond
                 getCatEnantiomer = getEnantiomer
                 catReactionCreator = CatalyticLigationReaction
                 getCatReactEnantiomer = getEnantiomer
-                simReactionCreator = fun e -> p.peptideBondData.findSameBond e
+                simReactionCreator = p.peptideBondData.findSameBond
                 getBaseRates = p.catLigModel.inputParams.ligationModel.getRates rnd
                 getBaseCatRates = p.catLigModel.getRates rnd t
                 simParams = p.catLigSimParam
                 eeParams = p.catLigModel.inputParams.catLigationParam.catLigRndEeParams
-                rateDictionary = p.catLigModel.rateDictionary
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
-                dictionaryUpdateType = AllRateData
             }
             |> calculateSimRates
 

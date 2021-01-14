@@ -18,6 +18,8 @@ module EnCatalyticSynthesisSimilarModel =
 
 
     type EnCatalyticSynthesisSimilarModel (p : EnCatalyticSynthesisSimilarParamWithModel) =
+        let dictionaryData = toDictionaryData p.enCatSynthModel.rateDictionary
+
         let calculateSimRatesImpl rnd t (EnCatalyticSynthesisReaction (s, c, u)) =
             let (SynthesisReaction a) = s
             {
@@ -36,10 +38,9 @@ module EnCatalyticSynthesisSimilarModel =
                 getBaseCatRates = p.enCatSynthModel.getRates rnd t
                 enSimParams = p.enCatSynthSimParam
                 eeParams = p.enCatSynthModel.inputParams.enCatSynthRndParam.enCatSynthRndEeParams
-                rateDictionary = p.enCatSynthModel.rateDictionary
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
-                dictionaryUpdateType = AllRateData
             }
             |> calculateEnSimRates
 

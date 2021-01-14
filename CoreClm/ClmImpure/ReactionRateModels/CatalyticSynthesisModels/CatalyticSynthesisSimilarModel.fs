@@ -18,6 +18,8 @@ module CatalyticSynthesisSimilarModel =
 
 
     type CatalyticSynthesisSimilarModel (p : CatalyticSynthesisSimilarParamWithModel) =
+        let dictionaryData = toDictionaryData p.catSynthModel.rateDictionary
+
         let calculateSimRatesImpl rnd t (CatalyticSynthesisReaction (s, c)) =
             let (SynthesisReaction a) = s
             {
@@ -34,7 +36,7 @@ module CatalyticSynthesisSimilarModel =
                 getBaseCatRates = p.catSynthModel.getRates rnd t
                 simParams = p.catSynthSimParam
                 eeParams = p.catSynthModel.inputParams.catSynthRndParam.catSynthRndEeParams
-                dictionaryData = p.catSynthModel.dictionaryData
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
             }

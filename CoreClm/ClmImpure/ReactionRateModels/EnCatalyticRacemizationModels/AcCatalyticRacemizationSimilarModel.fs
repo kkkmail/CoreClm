@@ -18,6 +18,8 @@ module AcCatalyticRacemizationSimilarModel =
 
 
     type AcCatalyticRacemizationSimilarModel (p : AcCatalyticRacemizationSimilarParamWithModel) =
+        let dictionaryData = toDictionaryData p.acCatRacemModel.rateDictionary
+
         let calculateSimRatesImpl rnd t (AcCatalyticRacemizationReaction (s, c)) =
             let (RacemizationReaction a) = s
             {
@@ -34,10 +36,9 @@ module AcCatalyticRacemizationSimilarModel =
                 getBaseCatRates = p.acCatRacemModel.getRates rnd t
                 acSimParams = p.acCatRacemSimParam
                 acEeParams = p.acCatRacemModel.inputParams.acCatRacemRndParam.acCatRacemRndEeParams
-                rateDictionary = p.acCatRacemModel.rateDictionary
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
-                dictionaryUpdateType = AllRateData
             }
             |> calculateAcSimRates
 

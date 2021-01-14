@@ -18,6 +18,8 @@ module AcCatalyticDestructionSimilarModel =
 
 
     type AcCatalyticDestructionSimilarModel (p : AcCatalyticDestructionSimilarParamWithModel) =
+        let dictionaryData = toDictionaryData p.acCatDestrModel.rateDictionary
+
         let calculateSimRatesImpl rnd t (AcCatalyticDestructionReaction (s, c)) =
             let (DestructionReaction a) = s
             {
@@ -34,10 +36,9 @@ module AcCatalyticDestructionSimilarModel =
                 getBaseCatRates = p.acCatDestrModel.getRates rnd t
                 acSimParams = p.acCatDestrSimParam
                 acEeParams = p.acCatDestrModel.inputParams.acCatDestrRndParam.acCatDestrRndEeParams
-                rateDictionary = p.acCatDestrModel.rateDictionary
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
-                dictionaryUpdateType = AllRateData
             }
             |> calculateAcSimRates
 

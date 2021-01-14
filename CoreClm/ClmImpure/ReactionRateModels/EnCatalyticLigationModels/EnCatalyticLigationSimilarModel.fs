@@ -1,5 +1,6 @@
 ﻿namespace ClmImpure.ReactionRateModels
 
+open System.Collections.Generic
 open Clm.Substances
 open Clm.ReactionTypes
 open Clm.ReactionRatesBase
@@ -18,27 +19,40 @@ module EnCatalyticLigationSimilarModel =
 
 
     type EnCatalyticLigationSimilarModel (p : EnCatalyticLigationSimilarParamWithModel) =
+        let dictionaryData =
+            match DictionaryUpdateType.getEnCatLigValue() with
+            | NonOptionalRateDataOnly ->
+                {
+                    keySetData =
+                        {
+                            keySet = HashSet<(EnLigCatalyst * ChiralSugar)>()
+                            getReactionKey = fun (r : EnCatalyticLigationReaction) -> (r.catalyst, r.sugar)
+                        }
+                        |> Some
+                    rateDictionary = p.enCatLigModel.rateDictionary
+                }
+            | AllRateData -> toDictionaryData p.enCatLigModel.rateDictionary
+
         let calculateSimRatesImpl rnd t (EnCatalyticLigationReaction (s, c, u)) =
             {
                 reaction = s
                 enCatalyst = c
                 energySource = u
                 getReactionData = fun r -> p.peptideBondData.findSameBondSymmetry r.peptideBond
-                getMatchingReactionMult = fun x -> x
+                getMatchingReactionMult = id
                 inverse = fun r -> r.peptideBond
                 getCatEnantiomer = getEnantiomer
                 getEnergySourceEnantiomer = getEnantiomer
                 enCatReactionCreator = EnCatalyticLigationReaction
                 getCatReactEnantiomer = getEnantiomer
-                simReactionCreator = fun e -> p.peptideBondData.findSameBond e
+                simReactionCreator = p.peptideBondData.findSameBond
                 getBaseRates = p.enCatLigModel.inputParams.ligationModel.getRates rnd
                 getBaseCatRates = p.enCatLigModel.getRates rnd t
                 enSimParams = p.enCatLigSimParam
                 eeParams = p.enCatLigModel.inputParams.enCatLigationParam.enCatLigRndEeParams
-                rateDictionary = p.enCatLigModel.rateDictionary
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
-                dictionaryUpdateType = DictionaryUpdateType.getEnCatDefaultValue()
             }
             |> calculateEnSimRates
 
