@@ -86,7 +86,11 @@ module ReactionRateFunctions =
             let reactionKey = v.getReactionKey r
 
             match v.keySet.Contains reactionKey with
-            | true -> ()
+            | true ->
+                match data.forwardRate, data. backwardRate with
+                | Some _, _ -> update()
+                | _, Some _ -> update()
+                | _ -> ()
             | false ->
                 v.keySet.Add reactionKey |> ignore
                 update()
