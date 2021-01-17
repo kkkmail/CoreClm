@@ -15,10 +15,10 @@ module SedimentationDirectModel =
         | SedDirRndModel of SedimentationDirectRandomModel
         | SedDirSimModel of SedimentationDirectSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | SedDirRndModel m -> m.getRates rnd t r
-            | SedDirSimModel m -> m.getRates rnd t r
+            | SedDirRndModel m -> m.getRates t rnd r
+            | SedDirSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

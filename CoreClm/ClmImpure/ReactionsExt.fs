@@ -12,7 +12,7 @@ module ReactionsExt =
         with
 
         static member tryCreate rnd (g : ReactionRateProvider) t i =
-            g.getRates rnd t i |> ReversibleReaction.tryCreateFromRateData i
+            g.getRates t rnd i |> ReversibleReaction.tryCreateFromRateData i
 
 
     type AnyReaction

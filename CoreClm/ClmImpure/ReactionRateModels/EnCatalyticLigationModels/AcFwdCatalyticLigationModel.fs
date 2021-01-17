@@ -14,10 +14,10 @@ module AcFwdCatalyticLigationModel =
         | AcFwdCatLigRndModel of AcFwdCatalyticLigationRandomModel
         | AcFwdCatLigSimModel of AcFwdCatalyticLigationSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | AcFwdCatLigRndModel m -> m.getRates rnd t r
-            | AcFwdCatLigSimModel m -> m.getRates rnd t r
+            | AcFwdCatLigRndModel m -> m.getRates t rnd r
+            | AcFwdCatLigSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

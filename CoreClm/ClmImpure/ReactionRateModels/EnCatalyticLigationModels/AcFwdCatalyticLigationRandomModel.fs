@@ -33,4 +33,6 @@ module AcFwdCatalyticLigationRandomModel =
             }
             |> calculateAcCatRates
 
-        member model.getRates rnd t r = getRatesImpl model.dictionaryData getEnantiomer (calculateCatSynthRates rnd t) r
+        member model.getRates t rnd r =
+            printfn $"AcFwdCatalyticLigationRandomModel.getRates: r = {r}, t = {t}."
+            getRatesImpl model.dictionaryData getEnantiomer (calculateCatSynthRates rnd t) r

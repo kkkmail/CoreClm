@@ -63,6 +63,27 @@ module ReactionRateFunctions =
             rateDictionary : Dictionary<'R, RateData>
         }
 
+        member d.tryGetReactionKey r = d.keySetData |> Option.bind (fun v -> v.getReactionKey r |> Some)
+
+        member d.hasReactionKey r =
+//            let v =
+//                d.keySetData
+//                |> Option.bind (fun v -> v.getReactionKey r |> v.keySet.Contains |> Some)
+//                |> Option.defaultValue false
+
+            let v =
+                match d.keySetData with
+                | Some data ->
+                    let reactionKey = data.getReactionKey r
+                    let retVal = data.keySet.Contains reactionKey
+                    printfn $"DictionaryData.hasReactionKey {r} = {retVal}, reactionKey = {reactionKey}, data.keySet.Count = {data.keySet.Count}."
+                    retVal
+                | None ->
+                    false
+
+            printfn $"DictionaryData.hasReactionKey {r} = {v}."
+            v
+
 
     let toDictionaryData r =
         {
@@ -78,7 +99,10 @@ module ReactionRateFunctions =
         (d : DictionaryData<'R, 'C>)
         (data : RateData)
         (r : 'R) =
-        let update() = if d.rateDictionary.ContainsKey r |> not then d.rateDictionary.Add(r, data)
+
+        let update() =
+//            printfn $"updateDictionary.update r = {r}, data = {data}."
+            if d.rateDictionary.ContainsKey r |> not then d.rateDictionary.Add(r, data)
 
         match d.keySetData with
         | None -> update()
@@ -86,14 +110,16 @@ module ReactionRateFunctions =
             let reactionKey = v.getReactionKey r
 
             match v.keySet.Contains reactionKey with
+            | false ->
+                printfn $"updateDictionary: reactionKey = {reactionKey}, r = {r}, data = {data}."
+                update()
+                v.keySet.Add reactionKey |> ignore
             | true ->
                 match data.forwardRate, data. backwardRate with
-                | Some _, _ -> update()
-                | _, Some _ -> update()
-                | _ -> ()
-            | false ->
-                v.keySet.Add reactionKey |> ignore
-                update()
+                | Some _, Some _ -> update()
+                | Some _, None -> update()
+                | None, Some _ -> update()
+                | None, None -> ()
 
 
     let dictionaryToList (d : Dictionary<'R, (ReactionRate option * ReactionRate option)>) =
@@ -140,11 +166,27 @@ module ReactionRateFunctions =
         (getEnantiomer : 'R -> 'R)
         (calculateRates : 'R -> RelatedReactions<'R>)
         (reaction : 'R)  =
+        printfn $"getRatesImpl: reaction = {reaction}."
         match d.rateDictionary.TryGetValue reaction with
         | true, rates -> rates
         | false, _ ->
-            calculateRates reaction
-            |> updateRelatedReactions d getEnantiomer reaction
+            match d.hasReactionKey reaction with
+            | false ->
+                calculateRates reaction
+                |> updateRelatedReactions d getEnantiomer reaction
+            | true ->
+                // This is only applicable for a small number of reaction types where the number of reactions is extremely
+                // large, e.g. AcFwdCatalyticLigationReaction.
+                // If we end up here then the situation is as follows:
+                //     1. One of the previous reactions had the same reaction key (== catalyst).
+                //     2. However, DictionaryUpdateType.NonOptionalRateDataOnly was used and that resulted that we did
+                //        not store all the reactions but only a reaction key.
+                //     3. Had we stored the reaction in the dictionary, then it would've now returned a reaction with no data.
+                //     4. So, we need to do the same here.
+                {
+                    forwardRate = None
+                    backwardRate = None
+                }
 
 
     //let inline getModelRates<'M, 'R when 'M : (member getRates : 'R -> (ReactionRate option * ReactionRate option))>
@@ -237,6 +279,7 @@ module ReactionRateFunctions =
 
 
     let getRateMult br cr cre =
+        printfn $"getRateMult: br = {br}, cr = {cr}, cre = {cre}."
         match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
         | Some (ReactionRate a), Some (ReactionRate b), _, _ ->
             match br.forwardRate with
@@ -575,7 +618,7 @@ module ReactionRateFunctions =
             simReactionCreator : 'A -> list<'R>
             getCatReactEnantiomer : 'RC -> 'RC
             getBaseRates : 'R -> RateData
-            getBaseCatRates : 'RC -> RateData
+            getBaseCatRates : RandomValueGetter -> 'RC -> RateData
             acSimParams : AcCatRatesSimilarityParam
             acEeParams : AcCatRatesEeParam
             dictionaryData : DictionaryData<'RC, 'C>
@@ -684,63 +727,73 @@ module ReactionRateFunctions =
         a
 
     let getAcSimRates (i : AcCatRatesSimInfo<'A, 'C, 'R, 'RC>) aa getEeParams rateMult =
-//        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =
             chooseAcData i aa
             |> List.map (fun (e, b) -> e, b, match b with | true -> i.getMatchingReactionMult rateMult | false -> 0.0)
 
-//        x
-//        |> List.filter (fun (_, b, _) -> b)
-//        |> List.sortBy (fun (a, _, _) -> a.ToString())
-//        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
-//        |> ignore
-//        printfn "\n"
+        x
+        |> List.filter (fun (_, b, _) -> b)
+        |> List.sortBy (fun (a, _, _) -> a.ToString())
+        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
+        |> ignore
+        printfn "\n"
 
         let a =
             x
             |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
             |> List.concat
 
-//        a
-//        |> List.filter (fun (_, b, _) -> b)
-//        |> List.sortBy (fun (a, _, _) -> a.ToString())
-//        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
-//        |> ignore
-//        printfn "\n"
+        a
+        |> List.filter (fun (_, b, _) -> b)
+        |> List.sortBy (fun (a, _, _) -> a.ToString())
+        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
+        |> ignore
+        printfn "\n"
 
         let b =
             a
             |> List.filter (fun (e, _, _) -> e <> i.reaction)
             |> List.map (fun (e, b, m) -> e, calculateAcSimCatRates i e i.acCatalyst (getEeParams m b))
 
-//        b
-//        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
-//        |> List.sortBy (fun (a, _) -> a.ToString())
-//        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
-//        |> ignore
-//        printfn "\n"
+        b
+        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
+        |> List.sortBy (fun (a, _) -> a.ToString())
+        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
+        |> ignore
+        printfn "\n"
 
         b
 
 
     let calculateAcSimRates<'A, 'R, 'C, 'RC when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'C, 'RC>) =
+        printfn "calculateAcSimRates: Starting. i = %A" i
         let r = (i.reaction, i.acCatalyst) |> i.acCatReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.acCatalyst) |> i.acCatReactionCreator
         let br = i.getBaseRates i.reaction // (bf, bb)
-        let cr = r |> i.getBaseCatRates // (f, b)
         let aa = i.getReactionData i.reaction
 
-//        printfn "calculateAcSimRates: r = %s\n\n" (r.ToString())
+        let rndCat =
+            match i.dictionaryData.hasReactionKey r with
+            | false -> i.rnd
+            | true ->
+                printfn "calculateAcSimRates: reaction has a key (catalyst) in the dictionary. Do not create new reactions."
+                RandomValueGetter.zero
+
+        let cr = i.getBaseCatRates rndCat r // (f, b)
+
+        printfn "calculateAcSimRates: r = %s\n\n" (r.ToString())
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None -> getAcSimNoRates i i.simReactionCreator aa i.reaction
         | _ ->
-            let cre = re |> i.getBaseCatRates
+            let cre = re |> i.getBaseCatRates rndCat
             let rateMult = getRateMult br cr cre
-//            printfn "calculateAcSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
+            printfn "calculateAcSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
             let getAcEeParams = getAcEeParams i cr cre
             getAcSimRates i aa getAcEeParams rateMult
         |> ignore
 
+        printfn "calculateAcSimRates: cr = %A" cr
         cr

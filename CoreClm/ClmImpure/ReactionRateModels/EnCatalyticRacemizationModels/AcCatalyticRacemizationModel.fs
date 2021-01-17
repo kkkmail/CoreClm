@@ -14,10 +14,10 @@ module AcCatalyticRacemizationModel =
         | AcCatRacemRndModel of AcCatalyticRacemizationRandomModel
         | AcCatRacemSimModel of AcCatalyticRacemizationSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | AcCatRacemRndModel m -> m.getRates rnd t r
-            | AcCatRacemSimModel m -> m.getRates rnd t r
+            | AcCatRacemRndModel m -> m.getRates t rnd r
+            | AcCatRacemSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

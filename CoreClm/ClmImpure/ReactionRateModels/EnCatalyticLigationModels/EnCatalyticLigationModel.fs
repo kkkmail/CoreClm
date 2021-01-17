@@ -14,10 +14,10 @@ module EnCatalyticLigationModel =
         | EnCatLigRndModel of EnCatalyticLigationRandomModel
         | EnCatLigSimModel of EnCatalyticLigationSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | EnCatLigRndModel m -> m.getRates rnd t r
-            | EnCatLigSimModel m -> m.getRates rnd t r
+            | EnCatLigRndModel m -> m.getRates t rnd r
+            | EnCatLigSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

@@ -62,10 +62,11 @@ module ContGenAdmTasks =
                     | true ->
                         printfn "Generating model..."
                         let proxy = GenerateModelProxy.create so getClmConnectionString
+                        let fno = getModelCodeFileName p
 
                         match generateModel proxy t with
                         | Ok model ->
-                            match generateModelCode model t with
+                            match generateModelCode model t fno with
                             | Ok _ -> Ok()
                             | Error e -> logError e
                         | Error e -> logError e

@@ -14,10 +14,10 @@ module CatalyticLigationModel =
         | CatLigRndModel of CatalyticLigationRandomModel
         | CatLigSimModel of CatalyticLigationSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | CatLigRndModel m -> m.getRates rnd t r
-            | CatLigSimModel m -> m.getRates rnd t r
+            | CatLigRndModel m -> m.getRates t rnd r
+            | CatLigSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

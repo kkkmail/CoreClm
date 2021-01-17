@@ -6,6 +6,7 @@ module ReactionTypes =
 
     let toSubstName a = a |> List.fold (fun acc r -> acc + r.ToString()) ""
 
+
     type ReactionName =
         | FoodCreationName
         | WasteRemovalName
@@ -137,6 +138,7 @@ module ReactionTypes =
             }
 
         member r.enantiomer = r
+        override r.ToString() = $"{nameof(FoodCreationReaction)}: {Abundant} -> {Food}"
 
 
     type WasteRemovalReaction =
@@ -149,6 +151,7 @@ module ReactionTypes =
             }
 
         member r.enantiomer = r
+        override r.ToString() = $"{nameof(WasteRemovalReaction)}: {Waste} -> None"
 
 
     type WasteRecyclingReaction =
@@ -161,6 +164,7 @@ module ReactionTypes =
             }
 
         member r.enantiomer = r
+        override r.ToString() = $"{nameof(WasteRecyclingReaction)}: {Waste} -> {Food}"
 
 
     type SynthesisReaction =
@@ -173,9 +177,16 @@ module ReactionTypes =
                 output = [ (Chiral a, 1) ]
             }
 
+        member r.aminoAcid = let (SynthesisReaction a) = r in a
+
         member r.enantiomer =
             let (SynthesisReaction a) = r
             a.enantiomer |> SynthesisReaction
+
+        override r.ToString() =
+            let (SynthesisReaction a) = r
+            $"{nameof(SynthesisReaction)}: {Food} -> {a}"
+
 
 
     type SugCatalyst =
@@ -184,6 +195,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (SugCatalyst a) = c
             a.enantiomer |> SugCatalyst
+
+        override c.ToString() = let (SugCatalyst v) = c in v.ToString()
 
 
     type SugarSynthesisReaction =
@@ -210,6 +223,10 @@ module ReactionTypes =
             let (SugarSynthesisReaction (_, b)) = r
             b
 
+        override r.ToString() =
+            let (SugarSynthesisReaction (s, c)) = r
+            $"{nameof(SugarSynthesisReaction)}: {Food} + {c} <-> {s} + {c}"
+
 
     type DestructionReaction =
         | DestructionReaction of ChiralAminoAcid
@@ -221,9 +238,15 @@ module ReactionTypes =
                 output = [ (Simple Waste, 1) ]
             }
 
+        member r.aminoAcid = let (DestructionReaction a) = r in a
+
         member r.enantiomer =
             let (DestructionReaction a) = r
             a.enantiomer |> DestructionReaction
+
+        override r.ToString() =
+            let (DestructionReaction a) = r
+            $"{nameof(DestructionReaction)}: {a} -> {Food}"
 
 
     type SynthCatalyst =
@@ -232,6 +255,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (SynthCatalyst a) = c
             a.enantiomer |> SynthCatalyst
+
+        override c.ToString() = let (SynthCatalyst v) = c in v.ToString()
 
 
     type CatalyticSynthesisReaction =
@@ -262,6 +287,10 @@ module ReactionTypes =
             let (CatalyticSynthesisReaction (_, b)) = r
             b
 
+        override r.ToString() =
+            let (CatalyticSynthesisReaction (a, c)) = r
+            $"{nameof(CatalyticSynthesisReaction)}: {Food} + {c} <-> {a} + {c}"
+
 
     /// Catalyst, which works in synthesis reaction with energy consumption.
     type EnSynthCatalyst =
@@ -270,6 +299,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (EnSynthCatalyst a) = c
             a.enantiomer |> EnSynthCatalyst
+
+        override c.ToString() = let (EnSynthCatalyst v) = c in v.ToString()
 
 
     type EnCatalyticSynthesisReaction =
@@ -304,6 +335,10 @@ module ReactionTypes =
             let (EnCatalyticSynthesisReaction (_, _, c)) = r
             c
 
+        override r.ToString() =
+            let (EnCatalyticSynthesisReaction ((SynthesisReaction a), c, s)) = r
+            $"{nameof(EnCatalyticSynthesisReaction)}: {Food} + {c} + {s} -> {a} + {c} + {Waste}"
+
 
     type AcSynthCatalyst =
         | AcSynthCatalyst of ActivatedPeptide
@@ -311,6 +346,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (AcSynthCatalyst a) = c
             a.enantiomer |> AcSynthCatalyst
+
+        override c.ToString() = let (AcSynthCatalyst v) = c in v.ToString()
 
 
     type AcCatalyticSynthesisReaction =
@@ -342,6 +379,10 @@ module ReactionTypes =
             let (AcCatalyticSynthesisReaction (_, b)) = r
             b
 
+        override r.ToString() =
+            let (AcCatalyticSynthesisReaction ((SynthesisReaction a), (AcSynthCatalyst c))) = r
+            $"{nameof(AcCatalyticSynthesisReaction)}: {Food} + {c} -> {a} + {c.peptide}"
+
 
     type DestrCatalyst =
         | DestrCatalyst of Peptide
@@ -349,6 +390,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (DestrCatalyst a) = c
             a.enantiomer |> DestrCatalyst
+
+        override c.ToString() = let (DestrCatalyst v) = c in v.ToString()
 
 
     type CatalyticDestructionReaction =
@@ -380,6 +423,10 @@ module ReactionTypes =
             let (CatalyticDestructionReaction (_, b)) = r
             b
 
+        override r.ToString() =
+            let (CatalyticDestructionReaction (a, c)) = r
+            $"{nameof(CatalyticSynthesisReaction)}: {a} + {c} -> {Waste} + {c}"
+
 
     /// Catalyst, which works in destruction reaction with energy consumption.
     type EnDestrCatalyst =
@@ -388,6 +435,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (EnDestrCatalyst a) = c
             a.enantiomer |> EnDestrCatalyst
+
+        override c.ToString() = let (EnDestrCatalyst v) = c in v.ToString()
 
 
     type EnCatalyticDestructionReaction =
@@ -422,6 +471,10 @@ module ReactionTypes =
             let (EnCatalyticDestructionReaction (_, _, c)) = r
             c
 
+        override r.ToString() =
+            let (EnCatalyticDestructionReaction ((DestructionReaction a), c, s)) = r
+            $"{nameof(EnCatalyticDestructionReaction)}: {a} + {c} + {s} -> {Waste} + {c} + {Waste}"
+
 
     type AcDestrCatalyst =
         | AcDestrCatalyst of ActivatedPeptide
@@ -429,6 +482,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (AcDestrCatalyst a) = c
             a.enantiomer |> AcDestrCatalyst
+
+        override c.ToString() = let (AcDestrCatalyst v) = c in v.ToString()
 
 
     type AcCatalyticDestructionReaction =
@@ -459,6 +514,10 @@ module ReactionTypes =
         member r.catalyst =
             let (AcCatalyticDestructionReaction (_, b)) = r
             b
+
+        override r.ToString() =
+            let (AcCatalyticDestructionReaction ((DestructionReaction a), (AcDestrCatalyst c))) = r
+            $"{nameof(AcCatalyticDestructionReaction)}: {a} + {c} -> {Waste} + {c.peptide}"
 
 
     /// A directed pair of amino acids forming peptide bond.
@@ -509,7 +568,7 @@ module ReactionTypes =
             let (LigationReaction (a, b)) = r
             let sa = toSubstName a
             let sb = toSubstName b
-            $"LigationReaction: {sa} + {sb} <-> {sa + sb}"
+            $"{nameof(LigationReaction)}: {sa} + {sb} <-> {sa + sb}"
 
 
     type PeptideBondData =
@@ -525,9 +584,14 @@ module ReactionTypes =
             |> Option.defaultValue List.empty
 
         member m.findSameBondSymmetry (x : PeptideBond) =
-            m.peptideBondMap
-            |> Map.tryFind x.bingingSymmetry
-            |> Option.defaultValue List.empty
+            printfn $"PeptideBondData.findSameBondSymmetry: PeptideBond: ({x.leftAminoAcid}, {x.rightAminoAcid}), BingingSymmetry: {x.bingingSymmetry}."
+            let aa =
+                m.peptideBondMap
+                |> Map.tryFind x.bingingSymmetry
+                |> Option.defaultValue List.empty
+
+            printfn "PeptideBondData.findSameBondSymmetry: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+            aa
 
 //        /// Finds all ligation reactions with the same peptide bond EXCEPT input reaction.
 //        /// Enantiomers are excluded as well.
@@ -585,6 +649,8 @@ module ReactionTypes =
             let (LigCatalyst a) = c
             a.enantiomer |> LigCatalyst
 
+        override c.ToString() = let (LigCatalyst v) = c in v.ToString()
+
 
     type CatalyticLigationReaction =
         | CatalyticLigationReaction of (LigationReaction * LigCatalyst)
@@ -629,6 +695,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (EnLigCatalyst a) = c
             a.enantiomer |> EnLigCatalyst
+
+        override c.ToString() = let (EnLigCatalyst v) = c in v.ToString()
 
 
     type EnCatalyticLigationReaction =
@@ -681,6 +749,8 @@ module ReactionTypes =
             let (AcFwdLigCatalyst a) = c
             a.enantiomer |> AcFwdLigCatalyst
 
+        override c.ToString() = let (AcFwdLigCatalyst v) = c in v.ToString()
+
 
     type AcFwdCatalyticLigationReaction =
         | AcFwdCatalyticLigationReaction of (LigationReaction * AcFwdLigCatalyst)
@@ -728,6 +798,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (AcBkwLigCatalyst a) = c
             a.enantiomer |> AcBkwLigCatalyst
+
+        override c.ToString() = let (AcBkwLigCatalyst v) = c in v.ToString()
 
 
     type AcBkwCatalyticLigationReaction =
@@ -835,6 +907,10 @@ module ReactionTypes =
             let (RacemizationReaction a) = r
             a.enantiomer |> RacemizationReaction
 
+        override r.ToString() =
+            let (RacemizationReaction a) = r
+            $"{nameof(RacemizationReaction)}: {a} <-> {a.enantiomer}"
+
 
     type RacemizationCatalyst =
         | RacemizationCatalyst of Peptide
@@ -842,6 +918,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (RacemizationCatalyst a) = c
             a.enantiomer |> RacemizationCatalyst
+
+        override c.ToString() = let (RacemizationCatalyst v) = c in v.ToString()
 
 
     type CatalyticRacemizationReaction =
@@ -867,6 +945,10 @@ module ReactionTypes =
             let (CatalyticRacemizationReaction (_, b)) = r
             b
 
+        override r.ToString() =
+            let (CatalyticRacemizationReaction ((RacemizationReaction a), (RacemizationCatalyst c))) = r
+            $"{nameof(CatalyticRacemizationReaction)}: {a} + {c} <-> {a.enantiomer} + {c}"
+
 
     /// Catalyst, which works in racemization reaction with energy consumption.
     type EnRacemCatalyst =
@@ -875,6 +957,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (EnRacemCatalyst a) = c
             a.enantiomer |> EnRacemCatalyst
+
+        override c.ToString() = let (EnRacemCatalyst v) = c in v.ToString()
 
 
     type EnCatalyticRacemizationReaction =
@@ -909,6 +993,10 @@ module ReactionTypes =
             let (EnCatalyticRacemizationReaction (_, _, c)) = r
             c
 
+        override r.ToString() =
+            let (EnCatalyticRacemizationReaction ((RacemizationReaction a), (EnRacemCatalyst c), s)) = r
+            $"{nameof(EnCatalyticRacemizationReaction)}: {a} + {c} + {s} -> {a.enantiomer} + {c} + {Waste}"
+
 
     type AcRacemCatalyst =
         | AcRacemCatalyst of ActivatedPeptide
@@ -916,6 +1004,8 @@ module ReactionTypes =
         member c.enantiomer =
             let (AcRacemCatalyst a) = c
             a.enantiomer |> AcRacemCatalyst
+
+        override c.ToString() = let (AcRacemCatalyst v) = c in v.ToString()
 
 
     type AcCatalyticRacemizationReaction =
@@ -947,6 +1037,10 @@ module ReactionTypes =
             let (AcCatalyticRacemizationReaction (_, b)) = r
             b
 
+        override r.ToString() =
+            let (AcCatalyticRacemizationReaction ((RacemizationReaction a), (AcRacemCatalyst c))) = r
+            $"{nameof(AcCatalyticRacemizationReaction)}: {a} + {c} -> {a.enantiomer} + {c.peptide}"
+
 
     type ActivationReaction =
         | ActivationReaction of ChiralSugar * Peptide
@@ -959,6 +1053,10 @@ module ReactionTypes =
             }
 
         member r.enantiomer = let (ActivationReaction (s, p)) = r in ActivationReaction (s.enantiomer, p.enantiomer)
+
+        override r.ToString() =
+            let (ActivationReaction (s, p)) = r
+            $"{nameof(ActivationReaction)}: {s} + {p} -> {Waste} + {ActivatedPeptide p}"
 
 
     let inline getName i = ((^T) : (member name : 'T) (i))

@@ -68,7 +68,7 @@ module RateProvider =
 
         let tryPick getter = allModels |> List.tryPick getter
 
-        let getRatesImpl rnd t a =
+        let getRatesImpl t rnd a =
             match a with
             | FoodCreation r -> tryPick FoodCreationModel.modelGetter |> bind (fun m -> m.getRates r)
             | WasteRemoval r -> tryPick WasteRemovalModel.modelGetter |> bind (fun m -> m.getRates r)
@@ -76,23 +76,23 @@ module RateProvider =
             | Synthesis r -> tryPick SynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd r)
             | SugarSynthesis r -> tryPick SugarSynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd r)
             | Destruction r -> tryPick DestructionModel.modelGetter |> bind (fun m -> m.getRates rnd r)
-            | CatalyticSynthesis r -> tryPick CatalyticSynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | EnCatalyticSynthesis r -> tryPick EnCatalyticSynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | AcCatalyticSynthesis r -> tryPick AcCatalyticSynthesisModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | CatalyticDestruction r -> tryPick CatalyticDestructionModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | EnCatalyticDestruction r -> tryPick EnCatalyticDestructionModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | AcCatalyticDestruction r -> tryPick AcCatalyticDestructionModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
+            | CatalyticSynthesis r -> tryPick CatalyticSynthesisModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | EnCatalyticSynthesis r -> tryPick EnCatalyticSynthesisModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | AcCatalyticSynthesis r -> tryPick AcCatalyticSynthesisModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | CatalyticDestruction r -> tryPick CatalyticDestructionModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | EnCatalyticDestruction r -> tryPick EnCatalyticDestructionModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | AcCatalyticDestruction r -> tryPick AcCatalyticDestructionModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
             | Ligation r -> tryPick LigationModel.modelGetter |> bind (fun m -> m.getRates rnd r)
-            | CatalyticLigation r -> tryPick CatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | EnCatalyticLigation r -> tryPick EnCatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | AcFwdCatalyticLigation r -> tryPick AcFwdCatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | AcBkwCatalyticLigation r -> tryPick AcBkwCatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | SedimentationDirect r -> tryPick SedimentationDirectModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
+            | CatalyticLigation r -> tryPick CatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | EnCatalyticLigation r -> tryPick EnCatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | AcFwdCatalyticLigation r -> tryPick AcFwdCatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | AcBkwCatalyticLigation r -> tryPick AcBkwCatalyticLigationModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | SedimentationDirect r -> tryPick SedimentationDirectModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
             | SedimentationAll r -> tryPick SedimentationAllModel.modelGetter |> bind (fun m -> m.getRates rnd r)
             | Racemization r -> tryPick RacemizationModel.modelGetter|> bind (fun m -> m.getRates rnd r)
-            | CatalyticRacemization r -> tryPick CatalyticRacemizationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | EnCatalyticRacemization r -> tryPick EnCatalyticRacemizationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
-            | AcCatalyticRacemization r -> tryPick AcCatalyticRacemizationModel.modelGetter |> bind (fun m -> m.getRates rnd t r)
+            | CatalyticRacemization r -> tryPick CatalyticRacemizationModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | EnCatalyticRacemization r -> tryPick EnCatalyticRacemizationModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
+            | AcCatalyticRacemization r -> tryPick AcCatalyticRacemizationModel.modelGetter |> bind (fun m -> m.getRates t rnd r)
             | Activation r -> tryPick ActivationModel.modelGetter|> bind (fun m -> m.getRates rnd r)
 
         let tryGetModelImpl n =
@@ -122,7 +122,7 @@ module RateProvider =
             | AcCatalyticRacemizationName -> tryPick AcCatalyticRacemizationModel.modelGetter |> Option.bind(fun e -> AcCatalyticRacemizationRateModel e |> Some)
             | ActivationName -> tryPick ActivationModel.modelGetter |> Option.bind(fun e -> ActivationRateModel e |> Some)
 
-        member __.providerParams = p
-        member __.getRates rnd a = getRatesImpl rnd a
-        member __.tryGetModel n = tryGetModelImpl n
-        member __.getAllRates() = allModels |> List.map (fun m -> m.model.getAllRates())
+        member _.providerParams = p
+        member _.getRates t rnd a = getRatesImpl t rnd a
+        member _.tryGetModel n = tryGetModelImpl n
+        member _.getAllRates() = allModels |> List.map (fun m -> m.model.getAllRates())

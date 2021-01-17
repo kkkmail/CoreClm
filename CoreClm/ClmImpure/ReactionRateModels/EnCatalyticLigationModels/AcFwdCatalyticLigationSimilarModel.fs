@@ -33,6 +33,8 @@ module AcFwdCatalyticLigationSimilarModel =
                     rateDictionary = p.acFwdCatLigModel.rateDictionary
                 }
 
+        do printfn $"AcFwdCatalyticLigationSimilarModel: dictionaryData = {dictionaryData}."
+
         let calculateSimRatesImpl rnd t (AcFwdCatalyticLigationReaction (s, c)) =
             {
                 reaction = s
@@ -45,7 +47,7 @@ module AcFwdCatalyticLigationSimilarModel =
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = p.peptideBondData.findSameBond
                 getBaseRates = p.acFwdCatLigModel.inputParams.ligationModel.getRates rnd
-                getBaseCatRates = p.acFwdCatLigModel.getRates rnd t
+                getBaseCatRates = p.acFwdCatLigModel.getRates t
                 acSimParams = p.acFwdCatLigSimParam
                 acEeParams = p.acFwdCatLigModel.inputParams.acFwdCatLigationParam.acFwdCatLigRndEeParams
                 dictionaryData = dictionaryData
@@ -54,6 +56,6 @@ module AcFwdCatalyticLigationSimilarModel =
             }
             |> calculateAcSimRates
 
-        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.getRates t rnd r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.acFwdCatLigModel.rateDictionary

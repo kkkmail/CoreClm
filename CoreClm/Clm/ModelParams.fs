@@ -17,13 +17,16 @@ module ModelParams =
     let DefaultRootFolder = DefaultRootDrive + @":\" + ClmBaseName + @"\"
 
     [<Literal>]
-    let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
+    let DefaultResultLocationFolder = DefaultRootFolder + "Results"
 
     [<Literal>]
-    let DefaultFileStorageFolder = DefaultRootFolder + @"FileStorage"
+    let DefaultFileStorageFolder = DefaultRootFolder + "FileStorage"
 
     [<Literal>]
-    let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelCode.fs"
+    let ModelDataFolder = __SOURCE_DIRECTORY__ + @"\..\Model\"
+
+    [<Literal>]
+    let DefaultModelDataFile = "ModelCode"
 
 
     let toModelName (n : Guid) = n.ToString()

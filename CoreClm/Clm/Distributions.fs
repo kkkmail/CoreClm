@@ -166,19 +166,51 @@ module Distributions =
             nextDouble : unit -> double
         }
 
+        /// Returns 0 all the time.
+        static member zero =
+            {
+                seed = 0
+                next = fun () -> 0
+                nextN = fun _ -> 0
+                nextDouble = fun () -> 0.0
+            }
+
         static member create so =
             let seed =
                 match so with
                 | Some s -> s
                 | None -> Random().Next()
 
+//            let rnd = Random(seed)
+//
+//            {
+//                seed = seed
+//                next = rnd.Next
+//                nextN = rnd.Next
+//                nextDouble = rnd.NextDouble
+//            }
+
             let rnd = Random(seed)
 
             {
                 seed = seed
-                next = rnd.Next
-                nextN = rnd.Next
-                nextDouble = rnd.NextDouble
+                next =
+                    fun () ->
+                        let v = rnd.Next()
+                        printfn $"RandomValueGetter.next = {v}"
+                        v
+
+                nextN =
+                    fun n ->
+                        let v = rnd.Next n
+                        printfn $"RandomValueGetter.nextN {n} = {v}"
+                        v
+
+                nextDouble =
+                    fun () ->
+                        let v = rnd.NextDouble()
+                        printfn $"RandomValueGetter.nextDouble = {v}"
+                        v
             }
 
         static member create() = RandomValueGetter.create None

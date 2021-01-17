@@ -436,12 +436,18 @@ module ReactionRatesBase =
 //            | AcBackwardRateOnly p -> p.acBkwEeDistribution
 
         member a.rateMult gt rnd =
-            (gt, rnd)
-            ||>
-            match a with
-            | AcNoneParam p -> p.rateMult
-            | AcForwardRateOnlyParam p -> p.rateMult
-            | AcBackwardRateOnlyParam p -> p.rateMult
+            let v =
+                (gt, rnd)
+                ||>
+                match a with
+                | AcNoneParam p -> p.rateMult
+                | AcForwardRateOnlyParam p -> p.rateMult
+                | AcBackwardRateOnlyParam p -> p.rateMult
+
+            match v with
+            | Some x -> printfn $"AcCatRatesEeParam.rateMult: v = {x}."
+            | None -> ()
+            v
 
         member a.rateMultiplierDistr =
             match a with
@@ -478,6 +484,7 @@ module ReactionRatesBase =
     /// A + C* -> B + C
     /// and so the activated catalyst is not conserved, but rather is transformed into non-activated one.
     let calculateAcCatRates<'R, 'C, 'RC> (i : AcCatRatesInfo<'R, 'C, 'RC>) : RelatedReactions<'RC> =
+        printfn "calculateAcCatRates: Starting..."
         let re = (i.reaction, i.getCatEnantiomer i.acCatalyst) |> i.acCatReactionCreator
 
         let rf, rb, rfe, rbe =

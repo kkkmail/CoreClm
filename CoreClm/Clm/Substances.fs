@@ -166,15 +166,16 @@ module Substances =
             | Food -> "food"
             | Waste -> "waste"
 
-        member __.atoms = 1
-        member this.enantiomer = this
+        member _.atoms = 1
+        member s.enantiomer = s
+        override s.ToString() = s.name
 
 
     type SumSubst =
         | SumSubst
 
-        member __.length = 0
-        member __.name = "sum"
+        member _.length = 0
+        member _.name = "sum"
         static member w = SumSubst
 
 

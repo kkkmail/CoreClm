@@ -27,7 +27,7 @@ module SedimentationDirectSimilarModel =
                     {
                         sedFormingSubst = s
                         sedDirAgent = c
-                        getBaseRates = p.sedDirModel.getRates rnd t
+                        getBaseRates = p.sedDirModel.getRates t rnd
                         eeParams = p.sedDirModel.inputParams.sedDirRatesEeParam
                         rateGenerationType = t
                         rnd = rnd
@@ -40,6 +40,6 @@ module SedimentationDirectSimilarModel =
             }
             |> calculateSedDirSimRates
 
-        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.getRates t rnd r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.sedDirModel.rateDictionary

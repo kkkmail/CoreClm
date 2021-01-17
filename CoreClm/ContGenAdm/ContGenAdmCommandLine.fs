@@ -33,18 +33,24 @@ module AdmCommandLine =
         }
 
 
-    type ContGenAdmSettings =
+    type GenerateModelSettings =
         {
-            contGenSettings : ContGenSettings
-
-            defaultValueId : ClmDefaultValueId
-            numberOfAminoAcids : NumberOfAminoAcids
-            maxPeptideLength : MaxPeptideLength
-            runData : list<RunData>
-            numberOfRepetitions : int
-            generateModelCode : bool
-            seedValue : int option
+            modelCodeFileName : string option
         }
+
+
+//    type ContGenAdmSettings =
+//        {
+//            contGenSettings : ContGenSettings
+//
+//            defaultValueId : ClmDefaultValueId
+//            numberOfAminoAcids : NumberOfAminoAcids
+//            maxPeptideLength : MaxPeptideLength
+//            runData : list<RunData>
+//            numberOfRepetitions : int
+//            generateModelCode : GenerateModelSettings option
+//            seedValue : int option
+//        }
 
 
     [<CliPrefix(CliPrefix.Dash)>]
@@ -56,6 +62,7 @@ module AdmCommandLine =
         | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TaskTEnd of list<decimal>
         | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
         | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode
+        | [<Unique>] [<AltCommandLine("-f")>]               ModelCodeFileName of string
         | [<Unique>] [<AltCommandLine("-v")>]               SeedValue of int
         | [<Unique>] [<AltCommandLine("-u")>]               UseNonOptionalRateDataOnly of bool
 
@@ -71,6 +78,7 @@ module AdmCommandLine =
                 | TaskTEnd _ -> "value of tEnd."
                 | Repetitions _ -> "number of repetitions."
                 | GenerateModelCode -> "add in order to generate and save model code."
+                | ModelCodeFileName _ -> "use to override default name of a model code file (ModelCode)."
                 | SeedValue _ -> "optional seed value to be used during model generation."
                 | UseNonOptionalRateDataOnly _ -> "sets ReactionRateFunctions.useNonOptionalRateDataOnly to a given value."
 
@@ -192,6 +200,10 @@ module AdmCommandLine =
         match p |> List.tryPick (fun e -> match e with | GenerateModelCode -> Some true | _ -> None) with
         | Some n -> n
         | None -> false
+
+
+    let getModelCodeFileName (p :list<AddClmTaskArgs>) =
+        p |> List.tryPick (fun e -> match e with | ModelCodeFileName s -> Some s | _ -> None)
 
 
     let getSeedValue (p :list<AddClmTaskArgs>) =

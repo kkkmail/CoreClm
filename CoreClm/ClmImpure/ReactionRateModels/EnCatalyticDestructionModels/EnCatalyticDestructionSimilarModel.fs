@@ -35,7 +35,7 @@ module EnCatalyticDestructionSimilarModel =
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = (fun e -> [ a.createSameChirality e |> DestructionReaction ])
                 getBaseRates = p.enCatDestrModel.inputParams.destructionModel.getRates rnd
-                getBaseCatRates = p.enCatDestrModel.getRates rnd t
+                getBaseCatRates = p.enCatDestrModel.getRates t rnd
                 enSimParams = p.enCatDestrSimParam
                 eeParams = p.enCatDestrModel.inputParams.enCatDestrRndParam.enCatDestrRndEeParams
                 dictionaryData = dictionaryData
@@ -44,6 +44,6 @@ module EnCatalyticDestructionSimilarModel =
             }
             |> calculateEnSimRates
 
-        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.getRates t rnd r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.enCatDestrModel.rateDictionary

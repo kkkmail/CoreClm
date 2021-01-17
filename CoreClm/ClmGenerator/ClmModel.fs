@@ -66,7 +66,7 @@ module ClmModel =
             |> List.concat
             |> List.distinct
 
-        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates rnd generationType).forwardRate
+        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates generationType rnd).forwardRate
 
         let allReacMap =
             allReac
@@ -395,13 +395,18 @@ module ClmModel =
             @ [ modelDataParamsCode ]
 
 
-        let generateAndSave() =
+        let generateAndSave fno =
             try
                 printfn "Generating..."
                 let s = generate()
 
+                let fileName =
+                    ModelDataFolder +
+                    (fno |> Option.defaultValue DefaultModelDataFile) +
+                    ".fs"
+
                 printfn "Writing..."
-                File.WriteAllLines(DefaultModelDataFile, s)
+                File.WriteAllLines(fileName, s)
                 printfn "Done."
 
                 Ok s
@@ -454,5 +459,5 @@ module ClmModel =
 
         member model.allSubstances = si.allSubst
         member model.allReactions = allReac
-        member model.generateCode() = generateAndSave()
+        member model.generateCode fno = generateAndSave fno
         member model.getModelData() = getModelDataImpl clmTaskId

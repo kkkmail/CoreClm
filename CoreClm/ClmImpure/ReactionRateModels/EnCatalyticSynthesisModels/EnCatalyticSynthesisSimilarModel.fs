@@ -35,7 +35,7 @@ module EnCatalyticSynthesisSimilarModel =
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
                 getBaseRates = p.enCatSynthModel.inputParams.synthesisModel.getRates rnd
-                getBaseCatRates = p.enCatSynthModel.getRates rnd t
+                getBaseCatRates = p.enCatSynthModel.getRates t rnd
                 enSimParams = p.enCatSynthSimParam
                 eeParams = p.enCatSynthModel.inputParams.enCatSynthRndParam.enCatSynthRndEeParams
                 dictionaryData = dictionaryData
@@ -44,6 +44,6 @@ module EnCatalyticSynthesisSimilarModel =
             }
             |> calculateEnSimRates
 
-        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.getRates t rnd r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.enCatSynthModel.rateDictionary

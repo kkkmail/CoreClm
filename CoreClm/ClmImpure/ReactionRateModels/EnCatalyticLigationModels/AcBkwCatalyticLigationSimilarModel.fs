@@ -45,7 +45,7 @@ module AcBkwCatalyticLigationSimilarModel =
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = p.peptideBondData.findSameBond
                 getBaseRates = p.acBkwCatLigModel.inputParams.ligationModel.getRates rnd
-                getBaseCatRates = p.acBkwCatLigModel.getRates rnd t
+                getBaseCatRates = p.acBkwCatLigModel.getRates t
                 acSimParams = p.acBkwCatLigSimParam
                 acEeParams = p.acBkwCatLigModel.inputParams.acBkwCatLigationParam.acBkwCatLigRndEeParams
                 dictionaryData = dictionaryData
@@ -54,6 +54,6 @@ module AcBkwCatalyticLigationSimilarModel =
             }
             |> calculateAcSimRates
 
-        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.getRates t rnd r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.acBkwCatLigModel.rateDictionary

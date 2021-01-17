@@ -14,10 +14,10 @@ module AcBkwCatalyticLigationModel =
         | AcBkwCatLigRndModel of AcBkwCatalyticLigationRandomModel
         | AcBkwCatLigSimModel of AcBkwCatalyticLigationSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | AcBkwCatLigRndModel m -> m.getRates rnd t r
-            | AcBkwCatLigSimModel m -> m.getRates rnd t r
+            | AcBkwCatLigRndModel m -> m.getRates t rnd r
+            | AcBkwCatLigSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

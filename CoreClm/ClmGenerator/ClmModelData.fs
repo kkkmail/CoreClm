@@ -156,13 +156,15 @@ module ClmModelData =
         match rateProvider.tryGetPrimaryDistribution i.reactionName with
         | Some d ->
             let sn = d.successNumber sng noOfTries
-            printfn "generatePairs: successNumberType = %A, sn = %A" i.successNumberType sn
-            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
+            printfn "generatePairs: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
+            let retVal = [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
+            retVal |> List.map (fun (a, b) -> printfn "    %s, %s" (a.ToString()) (b.ToString())) |> ignore
+            retVal
         | None -> []
 
 
     let generateTriples<'A, 'B, 'C> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
-        // ??? must adjust for 8X ??? reduction due to grouping???
+        // ??? must adjust for 8X ??? reduction due to grouping ???
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
         printfn "generateTriples: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A, typedefof<'C> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>)
 
@@ -176,8 +178,10 @@ module ClmModelData =
         match rateProvider.tryGetPrimaryDistribution i.reactionName with
         | Some d ->
             let sn = d.successNumber sng noOfTries
-            printfn "generateTriples: successNumberType = %A, sn = %A" i.successNumberType sn
-            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length], i.c.[d.nextN rnd i.c.Length]) ]
+            printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
+            let retVal = [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length], i.c.[d.nextN rnd i.c.Length]) ]
+            retVal |> List.map (fun (a, b, c) -> printfn "    %s, %s, %s" (a.ToString()) (b.ToString()) (c.ToString())) |> ignore
+            retVal
         | None -> []
 
 

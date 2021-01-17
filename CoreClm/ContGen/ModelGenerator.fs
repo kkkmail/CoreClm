@@ -21,10 +21,10 @@ module ModelGenerator =
     let private addError g f e = ((f |> g |> ModelGeneratorErr) + e) |> Error
 
 
-    let generateModelCode (model : ClmModel) (c : ClmTask) =
+    let generateModelCode (model : ClmModel) (c : ClmTask) fno =
         let addError = addError GenerateModelCodeErr
 
-        match model.generateCode() with
+        match model.generateCode fno with
         | Ok r -> Ok r
         | Error e -> addError (UnableSaveModelCodeErr c.clmTaskInfo.clmTaskId) e
 

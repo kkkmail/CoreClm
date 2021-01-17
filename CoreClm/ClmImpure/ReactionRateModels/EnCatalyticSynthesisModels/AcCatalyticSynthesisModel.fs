@@ -14,10 +14,10 @@ module AcCatalyticSynthesisModel =
         | AcCatSynthRndModel of AcCatalyticSynthesisRandomModel
         | AcCatSynthSimModel of AcCatalyticSynthesisSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | AcCatSynthRndModel m -> m.getRates rnd t r
-            | AcCatSynthSimModel m -> m.getRates rnd t r
+            | AcCatSynthRndModel m -> m.getRates t rnd r
+            | AcCatSynthSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

@@ -14,10 +14,10 @@ module AcCatalyticDestructionModel =
         | AcCatDestrRndModel of AcCatalyticDestructionRandomModel
         | AcCatDestrSimModel of AcCatalyticDestructionSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | AcCatDestrRndModel m -> m.getRates rnd t r
-            | AcCatDestrSimModel m -> m.getRates rnd t r
+            | AcCatDestrRndModel m -> m.getRates t rnd r
+            | AcCatDestrSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with
