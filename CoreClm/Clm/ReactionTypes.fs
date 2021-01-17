@@ -579,18 +579,27 @@ module ReactionTypes =
 
         /// Finds all ligation reactions with the same peptide bond INCLUDING input bond.
         member m.findSameBond (x : PeptideBond) =
-            m.ligationReactionMap
-            |> Map.tryFind x
-            |> Option.defaultValue List.empty
+//            printfn $"PeptideBondData.findSameBond: PeptideBond: ({x.leftAminoAcid}, {x.rightAminoAcid}), BingingSymmetry: {x.bingingSymmetry}."
+
+            let aa =
+                m.ligationReactionMap
+                |> Map.tryFind x
+                |> Option.defaultValue List.empty
+
+//            printfn "PeptideBondData.findSameBond: aa ="
+//            aa |> List.map (fun e -> printfn $"    {e}") |> ignore
+            aa
 
         member m.findSameBondSymmetry (x : PeptideBond) =
-            printfn $"PeptideBondData.findSameBondSymmetry: PeptideBond: ({x.leftAminoAcid}, {x.rightAminoAcid}), BingingSymmetry: {x.bingingSymmetry}."
+//            printfn $"PeptideBondData.findSameBondSymmetry: PeptideBond: ({x.leftAminoAcid}, {x.rightAminoAcid}), BingingSymmetry: {x.bingingSymmetry}."
+
             let aa =
                 m.peptideBondMap
                 |> Map.tryFind x.bingingSymmetry
                 |> Option.defaultValue List.empty
 
-            printfn "PeptideBondData.findSameBondSymmetry: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+//            printfn "PeptideBondData.findSameBondSymmetry: aa ="
+//            aa |> List.map (fun e -> printfn $"    {e}") |> ignore
             aa
 
 //        /// Finds all ligation reactions with the same peptide bond EXCEPT input reaction.

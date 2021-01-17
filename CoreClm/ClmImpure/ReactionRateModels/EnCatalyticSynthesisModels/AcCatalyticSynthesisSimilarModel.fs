@@ -34,6 +34,7 @@ module AcCatalyticSynthesisSimilarModel =
                 getCatReactEnantiomer = getEnantiomer
                 getBaseRates = p.acCatSynthModel.inputParams.synthesisModel.getRates rnd
                 getBaseCatRates = p.acCatSynthModel.getRates t
+                tryGetBaseCatRates = p.acCatSynthModel.tryGetRates
                 acSimParams = p.acCatSynthSimParam
                 acEeParams = p.acCatSynthModel.inputParams.acCatSynthRndParam.acCatSynthRndEeParams
                 dictionaryData = dictionaryData

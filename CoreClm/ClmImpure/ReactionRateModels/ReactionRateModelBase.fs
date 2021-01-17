@@ -35,5 +35,10 @@ module ReactionRateModelBase =
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl dictionaryDataImpl.rateDictionary
 
+        member model.tryGetRates r =
+            match model.rateDictionary.TryGetValue r with
+            | true, d -> d
+            | false, _ -> RateData.defaultValue
+
 
     type RateModel<'P, 'R when 'R : equality> = RateModel<'P, 'R, 'R>

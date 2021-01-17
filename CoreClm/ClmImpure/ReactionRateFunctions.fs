@@ -619,6 +619,7 @@ module ReactionRateFunctions =
             getCatReactEnantiomer : 'RC -> 'RC
             getBaseRates : 'R -> RateData
             getBaseCatRates : RandomValueGetter -> 'RC -> RateData
+            tryGetBaseCatRates : 'RC -> RateData
             acSimParams : AcCatRatesSimilarityParam
             acEeParams : AcCatRatesEeParam
             dictionaryData : DictionaryData<'RC, 'C>
@@ -774,21 +775,21 @@ module ReactionRateFunctions =
         let br = i.getBaseRates i.reaction // (bf, bb)
         let aa = i.getReactionData i.reaction
 
-        let rndCat =
+        printfn $"calculateAcSimRates: r = {r}, re = {re}"
+//        printfn "calculateAcSimRates: aa ="
+//        aa |> List.map (fun a -> printfn $"    {a}") |> ignore
+
+        let cr =
             match i.dictionaryData.hasReactionKey r with
-            | false -> i.rnd
+            | false -> i.getBaseCatRates i.rnd r
             | true ->
                 printfn "calculateAcSimRates: reaction has a key (catalyst) in the dictionary. Do not create new reactions."
-                RandomValueGetter.zero
-
-        let cr = i.getBaseCatRates rndCat r // (f, b)
-
-        printfn "calculateAcSimRates: r = %s\n\n" (r.ToString())
+                i.tryGetBaseCatRates r
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None -> getAcSimNoRates i i.simReactionCreator aa i.reaction
         | _ ->
-            let cre = re |> i.getBaseCatRates rndCat
+            let cre = i.getBaseCatRates i.rnd re
             let rateMult = getRateMult br cr cre
             printfn "calculateAcSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
             let getAcEeParams = getAcEeParams i cr cre

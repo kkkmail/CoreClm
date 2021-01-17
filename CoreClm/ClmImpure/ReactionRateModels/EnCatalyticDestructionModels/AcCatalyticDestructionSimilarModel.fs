@@ -34,6 +34,7 @@ module AcCatalyticDestructionSimilarModel =
                 getCatReactEnantiomer = getEnantiomer
                 getBaseRates = p.acCatDestrModel.inputParams.destructionModel.getRates rnd
                 getBaseCatRates = p.acCatDestrModel.getRates t
+                tryGetBaseCatRates = p.acCatDestrModel.tryGetRates
                 acSimParams = p.acCatDestrSimParam
                 acEeParams = p.acCatDestrModel.inputParams.acCatDestrRndParam.acCatDestrRndEeParams
                 dictionaryData = dictionaryData

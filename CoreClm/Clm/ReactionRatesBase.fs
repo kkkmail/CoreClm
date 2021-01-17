@@ -48,6 +48,12 @@ module ReactionRatesBase =
 
         override r.ToString() = sprintf "{ f: %A; b: %A }" r.forwardRate r.backwardRate
 
+        static member defaultValue =
+            {
+                forwardRate = None
+                backwardRate = None
+            }
+
 
     let bind f xOpt =
         match xOpt with
@@ -484,7 +490,7 @@ module ReactionRatesBase =
     /// A + C* -> B + C
     /// and so the activated catalyst is not conserved, but rather is transformed into non-activated one.
     let calculateAcCatRates<'R, 'C, 'RC> (i : AcCatRatesInfo<'R, 'C, 'RC>) : RelatedReactions<'RC> =
-        printfn "calculateAcCatRates: Starting..."
+//        printfn "calculateAcCatRates: Starting..."
         let re = (i.reaction, i.getCatEnantiomer i.acCatalyst) |> i.acCatReactionCreator
 
         let rf, rb, rfe, rbe =

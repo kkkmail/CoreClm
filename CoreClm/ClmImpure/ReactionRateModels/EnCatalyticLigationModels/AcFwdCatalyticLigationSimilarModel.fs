@@ -48,6 +48,7 @@ module AcFwdCatalyticLigationSimilarModel =
                 simReactionCreator = p.peptideBondData.findSameBond
                 getBaseRates = p.acFwdCatLigModel.inputParams.ligationModel.getRates rnd
                 getBaseCatRates = p.acFwdCatLigModel.getRates t
+                tryGetBaseCatRates = p.acFwdCatLigModel.tryGetRates
                 acSimParams = p.acFwdCatLigSimParam
                 acEeParams = p.acFwdCatLigModel.inputParams.acFwdCatLigationParam.acFwdCatLigRndEeParams
                 dictionaryData = dictionaryData

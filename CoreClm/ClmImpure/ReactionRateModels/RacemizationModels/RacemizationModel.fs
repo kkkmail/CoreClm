@@ -12,6 +12,10 @@ module RacemizationModel =
             match model with
             | RacemRndModel m -> m.getRates rnd r
 
+        member model.tryGetRates r =
+            match model with
+            | RacemRndModel m -> m.tryGetRates r
+
         member model.inputParams =
             match model with
             | RacemRndModel m -> m.inputParams |> RacemRndParam
