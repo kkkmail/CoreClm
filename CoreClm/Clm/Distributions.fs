@@ -221,6 +221,14 @@ module Distributions =
         | ThresholdBased
 
 
+    /// Describes how to resolve collisions when sampling from a large set of elements.
+    ///     1. NoCollisionResolution - just sample from the distribution.
+    ///     2. ExcludeDuplicates - make sure that there are no duplicates in the sample.
+    type CollisionResolutionType =
+        | NoCollisionResolution
+        | ExcludeDuplicates
+
+
     /// Generates number of successes using either:
     ///    1. Given distribution (RandomValueGetter).
     ///    2. Value of threshold parameter of distribution.
