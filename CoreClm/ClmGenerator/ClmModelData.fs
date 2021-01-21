@@ -166,87 +166,85 @@ module ClmModelData =
 
     let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + B, E(A) + E(B))
-        let noOfTries = (int64 i.a.generatorData.Length) * (int64 i.b.generatorData.Length) / 4L
+        let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
         printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
 
-        // ExcludeDuplicates should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
+        // PairCollision should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
         // This is an extremely rare scenario and as such implementation is not worth an effort.
-        match i.totalPairCollision with
-        | NoCollisionResolution -> ()
-        | ExcludeDuplicates -> invalidOp $"generatePairs: {nameof(i.totalPairCollision)} = {ExcludeDuplicates} is not supported yet!"
+        match i.pairCollision with
+        | PairCollision -> invalidOp $"generatePairs: {nameof(i.pairCollision)} = {PairCollision} is not supported yet!"
+        | EachInPair ct ->
+            let sng =
+                rnd
+                |>
+                match i.successNumberType with
+                | RandomValueBased -> RandomValueGetterBased
+                | ThresholdBased -> ThresholdValueBased
 
-        let sng =
-            rnd
-            |>
-            match i.successNumberType with
-            | RandomValueBased -> RandomValueGetterBased
-            | ThresholdBased -> ThresholdValueBased
+            match rateProvider.tryGetPrimaryDistribution i.reactionName with
+            | Some d ->
+                let generate data coll (idx, gen) =
+                    let (i, a) = generateValue d rnd data coll idx
+                    (i, a :: gen)
 
-        match rateProvider.tryGetPrimaryDistribution i.reactionName with
-        | Some d ->
-            let generate data coll (idx, gen) =
-                let (i, a) = generateValue d rnd data coll idx
-                (i, a :: gen)
+                let generateA a = generate i.a ct.collisionA a
+                let generateB b = generate i.b ct.collisionB b
 
-            let generateA a = generate i.a.generatorData i.a.collision a
-            let generateB b = generate i.b.generatorData i.b.collision b
+                let sn = d.successNumber sng noOfTries
+                printfn "generatePairs: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
 
-            let sn = d.successNumber sng noOfTries
-            printfn "generatePairs: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
+//                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length]) ]
+                let ((_, a), (_, b)) =
+                    [ for _ in 1..sn -> ()]
+                    |> List.fold (fun (a, b) r -> (generateA a, generateB b)) (([], []), ([], []))
 
-//            let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length]) ]
-            let ((_, a), (_, b)) =
-                [ for _ in 1..sn -> ()]
-                |> List.fold (fun (a, b) r -> (generateA a, generateB b)) (([], []), ([], []))
+                let retVal = (a, b) ||> List.zip |> List.rev
 
-            let retVal = (a, b) ||> List.zip |> List.rev
-
-            retVal |> List.map (fun (a, b) -> printfn "    %s, %s" (a.ToString()) (b.ToString())) |> ignore
-            retVal
-        | None -> []
+                retVal |> List.map (fun (a, b) -> printfn "    %s, %s" (a.ToString()) (b.ToString())) |> ignore
+                retVal
+            | None -> []
 
 
     let generateTriples<'A, 'B, 'C> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
         // ??? must adjust for 8X ??? reduction due to grouping ???
-        let noOfTries = (int64 i.a.generatorData.Length) * (int64 i.b.generatorData.Length) * (int64 i.c.generatorData.Length) / 8L
+        let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
         printfn "generateTriples: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A, typedefof<'C> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>)
 
         // ExcludeDuplicates should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
         // This is an extremely rare scenario and as such implementation is not worth an effort.
-        match i.totalTripleCollision with
-        | NoCollisionResolution -> ()
-        | ExcludeDuplicates -> invalidOp $"generateTriples: {nameof(i.totalTripleCollision)} = {ExcludeDuplicates} is not supported yet!"
+        match i.tripleCollision with
+        | TripleCollision -> invalidOp $"generateTriples: {nameof(i.tripleCollision)} = {TripleCollision} is not supported yet!"
+        | EachInTriple ct ->
+            let sng =
+                rnd
+                |>
+                match i.successNumberType with
+                | RandomValueBased -> RandomValueGetterBased
+                | ThresholdBased -> ThresholdValueBased
 
-        let sng =
-            rnd
-            |>
-            match i.successNumberType with
-            | RandomValueBased -> RandomValueGetterBased
-            | ThresholdBased -> ThresholdValueBased
+            match rateProvider.tryGetPrimaryDistribution i.reactionName with
+            | Some d ->
+                let generate data coll (idx, gen) =
+                    let (i, a) = generateValue d rnd data coll idx
+                    (i, a :: gen)
 
-        match rateProvider.tryGetPrimaryDistribution i.reactionName with
-        | Some d ->
-            let generate data coll (idx, gen) =
-                let (i, a) = generateValue d rnd data coll idx
-                (i, a :: gen)
+                let generateA a = generate i.a ct.collisionA a
+                let generateB b = generate i.b ct.collisionB b
+                let generateC c = generate i.c ct.collisionC c
 
-            let generateA a = generate i.a.generatorData i.a.collision a
-            let generateB b = generate i.b.generatorData i.b.collision b
-            let generateC c = generate i.c.generatorData i.c.collision c
+                let sn = d.successNumber sng noOfTries
+                printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
 
-            let sn = d.successNumber sng noOfTries
-            printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
+//                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length], i.c.generatorData.[d.nextN rnd i.c.generatorData.Length]) ]
+                let ((_, a), (_, b), (_, c)) =
+                    [ for _ in 1..sn -> ()]
+                    |> List.fold (fun (a, b, c) r -> (generateA a, generateB b, generateC c)) (([], []), ([], []), ([], []))
 
-//            let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length], i.c.generatorData.[d.nextN rnd i.c.generatorData.Length]) ]
-            let ((_, a), (_, b), (_, c)) =
-                [ for _ in 1..sn -> ()]
-                |> List.fold (fun (a, b, c) r -> (generateA a, generateB b, generateC c)) (([], []), ([], []), ([], []))
+                let retVal = (a, b, c) |||> List.zip3 |> List.rev
 
-            let retVal = (a, b, c) |||> List.zip3 |> List.rev
-
-            retVal |> List.map (fun (a, b, c) -> printfn "    %s, %s, %s" (a.ToString()) (b.ToString()) (c.ToString())) |> ignore
-            retVal
-        | None -> []
+                retVal |> List.map (fun (a, b, c) -> printfn "    %s, %s, %s" (a.ToString()) (b.ToString()) (c.ToString())) |> ignore
+                retVal
+            | None -> []
 
 
     type RandomChoiceModelData =

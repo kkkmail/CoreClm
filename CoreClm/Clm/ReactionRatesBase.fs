@@ -88,7 +88,7 @@ module ReactionRatesBase =
 
 
     type PairCollisionResolution =
-        | PairCollision of CollisionResolutionType
+        | PairCollision
         | EachInPair of PairCollisionResolutionType
 
         static member defaultValue = PairCollisionResolutionType.defaultValue |> EachInPair

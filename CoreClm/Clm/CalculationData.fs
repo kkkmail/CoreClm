@@ -172,347 +172,151 @@ module CalculationData =
         member si.ligationReactions = si.ligationPairs
         member si.racemizationReactions = si.chiralAminoAcids |> List.map RacemizationReaction
 
-
         member si.sugSynthInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.chiralSugars |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.sugSynthCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.chiralSugars |> Array.ofList
+                b = si.sugSynthCatalysts |> Array.ofList
                 reactionName = ReactionName.SugarSynthesisName
                 successNumberType = t
             }
 
         member si.acPairsInfo i t =
             {
-                totalPairCollision = i.pairCollision
+                pairCollision = i
 
-                a =
-                    {
-                        generatorData = si.chiralSugars |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.peptideCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                a = si.chiralSugars |> Array.ofList
+                b = si.peptideCatalysts |> Array.ofList
                 reactionName = ReactionName.ActivationName
                 successNumberType = t
             }
 
         member si.catSynthInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.synthesisReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.synthCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.synthesisReactions |> Array.ofList
+                b = si.synthCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticSynthesisName
                 successNumberType = t
             }
 
         member si.enCatSynthInfo i t =
             {
-                totalTripleCollision = i.tripleCollision
-
-                a =
-                    {
-                        generatorData = si.synthesisReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.enSynthCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
-                c =
-                    {
-                        generatorData = si.chiralSugars |> Array.ofList
-                        collision = i.collisionC
-                    }
-
+                tripleCollision = i
+                a = si.synthesisReactions |> Array.ofList
+                b = si.enSynthCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
                 reactionName = ReactionName.EnCatalyticSynthesisName
                 successNumberType = t
             }
 
         member si.acCatSynthInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.synthesisReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.acSynthCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.synthesisReactions |> Array.ofList
+                b = si.acSynthCatalysts |> Array.ofList
                 reactionName = ReactionName.AcCatalyticSynthesisName
                 successNumberType = t
             }
 
         member si.catDestrInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.destructionReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.destrCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.destructionReactions |> Array.ofList
+                b = si.destrCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticDestructionName
                 successNumberType = t
             }
 
         member si.enCatDestrInfo i t =
             {
-                totalTripleCollision = i.tripleCollision
-
-                a =
-                    {
-                        generatorData = si.destructionReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.enDestrCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
-                c =
-                    {
-                        generatorData = si.chiralSugars |> Array.ofList
-                        collision = i.collisionC
-                    }
-
+                tripleCollision = i
+                a = si.destructionReactions |> Array.ofList
+                b = si.enDestrCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
                 reactionName = ReactionName.EnCatalyticDestructionName
                 successNumberType = t
             }
 
         member si.acCatDestrInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.destructionReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.acDestrCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.destructionReactions |> Array.ofList
+                b = si.acDestrCatalysts |> Array.ofList
                 reactionName = ReactionName.AcCatalyticDestructionName
                 successNumberType = t
             }
 
         member si.catLigInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.ligationReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.ligCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.ligationReactions |> Array.ofList
+                b = si.ligCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticLigationName
                 successNumberType = t
             }
 
         member si.enCatLigInfo i t =
             {
-                totalTripleCollision = i.tripleCollision
-
-                a =
-                    {
-                        generatorData = si.ligationReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.enLigCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
-                c =
-                    {
-                        generatorData = si.chiralSugars |> Array.ofList
-                        collision = i.collisionC
-                    }
-
+                tripleCollision = i
+                a = si.ligationReactions |> Array.ofList
+                b = si.enLigCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
                 reactionName = ReactionName.EnCatalyticLigationName
                 successNumberType = t
             }
 
         member si.acFwdCatLigInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.ligationReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.acFwdLigCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.ligationReactions |> Array.ofList
+                b = si.acFwdLigCatalysts |> Array.ofList
                 reactionName = ReactionName.AcFwdCatalyticLigationName
                 successNumberType = t
             }
 
         member si.acBkwCatLigInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.ligationReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.acBkwLigCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.ligationReactions |> Array.ofList
+                b = si.acBkwLigCatalysts |> Array.ofList
                 reactionName = ReactionName.AcBkwCatalyticLigationName
                 successNumberType = t
             }
 
         member si.catRacemInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.racemizationReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.racemCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.racemizationReactions |> Array.ofList
+                b = si.racemCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticRacemizationName
                 successNumberType = t
             }
 
         member si.enCatRacemInfo i t =
             {
-                totalTripleCollision = i.tripleCollision
-
-                a =
-                    {
-                        generatorData = si.racemizationReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.enRacemCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
-                c =
-                    {
-                        generatorData = si.chiralSugars |> Array.ofList
-                        collision = i.collisionC
-                    }
-
+                tripleCollision = i
+                a = si.racemizationReactions |> Array.ofList
+                b = si.enRacemCatalysts |> Array.ofList
+                c = si.chiralSugars |> Array.ofList
                 reactionName = ReactionName.EnCatalyticRacemizationName
                 successNumberType = t
             }
 
         member si.acCatRacemInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.racemizationReactions |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.acRacemCatalysts |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.racemizationReactions |> Array.ofList
+                b = si.acRacemCatalysts |> Array.ofList
                 reactionName = ReactionName.AcCatalyticRacemizationName
                 successNumberType = t
             }
 
         member si.sedDirInfo i t =
             {
-                totalPairCollision = i.pairCollision
-
-                a =
-                    {
-                        generatorData = si.chiralAminoAcids |> Array.ofList
-                        collision = i.collisionA
-                    }
-
-                b =
-                    {
-                        generatorData = si.sedDirAgents |> Array.ofList
-                        collision = i.collisionB
-                    }
-
+                pairCollision = i
+                a = si.chiralAminoAcids |> Array.ofList
+                b = si.sedDirAgents |> Array.ofList
                 reactionName = ReactionName.SedimentationDirectName
                 successNumberType = t
             }
