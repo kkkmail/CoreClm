@@ -3,6 +3,7 @@
 open FSharp.Collections
 open Clm.Distributions
 open Clm.ReactionTypes
+open ClmSys.ModelData
 
 module ReactionRatesBase =
 
@@ -66,63 +67,6 @@ module ReactionRatesBase =
             reaction : 'R
             rateData : RateData
         }
-
-
-    type PairCollisionResolutionType =
-        {
-            collisionA : CollisionResolutionType
-            collisionB : CollisionResolutionType
-        }
-
-        static member defaultValue =
-            {
-                collisionA = NoCollisionResolution
-                collisionB = NoCollisionResolution
-            }
-
-        static member excludeDuplicateCatalysts =
-            {
-                collisionA = NoCollisionResolution
-                collisionB = ExcludeDuplicates
-            }
-
-
-    type PairCollisionResolution =
-        | PairCollision
-        | EachInPair of PairCollisionResolutionType
-
-        static member defaultValue = PairCollisionResolutionType.defaultValue |> EachInPair
-        static member excludeDuplicateCatalysts = PairCollisionResolutionType.excludeDuplicateCatalysts |> EachInPair
-
-
-    type TripleCollisionResolutionType =
-        {
-            collisionA : CollisionResolutionType
-            collisionB : CollisionResolutionType
-            collisionC : CollisionResolutionType
-        }
-
-        static member defaultValue =
-            {
-                collisionA = NoCollisionResolution
-                collisionB = NoCollisionResolution
-                collisionC = NoCollisionResolution
-            }
-
-        static member excludeDuplicateCatalysts =
-            {
-                collisionA = NoCollisionResolution
-                collisionB = ExcludeDuplicates
-                collisionC = NoCollisionResolution
-            }
-
-
-    type TripleCollisionResolution =
-        | TripleCollision
-        | EachInTriple of TripleCollisionResolutionType
-
-        static member defaultValue = TripleCollisionResolutionType.defaultValue |> EachInTriple
-        static member excludeDuplicateCatalysts = TripleCollisionResolutionType.excludeDuplicateCatalysts |> EachInTriple
 
 
     type RateGeneratorInfo<'A, 'B> =

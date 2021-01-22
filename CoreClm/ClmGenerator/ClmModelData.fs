@@ -15,6 +15,8 @@ open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
 open Clm.Generator.ReactionRatesExt
 open Clm.Distributions
+open ClmSys.DistributionData
+open ClmSys.ModelData
 
 module ClmModelData =
 
@@ -22,67 +24,6 @@ module ClmModelData =
         | UseArray
         | UseVariables
         | UseFunctions
-
-
-    type RateGenerationCollisionData =
-        {
-            sugSynthColl : PairCollisionResolution
-            catSynthColl : PairCollisionResolution
-            enCatSynthColl : TripleCollisionResolution
-            acCatSynthColl : PairCollisionResolution
-            catDestrColl : PairCollisionResolution
-            enCatDestrColl : TripleCollisionResolution
-            acCatDestrColl : PairCollisionResolution
-            catLigColl : PairCollisionResolution
-            enCatLigColl : TripleCollisionResolution
-            acFwdCatLigColl : PairCollisionResolution
-            acBkwCatLigColl : PairCollisionResolution
-            catRacemColl : PairCollisionResolution
-            enCatRacemColl : TripleCollisionResolution
-            acCatRacemColl : PairCollisionResolution
-            sedDirColl : PairCollisionResolution
-            acColl : PairCollisionResolution
-        }
-
-        static member defaultValue =
-        {
-            sugSynthColl = PairCollisionResolution.defaultValue
-            catSynthColl = PairCollisionResolution.defaultValue
-            enCatSynthColl = TripleCollisionResolution.defaultValue
-            acCatSynthColl = PairCollisionResolution.defaultValue
-            catDestrColl = PairCollisionResolution.defaultValue
-            enCatDestrColl = TripleCollisionResolution.defaultValue
-            acCatDestrColl = PairCollisionResolution.defaultValue
-            catLigColl = PairCollisionResolution.defaultValue
-            enCatLigColl = TripleCollisionResolution.defaultValue
-            acFwdCatLigColl = PairCollisionResolution.defaultValue
-            acBkwCatLigColl = PairCollisionResolution.defaultValue
-            catRacemColl = PairCollisionResolution.defaultValue
-            enCatRacemColl = TripleCollisionResolution.defaultValue
-            acCatRacemColl = PairCollisionResolution.defaultValue
-            sedDirColl = PairCollisionResolution.defaultValue
-            acColl = PairCollisionResolution.defaultValue
-        }
-
-        static member excludeDuplicateCatalysts =
-        {
-            sugSynthColl = PairCollisionResolution.excludeDuplicateCatalysts
-            catSynthColl = PairCollisionResolution.excludeDuplicateCatalysts
-            enCatSynthColl = TripleCollisionResolution.excludeDuplicateCatalysts
-            acCatSynthColl = PairCollisionResolution.excludeDuplicateCatalysts
-            catDestrColl = PairCollisionResolution.excludeDuplicateCatalysts
-            enCatDestrColl = TripleCollisionResolution.excludeDuplicateCatalysts
-            acCatDestrColl = PairCollisionResolution.excludeDuplicateCatalysts
-            catLigColl = PairCollisionResolution.excludeDuplicateCatalysts
-            enCatLigColl = TripleCollisionResolution.excludeDuplicateCatalysts
-            acFwdCatLigColl = PairCollisionResolution.excludeDuplicateCatalysts
-            acBkwCatLigColl = PairCollisionResolution.excludeDuplicateCatalysts
-            catRacemColl = PairCollisionResolution.excludeDuplicateCatalysts
-            enCatRacemColl = TripleCollisionResolution.excludeDuplicateCatalysts
-            acCatRacemColl = PairCollisionResolution.excludeDuplicateCatalysts
-            sedDirColl = PairCollisionResolution.excludeDuplicateCatalysts
-            acColl = PairCollisionResolution.excludeDuplicateCatalysts
-        }
 
 
     type ModelGenerationParams =
@@ -95,7 +36,7 @@ module ClmModelData =
             updateFuncType : UpdateFuncType
             clmDefaultValueId : ClmDefaultValueId
             successNumberType : SuccessNumberType
-            collisionData : RateGenerationCollisionData
+            collisionData : CollisionData
             seedValue : int option
         }
 
@@ -106,7 +47,7 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member create so g (c : ClmTask) =
+        static member create coll so g (c : ClmTask) =
             match g c.clmTaskInfo.clmDefaultValueId with
             | Ok v ->
                 {
@@ -120,7 +61,7 @@ module ClmModelData =
                             updateFuncType = UseFunctions
                             clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
                             successNumberType = v.defaultRateParams.successNumberType
-                            collisionData = 0
+                            collisionData = coll
                             seedValue = so
                         }
 
@@ -259,7 +200,7 @@ module ClmModelData =
 //                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length]) ]
                 let ((_, a), (_, b)) =
                     [ for _ in 1..sn -> ()]
-                    |> List.fold (fun (a, b) r -> (generateA a, generateB b)) (([], []), ([], []))
+                    |> List.fold (fun (a, b) _ -> (generateA a, generateB b)) (([], []), ([], []))
 
                 let retVal = (a, b) ||> List.zip |> List.rev
 
@@ -301,7 +242,7 @@ module ClmModelData =
 //                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length], i.c.generatorData.[d.nextN rnd i.c.generatorData.Length]) ]
                 let ((_, a), (_, b), (_, c)) =
                     [ for _ in 1..sn -> ()]
-                    |> List.fold (fun (a, b, c) r -> (generateA a, generateB b, generateC c)) (([], []), ([], []), ([], []))
+                    |> List.fold (fun (a, b, c) _ -> (generateA a, generateB b, generateC c)) (([], []), ([], []), ([], []))
 
                 let retVal = (a, b, c) |||> List.zip3 |> List.rev
 
@@ -313,7 +254,7 @@ module ClmModelData =
     type RandomChoiceModelData =
         {
             commonData : RateGenerationCommonData
-            collisionData : RateGenerationCollisionData
+            collisionData : CollisionData
         }
 
         member data.noOfRawReactions n =

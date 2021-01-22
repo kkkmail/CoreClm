@@ -15,7 +15,6 @@ open ClmSys.VersionInfo
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.GeneralData
-open Clm.ModelParams
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodePrimitives
@@ -24,6 +23,8 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
 open ClmSys.ContGenData
 open ClmSys.PartitionerData
+open ClmSys.ModelData
+open Clm.ModelParams
 
 module ServiceInfo =
 
@@ -130,6 +131,11 @@ module ServiceInfo =
     let partitionerId = ConfigKey "PartitionerId"
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
+
+    let acCatCollisionType = ConfigKey "AcCatCollisionType"
+    let enCatCollisionType = ConfigKey "EnCatCollisionType"
+    let catCollisionType = ConfigKey "CatCollisionType"
+    let otherCollisionType = ConfigKey "OtherCollisionType"
 
 
     let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
@@ -275,6 +281,8 @@ module ServiceInfo =
                         match provider.tryGetInt earlyExitCheckFrequencyInMinutes with
                         | Ok (Some p) when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
                         | _ -> EarlyExitCheckFreq.defaultValue
+
+                    collisionData = 0
                 }
             | _ ->
                 {
@@ -282,6 +290,7 @@ module ServiceInfo =
                     partitionerId = defaultPartitionerId
                     lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
                     earlyExitCheckFreq = EarlyExitCheckFreq.defaultValue
+                    collisionData = CollisionData.defaultValue
                 }
 
         let (contGenSvcInfo, contGenServiceCommunicationType) = loadContGenServiceSettings providerRes

@@ -8,6 +8,7 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
+open Clm.Generator.ClmModelData
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodePrimitives
 open ClmSys.Logging
@@ -157,6 +158,7 @@ module ModelRunnerProxy =
             resultLocation : string
             earlyExitInfoOpt : EarlyExitInfo option
             lastAllowedNodeErr : LastAllowedNodeErr
+            collisionData : CollisionData
         }
 
 

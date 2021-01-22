@@ -9,6 +9,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open Clm.Substances
 open Clm.ReactionTypes
+open ClmSys.ModelData
 open Clm.ReactionRates
 
 module ModelParams =
@@ -44,11 +45,11 @@ module ModelParams =
             clmDefaultValueId : ClmDefaultValueId
         }
 
-
     type ModelDataParams =
         {
             modelInfo : ModelInfo
             allParams : array<ReactionRateModelParamWithUsage>
+            collisionData : CollisionData
         }
 
 

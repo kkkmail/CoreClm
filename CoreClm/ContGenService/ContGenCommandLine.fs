@@ -147,6 +147,28 @@ module SvcCommandLine =
         saveContGenSettings load tryGet
 
 
+    let getMessageProcessorProxy i (d : MessagingClientAccessInfo) =
+        let i =
+            {
+                messagingClientName = ContGenServiceName.netTcpServiceName.value.value |> MessagingClientName
+                storageType = getClmConnectionString |> MsSqlDatabase
+            }
+
+        let messagingClientData =
+            {
+                msgAccessInfo = d
+                communicationType = NetTcpCommunication
+                msgClientProxy = createMessagingClientProxy i d.msgClientId
+                expirationTime = MessagingClientData.defaultExpirationTime
+            }
+
+        printfn "tryGetContGenServiceData::Calling MessagingClient messagingClientData..."
+        let messagingClient = MessagingClient messagingClientData
+        messagingClient.messageProcessorProxy
+
+
+
+
     /// TODO kk:20200517 - Propagate early exit info to command line parameters.
     //  (p : list<ContGenRunArgs>)
     // Result<ContGenServiceData, ClmError>
@@ -159,25 +181,6 @@ module SvcCommandLine =
                 msgClientId = w.contGenInfo.partitionerId.messagingClientId
                 msgSvcAccessInfo = w.messagingSvcInfo
             }
-
-        let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
-            let i =
-                {
-                    messagingClientName = ContGenServiceName.netTcpServiceName.value.value |> MessagingClientName
-                    storageType = getClmConnectionString |> MsSqlDatabase
-                }
-
-            let messagingClientData =
-                {
-                    msgAccessInfo = d
-                    communicationType = NetTcpCommunication
-                    msgClientProxy = createMessagingClientProxy i d.msgClientId
-                    expirationTime = MessagingClientData.defaultExpirationTime
-                }
-
-            printfn "tryGetContGenServiceData::Calling MessagingClient messagingClientData..."
-            let messagingClient = MessagingClient messagingClientData
-            messagingClient.messageProcessorProxy
 
         let data =
             {
@@ -194,11 +197,12 @@ module SvcCommandLine =
                                             frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
 
                                 lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+                                collisionData = 0
                             }
 
                         runnerProxy =
                             {
-                                getMessageProcessorProxy = getMessageProcessorProxy
+                                getMessageProcessorProxy = getMessageProcessorProxy i
                             }
 
                         messagingClientAccessInfo = i

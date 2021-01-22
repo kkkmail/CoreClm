@@ -190,6 +190,7 @@ module ClmModel =
                             {
                                 modelInfo = modelInfo
                                 allParams = rrp.allParams() |> Array.ofList
+                                collisionData = modelParams.collisionData
                             }
                         allSubstData =
                             {
@@ -437,6 +438,7 @@ module ClmModel =
                                 {
                                     modelInfo = modelInfo
                                     allParams = rateProvider.providerParams.allParams() |> Array.ofList
+                                    collisionData = modelParams.collisionData
                                 }
 
                             modelBinaryData =

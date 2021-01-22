@@ -1,5 +1,7 @@
 ﻿namespace Clm
+
 open System
+open ClmSys.DistributionData
 
 /// The distributions that we need fall into the following categories:
 ///     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.
@@ -219,14 +221,6 @@ module Distributions =
     type SuccessNumberType =
         | RandomValueBased
         | ThresholdBased
-
-
-    /// Describes how to resolve collisions when sampling from a large set of elements.
-    ///     1. NoCollisionResolution - just sample from the distribution.
-    ///     2. ExcludeDuplicates - make sure that there are no duplicates in the sample.
-    type CollisionResolutionType =
-        | NoCollisionResolution
-        | ExcludeDuplicates
 
 
     /// Generates number of successes using either:

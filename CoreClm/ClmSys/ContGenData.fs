@@ -6,7 +6,6 @@ open Softellect.Sys.Core
 open Softellect.Messaging.ServiceInfo
 open Softellect.Wcf.Common
 
-
 open ClmSys
 open GeneralPrimitives
 open GeneralData
@@ -14,6 +13,7 @@ open ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
+open ClmSys.ModelData
 
 module ContGenData =
 
@@ -34,6 +34,7 @@ module ContGenData =
             partitionerId : PartitionerId
             lastAllowedNodeErr : LastAllowedNodeErr
             earlyExitCheckFreq : EarlyExitCheckFreq
+            collisionData : CollisionData
         }
 
 

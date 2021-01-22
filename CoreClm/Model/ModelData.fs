@@ -12100,6 +12100,8 @@ module ModelData =
                                                 }
 
                                             |]
+
+                                        collisionData = CollisionData.defaultValue
                                     }
 
                                 allSubstData =

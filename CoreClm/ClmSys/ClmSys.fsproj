@@ -28,6 +28,8 @@
     <Compile Include="Logging.fs" />
     <Compile Include="GeneralData.fs" />
     <Compile Include="TimerEvents.fs" />
+    <Compile Include="DistributionData.fs" />
+    <Compile Include="ModelData.fs" />
     <Compile Include="MessagingData.fs" />
     <Compile Include="PartitionerData.fs" />
     <Compile Include="WorkerNodeData.fs" />
