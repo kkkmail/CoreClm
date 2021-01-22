@@ -24,6 +24,67 @@ module ClmModelData =
         | UseFunctions
 
 
+    type RateGenerationCollisionData =
+        {
+            sugSynthColl : PairCollisionResolution
+            catSynthColl : PairCollisionResolution
+            enCatSynthColl : TripleCollisionResolution
+            acCatSynthColl : PairCollisionResolution
+            catDestrColl : PairCollisionResolution
+            enCatDestrColl : TripleCollisionResolution
+            acCatDestrColl : PairCollisionResolution
+            catLigColl : PairCollisionResolution
+            enCatLigColl : TripleCollisionResolution
+            acFwdCatLigColl : PairCollisionResolution
+            acBkwCatLigColl : PairCollisionResolution
+            catRacemColl : PairCollisionResolution
+            enCatRacemColl : TripleCollisionResolution
+            acCatRacemColl : PairCollisionResolution
+            sedDirColl : PairCollisionResolution
+            acColl : PairCollisionResolution
+        }
+
+        static member defaultValue =
+        {
+            sugSynthColl = PairCollisionResolution.defaultValue
+            catSynthColl = PairCollisionResolution.defaultValue
+            enCatSynthColl = TripleCollisionResolution.defaultValue
+            acCatSynthColl = PairCollisionResolution.defaultValue
+            catDestrColl = PairCollisionResolution.defaultValue
+            enCatDestrColl = TripleCollisionResolution.defaultValue
+            acCatDestrColl = PairCollisionResolution.defaultValue
+            catLigColl = PairCollisionResolution.defaultValue
+            enCatLigColl = TripleCollisionResolution.defaultValue
+            acFwdCatLigColl = PairCollisionResolution.defaultValue
+            acBkwCatLigColl = PairCollisionResolution.defaultValue
+            catRacemColl = PairCollisionResolution.defaultValue
+            enCatRacemColl = TripleCollisionResolution.defaultValue
+            acCatRacemColl = PairCollisionResolution.defaultValue
+            sedDirColl = PairCollisionResolution.defaultValue
+            acColl = PairCollisionResolution.defaultValue
+        }
+
+        static member excludeDuplicateCatalysts =
+        {
+            sugSynthColl = PairCollisionResolution.excludeDuplicateCatalysts
+            catSynthColl = PairCollisionResolution.excludeDuplicateCatalysts
+            enCatSynthColl = TripleCollisionResolution.excludeDuplicateCatalysts
+            acCatSynthColl = PairCollisionResolution.excludeDuplicateCatalysts
+            catDestrColl = PairCollisionResolution.excludeDuplicateCatalysts
+            enCatDestrColl = TripleCollisionResolution.excludeDuplicateCatalysts
+            acCatDestrColl = PairCollisionResolution.excludeDuplicateCatalysts
+            catLigColl = PairCollisionResolution.excludeDuplicateCatalysts
+            enCatLigColl = TripleCollisionResolution.excludeDuplicateCatalysts
+            acFwdCatLigColl = PairCollisionResolution.excludeDuplicateCatalysts
+            acBkwCatLigColl = PairCollisionResolution.excludeDuplicateCatalysts
+            catRacemColl = PairCollisionResolution.excludeDuplicateCatalysts
+            enCatRacemColl = TripleCollisionResolution.excludeDuplicateCatalysts
+            acCatRacemColl = PairCollisionResolution.excludeDuplicateCatalysts
+            sedDirColl = PairCollisionResolution.excludeDuplicateCatalysts
+            acColl = PairCollisionResolution.excludeDuplicateCatalysts
+        }
+
+
     type ModelGenerationParams =
         {
             fileStructureVersion : decimal
@@ -34,6 +95,7 @@ module ClmModelData =
             updateFuncType : UpdateFuncType
             clmDefaultValueId : ClmDefaultValueId
             successNumberType : SuccessNumberType
+            collisionData : RateGenerationCollisionData
             seedValue : int option
         }
 
@@ -58,6 +120,7 @@ module ClmModelData =
                             updateFuncType = UseFunctions
                             clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
                             successNumberType = v.defaultRateParams.successNumberType
+                            collisionData = 0
                             seedValue = so
                         }
 
@@ -250,6 +313,7 @@ module ClmModelData =
     type RandomChoiceModelData =
         {
             commonData : RateGenerationCommonData
+            collisionData : RateGenerationCollisionData
         }
 
         member data.noOfRawReactions n =
@@ -285,7 +349,7 @@ module ClmModelData =
         member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
 
         /// Note that currently all generators share the same success number type.
-        static member create rnd rateProvider (si : SubstInfo) st =
+        static member create rnd rateProvider (si : SubstInfo) st coll =
             let generatePairs x = generatePairs rnd x rateProvider
             let generateTriples x = generateTriples rnd x rateProvider
 
@@ -293,23 +357,25 @@ module ClmModelData =
                 commonData =
                     {
                         substInfo = si
-                        sugSynth = generatePairs (si.sugSynthInfo st)
-                        catSynthPairs = generatePairs (si.catSynthInfo st)
-                        enCatSynth = generateTriples (si.enCatSynthInfo st)
-                        acCatSynth = generatePairs (si.acCatSynthInfo st)
-                        catDestrPairs = generatePairs (si.catDestrInfo st)
-                        enCatDestr = generateTriples (si.enCatDestrInfo st)
-                        acCatDestr = generatePairs (si.acCatDestrInfo st)
-                        catLigPairs = generatePairs (si.catLigInfo st)
-                        enCatLig = generateTriples (si.enCatLigInfo st)
-                        acFwdCatLig = generatePairs (si.acFwdCatLigInfo st)
-                        acBkwCatLig = generatePairs (si.acBkwCatLigInfo st)
-                        catRacemPairs = generatePairs (si.catRacemInfo st)
-                        enCatRacem = generateTriples (si.enCatRacemInfo st)
-                        acCatRacem = generatePairs (si.acCatRacemInfo st)
-                        sedDirPairs = generatePairs (si.sedDirInfo st)
-                        acPairs = generatePairs (si.acPairsInfo st)
+                        sugSynth = generatePairs (si.sugSynthInfo coll.sugSynthColl st)
+                        catSynthPairs = generatePairs (si.catSynthInfo coll.catSynthColl st)
+                        enCatSynth = generateTriples (si.enCatSynthInfo coll.enCatSynthColl st)
+                        acCatSynth = generatePairs (si.acCatSynthInfo coll.acCatSynthColl st)
+                        catDestrPairs = generatePairs (si.catDestrInfo coll.catDestrColl st)
+                        enCatDestr = generateTriples (si.enCatDestrInfo coll.enCatDestrColl st)
+                        acCatDestr = generatePairs (si.acCatDestrInfo coll.acCatDestrColl st)
+                        catLigPairs = generatePairs (si.catLigInfo coll.catLigColl st)
+                        enCatLig = generateTriples (si.enCatLigInfo coll.enCatLigColl st)
+                        acFwdCatLig = generatePairs (si.acFwdCatLigInfo coll.acFwdCatLigColl st)
+                        acBkwCatLig = generatePairs (si.acBkwCatLigInfo coll.acBkwCatLigColl st)
+                        catRacemPairs = generatePairs (si.catRacemInfo coll.catRacemColl st)
+                        enCatRacem = generateTriples (si.enCatRacemInfo coll.enCatRacemColl st)
+                        acCatRacem = generatePairs (si.acCatRacemInfo coll.acCatRacemColl st)
+                        sedDirPairs = generatePairs (si.sedDirInfo coll.sedDirColl st)
+                        acPairs = generatePairs (si.acPairsInfo coll.acColl st)
                     }
+
+                collisionData = coll
             }
 
 
@@ -332,6 +398,6 @@ module ClmModelData =
 
                 b
 
-        static member create rnd t rateProvider si st =
+        static member create rnd t rateProvider si st coll =
             match t with
-            | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si st |> RandomChoiceModel
+            | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si st coll |> RandomChoiceModel
