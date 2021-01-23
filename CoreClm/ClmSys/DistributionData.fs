@@ -8,3 +8,9 @@ module DistributionData =
     type CollisionResolutionType =
         | NoCollisionResolution
         | ExcludeDuplicates
+
+        static member tryCreate (s : string) =
+            match s with
+            | nameof(NoCollisionResolution) -> Some NoCollisionResolution
+            | nameof(ExcludeDuplicates) -> Some ExcludeDuplicates
+            | _ -> None

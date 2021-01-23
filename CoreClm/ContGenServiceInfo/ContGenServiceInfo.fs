@@ -134,10 +134,10 @@ module ServiceInfo =
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
 
-    let acCatCollisionType = ConfigKey "AcCatCollisionType"
-    let enCatCollisionType = ConfigKey "EnCatCollisionType"
-    let catCollisionType = ConfigKey "CatCollisionType"
-    let otherCollisionType = ConfigKey "OtherCollisionType"
+//    let acCatCollisionType = ConfigKey "AcCatCollisionType"
+//    let enCatCollisionType = ConfigKey "EnCatCollisionType"
+//    let catCollisionType = ConfigKey "CatCollisionType"
+//    let otherCollisionType = ConfigKey "OtherCollisionType"
 
 
     let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
@@ -159,27 +159,41 @@ module ServiceInfo =
         provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
         provider.trySet messagingServiceCommunicationType ct.value |> ignore
 
-    let sugSynthColl = nameof(CollisionData.defaultValue.sugSynthColl)
-    let catSynthColl = nameof(___)
-    let enCatSynthColl = nameof(___)
-    let acCatSynthColl = nameof(___)
-    let catDestrColl = nameof(___)
-    let enCatDestrColl = nameof(___)
-    let acCatDestrColl = nameof(___)
-    let catLigColl = nameof(___)
-    let enCatLigColl = nameof(___)
-    let acFwdCatLigColl = nameof(___)
-    let acBkwCatLigColl = nameof(___)
-    let catRacemColl = nameof(___)
-    let enCatRacemColl = nameof(___)
-    let acCatRacemColl = nameof(___)
-    let sedDirColl = nameof(___)
-    let acColl = nameof(___)
+    let sugSynthCollKey = ConfigKey "SugSynthColl"
+    let catSynthCollKey = ConfigKey "CatSynthColl"
+    let enCatSynthCollKey = ConfigKey "EnCatSynthColl"
+    let acCatSynthCollKey = ConfigKey "AcCatSynthColl"
+    let catDestrCollKey = ConfigKey "CatDestrColl"
+    let enCatDestrCollKey = ConfigKey "EnCatDestrColl"
+    let acCatDestrCollKey = ConfigKey "AcCatDestrColl"
+    let catLigCollKey = ConfigKey "CatLigColl"
+    let enCatLigCollKey = ConfigKey "EnCatLigColl"
+    let acFwdCatLigCollKey = ConfigKey "AcFwdCatLigColl"
+    let acBkwCatLigCollKey = ConfigKey "AcBkwCatLigColl"
+    let catRacemCollKey = ConfigKey "CatRacemColl"
+    let enCatRacemCollKey = ConfigKey "EnCatRacemColl"
+    let acCatRacemCollKey = ConfigKey "AcCatRacemColl"
+    let sedDirCollKey = ConfigKey "SedDirColl"
+    let acCollKey = ConfigKey "AcColl"
 
+
+//    type PairCollisionResolution
+//        with
+//        member
 
 
     type AppSettingsProvider
         with
+
+        /// Currently We only store collisionB
+        member provider.trySetPairCollisionResolution (c : PairCollisionResolution) =
+            let s =
+                match c with
+                | PairCollision -> failwith ""
+                | EachInPair p ->
+                    failwith ""
+            s
+
         member provider.trySetCollisionData (d : CollisionData) =
             provider.trySet
 
