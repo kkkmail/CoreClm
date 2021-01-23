@@ -1,9 +1,11 @@
 ﻿namespace ContGenServiceInfo
 
 open System
+open System.IO
 open System.ServiceModel
 open System.Threading
 
+open ClmSys.DistributionData
 open Softellect.Sys
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.AppSettings
@@ -157,6 +159,30 @@ module ServiceInfo =
         provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
         provider.trySet messagingServiceCommunicationType ct.value |> ignore
 
+    let sugSynthColl = nameof(CollisionData.defaultValue.sugSynthColl)
+    let catSynthColl = nameof(___)
+    let enCatSynthColl = nameof(___)
+    let acCatSynthColl = nameof(___)
+    let catDestrColl = nameof(___)
+    let enCatDestrColl = nameof(___)
+    let acCatDestrColl = nameof(___)
+    let catLigColl = nameof(___)
+    let enCatLigColl = nameof(___)
+    let acFwdCatLigColl = nameof(___)
+    let acBkwCatLigColl = nameof(___)
+    let catRacemColl = nameof(___)
+    let enCatRacemColl = nameof(___)
+    let acCatRacemColl = nameof(___)
+    let sedDirColl = nameof(___)
+    let acColl = nameof(___)
+
+
+
+    type AppSettingsProvider
+        with
+        member provider.trySetCollisionData (d : CollisionData) =
+            provider.trySet
+
 
     type ContGenSettings
         with
@@ -173,6 +199,7 @@ module ServiceInfo =
                     provider.trySet minUsefulEe w.contGenInfo.minUsefulEe.value |> ignore
                     provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
                     provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
+                    provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
 
                     provider.trySave() |> Rop.bindError toErr
                 with
@@ -233,6 +260,44 @@ module ServiceInfo =
         | _ -> d
 
 
+    let tryCreateCollisionType s =
+        match s with
+        | nameof(NoCollisionResolution) -> NoCollisionResolution |> Some |> Ok
+        | nameof(ExcludeDuplicates) -> ExcludeDuplicates |> Some |> Ok
+        | EmptyString -> None |> Ok
+        | _ -> Error s
+
+
+    let getCollisionType (providerRes : AppSettingsProviderResult) n d =
+        match providerRes with
+        | Ok provider ->
+            match provider.tryGet tryCreateCollisionType n with
+            | Ok (Some p) -> p
+            | _ -> d
+        | _ -> d
+
+
+    let getCollisionData (provider : AppSettingsProvider) =
+        {
+            sugSynthColl = PairCollisionResolution.defaultValue
+            catSynthColl = PairCollisionResolution.defaultValue
+            enCatSynthColl = TripleCollisionResolution.defaultValue
+            acCatSynthColl = PairCollisionResolution.defaultValue
+            catDestrColl = PairCollisionResolution.defaultValue
+            enCatDestrColl = TripleCollisionResolution.defaultValue
+            acCatDestrColl = PairCollisionResolution.defaultValue
+            catLigColl = PairCollisionResolution.defaultValue
+            enCatLigColl = TripleCollisionResolution.defaultValue
+            acFwdCatLigColl = PairCollisionResolution.defaultValue
+            acBkwCatLigColl = PairCollisionResolution.defaultValue
+            catRacemColl = PairCollisionResolution.defaultValue
+            enCatRacemColl = TripleCollisionResolution.defaultValue
+            acCatRacemColl = PairCollisionResolution.defaultValue
+            sedDirColl = PairCollisionResolution.defaultValue
+            acColl = PairCollisionResolution.defaultValue
+        }
+
+
     let loadMessagingSettings providerRes =
         let messagingServiceCommunicationType = getCommunicationType providerRes messagingServiceCommunicationType NetTcpCommunication
         let serviceAddress = getServiceAddress providerRes messagingServiceAddress defaultMessagingServiceAddress
@@ -282,7 +347,7 @@ module ServiceInfo =
                         | Ok (Some p) when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
                         | _ -> EarlyExitCheckFreq.defaultValue
 
-                    collisionData = 0
+                    collisionData = getCollisionData provider
                 }
             | _ ->
                 {
