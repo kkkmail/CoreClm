@@ -11,7 +11,7 @@ module LigationModel =
         member model.getRates rnd r =
             match model with
             | LigRndModel m ->
-                printfn $"LigationModel.getRates: r = {r}."
+//                printfn $"LigationModel.getRates: r = {r}."
                 m.getRates rnd r
 
         member model.tryGetRates r =

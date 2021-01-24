@@ -174,7 +174,7 @@ module ClmModelData =
     let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + B, E(A) + E(B))
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
-        printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
+        printfn "\n\ngeneratePairs:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    pairCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) i.pairCollision i.successNumberType
 
         // PairCollision should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
         // This is an extremely rare scenario and as such implementation is not worth an effort.
@@ -206,8 +206,7 @@ module ClmModelData =
                     |> List.fold (fun (a, b) _ -> (generateA a, generateB b)) (([], []), ([], []))
 
                 let retVal = (a, b) ||> List.zip |> List.rev
-
-                retVal |> List.map (fun (a, b) -> printfn "    %s, %s" (a.ToString()) (b.ToString())) |> ignore
+//                retVal |> List.map (fun (a, b) -> printfn "    %s, %s" (a.ToString()) (b.ToString())) |> ignore
                 retVal
             | None -> []
 
@@ -215,7 +214,7 @@ module ClmModelData =
     let generateTriples<'A, 'B, 'C> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
         // ??? must adjust for 8X ??? reduction due to grouping ???
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
-        printfn "generateTriples: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A, typedefof<'C> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>)
+        printfn "generateTriples:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    typedefof<'C> = %A\n    tripleCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>) i.tripleCollision i.successNumberType
 
         // ExcludeDuplicates should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
         // This is an extremely rare scenario and as such implementation is not worth an effort.
@@ -240,7 +239,7 @@ module ClmModelData =
                 let generateC c = generate i.c ct.collisionC c
 
                 let sn = d.successNumber sng noOfTries
-                printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
+                printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A\n\n" i.successNumberType sn i.reactionName
 
 //                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length], i.c.generatorData.[d.nextN rnd i.c.generatorData.Length]) ]
                 let ((_, a), (_, b), (_, c)) =
@@ -248,8 +247,7 @@ module ClmModelData =
                     |> List.fold (fun (a, b, c) _ -> (generateA a, generateB b, generateC c)) (([], []), ([], []), ([], []))
 
                 let retVal = (a, b, c) |||> List.zip3 |> List.rev
-
-                retVal |> List.map (fun (a, b, c) -> printfn "    %s, %s, %s" (a.ToString()) (b.ToString()) (c.ToString())) |> ignore
+//                retVal |> List.map (fun (a, b, c) -> printfn "    %s, %s, %s" (a.ToString()) (b.ToString()) (c.ToString())) |> ignore
                 retVal
             | None -> []
 

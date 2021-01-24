@@ -35,7 +35,7 @@ module AcFwdCatalyticLigationSimilarModel =
                     rateDictionary = p.acFwdCatLigModel.rateDictionary
                 }
 
-        do printfn $"AcFwdCatalyticLigationSimilarModel: dictionaryData = {dictionaryData}."
+//        do printfn $"AcFwdCatalyticLigationSimilarModel: dictionaryData = {dictionaryData}."
 
         let calculateSimRatesImpl rnd t (AcFwdCatalyticLigationReaction (s, c)) =
             {

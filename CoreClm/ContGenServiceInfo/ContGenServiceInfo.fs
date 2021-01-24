@@ -380,7 +380,7 @@ module ServiceInfo =
                 messagingCommType = messagingServiceCommunicationType
             }
 
-        printfn "loadContGenSettings: Using settings:\n%A" w
+//        printfn "loadContGenSettings: Using settings:\n%A" w
 
         w
 

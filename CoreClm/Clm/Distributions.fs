@@ -199,19 +199,19 @@ module Distributions =
                 next =
                     fun () ->
                         let v = rnd.Next()
-                        printfn $"RandomValueGetter.next = {v}"
+//                        printfn $"RandomValueGetter.next = {v}"
                         v
 
                 nextN =
                     fun n ->
                         let v = rnd.Next n
-                        printfn $"RandomValueGetter.nextN {n} = {v}"
+//                        printfn $"RandomValueGetter.nextN {n} = {v}"
                         v
 
                 nextDouble =
                     fun () ->
                         let v = rnd.NextDouble()
-                        printfn $"RandomValueGetter.nextDouble = {v}"
+//                        printfn $"RandomValueGetter.nextDouble = {v}"
                         v
             }
 
@@ -232,6 +232,11 @@ module Distributions =
 
         member this.randomValueGetter =
             match this with | RandomValueGetterBased r | ThresholdValueBased r -> r
+
+        override this.ToString() =
+            match this with
+            | RandomValueGetterBased v -> $"{nameof(RandomValueGetterBased)}, seed = {v.seed}"
+            | ThresholdValueBased v -> $"{nameof(ThresholdValueBased)}, seed = {v.seed}"
 
 
     /// First scale, then shift. This is more convenient here than the other way around.
@@ -286,10 +291,10 @@ module Distributions =
                     match s with
                         | RandomValueGetterBased rnd ->
                             let stdDev = 0.0
-                            let s = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
-                            getGaussian rnd.nextDouble m s
+                            let st = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
+                            getGaussian rnd.nextDouble m st
                         | ThresholdValueBased _ -> double m
-                printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m s sn
+                printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m (s.ToString()) sn
                 min (max 0L (int64 sn)) noOfTries |> int
             | None -> noOfTries |> int
 

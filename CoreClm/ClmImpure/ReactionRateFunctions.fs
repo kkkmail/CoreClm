@@ -31,22 +31,17 @@ module ReactionRateFunctions =
         member d.tryGetReactionKey r = d.keySetData |> Option.bind (fun v -> v.getReactionKey r |> Some)
 
         member d.hasReactionKey r =
-//            let v =
-//                d.keySetData
-//                |> Option.bind (fun v -> v.getReactionKey r |> v.keySet.Contains |> Some)
-//                |> Option.defaultValue false
-
             let v =
                 match d.keySetData with
                 | Some data ->
                     let reactionKey = data.getReactionKey r
                     let retVal = data.keySet.Contains reactionKey
-                    printfn $"DictionaryData.hasReactionKey {r} = {retVal}, reactionKey = {reactionKey}, data.keySet.Count = {data.keySet.Count}."
+//                    printfn $"DictionaryData.hasReactionKey {r} = {retVal}, reactionKey = {reactionKey}, data.keySet.Count = {data.keySet.Count}."
                     retVal
                 | None ->
                     false
 
-            printfn $"DictionaryData.hasReactionKey {r} = {v}."
+//            printfn $"DictionaryData.hasReactionKey {r} = {v}."
             v
 
 
@@ -131,7 +126,8 @@ module ReactionRateFunctions =
         (getEnantiomer : 'R -> 'R)
         (calculateRates : 'R -> RelatedReactions<'R>)
         (reaction : 'R)  =
-        printfn $"getRatesImpl: reaction = {reaction}."
+//        printfn $"getRatesImpl: reaction = {reaction}."
+
         match d.rateDictionary.TryGetValue reaction with
         | true, rates -> rates
         | false, _ ->
