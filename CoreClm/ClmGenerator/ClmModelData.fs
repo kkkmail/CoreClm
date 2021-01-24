@@ -149,10 +149,17 @@ module ClmModelData =
 
 
     let generateValue  (d : Distribution) rnd (data : array<'A>) coll generated =
-        let getValue next = (next :: generated) |> List.sort, data.[next]
+//        printfn "\n\ngenerateValue:Starting..."
+
+        let getValue next =
+//            printfn "generateValue.getValue: next = %A, data.Length = %A" next data.Length
+            (next :: generated) |> List.sort, data.[next]
 
         let adjust next =
+//            printfn "generateValue.adjust: next = %A" next
+
             let rec inner rem n =
+//                printfn "generateValue.adjust.inner: n = %A" n
                 match rem with
                 | [] -> n
                 | h :: t ->
@@ -164,10 +171,12 @@ module ClmModelData =
         match coll with
         | NoCollisionResolution ->
             let next = d.nextN rnd data.Length
+//            printfn "generateValue: next = %A" next
             getValue next
         | ExcludeDuplicates ->
-            let next = d.nextN rnd data.Length
+            let next = d.nextN rnd (data.Length - generated.Length)
             let adjusted = adjust next
+//            printfn "generateValue: next = %A, adjusted = %A" next adjusted
             getValue adjusted
 
 

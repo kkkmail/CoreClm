@@ -1,5 +1,6 @@
 ﻿namespace ContGenAdm
 
+open System.Diagnostics
 open System.Threading
 open ContGenServiceInfo.ServiceInfo
 open DbData.Configuration
@@ -31,14 +32,14 @@ module ContGenAdmTasks =
         let so = getSeedValue p
 
         let settings = loadContGenSettings()
-        printfn "addClmTask:settings =\n%A" settings
+        printfn "addClmTask: settings =\n%A" settings
 
         let dictionaryUpdateType = getDictionaryUpdateType p |> Option.defaultValue settings.contGenInfo.dictionaryUpdateType
         printfn $"addClmTask: dictionaryUpdateType = {dictionaryUpdateType}"
 
         match i, n, m, c with
         | Some i, Some n, Some m, Some c ->
-            printfn "Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
+            printfn "addClmTask: Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
             match loadClmDefaultValue i with
             | Ok _ ->
                 let r = getNumberOrRepetitions p
@@ -62,16 +63,25 @@ module ContGenAdmTasks =
                 | Ok() ->
                     match getGenerateModelCode p with
                     | true ->
-                        printfn "Generating model..."
+                        let sw = Stopwatch()
+                        sw.Start()
+                        printfn "addClmTask: Generating model..."
                         let proxy = GenerateModelProxy.create dictionaryUpdateType settings.contGenInfo.collisionData so getClmConnectionString
                         let fno = getModelCodeFileName p
 
-                        match generateModel proxy t with
-                        | Ok model ->
-                            match generateModelCode model t fno with
-                            | Ok _ -> Ok()
+                        let result =
+                            match generateModel proxy t with
+                            | Ok model ->
+                                match generateModelCode model t fno with
+                                | Ok _ -> Ok()
+                                | Error e -> logError e
                             | Error e -> logError e
-                        | Error e -> logError e
+
+                        let elapsed = String.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)
+                        use proc = Process.GetCurrentProcess()
+                        let memUsed = Math.Round((double proc.PeakWorkingSet64) / (1024.0 * 1024.0 * 1024.0), 2)
+                        printfn $"\naddClmTask: Total generation time: {elapsed}, max memory used: %.2f{memUsed} GB."
+                        result
                     | false -> Ok()
                 | Error e -> logError e
             | Error e ->
