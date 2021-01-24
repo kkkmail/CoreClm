@@ -1,41 +1,9 @@
 namespace ClmSys
 
 open ClmSys.DistributionData
-open Softellect.Sys
+open Softellect.Sys.AppSettings
 
 module ModelData =
-
-    // ========================================== //
-    // Move to Softellect.Sys.AppSettings
-
-    [<Literal>]
-    let ValueSeparator = ":"
-
-
-    [<Literal>]
-    let ListSeparator = ","
-
-
-    [<Literal>]
-    let DiscriminatedUnionSeparator = "|"
-
-
-    /// Expects a string in the form:
-    ///     someField1:SomeValue1,someField2:SomeValue2
-    let parseSimpleSetting (s : string) =
-        let p =
-            s.Split ListSeparator
-            |> List.ofArray
-            |> List.map (fun e -> e.Split ValueSeparator)
-            |> List.map (fun e -> e |> Array.map (fun a -> a.Trim()))
-            |> List.map (fun e -> if e.Length = 2 then Some (e.[0], e.[1]) else None)
-            |> List.choose id
-            |> Map.ofList
-
-        p
-
-    // ========================================== //
-
 
     /// Some of the dictionaries (e.g. [en/ac] ligation catalytic related ones) may become extremely large.
     /// Subsequently for such dictionaries we may want to store only non-optional data in the dictionary.
