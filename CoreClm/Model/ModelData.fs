@@ -9,6 +9,7 @@ open Clm.ReactionRatesBase
 open Clm.ReactionRates
 open Clm.ReactionRateParams
 open Clm.CalculationData
+open ClmSys.ModelData
 open ClmSys.ContGenPrimitives
 
 module ModelData =

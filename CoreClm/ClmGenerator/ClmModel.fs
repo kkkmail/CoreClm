@@ -386,6 +386,7 @@ module ClmModel =
                 "open Clm.ReactionRates"
                 "open Clm.ReactionRateParams"
                 "open Clm.CalculationData"
+                "open ClmSys.ModelData"
                 "open ClmSys.ContGenPrimitives" + Nl
                 "module ModelData = "
                 paramCode + Nl

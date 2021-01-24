@@ -108,17 +108,6 @@ module ServiceInfo =
         abstract tryRequestResults : q:byte[] -> byte[]
 
 
-    ////type MessagingClient = MessagingClient<ClmMessageData, ClmError>
-    ////type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
-    ////type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
-    //type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData, ClmError>>
-    //type Message = Message<ClmMessageData>
-    //type MessageInfo = MessageInfo<ClmMessageData>
-    //type MessagingService = MessagingService<ClmMessageData, ClmError>
-    //type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
-    //type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
-
-
     let contGenServiceAddress = ConfigKey "ContGenServiceAddress"
     let contGenServiceHttpPort = ConfigKey "ContGenServiceHttpPort"
     let contGenServiceNetTcpPort = ConfigKey "ContGenServiceNetTcpPort"
@@ -133,12 +122,6 @@ module ServiceInfo =
     let partitionerId = ConfigKey "PartitionerId"
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
-
-//    let acCatCollisionType = ConfigKey "AcCatCollisionType"
-//    let enCatCollisionType = ConfigKey "EnCatCollisionType"
-//    let catCollisionType = ConfigKey "CatCollisionType"
-//    let otherCollisionType = ConfigKey "OtherCollisionType"
-
 
     let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
         let h = c.value.httpServiceInfo
@@ -177,25 +160,35 @@ module ServiceInfo =
     let acCollKey = ConfigKey "AcColl"
 
 
-//    type PairCollisionResolution
-//        with
-//        member
-
-
     type AppSettingsProvider
         with
 
-        /// Currently We only store collisionB
-        member provider.trySetPairCollisionResolution (c : PairCollisionResolution) =
-            let s =
-                match c with
-                | PairCollision -> failwith ""
-                | EachInPair p ->
-                    failwith ""
-            s
+        member provider.trySetPairCollisionResolution key (c : PairCollisionResolution) =
+            provider.trySet key (c.serialize())
 
+        member provider.trySetTripleCollisionResolution key (c : TripleCollisionResolution) =
+            provider.trySet key (c.serialize())
+
+        /// Generated.
         member provider.trySetCollisionData (d : CollisionData) =
-            provider.trySet
+            [
+                provider.trySetPairCollisionResolution sugSynthCollKey d.sugSynthColl
+                provider.trySetPairCollisionResolution catSynthCollKey d.catSynthColl
+                provider.trySetTripleCollisionResolution enCatSynthCollKey d.enCatSynthColl
+                provider.trySetPairCollisionResolution acCatSynthCollKey d.acCatSynthColl
+                provider.trySetPairCollisionResolution catDestrCollKey d.catDestrColl
+                provider.trySetTripleCollisionResolution enCatDestrCollKey d.enCatDestrColl
+                provider.trySetPairCollisionResolution acCatDestrCollKey d.acCatDestrColl
+                provider.trySetPairCollisionResolution catLigCollKey d.catLigColl
+                provider.trySetTripleCollisionResolution enCatLigCollKey d.enCatLigColl
+                provider.trySetPairCollisionResolution acFwdCatLigCollKey d.acFwdCatLigColl
+                provider.trySetPairCollisionResolution acBkwCatLigCollKey d.acBkwCatLigColl
+                provider.trySetPairCollisionResolution catRacemCollKey d.catRacemColl
+                provider.trySetTripleCollisionResolution enCatRacemCollKey d.enCatRacemColl
+                provider.trySetPairCollisionResolution acCatRacemCollKey d.acCatRacemColl
+                provider.trySetPairCollisionResolution sedDirCollKey d.sedDirColl
+                provider.trySetPairCollisionResolution acCollKey d.acColl
+            ]
 
 
     type ContGenSettings
@@ -282,33 +275,37 @@ module ServiceInfo =
         | _ -> Error s
 
 
-    let getCollisionType (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGet tryCreateCollisionType n with
-            | Ok (Some p) -> p
-            | _ -> d
-        | _ -> d
+//    let getCollisionType (providerRes : AppSettingsProviderResult) n d =
+//        match providerRes with
+//        | Ok provider ->
+//            match provider.tryGet tryCreateCollisionType n with
+//            | Ok (Some p) -> p
+//            | _ -> d
+//        | _ -> d
+
 
 
     let getCollisionData (provider : AppSettingsProvider) =
+        let getPairCollision defaultValue key = (PairCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
+        let getTripleCollision defaultValue key = (TripleCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
+
         {
-            sugSynthColl = PairCollisionResolution.defaultValue
-            catSynthColl = PairCollisionResolution.defaultValue
-            enCatSynthColl = TripleCollisionResolution.defaultValue
-            acCatSynthColl = PairCollisionResolution.defaultValue
-            catDestrColl = PairCollisionResolution.defaultValue
-            enCatDestrColl = TripleCollisionResolution.defaultValue
-            acCatDestrColl = PairCollisionResolution.defaultValue
-            catLigColl = PairCollisionResolution.defaultValue
-            enCatLigColl = TripleCollisionResolution.defaultValue
-            acFwdCatLigColl = PairCollisionResolution.defaultValue
-            acBkwCatLigColl = PairCollisionResolution.defaultValue
-            catRacemColl = PairCollisionResolution.defaultValue
-            enCatRacemColl = TripleCollisionResolution.defaultValue
-            acCatRacemColl = PairCollisionResolution.defaultValue
-            sedDirColl = PairCollisionResolution.defaultValue
-            acColl = PairCollisionResolution.defaultValue
+            sugSynthColl = getPairCollision PairCollisionResolution.defaultValue sugSynthCollKey
+            catSynthColl = getPairCollision PairCollisionResolution.defaultValue catSynthCollKey
+            enCatSynthColl = getTripleCollision TripleCollisionResolution.defaultValue enCatSynthCollKey
+            acCatSynthColl = getPairCollision PairCollisionResolution.defaultValue acCatSynthCollKey
+            catDestrColl = getPairCollision PairCollisionResolution.defaultValue catDestrCollKey
+            enCatDestrColl = getTripleCollision TripleCollisionResolution.defaultValue enCatDestrCollKey
+            acCatDestrColl = getPairCollision PairCollisionResolution.defaultValue acCatDestrCollKey
+            catLigColl = getPairCollision PairCollisionResolution.defaultValue catLigCollKey
+            enCatLigColl = getTripleCollision TripleCollisionResolution.defaultValue enCatLigCollKey
+            acFwdCatLigColl = getPairCollision PairCollisionResolution.defaultValue acFwdCatLigCollKey
+            acBkwCatLigColl = getPairCollision PairCollisionResolution.defaultValue acBkwCatLigCollKey
+            catRacemColl = getPairCollision PairCollisionResolution.defaultValue catRacemCollKey
+            enCatRacemColl = getTripleCollision TripleCollisionResolution.defaultValue enCatRacemCollKey
+            acCatRacemColl = getPairCollision PairCollisionResolution.defaultValue acCatRacemCollKey
+            sedDirColl = getPairCollision PairCollisionResolution.defaultValue sedDirCollKey
+            acColl = getPairCollision PairCollisionResolution.defaultValue acCollKey
         }
 
 

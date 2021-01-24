@@ -1,6 +1,7 @@
 namespace ClmSys
 
 open ClmSys.DistributionData
+open Softellect.Sys
 
 module ModelData =
 
@@ -85,13 +86,18 @@ module ModelData =
 
         static member tryDeserialize (s : string) =
             match s with
-            | nameof(PairCollision) -> Some PairCollision
+            | nameof(PairCollision) -> Ok PairCollision
             | _ ->
                 let start = $"{nameof(EachInPair)}{DiscriminatedUnionSeparator}"
 
                 match s.Replace(" ", "").StartsWith(start) with
-                | true -> s.Substring(start.Length) |> PairCollisionResolutionType.tryDeserialize |> Option.bind (fun e -> e |> EachInPair |> Some)
-                | false -> None
+                | true ->
+                    let r = s.Substring(start.Length) |> PairCollisionResolutionType.tryDeserialize |> Option.bind (fun e -> e |> EachInPair |> Some)
+
+                    match r with
+                    | Some v -> Ok v
+                    | None -> Error s
+                | false -> Error s
 
         static member defaultValue = PairCollisionResolutionType.defaultValue |> EachInPair
         static member excludeDuplicateCatalysts = PairCollisionResolutionType.excludeDuplicateCatalysts |> EachInPair
@@ -147,15 +153,20 @@ module ModelData =
             | TripleCollision -> nameof(TripleCollision)
             | EachInTriple e -> $"{nameof(EachInTriple)}{DiscriminatedUnionSeparator}{e.serialize()}"
 
-        static member tryDeserialize (s : string) =
+        static member tryDeserialize (s : string) : Result<TripleCollisionResolution, string> =
             match s with
-            | nameof(TripleCollision) -> Some TripleCollision
+            | nameof(TripleCollision) -> Ok TripleCollision
             | _ ->
                 let start = $"{nameof(EachInTriple)}{DiscriminatedUnionSeparator}"
 
                 match s.Replace(" ", "").StartsWith(start) with
-                | true -> s.Substring(start.Length) |> TripleCollisionResolutionType.tryDeserialize |> Option.bind (fun e -> e |> EachInTriple |> Some)
-                | false -> None
+                | true ->
+                    let r = s.Substring(start.Length) |> TripleCollisionResolutionType.tryDeserialize |> Option.bind (fun e -> e |> EachInTriple |> Some)
+
+                    match r with
+                    | Some v -> Ok v
+                    | None -> Error s
+                | false -> Error s
 
         static member defaultValue = TripleCollisionResolutionType.defaultValue |> EachInTriple
         static member excludeDuplicateCatalysts = TripleCollisionResolutionType.excludeDuplicateCatalysts |> EachInTriple

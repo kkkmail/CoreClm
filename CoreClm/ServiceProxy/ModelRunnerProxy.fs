@@ -8,13 +8,13 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
-open Clm.Generator.ClmModelData
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodePrimitives
 open ClmSys.Logging
 open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
 open Clm.CalculationData
+open ClmSys.ModelData
 open NoSql.FileSystemTypes
 
 module ModelRunnerProxy =
