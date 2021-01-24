@@ -369,7 +369,7 @@ module ModelRunner =
                 let runner = Runner(data)
 
                 {
-                    modelGenerator = createModelGenerator d.logger d.runnerData.collisionData so d.runnerData.getConnectionString
+                    modelGenerator = createModelGenerator d.logger d.runnerData.dictionaryUpdateType d.runnerData.collisionData so d.runnerData.getConnectionString
                     modelRunner = createModelRunner d.logger runner
                     tryCancelRunQueue = runner.tryCancelRunQueue
                     tryRequestResults = runner.tryRequestResults

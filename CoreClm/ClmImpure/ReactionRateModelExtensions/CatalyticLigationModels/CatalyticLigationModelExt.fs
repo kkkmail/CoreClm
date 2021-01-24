@@ -19,7 +19,7 @@ module CatalyticLigationModelExt =
             | CatalyticLigationRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate (si : SubstInfo) (p, m) =
+        static member tryCreate u (si : SubstInfo) (p, m) =
             (p, m)
             |> CatalyticLigationRandomModel.tryCreate
-            |> CatalyticLigationSimilarModel.tryCreate (si.ligationReactions |> PeptideBondData.create)
+            |> CatalyticLigationSimilarModel.tryCreate u (si.ligationReactions |> PeptideBondData.create)

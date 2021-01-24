@@ -25,12 +25,13 @@ module AcFwdCatalyticLigationSimilarModelExt =
             | _ -> None
 
 
-        static member tryCreate a (p, m) =
+        static member tryCreate u a (p, m) =
             let creator b (d : AcFwdCatalyticLigationSimilarParam) =
                 {
                     acFwdCatLigModel = b
                     peptideBondData = a
                     acFwdCatLigSimParam = d.acFwdCatLigSimParam
+                    dictionaryUpdateType = u
                 }
                 |> AcFwdCatalyticLigationSimilarModel |> AcFwdCatLigSimModel |> AcFwdCatalyticLigationRateModel
 

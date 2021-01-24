@@ -1,5 +1,6 @@
 ﻿namespace Clm.Generator
 
+open Clm.ReactionRateParams
 open FSharp.Collections
 
 open ClmSys.VersionInfo
@@ -37,6 +38,7 @@ module ClmModelData =
             clmDefaultValueId : ClmDefaultValueId
             successNumberType : SuccessNumberType
             collisionData : CollisionData
+            dictionaryUpdateType : DictionaryUpdateType
             seedValue : int option
         }
 
@@ -47,7 +49,7 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member create coll so g (c : ClmTask) =
+        static member create u coll so g (c : ClmTask) =
             match g c.clmTaskInfo.clmDefaultValueId with
             | Ok v ->
                 {
@@ -62,6 +64,7 @@ module ClmModelData =
                             clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
                             successNumberType = v.defaultRateParams.successNumberType
                             collisionData = coll
+                            dictionaryUpdateType = u
                             seedValue = so
                         }
 

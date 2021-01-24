@@ -25,12 +25,13 @@ module CatalyticLigationSimilarModelExt =
             | _ -> None
 
 
-        static member tryCreate a (p, m) =
+        static member tryCreate u a (p, m) =
             let creator b (d : CatalyticLigationSimilarParam) =
                 {
                     catLigModel = b
                     peptideBondData = a
                     catLigSimParam = d.catLigSimParam
+                    dictionaryUpdateType = u
                 }
                 |> CatalyticLigationSimilarModel |> CatLigSimModel |> CatalyticLigationRateModel
 

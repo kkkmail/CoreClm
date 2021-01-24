@@ -16,9 +16,9 @@ module ModelGeneratorProxy =
             updateClmTask : ClmTask -> UnitResult
         }
 
-        static member create coll so c =
+        static member create u coll so c =
             {
-                loadParams = AllParams.create coll so (loadClmDefaultValue c)
+                loadParams = AllParams.create u coll so (loadClmDefaultValue c)
                 upsertModelData = upsertModelData c
                 upsertRunQueue = upsertRunQueue c
                 updateClmTask = updateClmTask c

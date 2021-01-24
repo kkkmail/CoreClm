@@ -12,41 +12,6 @@ open Clm.ReactionTypes
 
 module ReactionRateFunctions =
 
-    /// TODO kk:20210110 - Temporary hack to allow changing getCatLigValue from command line.
-    /// Refactor if found useful.
-    let mutable useNonOptionalRateDataOnly = false
-
-
-    /// Some of the dictionaries (e.g. [en/ac] ligation catalytic related ones) may become extremely large.
-    /// Subsequently for such dictionaries we may want to store only non-optional data in the dictionary.
-    type DictionaryUpdateType =
-        /// Store all data in the dictionary. The size of the dictionary might become very large.
-        | AllRateData
-
-        /// Store only non-optional data in the dictionary.
-        /// Do not use this for simple reactions where stored optional data
-        /// is actually used to show that the reaction does NOT have a rate.
-        /// A projection function Reaction -> Key (which is usually a catalyst)
-        /// is used to project a reaction into a smaller [space] representation.
-        /// This is currently used by [en/ac] catalytic ligation reactions where the numbers
-        /// are just too big.
-        | NonOptionalRateDataOnly
-
-
-        static member getCatLigValue() =
-            let retVal =
-                match useNonOptionalRateDataOnly with
-                | false -> AllRateData
-                | true -> NonOptionalRateDataOnly
-
-            printfn $"getCatLigValue: retVal = {retVal}."
-            retVal
-
-        static member getEnCatLigValue() = DictionaryUpdateType.getCatLigValue()
-        static member getAcFwdCatLigValue() = DictionaryUpdateType.getCatLigValue()
-        static member getAcBkwCatLigValue() = DictionaryUpdateType.getCatLigValue()
-
-
     /// !!! Internally mutable structure !!!
     /// Structure to hold the key set and the a function to produce a key out of reaction.
     type KeySetData<'R, 'C> =

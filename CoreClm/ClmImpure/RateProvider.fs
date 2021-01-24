@@ -1,5 +1,6 @@
 ﻿namespace ClmImpure
 
+open Clm.ReactionRateParams
 open FSharp.Collections
 
 open Clm.ReactionTypes
@@ -61,9 +62,9 @@ open ClmImpure.ReactionRateModelExtensions.ActivationModelExt
 
 module RateProvider =
 
-    type ReactionRateProvider (p: ReactionRateProviderParams, si : SubstInfo) =
+    type ReactionRateProvider (p: ReactionRateProviderParams, si : SubstInfo, u : DictionaryUpdateType) =
         let allModels =
-            let x = ReactionRateModel.createAll (p.allParams()) si
+            let x = ReactionRateModel.createAll u (p.allParams()) si
             x
 
         let tryPick getter = allModels |> List.tryPick getter

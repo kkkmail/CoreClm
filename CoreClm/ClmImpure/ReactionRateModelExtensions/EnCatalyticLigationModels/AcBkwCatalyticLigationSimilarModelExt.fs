@@ -25,12 +25,13 @@ module AcBkwCatalyticLigationSimilarModelExt =
             | _ -> None
 
 
-        static member tryCreate a (p, m) =
+        static member tryCreate u a (p, m) =
             let creator b (d : AcBkwCatalyticLigationSimilarParam) =
                 {
                     acBkwCatLigModel = b
                     peptideBondData = a
                     acBkwCatLigSimParam = d.acBkwCatLigSimParam
+                    dictionaryUpdateType = u
                 }
                 |> AcBkwCatalyticLigationSimilarModel |> AcBkwCatLigSimModel |> AcBkwCatalyticLigationRateModel
 

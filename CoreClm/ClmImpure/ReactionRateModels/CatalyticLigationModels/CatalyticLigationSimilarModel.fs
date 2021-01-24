@@ -16,12 +16,13 @@ module CatalyticLigationSimilarModel =
             catLigModel : CatalyticLigationRandomModel
             peptideBondData : PeptideBondData
             catLigSimParam : CatRatesSimilarityParam
+            dictionaryUpdateType : DictionaryUpdateType
         }
 
 
     type CatalyticLigationSimilarModel (p : CatalyticLigationSimilarParamWithModel) =
         let dictionaryData =
-            match DictionaryUpdateType.getEnCatLigValue() with
+            match p.dictionaryUpdateType with
             | AllRateData -> toDictionaryData p.catLigModel.rateDictionary
             | NonOptionalRateDataOnly ->
                 {

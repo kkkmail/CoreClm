@@ -35,7 +35,7 @@ module ContGenAdmTasks =
 
         let useNonOptionalRateDataOnly = getUseNonOptionalRateDataOnly p
         printfn $"addClmTask: useNonOptionalRateDataOnly = {useNonOptionalRateDataOnly}"
-        ReactionRateFunctions.useNonOptionalRateDataOnly <- useNonOptionalRateDataOnly
+//        ReactionRateFunctions.useNonOptionalRateDataOnly <- useNonOptionalRateDataOnly
 
         match i, n, m, c with
         | Some i, Some n, Some m, Some c ->

@@ -122,6 +122,8 @@ module ServiceInfo =
     let partitionerId = ConfigKey "PartitionerId"
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
+    let useNonOptionalRateDataOnly = ConfigKey "UseNonOptionalRateDataOnly"
+
 
     let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
         let h = c.value.httpServiceInfo
@@ -206,6 +208,7 @@ module ServiceInfo =
                     provider.trySet minUsefulEe w.contGenInfo.minUsefulEe.value |> ignore
                     provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
                     provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
+                    provider.trySet useNonOptionalRateDataOnly w.contGenInfo.useNonOptionalRateDataOnly |> ignore
                     provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
 
                     provider.trySave() |> Rop.bindError toErr
@@ -349,6 +352,11 @@ module ServiceInfo =
                         | _ -> EarlyExitCheckFreq.defaultValue
 
                     collisionData = getCollisionData provider
+
+                    useNonOptionalRateDataOnly =
+                        match provider.tryGetBool useNonOptionalRateDataOnly with
+                        | Ok (Some v) -> v
+                        | _ -> false
                 }
             | _ ->
                 {
@@ -357,6 +365,7 @@ module ServiceInfo =
                     lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
                     earlyExitCheckFreq = EarlyExitCheckFreq.defaultValue
                     collisionData = CollisionData.defaultValue
+                    useNonOptionalRateDataOnly = false
                 }
 
         let (contGenSvcInfo, contGenServiceCommunicationType) = loadContGenServiceSettings providerRes

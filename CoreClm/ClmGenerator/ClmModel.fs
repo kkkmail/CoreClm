@@ -42,7 +42,7 @@ module ClmModel =
             }
             |> SubstInfo.create
 
-        let rateProvider = ReactionRateProvider (rrp, si)
+        let rateProvider = ReactionRateProvider (rrp, si, modelParams.dictionaryUpdateType)
         let bf = RateGenerationData.create rnd generationType rateProvider si modelParams.successNumberType modelParams.collisionData
 
         let modelInfo =

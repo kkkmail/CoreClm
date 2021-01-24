@@ -35,6 +35,7 @@ module ContGenData =
             lastAllowedNodeErr : LastAllowedNodeErr
             earlyExitCheckFreq : EarlyExitCheckFreq
             collisionData : CollisionData
+            dictionaryUpdateType : DictionaryUpdateType
         }
 
 

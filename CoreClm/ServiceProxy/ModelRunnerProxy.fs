@@ -1,5 +1,6 @@
 ﻿namespace ServiceProxy
 
+open Clm.ReactionRateParams
 open Softellect.Messaging.ServiceInfo
 
 open Clm.ModelParams
@@ -159,6 +160,7 @@ module ModelRunnerProxy =
             earlyExitInfoOpt : EarlyExitInfo option
             lastAllowedNodeErr : LastAllowedNodeErr
             collisionData : CollisionData
+            dictionaryUpdateType : DictionaryUpdateType
         }
 
 

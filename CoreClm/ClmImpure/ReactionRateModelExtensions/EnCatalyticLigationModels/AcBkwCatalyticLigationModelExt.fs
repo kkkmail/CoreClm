@@ -19,7 +19,7 @@ module AcBkwCatalyticLigationModelExt =
             | AcBkwCatalyticLigationRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate (si : SubstInfo) (p, m) =
+        static member tryCreate u (si : SubstInfo) (p, m) =
             (p, m)
             |> AcBkwCatalyticLigationRandomModel.tryCreate
-            |> AcBkwCatalyticLigationSimilarModel.tryCreate (si.ligationReactions |> PeptideBondData.create)
+            |> AcBkwCatalyticLigationSimilarModel.tryCreate u (si.ligationReactions |> PeptideBondData.create)

@@ -12094,6 +12094,7 @@ module ModelData =
                                                                     getEeDistr = DeltaEeDistributionGetter
                                                                 }
 
+                                                            dictionaryUpdateType = AllRateData
                                                         }
                                                         |> CatLigSimParam
                                                         |> CatalyticLigationRateParam

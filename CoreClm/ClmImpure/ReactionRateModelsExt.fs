@@ -57,7 +57,7 @@ module ReactionRateModelsExt =
     type ReactionRateModel
         with
 
-        static member createAll (p : list<ReactionRateModelParamWithUsage>) (si : SubstInfo) =
+        static member createAll u (p : list<ReactionRateModelParamWithUsage>) (si : SubstInfo) =
             (
                 [
                     FoodCreationModel.tryCreate
@@ -73,10 +73,10 @@ module ReactionRateModelsExt =
                     EnCatalyticDestructionModel.tryCreate si
                     AcCatalyticDestructionModel.tryCreate si
                     LigationModel.tryCreate
-                    CatalyticLigationModel.tryCreate si
-                    EnCatalyticLigationModel.tryCreate si
-                    AcFwdCatalyticLigationModel.tryCreate si
-                    AcBkwCatalyticLigationModel.tryCreate si
+                    CatalyticLigationModel.tryCreate u si
+                    EnCatalyticLigationModel.tryCreate u si
+                    AcFwdCatalyticLigationModel.tryCreate u si
+                    AcBkwCatalyticLigationModel.tryCreate u si
                     SedimentationDirectModel.tryCreate si
                     SedimentationAllModel.tryCreate
                     RacemizationModel.tryCreate

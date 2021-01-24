@@ -37,6 +37,22 @@ module ModelData =
     // ========================================== //
 
 
+    /// Some of the dictionaries (e.g. [en/ac] ligation catalytic related ones) may become extremely large.
+    /// Subsequently for such dictionaries we may want to store only non-optional data in the dictionary.
+    type DictionaryUpdateType =
+        /// Store all data in the dictionary. The size of the dictionary might become very large.
+        | AllRateData
+
+        /// Store only non-optional data in the dictionary.
+        /// Do not use this for simple reactions where stored optional data
+        /// is actually used to show that the reaction does NOT have a rate.
+        /// A projection function Reaction -> Key (which is usually a catalyst)
+        /// is used to project a reaction into a smaller [space] representation.
+        /// This is currently used by [en/ac] catalytic ligation reactions where the numbers
+        /// are just too big.
+        | NonOptionalRateDataOnly
+
+
     type PairCollisionResolutionType =
         {
             collisionA : CollisionResolutionType
@@ -49,9 +65,9 @@ module ModelData =
         static member tryDeserialize (s : string) =
             let d = PairCollisionResolutionType.defaultValue
             let p = parseSimpleSetting s
-            let tryCreate v = p |> Map.tryFind v |> Option.map CollisionResolutionType.tryCreate |> Option.flatten
+            let tryDeserialize v = p |> Map.tryFind v |> Option.map CollisionResolutionType.tryDeserialize |> Option.flatten
 
-            match nameof(d.collisionA) |> tryCreate, nameof(d.collisionB) |> tryCreate with
+            match nameof(d.collisionA) |> tryDeserialize, nameof(d.collisionB) |> tryDeserialize with
             | Some a, Some b ->
                 {
                     collisionA = a
@@ -116,9 +132,9 @@ module ModelData =
         static member tryDeserialize (s : string) =
             let d = TripleCollisionResolutionType.defaultValue
             let p = parseSimpleSetting s
-            let tryCreate v = p |> Map.tryFind v |> Option.map CollisionResolutionType.tryCreate |> Option.flatten
+            let tryDeserialize v = p |> Map.tryFind v |> Option.map CollisionResolutionType.tryDeserialize |> Option.flatten
 
-            match nameof(d.collisionA) |> tryCreate, nameof(d.collisionB) |> tryCreate, nameof(d.collisionC) |> tryCreate with
+            match nameof(d.collisionA) |> tryDeserialize, nameof(d.collisionB) |> tryDeserialize, nameof(d.collisionC) |> tryDeserialize with
             | Some a, Some b, Some c ->
                 {
                     collisionA = a

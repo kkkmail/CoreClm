@@ -9,7 +9,7 @@ module DistributionData =
         | NoCollisionResolution
         | ExcludeDuplicates
 
-        static member tryCreate (s : string) =
+        static member tryDeserialize (s : string) =
             match s with
             | nameof(NoCollisionResolution) -> Some NoCollisionResolution
             | nameof(ExcludeDuplicates) -> Some ExcludeDuplicates

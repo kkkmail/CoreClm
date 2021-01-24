@@ -15,12 +15,13 @@ module AcFwdCatalyticLigationSimilarModel =
             acFwdCatLigModel : AcFwdCatalyticLigationRandomModel
             peptideBondData : PeptideBondData
             acFwdCatLigSimParam : AcCatRatesSimilarityParam
+            dictionaryUpdateType : DictionaryUpdateType
         }
 
 
     type AcFwdCatalyticLigationSimilarModel (p : AcFwdCatalyticLigationSimilarParamWithModel) =
         let dictionaryData =
-            match DictionaryUpdateType.getAcFwdCatLigValue() with
+            match p.dictionaryUpdateType with
             | AllRateData -> toDictionaryData p.acFwdCatLigModel.rateDictionary
             | NonOptionalRateDataOnly ->
                 {
