@@ -50,6 +50,7 @@ module ModelParams =
             modelInfo : ModelInfo
             allParams : array<ReactionRateModelParamWithUsage>
             collisionData : CollisionData
+            dictionaryUpdateType : DictionaryUpdateType
         }
 
 

@@ -93,11 +93,9 @@ module SvcCommandLine =
     let loadContGenInfo (c : ContGenInfo) p =
         let contGenInfo =
             {
-                minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue c.minUsefulEe
-                partitionerId = tryGetPartitioner p |> Option.defaultValue c.partitionerId
-                lastAllowedNodeErr = c.lastAllowedNodeErr
-                earlyExitCheckFreq = c.earlyExitCheckFreq
-                collisionData = c.collisionData
+                c with
+                    minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue c.minUsefulEe
+                    partitionerId = tryGetPartitioner p |> Option.defaultValue c.partitionerId
             }
 
         contGenInfo
@@ -194,6 +192,7 @@ module SvcCommandLine =
 
                                 lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
                                 collisionData = w.contGenInfo.collisionData
+                                dictionaryUpdateType = w.contGenInfo.dictionaryUpdateType
                             }
 
                         runnerProxy =

@@ -53,6 +53,15 @@ module ModelData =
         | NonOptionalRateDataOnly
 
 
+        member u.serialize() = $"{u}"
+
+        static member tryDeserialize (s : string) =
+            match s with
+            | nameof(AllRateData) -> Ok AllRateData
+            | nameof(NonOptionalRateDataOnly) -> Ok NonOptionalRateDataOnly
+            | _ -> Error s
+
+
     type PairCollisionResolutionType =
         {
             collisionA : CollisionResolutionType

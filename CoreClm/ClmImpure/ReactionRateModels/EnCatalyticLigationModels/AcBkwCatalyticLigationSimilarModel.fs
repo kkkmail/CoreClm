@@ -7,6 +7,7 @@ open Clm.ReactionRatesBase
 open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
 open ClmImpure.ReactionRateModels.AcBkwCatalyticLigationRandomModel
+open ClmSys.ModelData
 
 module AcBkwCatalyticLigationSimilarModel =
 

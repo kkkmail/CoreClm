@@ -33,9 +33,8 @@ module ContGenAdmTasks =
         let settings = loadContGenSettings()
         printfn "addClmTask:settings =\n%A" settings
 
-        let useNonOptionalRateDataOnly = getUseNonOptionalRateDataOnly p
-        printfn $"addClmTask: useNonOptionalRateDataOnly = {useNonOptionalRateDataOnly}"
-//        ReactionRateFunctions.useNonOptionalRateDataOnly <- useNonOptionalRateDataOnly
+        let dictionaryUpdateType = getDictionaryUpdateType p |> Option.defaultValue settings.contGenInfo.dictionaryUpdateType
+        printfn $"addClmTask: dictionaryUpdateType = {dictionaryUpdateType}"
 
         match i, n, m, c with
         | Some i, Some n, Some m, Some c ->
@@ -64,7 +63,7 @@ module ContGenAdmTasks =
                     match getGenerateModelCode p with
                     | true ->
                         printfn "Generating model..."
-                        let proxy = GenerateModelProxy.create settings.contGenInfo.collisionData so getClmConnectionString
+                        let proxy = GenerateModelProxy.create dictionaryUpdateType settings.contGenInfo.collisionData so getClmConnectionString
                         let fno = getModelCodeFileName p
 
                         match generateModel proxy t with

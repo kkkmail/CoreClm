@@ -2,6 +2,7 @@
 
 open Argu
 
+open ClmSys.ModelData
 open Softellect.Sys.Logging
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.Primitives
@@ -210,10 +211,14 @@ module AdmCommandLine =
         p |> List.tryPick (fun e -> match e with | SeedValue v -> Some v | _ -> None)
 
 
-    let getUseNonOptionalRateDataOnly (p :list<AddClmTaskArgs>) =
+    let getDictionaryUpdateType (p :list<AddClmTaskArgs>) =
         match p |> List.tryPick (fun e -> match e with | UseNonOptionalRateDataOnly v -> Some v | _ -> None) with
-        | Some n -> n
-        | None -> false
+        | Some n ->
+            match n with
+            | false -> AllRateData
+            | true -> NonOptionalRateDataOnly
+            |> Some
+        | None -> None
 
 
     let tryGetModelId (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)

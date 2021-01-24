@@ -12093,8 +12093,6 @@ module ModelData =
                                                                     getRateMultiplierDistr = DeltaRateMultDistrGetter
                                                                     getEeDistr = DeltaEeDistributionGetter
                                                                 }
-
-                                                            dictionaryUpdateType = AllRateData
                                                         }
                                                         |> CatLigSimParam
                                                         |> CatalyticLigationRateParam
@@ -12104,6 +12102,7 @@ module ModelData =
                                             |]
 
                                         collisionData = CollisionData.defaultValue
+                                        dictionaryUpdateType = AllRateData
                                     }
 
                                 allSubstData =

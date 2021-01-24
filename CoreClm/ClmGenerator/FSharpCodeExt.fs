@@ -7,8 +7,10 @@ open Clm.ReactionRates
 open Clm.ReactionRateParams
 open Clm.ModelParams
 open Clm.ReactionTypes
+open ClmSys.DistributionData
 open ClmSys.GeneralData
 open ClmSys.ContGenPrimitives
+open ClmSys.ModelData
 
 
 module FSharpCodeExt =
@@ -911,6 +913,68 @@ module FSharpCodeExt =
             shift + "}" + Nl
 
 
+    type CollisionResolutionType
+        with
+        member p.toFSharpCode = $"{p}"
+
+
+    type PairCollisionResolution
+        with
+        member p.toFSharpCode (shift : string) =
+            match p with
+            | PairCollision -> nameof(PairCollision)
+            | EachInPair v ->
+                Nl +
+                shift + "{" + Nl +
+                shift + "    collisionA = " + v.collisionA.toFSharpCode + Nl +
+                shift + "    collisionB = " + v.collisionB.toFSharpCode + Nl +
+                shift + "}" + Nl +
+                shift + "|> " + nameof(EachInPair) + Nl
+
+
+    type TripleCollisionResolution
+        with
+        member p.toFSharpCode (shift : string) =
+            match p with
+            | TripleCollision -> nameof(TripleCollision)
+            | EachInTriple v ->
+                Nl +
+                shift + "{" + Nl +
+                shift + "    collisionA = " + v.collisionA.toFSharpCode + Nl +
+                shift + "    collisionB = " + v.collisionB.toFSharpCode + Nl +
+                shift + "    collisionC = " + v.collisionC.toFSharpCode + Nl +
+                shift + "}" + Nl +
+                shift + "|> " + nameof(EachInTriple) + Nl
+
+
+    type CollisionData
+        with
+        member p.toFSharpCode (shift : string) =
+            shift + "{" + Nl +
+            shift + "    sugSynthColl = " + p.sugSynthColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    catSynthColl = " + p.catSynthColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    enCatSynthColl = " + p.enCatSynthColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    acCatSynthColl = " + p.acCatSynthColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    catDestrColl = " + p.catDestrColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    enCatDestrColl = " + p.enCatDestrColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    acCatDestrColl = " + p.acCatDestrColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    catLigColl = " + p.catLigColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    enCatLigColl = " + p.enCatLigColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    acFwdCatLigColl = " + p.acFwdCatLigColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    acBkwCatLigColl = " + p.acBkwCatLigColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    catRacemColl = " + p.catRacemColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    enCatRacemColl = " + p.enCatRacemColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    acCatRacemColl = " + p.acCatRacemColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    sedDirColl = " + p.sedDirColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "    acColl = " + p.acColl.toFSharpCode(increaseShiftTwice shift) + Nl +
+            shift + "}" + Nl
+
+
+    type DictionaryUpdateType
+        with
+        member p.toFSharpCode = $"{p}"
+
+
     type ModelDataParams
         with
         member p.toFSharpCode (shift : string) =
@@ -920,6 +984,8 @@ module FSharpCodeExt =
             shift + "        [|"+ Nl +
             (toParamFSharpCode p.allParams (increaseShiftTwice shift |> increaseShift)) + Nl +
             shift + "        |]" + Nl +
+            shift + "    collisionData =" + (p.collisionData.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "    dictionaryUpdateType = " + Nl + (p.dictionaryUpdateType.toFSharpCode) + Nl +
             shift + "}" + Nl
 
 

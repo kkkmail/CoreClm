@@ -1,6 +1,6 @@
 ﻿namespace ClmImpure
 
-open Clm.ReactionRateParams
+open ClmSys.ModelData
 open FSharp.Collections
 
 open Clm.ReactionTypes

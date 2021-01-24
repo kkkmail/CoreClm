@@ -122,7 +122,7 @@ module ServiceInfo =
     let partitionerId = ConfigKey "PartitionerId"
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
-    let useNonOptionalRateDataOnly = ConfigKey "UseNonOptionalRateDataOnly"
+    let dictionaryUpdateType = ConfigKey "DictionaryUpdateType"
 
 
     let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
@@ -208,7 +208,7 @@ module ServiceInfo =
                     provider.trySet minUsefulEe w.contGenInfo.minUsefulEe.value |> ignore
                     provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
                     provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
-                    provider.trySet useNonOptionalRateDataOnly w.contGenInfo.useNonOptionalRateDataOnly |> ignore
+                    provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
                     provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
 
                     provider.trySave() |> Rop.bindError toErr
@@ -353,10 +353,10 @@ module ServiceInfo =
 
                     collisionData = getCollisionData provider
 
-                    useNonOptionalRateDataOnly =
-                        match provider.tryGetBool useNonOptionalRateDataOnly with
+                    dictionaryUpdateType =
+                        match provider.tryGet DictionaryUpdateType.tryDeserialize dictionaryUpdateType with
                         | Ok (Some v) -> v
-                        | _ -> false
+                        | _ -> AllRateData
                 }
             | _ ->
                 {
@@ -365,7 +365,7 @@ module ServiceInfo =
                     lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
                     earlyExitCheckFreq = EarlyExitCheckFreq.defaultValue
                     collisionData = CollisionData.defaultValue
-                    useNonOptionalRateDataOnly = false
+                    dictionaryUpdateType = AllRateData
                 }
 
         let (contGenSvcInfo, contGenServiceCommunicationType) = loadContGenServiceSettings providerRes
