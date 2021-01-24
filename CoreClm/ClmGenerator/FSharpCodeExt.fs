@@ -984,8 +984,8 @@ module FSharpCodeExt =
             shift + "        [|"+ Nl +
             (toParamFSharpCode p.allParams (increaseShiftTwice shift |> increaseShift)) + Nl +
             shift + "        |]" + Nl +
-            shift + "    collisionData =" + (p.collisionData.toFSharpCode (increaseShiftTwice shift)) + Nl +
-            shift + "    dictionaryUpdateType = " + Nl + (p.dictionaryUpdateType.toFSharpCode) + Nl +
+            shift + "    collisionData =" + Nl + (p.collisionData.toFSharpCode (increaseShiftTwice shift)) + Nl +
+            shift + "    dictionaryUpdateType = " + (p.dictionaryUpdateType.toFSharpCode) + Nl +
             shift + "}" + Nl
 
 
