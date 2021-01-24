@@ -97,6 +97,7 @@ module SvcCommandLine =
                 partitionerId = tryGetPartitioner p |> Option.defaultValue c.partitionerId
                 lastAllowedNodeErr = c.lastAllowedNodeErr
                 earlyExitCheckFreq = c.earlyExitCheckFreq
+                collisionData = c.collisionData
             }
 
         contGenInfo
@@ -167,11 +168,6 @@ module SvcCommandLine =
         messagingClient.messageProcessorProxy
 
 
-
-
-    /// TODO kk:20200517 - Propagate early exit info to command line parameters.
-    //  (p : list<ContGenRunArgs>)
-    // Result<ContGenServiceData, ClmError>
     let tryGetContGenServiceData (logger : Logger) p : Result<ContGenServiceData, ClmError> =
         let w = loadSettings p
         printfn "getContGenServiceData: w = %A" w
@@ -197,7 +193,7 @@ module SvcCommandLine =
                                             frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
 
                                 lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
-                                collisionData = 0
+                                collisionData = w.contGenInfo.collisionData
                             }
 
                         runnerProxy =

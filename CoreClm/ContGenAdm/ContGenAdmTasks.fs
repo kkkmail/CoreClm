@@ -30,6 +30,9 @@ module ContGenAdmTasks =
         let c = tryGetCommandLineParams p
         let so = getSeedValue p
 
+        let settings = loadContGenSettings()
+        printfn "addClmTask:settings =\n%A" settings
+
         let useNonOptionalRateDataOnly = getUseNonOptionalRateDataOnly p
         printfn $"addClmTask: useNonOptionalRateDataOnly = {useNonOptionalRateDataOnly}"
         ReactionRateFunctions.useNonOptionalRateDataOnly <- useNonOptionalRateDataOnly
@@ -61,7 +64,7 @@ module ContGenAdmTasks =
                     match getGenerateModelCode p with
                     | true ->
                         printfn "Generating model..."
-                        let proxy = GenerateModelProxy.create so getClmConnectionString
+                        let proxy = GenerateModelProxy.create settings.contGenInfo.collisionData so getClmConnectionString
                         let fno = getModelCodeFileName p
 
                         match generateModel proxy t with

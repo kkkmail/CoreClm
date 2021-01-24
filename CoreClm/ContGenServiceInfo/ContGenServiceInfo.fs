@@ -275,16 +275,6 @@ module ServiceInfo =
         | _ -> Error s
 
 
-//    let getCollisionType (providerRes : AppSettingsProviderResult) n d =
-//        match providerRes with
-//        | Ok provider ->
-//            match provider.tryGet tryCreateCollisionType n with
-//            | Ok (Some p) -> p
-//            | _ -> d
-//        | _ -> d
-
-
-
     let getCollisionData (provider : AppSettingsProvider) =
         let getPairCollision defaultValue key = (PairCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
         let getTripleCollision defaultValue key = (TripleCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
@@ -380,6 +370,8 @@ module ServiceInfo =
                 messagingSvcInfo = messagingSvcInfo
                 messagingCommType = messagingServiceCommunicationType
             }
+
+        printfn "loadContGenSettings: Using settings:\n%A" w
 
         w
 

@@ -20,7 +20,7 @@ module ContGenWcfService =
 
     let private tryCreateModelRunner() =
         match contGenServiceData.Value with
-        | Ok data -> ModelRunner.create 0 None data.modelRunnerData
+        | Ok data -> ModelRunner.create None data.modelRunnerData
         | Error e -> Error e
 
 
