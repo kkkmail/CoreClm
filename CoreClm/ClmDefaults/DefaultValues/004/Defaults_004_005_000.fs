@@ -8,35 +8,88 @@ open ClmSys.ContGenPrimitives
 open Clm.ReactionRatesBase
 
 module Defaults_004_005_000 =
+
+    /// Activated catalytic reactions playground.
     type DefaultDataParam =
         {
             activationScarcity : double
             activationMultiplier : double
 
-            acCatSynthSimilarity : double
             acCatSynthScarcity : double
             acCatSynthMultiplier : double
+            acCatSynthSimilarity : double
 
-            acCatDestrSimilarity : double
             acCatDestrScarcity : double
             acCatDestrMultiplier : double
+            acCatDestrSimilarity : double
 
             ligForward : double
             ligBackward : double
 
-            acFwdCatLigSimilarity : double
             acFwdCatLigScarcity : double
             acFwdCatLigMultiplier : double
+            acFwdCatLigSimilarity : double
 
-            acBkwCatLigSimilarity : double
             acBkwCatLigScarcity : double
             acBkwCatLigMultiplier : double
+            acBkwCatLigSimilarity : double
 
             sugarForward : double
             sugarBackward : double
             sugarScarcity : double
-            description : string option
         }
+
+        override p.ToString() = $"!!! FOR TESTING PURPOSES ONLY: %0A{p} !!!"
+
+        static member zero =
+            {
+                activationScarcity = 0.0
+                activationMultiplier = 1.0
+
+                acCatSynthScarcity = 0.0
+                acCatSynthMultiplier = 1.0
+                acCatSynthSimilarity = 0.0
+
+                acCatDestrScarcity = 0.0
+                acCatDestrMultiplier = 1.0
+                acCatDestrSimilarity = 0.0
+
+                ligForward = 0.001
+                ligBackward = 0.010
+
+                acFwdCatLigScarcity = 0.0
+                acFwdCatLigMultiplier = 1.0
+                acFwdCatLigSimilarity = 0.0
+
+                acBkwCatLigScarcity = 0.0
+                acBkwCatLigMultiplier = 1.0
+                acBkwCatLigSimilarity = 0.0
+
+                sugarForward = 100.0
+                sugarBackward = 0.001
+                sugarScarcity = 0.001
+            }
+
+        static member zero01 =
+            {
+                DefaultDataParam.zero
+                    with
+                    sugarForward = 10.0
+            }
+
+        static member zero02 =
+            {
+                DefaultDataParam.zero
+                    with
+                    sugarScarcity = 0.002
+            }
+
+        static member zero03 =
+            {
+                DefaultDataParam.zero
+                    with
+                    sugarScarcity = 0.0005
+            }
 
         /// Feel free to change the values here in any way as long as they are not used for actual calculations.
         /// Use: "ContGenAdm.exe add -i 4005000000 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
@@ -56,18 +109,17 @@ module Defaults_004_005_000 =
                 ligForward = 0.001
                 ligBackward = 0.010
 
-                acFwdCatLigSimilarity = 0.000_000_100
                 acFwdCatLigScarcity = 0.000_000_100
                 acFwdCatLigMultiplier = 100_000.0
+                acFwdCatLigSimilarity = 0.000_000_100
 
-                acBkwCatLigSimilarity = 0.000_000_100
                 acBkwCatLigScarcity = 0.000_000_100
                 acBkwCatLigMultiplier = 100_000.0
+                acBkwCatLigSimilarity = 0.000_000_100
 
                 sugarForward = 100.0
                 sugarBackward = 0.001
                 sugarScarcity = 0.001
-                description = Some "!!! FOR TESTING PURPOSES ONLY !!! DO NOT USE FOR ANY OTHER PURPOSES !!!"
             }
 
         static member defaultValue =
@@ -86,27 +138,29 @@ module Defaults_004_005_000 =
                 ligForward = 0.001
                 ligBackward = 0.010
 
-                acFwdCatLigSimilarity = 0.000_000_001
                 acFwdCatLigScarcity = 0.000_000_001
                 acFwdCatLigMultiplier = 100_000.0
+                acFwdCatLigSimilarity = 0.000_000_001
 
-                acBkwCatLigSimilarity = 0.000_000_001
                 acBkwCatLigScarcity = 0.000_000_001
                 acBkwCatLigMultiplier = 100_000.0
+                acBkwCatLigSimilarity = 0.000_000_001
 
                 sugarForward = 100.0
                 sugarBackward = 0.001
                 sugarScarcity = 0.001
-                description = None
             }
 
 
     let data =
             [
-                // !!! Only one can be used here !!!
-                DefaultDataParam.codeGenValue_001
+                DefaultDataParam.zero
+                DefaultDataParam.zero01
+                DefaultDataParam.zero02
+                DefaultDataParam.zero03
 
-                DefaultDataParam.defaultValue
+//                DefaultDataParam.codeGenValue_001
+//                DefaultDataParam.defaultValue
 
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
 //                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }
@@ -126,7 +180,7 @@ module Defaults_004_005_000 =
         let clmDefaultValueId = (4_005_000_000L + n) |> ClmDefaultValueId
         printfn "clmDefaultValueId = %A, e = %A" clmDefaultValueId e
 
-        let description = e.description
+        let description = e.ToString()
         let catRateGenType = ByEnantiomerPairs FixedVal
         let successNumberType = ThresholdBased
 
@@ -185,7 +239,7 @@ module Defaults_004_005_000 =
         {
             clmDefaultValueId = clmDefaultValueId
             defaultRateParams = defaultRateParams
-            description = description
+            description = Some description
         }
 
     let defaultValues =

@@ -139,7 +139,7 @@ IF OBJECT_ID('[dbo].[ClmDefaultValue]') IS NULL begin
 	CREATE TABLE [dbo].[ClmDefaultValue](
 		[clmDefaultValueId] [bigint] NOT NULL,
 		[defaultRateParams] [nvarchar](max) NOT NULL,
-		[description] [nvarchar](2000) NULL,
+		[description] [nvarchar](max) NULL,
 		[fileStructureVersion] [money] NOT NULL,
 	 CONSTRAINT [PK_ClmDefaultValue] PRIMARY KEY CLUSTERED 
 	(
