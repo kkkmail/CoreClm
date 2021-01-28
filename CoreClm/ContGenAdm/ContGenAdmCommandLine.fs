@@ -238,7 +238,7 @@ module AdmCommandLine =
         let contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue n.netTcpServiceAddress
         let contGenHttpServicePort = tryGetContGenServicePort p |> Option.defaultValue h.httpServicePort
         let contGenNetTcpServicePort = tryGetContGenServicePort p |> Option.defaultValue n.netTcpServicePort
-        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenHttpServicePort contGenNetTcpServicePort
+        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenHttpServicePort contGenNetTcpServicePort n.netTcpSecurityMode
 
         let w1 =
             {
@@ -274,7 +274,7 @@ module AdmCommandLine =
         match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with
         | Some q, Some c ->
             let s = loadSettings p
-            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType) :> IContGenService
+            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
             h.tryCancelRunQueue q c |> reportResult logger "tryCancelRunQueueImpl"
         | _ -> Ok()
 
@@ -283,7 +283,7 @@ module AdmCommandLine =
         match tryGetRunQueueIdToModify p, getResultNotificationTypeOpt p with
         | Some q, Some c ->
             let s = loadSettings p
-            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType) :> IContGenService
+            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
             h.tryRequestResults q c  |> reportResult logger "tryRequestResultsImpl"
         | _ -> Ok()
 

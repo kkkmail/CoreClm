@@ -901,6 +901,11 @@ module FSharpCodeExt =
     type ModelInfo
         with
         member p.toFSharpCode (shift : string) =
+            let d =
+                match p.description with
+                | Some v -> $"Some \"{v}\""
+                | None -> "None"
+
             shift + "{" + Nl +
             shift + "    fileStructureVersion = " + p.fileStructureVersion.toFSharpCode + Nl +
             shift + "    versionNumber = " + "\"" + p.versionNumber + "\"" + Nl +
@@ -910,6 +915,7 @@ module FSharpCodeExt =
             shift + "    maxPeptideLength = " + p.maxPeptideLength.toFSharpCode + Nl +
             shift + "    seedValue = " + p.seedValue.toFSharpCode + Nl +
             shift + "    clmDefaultValueId = " + p.clmDefaultValueId.toFSharpCode + Nl +
+            shift + "    description = " + d + Nl +
             shift + "}" + Nl
 
 

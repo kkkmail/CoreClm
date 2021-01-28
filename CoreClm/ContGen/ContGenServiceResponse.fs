@@ -10,8 +10,8 @@ open ClmSys.ContGenErrors
 module ContGenServiceResponse =
 
     /// Low level WCF ContGen client.
-    type ContGenResponseHandler private (url, communicationType) =
-        let tryGetWcfService() = tryGetWcfService<IContGenWcfService> communicationType url
+    type ContGenResponseHandler private (url, communicationType, securityMode) =
+        let tryGetWcfService() = tryGetWcfService<IContGenWcfService> communicationType securityMode url
         let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> TryCancelRunQueueErr |> ContGenServiceErr
         let toRequestResultsError f = f |> TryRequestResultsWcfErr |> TryRequestResultsErr |> ContGenServiceErr
         let tryCancelRunQueueImpl q c = tryCommunicate tryGetWcfService (fun service -> service.tryCancelRunQueue) toCancelRunQueueError (q, c)
@@ -21,4 +21,5 @@ module ContGenServiceResponse =
             member _.tryCancelRunQueue q c = tryCancelRunQueueImpl q c
             member _.tryRequestResults q c = tryRequestResultsImpl q c
 
-        new (i : ContGenServiceAccessInfo, communicationType) = ContGenResponseHandler(i.value.getUrl communicationType, communicationType)
+        new (i : ContGenServiceAccessInfo, communicationType, securityMode) =
+            ContGenResponseHandler(i.value.getUrl communicationType, communicationType, securityMode)

@@ -12029,6 +12029,7 @@ module ModelData =
                                                 maxPeptideLength = MaxPeptideLength.ThreeMax
                                                 seedValue = 1006348014
                                                 clmDefaultValueId = ClmDefaultValueId 4002000020L
+                                                description = None
                                             }
 
                                         allParams =

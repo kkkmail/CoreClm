@@ -43,6 +43,7 @@ module ModelParams =
             maxPeptideLength : MaxPeptideLength
             seedValue : int
             clmDefaultValueId : ClmDefaultValueId
+            description : string option
         }
 
     type ModelDataParams =

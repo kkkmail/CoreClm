@@ -107,7 +107,7 @@ module SvcCommandLine =
 
         let serviceAddress = tryGetServiceAddress p |> Option.defaultValue h.httpServiceAddress
         let netTcpServicePort = tryGetServicePort p |> Option.defaultValue n.netTcpServicePort
-        let contGenSvcInfo = ContGenServiceAccessInfo.create serviceAddress h.httpServicePort netTcpServicePort
+        let contGenSvcInfo = ContGenServiceAccessInfo.create serviceAddress h.httpServicePort netTcpServicePort WcfSecurityMode.defaultValue
 
         contGenSvcInfo
 
@@ -119,7 +119,7 @@ module SvcCommandLine =
         let serviceAddress = tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
         let netTcpServicePort = tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
         let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
-        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName
+        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName WcfSecurityMode.defaultValue
         let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
         let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
 

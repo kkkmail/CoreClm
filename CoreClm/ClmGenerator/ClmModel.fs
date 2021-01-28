@@ -55,6 +55,7 @@ module ClmModel =
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = seedValue
                 clmDefaultValueId = modelParams.clmDefaultValueId
+                description = modelParams.description
             }
 
         let noOfRawReactions n = bf.noOfRawReactions n

@@ -40,6 +40,7 @@ module ClmModelData =
             collisionData : CollisionData
             dictionaryUpdateType : DictionaryUpdateType
             seedValue : int option
+            description : string option
         }
 
 
@@ -66,6 +67,7 @@ module ClmModelData =
                             collisionData = coll
                             dictionaryUpdateType = u
                             seedValue = so
+                            description = v.description
                         }
 
                     modelCommandLineParams = c.commandLineParams
