@@ -44,9 +44,9 @@
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="5.0.1" />
-    <PackageReference Include="Softellect.Messaging" Version="0.0.1-alpha.124" />
-    <PackageReference Include="Softellect.Sys" Version="0.0.1-alpha.124" />
-    <PackageReference Include="Softellect.Wcf" Version="0.0.1-alpha.124" />
+    <PackageReference Include="Softellect.Messaging" Version="0.0.1-alpha.125" />
+    <PackageReference Include="Softellect.Sys" Version="0.0.1-alpha.125" />
+    <PackageReference Include="Softellect.Wcf" Version="0.0.1-alpha.125" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.0" />
   </ItemGroup>
 
