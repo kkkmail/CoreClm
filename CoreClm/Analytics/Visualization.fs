@@ -4,6 +4,7 @@ open Clm.Substances
 open Microsoft.FSharp.Core
 
 open Clm.ModelParams
+open ClmSys.GeneralData
 open Clm.ChartData
 open FSharp.Plotly
 open ChartExt
@@ -25,7 +26,7 @@ module Visualization =
             | false -> Ok()
 
 
-        let description =
+        let description h =
             [
                 "model name", p.initData.modelDataId.value |> toModelName
                 "default id", sprintf "%A" p.initData.defaultValueId.value
@@ -38,9 +39,14 @@ module Visualization =
             (p.initData.binaryInfo.allSubstData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
             @
             (p.initData.binaryInfo.allSubstData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
+            @
+            [
+                "\ndescription", p.initData.description |> Option.defaultValue EmptyString
+            ]
             |> List.map (fun (n, d) -> n + ": " + d)
+            |> List.map (fun e -> e.Replace("\n", "<br>"))
             |> String.concat ", "
-            |> toDescription ""
+            |> toDescription h
 
 
         let getAminoAcidsImpl () =
@@ -62,7 +68,7 @@ module Visualization =
 
             Chart.Combine (charts)
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> getChart fileName description
+            |> getChart fileName (description "Amino Acids")
 
 
         let getEnantiomericExcessImpl () =
@@ -88,7 +94,7 @@ module Visualization =
 
             Chart.Combine (charts)
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> getChart fileName description
+            |> getChart fileName (description "Enantiomeric Excess")
 
 
         let getTotalSubstImpl () =
@@ -123,7 +129,7 @@ module Visualization =
 
             Chart.Combine(charts)
             |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
-            |> getChart fileName description
+            |> getChart fileName (description "Totals")
 
 
         member _.plotAminoAcids (show : bool) = getAminoAcidsImpl() |> showHtmlChart show
