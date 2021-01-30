@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <RunPostBuildEvent>1</RunPostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -19,6 +20,7 @@
     <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
     <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj" />
+    <ProjectReference Include="..\WorkerNodeAdm\WorkerNodeAdm.fsproj" />
     <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
   </ItemGroup>
 
@@ -36,5 +38,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy /Y &quot;$(ProjectDir)..\WorkerNodeAdm\$(OutDirWorkerNodeAdm.*.json&quot; &quot;$(TargetDir)&quot;" />
+  </Target>
 
 </Project>

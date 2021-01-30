@@ -40,9 +40,9 @@ Remove-Item -path .\NoSql\bin -recurse -force -ea silentlycontinue
 Remove-Item -path .\OdeSolver\bin -recurse -force -ea silentlycontinue
 Remove-Item -path .\ServiceProxy\bin -recurse -force -ea silentlycontinue
 Remove-Item -path .\SolverRunner\bin -recurse -force -ea silentlycontinue
+Remove-Item -path .\WorkerNodeAdm\bin -recurse -force -ea silentlycontinue
 Remove-Item -path .\WorkerNodeService\bin -recurse -force -ea silentlycontinue
 Remove-Item -path .\WorkerNodeServiceInfo\bin -recurse -force -ea silentlycontinue
-Remove-Item -path .\WorkNodeAdm\bin -recurse -force -ea silentlycontinue
 
 Remove-Item -path .\Analytics\obj -recurse -force -ea silentlycontinue
 Remove-Item -path .\Clm\obj -recurse -force -ea silentlycontinue
@@ -65,9 +65,9 @@ Remove-Item -path .\NoSql\obj -recurse -force -ea silentlycontinue
 Remove-Item -path .\OdeSolver\obj -recurse -force -ea silentlycontinue
 Remove-Item -path .\ServiceProxy\obj -recurse -force -ea silentlycontinue
 Remove-Item -path .\SolverRunner\obj -recurse -force -ea silentlycontinue
+Remove-Item -path .\WorkerNodeAdm\obj -recurse -force -ea silentlycontinue
 Remove-Item -path .\WorkerNodeService\obj -recurse -force -ea silentlycontinue
 Remove-Item -path .\WorkerNodeServiceInfo\obj -recurse -force -ea silentlycontinue
-Remove-Item -path .\WorkNodeAdm\obj -recurse -force -ea silentlycontinue
 
 
 echo "Deleting all garbage from user Temp folder..."
