@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(ProjectDir)..\WorkerNodeAdm\$(OutDirWorkerNodeAdm.*.json&quot; &quot;$(TargetDir)&quot;" />
+    <Exec Command="copy /Y &quot;$(ProjectDir)..\WorkerNodeAdm\$(OutDir)WorkerNodeAdm.*.json&quot; &quot;$(TargetDir)&quot;" />
   </Target>
 
 </Project>
