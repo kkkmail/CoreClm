@@ -19,6 +19,8 @@
     <Compile Include="ReactionRateModels\SyntehsisModels\SynthesisModel.fs" />
     <Compile Include="ReactionRateModels\SugarSynthesisModels\SugarSynthesisRandomModel.fs" />
     <Compile Include="ReactionRateModels\SugarSynthesisModels\SugarSynthesisModel.fs" />
+    <Compile Include="ReactionRateModels\ActivationModels\ActivationRandomModel.fs" />
+    <Compile Include="ReactionRateModels\ActivationModels\ActivationModel.fs" />
     <Compile Include="ReactionRateModels\CatalyticSynthesisModels\CatalyticSynthesisRandomModel.fs" />
     <Compile Include="ReactionRateModels\CatalyticSynthesisModels\CatalyticSynthesisSimilarModel.fs" />
     <Compile Include="ReactionRateModels\CatalyticSynthesisModels\CatalyticSynthesisModel.fs" />
@@ -69,8 +71,6 @@
     <Compile Include="ReactionRateModels\EnCatalyticRacemizationModels\AcCatalyticRacemizationRandomModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticRacemizationModels\AcCatalyticRacemizationSimilarModel.fs" />
     <Compile Include="ReactionRateModels\EnCatalyticRacemizationModels\AcCatalyticRacemizationModel.fs" />
-    <Compile Include="ReactionRateModels\ActivationModels\ActivationRandomModel.fs" />
-    <Compile Include="ReactionRateModels\ActivationModels\ActivationModel.fs" />
     <Compile Include="ReactionRateModelsAll.fs" />
     <Compile Include="ReactionRateModelExtensions\ReactionRateModelExtBase.fs" />
     <Compile Include="ReactionRateModelExtensions\FoodCreationModelExt.fs" />

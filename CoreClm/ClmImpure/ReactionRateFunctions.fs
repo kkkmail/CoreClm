@@ -121,12 +121,67 @@ module ReactionRateFunctions =
         x.primary
 
 
+    type RelatedAcReactionsUpdateInfo<'RCA, 'CA, 'RA> =
+        {
+            dictionaryData : DictionaryData<'RCA, 'CA>
+            acRateDictionary : Dictionary<'RA, RateData>
+            getEnantiomer : 'RCA -> 'RCA
+            getAcEnantiomer : 'RA -> 'RA
+        }
+
+
+    let updateRelatedAcReactions<'RCA, 'CA, 'RA>
+        (i : RelatedAcReactionsUpdateInfo<'RCA, 'CA, 'RA>)
+        (r : 'RCA)
+        (x : RelatedAcReactions<'RCA, 'RA>) =
+
+        updatePrimaryReactions i.dictionaryData i.getEnantiomer x.acPrimary r
+        updateSimilarReactions i.dictionaryData i.getEnantiomer x.acSimilar
+
+        let (d : DictionaryData<'RA, 'RA>) = toDictionaryData i.acRateDictionary
+
+        x.activationData
+        |> List.map (fun e -> updatePrimaryReactions d i.getAcEnantiomer e.rateData e.reaction)
+        |> ignore
+
+        x.acPrimary
+
+
     let getRatesImpl<'R, 'C>
         (d : DictionaryData<'R, 'C>)
         (getEnantiomer : 'R -> 'R)
         (calculateRates : 'R -> RelatedReactions<'R>)
         (reaction : 'R)  =
 //        printfn $"getRatesImpl: reaction = {reaction}."
+
+        match d.rateDictionary.TryGetValue reaction with
+        | true, rates -> rates
+        | false, _ ->
+            match d.hasReactionKey reaction with
+            | false ->
+                calculateRates reaction
+                |> updateRelatedReactions d getEnantiomer reaction
+            | true ->
+                // This is only applicable for a small number of reaction types where the number of reactions is extremely
+                // large, e.g. AcFwdCatalyticLigationReaction.
+                // If we end up here then the situation is as follows:
+                //     1. One of the previous reactions had the same reaction key (== catalyst).
+                //     2. However, DictionaryUpdateType.NonOptionalRateDataOnly was used and that resulted that we did
+                //        not store all the reactions but only a reaction key.
+                //     3. Had we stored the reaction in the dictionary, then it would've now returned a reaction with no data.
+                //     4. So, we need to do the same here.
+                {
+                    forwardRate = None
+                    backwardRate = None
+                }
+
+
+    let getAcRatesImpl<'RCA, 'CA, 'RA>
+        (d : DictionaryData<'RCA, 'CA>)
+        (getEnantiomer : 'RCA -> 'RCA)
+        (calculateRates : 'RCA -> RelatedAcReactions<'RCA, 'RA>)
+        (reaction : 'RCA)  =
+//        printfn $"getAcRatesImpl: reaction = {reaction}."
 
         match d.rateDictionary.TryGetValue reaction with
         | true, rates -> rates
@@ -566,46 +621,77 @@ module ReactionRateFunctions =
 
         cr
 
+    type AcCatRatesSimInfoProxy<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC when 'R : equality> =
+        {
+            simReactionCreator : 'A -> list<'R>
+            getCatReactEnantiomer : 'RCA -> 'RCA
+            getBaseCatRates : RandomValueGetter -> 'RCA -> RateData
+            acCatRatesInfoProxy : AcCatRatesInfoProxy<'R, 'CA, 'C, 'RCA, 'RA>
+        }
 
-    type AcCatRatesSimInfo<'A, 'R, 'C, 'RC when 'R : equality> =
+    type AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC when 'R : equality> =
         {
             reaction : 'R
-            acCatalyst : 'C
-            getReactionData : 'R -> list<'A>
+            acCatalyst : 'CA
             inverse : 'R -> 'A
+            getReactionData : 'R -> list<'A>
             getMatchingReactionMult : double -> double
-            getCatEnantiomer : 'C -> 'C
-            acCatReactionCreator : ('R * 'C) -> 'RC
-            simReactionCreator : 'A -> list<'R>
-            getCatReactEnantiomer : 'RC -> 'RC
-            getBaseRates : 'R -> RateData
-            getBaseCatRates : RandomValueGetter -> 'RC -> RateData
+            proxy : AcCatRatesSimInfoProxy<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC>
+
+//            getNonActivated : 'CA -> 'C
+//            getCatEnantiomer : 'CA -> 'CA
+//            acCatReactionCreator : ('R * 'CA) -> 'RCA
+//            activationReactorCreator : 'C -> 'RA
+//            getBaseRates : 'R -> RateData
+//            getActivationRates : 'RA -> RateData
+//            rateGenerationType : RateGenerationType
+//            rnd : RandomValueGetter
+
+//            getCatReactEnantiomer : 'RCA -> 'RCA
             tryGetBaseCatRates : 'RC -> RateData
             acSimParams : AcCatRatesSimilarityParam
             acEeParams : AcCatRatesEeParam
-            dictionaryData : DictionaryData<'RC, 'C>
-            rateGenerationType : RateGenerationType
-            rnd : RandomValueGetter
+            dictionaryData : DictionaryData<'RCA, 'CA>
         }
 
         member i.toAcCatRatesInfo r c e =
             {
                 reaction = r
                 acCatalyst = c
-                getCatEnantiomer = i.getCatEnantiomer
-                acCatReactionCreator = i.acCatReactionCreator
-                getBaseRates = i.getBaseRates
                 acEeParams = e
-                rateGenerationType = i.rateGenerationType
-                rnd = i.rnd
+                proxy = i.proxy.acCatRatesInfoProxy
+
+//                getNonActivated = i.getNonActivated
+//                getCatEnantiomer = i.getCatEnantiomer
+//                acCatReactionCreator = i.acCatReactionCreator
+//                activationReactorCreator = i.activationReactorCreator
+//                getBaseRates = i.getBaseRates
+//                getActivationRates = i.getActivationRates
+//                rateGenerationType = i.rateGenerationType
+//                rnd = i.rnd
             }
 
 
+
+//    let updateRelatedAcReactions<'RCA, 'CA, 'RA>
+//        (i : RelatedAcReactionsUpdateInfo<'RCA, 'CA, 'RA>)
+//        (r : 'RCA)
+//        (x : RelatedAcReactions<'RCA, 'RA>) =
+
     let calculateAcSimCatRates i s c e =
-        let reaction = (s, c) |> i.acCatReactionCreator
+        let reaction = (s, c) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
         let related = i.toAcCatRatesInfo s c e |> calculateAcCatRates
+
+        let info =
+            {
+                dictionaryData = i.dictionaryData // : DictionaryData<'RCA, 'CA>
+                acRateDictionary = failwith "" //  : Dictionary<'RA, RateData>
+                getEnantiomer = i.proxy.getCatReactEnantiomer //  : 'RCA -> 'RCA
+                getAcEnantiomer = i.proxy.acCatRatesInfoProxy.getCatEnantiomer //  : 'RA -> 'RA
+            }
+
 //        printfn "calculateSimCatRates: related = %A" related
-        updateRelatedReactions i.dictionaryData i.getCatReactEnantiomer reaction related
+        updateRelatedAcReactions info reaction related
 
 
     let getAcEeParams i cr cre rateMult d  =
@@ -666,8 +752,10 @@ module ReactionRateFunctions =
     // (i : AcCatRatesSimInfo<'A, 'A, 'C, 'D>)
     let chooseAcData i aa =
         let a =
+            let rnd = i.proxy.acCatRatesInfoProxy.rnd
+
             match i.acSimParams.acCatRatesSimGeneration with
-            | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
+            | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined rnd)
             | FixedValue d ->
                 /// TODO kk:20200607 - Follow the description below.
                 /// Here we need to ensure that number of successes is NOT random but fixed
@@ -682,13 +770,13 @@ module ReactionRateFunctions =
                     | false, None -> true
 
                 aa
-                |> List.map(fun a -> i.rnd.nextDouble(), a)
+                |> List.map(fun a -> rnd.nextDouble(), a)
                 |> List.sortBy (fun (r, _) -> r)
                 |> List.mapi (fun j (_, a) -> a, isDefined j a)
 
         a
 
-    let getAcSimRates (i : AcCatRatesSimInfo<'A, 'C, 'R, 'RC>) aa getEeParams rateMult =
+    let getAcSimRates (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC>) aa getEeParams rateMult =
 //        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =
@@ -704,7 +792,7 @@ module ReactionRateFunctions =
 
         let a =
             x
-            |> List.map (fun (a, b, m) -> i.simReactionCreator a |> List.map (fun e -> e, b, m))
+            |> List.map (fun (a, b, m) -> i.proxy.simReactionCreator a |> List.map (fun e -> e, b, m))
             |> List.concat
 
 //        a
@@ -729,12 +817,13 @@ module ReactionRateFunctions =
         b
 
 
-    let calculateAcSimRates<'A, 'R, 'C, 'RC when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'C, 'RC>) =
+    let calculateAcSimRates<'A, 'R, 'C, 'RC when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC>) =
 //        printfn "calculateAcSimRates: Starting. i = %A" i
-        let r = (i.reaction, i.acCatalyst) |> i.acCatReactionCreator
-        let re = (i.reaction, i.getCatEnantiomer i.acCatalyst) |> i.acCatReactionCreator
-        let br = i.getBaseRates i.reaction // (bf, bb)
+        let r = (i.reaction, i.acCatalyst) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
+        let re = (i.reaction, i.proxy.acCatRatesInfoProxy.getCatEnantiomer i.acCatalyst) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
+        let br = i.proxy.acCatRatesInfoProxy.getBaseRates i.reaction // (bf, bb)
         let aa = i.getReactionData i.reaction
+        let rnd = i.proxy.acCatRatesInfoProxy.rnd
 
 //        printfn $"calculateAcSimRates: r = {r}, re = {re}"
 //        printfn "calculateAcSimRates: aa ="
@@ -742,15 +831,15 @@ module ReactionRateFunctions =
 
         let cr =
             match i.dictionaryData.hasReactionKey r with
-            | false -> i.getBaseCatRates i.rnd r
+            | false -> i.proxy.getBaseCatRates rnd r
             | true ->
 //                printfn "calculateAcSimRates: reaction has a key (catalyst) in the dictionary. Do not create new reactions."
                 i.tryGetBaseCatRates r
 
         match (cr.forwardRate, cr.backwardRate) with
-        | None, None -> getAcSimNoRates i i.simReactionCreator aa i.reaction
+        | None, None -> getAcSimNoRates i i.proxy.simReactionCreator aa i.reaction
         | _ ->
-            let cre = i.getBaseCatRates i.rnd re
+            let cre = i.proxy.getBaseCatRates rnd re
             let rateMult = getRateMult br cr cre
 //            printfn "calculateAcSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
             let getAcEeParams = getAcEeParams i cr cre

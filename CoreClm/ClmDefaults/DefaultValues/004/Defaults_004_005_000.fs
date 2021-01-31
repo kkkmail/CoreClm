@@ -9,6 +9,7 @@ open Clm.ReactionRatesBase
 
 module Defaults_004_005_000 =
 
+    /// Feel free to change the values here in any way as long as they are not used for actual calculations.
     /// Activated catalytic reactions playground.
     type DefaultDataParam =
         {
@@ -91,7 +92,6 @@ module Defaults_004_005_000 =
                     sugarScarcity = 0.0005
             }
 
-        /// Feel free to change the values here in any way as long as they are not used for actual calculations.
         /// Use: "ContGenAdm.exe add -i 4005000000 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member codeGenValue_001 =
             {
@@ -154,13 +154,14 @@ module Defaults_004_005_000 =
 
     let data =
             [
-                DefaultDataParam.zero
-                DefaultDataParam.zero01
-                DefaultDataParam.zero02
-                DefaultDataParam.zero03
+                DefaultDataParam.zero               // 0
+                DefaultDataParam.zero01             // 1
+                DefaultDataParam.zero02             // 2
+                DefaultDataParam.zero03             // 3
 
-//                DefaultDataParam.codeGenValue_001
-//                DefaultDataParam.defaultValue
+                DefaultDataParam.codeGenValue_001   // 4
+
+                DefaultDataParam.defaultValue       // 5
 
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
 //                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }

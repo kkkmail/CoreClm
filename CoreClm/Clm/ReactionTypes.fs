@@ -343,10 +343,8 @@ module ReactionTypes =
     type AcSynthCatalyst =
         | AcSynthCatalyst of ActivatedPeptide
 
-        member c.enantiomer =
-            let (AcSynthCatalyst a) = c
-            a.enantiomer |> AcSynthCatalyst
-
+        member c.enantiomer = let (AcSynthCatalyst a) = c in a.enantiomer |> AcSynthCatalyst
+        member c.peptide = let (AcSynthCatalyst a) = c in a.peptide
         override c.ToString() = let (AcSynthCatalyst v) = c in v.ToString()
 
 

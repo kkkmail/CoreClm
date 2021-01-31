@@ -12,6 +12,11 @@ module ActivationModel =
             match model with
             | ActivationRndModel m -> m.getRates rnd r
 
+        /// Creates activation reaction(s) for a given peptide and then calculates relevant rates.
+        member model.createActivationData rnd p =
+            match model with
+            | ActivationRndModel m -> m.createActivationData rnd p
+
         member model.inputParams =
             match model with
             | ActivationRndModel m -> m.inputParams |> ActivationRndParam

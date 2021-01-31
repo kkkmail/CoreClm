@@ -90,10 +90,18 @@ module ReactionRatesBase =
         }
 
 
-    type RelatedReactions<'R> =
+    type RelatedReactions<'RC> =
         {
             primary : RateData
-            similar : list<ReactionRateData<'R>>
+            similar : list<ReactionRateData<'RC>>
+        }
+
+
+    type RelatedAcReactions<'RCA, 'RA> =
+        {
+            acPrimary : RateData
+            acSimilar : list<ReactionRateData<'RCA>>
+            activationData : list<ReactionRateData<'RA>>
         }
 
 
@@ -475,31 +483,56 @@ module ReactionRatesBase =
             getBackwardEeDistr : EeDistributionGetter
         }
 
-
-    type AcCatRatesInfo<'R, 'C, 'RC> =
+    type AcCatRatesInfoProxy<'R, 'CA, 'C, 'RCA, 'RA> =
         {
-            reaction : 'R
-            acCatalyst : 'C
-            getCatEnantiomer : 'C -> 'C
-            acCatReactionCreator : ('R * 'C) -> 'RC
+            getNonActivated : 'CA -> 'C
+            getCatEnantiomer : 'CA -> 'CA
+            acCatReactionCreator : ('R * 'CA) -> 'RCA
             getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-            acEeParams : AcCatRatesEeParam
+            createActivationData : 'C -> ReactionRateData<'RA> // Get or creates rates of activation reaction.
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
+        }
+
+
+    /// Here we assume that only catalysts, which participate in reaction with activation
+    /// can be activated. Otherwise will would end up with all peptides being activated and most of them
+    /// not participating in any further reactions.
+    ///
+    /// 'R - base reaction
+    /// 'CA - activated catalyst (C*)
+    /// 'C - deactivated catalyst (C)
+    /// 'RCA - reaction catalysed by activated catalyst, e.g. A + C* -> B + C
+    /// 'RA - activation reaction e.g.: C + Z -> C* + W
+    type AcCatRatesInfo<'R, 'CA, 'C, 'RCA, 'RA> =
+        {
+            reaction : 'R
+            acCatalyst : 'CA
+            acEeParams : AcCatRatesEeParam
+            proxy : AcCatRatesInfoProxy<'R, 'CA, 'C, 'RCA, 'RA>
+
+//            getNonActivated : 'CA -> 'C
+//            getCatEnantiomer : 'CA -> 'CA
+//            acCatReactionCreator : ('R * 'CA) -> 'RCA
+//            activationReactorCreator : 'C -> 'RA
+//            getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
+//            getActivationRates : 'RA -> RateData // Get rates of activation reaction.
+//            rateGenerationType : RateGenerationType
+//            rnd : RandomValueGetter
         }
 
 
     /// Thermodynamic constraints are not applicable here because the reaction looks like:
     /// A + C* -> B + C
     /// and so the activated catalyst is not conserved, but rather is transformed into non-activated one.
-    let calculateAcCatRates<'R, 'C, 'RC> (i : AcCatRatesInfo<'R, 'C, 'RC>) : RelatedReactions<'RC> =
+    let calculateAcCatRates<'R, 'CA, 'C, 'RCA, 'RA> (i : AcCatRatesInfo<'R, 'CA, 'C, 'RCA, 'RA>) : RelatedAcReactions<'RCA, 'RA> =
 //        printfn "calculateAcCatRates: Starting..."
-        let re = (i.reaction, i.getCatEnantiomer i.acCatalyst) |> i.acCatReactionCreator
+        let re = (i.reaction, i.proxy.getCatEnantiomer i.acCatalyst) |> i.proxy.acCatReactionCreator
 
-        let rf, rb, rfe, rbe =
-            match  i.acEeParams.rateMult i.rateGenerationType i.rnd with
+        let rf, rb, rfe, rbe, ra =
+            match  i.acEeParams.rateMult i.proxy.rateGenerationType i.proxy.rnd with
             | Some r ->
-                let s0 = i.getBaseRates i.reaction
+                let s0 = i.proxy.getBaseRates i.reaction
 
                 let (rf, rfe) =
                     match s0.forwardRate with
@@ -511,10 +544,22 @@ module ReactionRatesBase =
                     | Some (ReactionRate sb) -> (r.kb * sb |> ReactionRate |> Some, r.kbe * sb |> ReactionRate |> Some)
                     | None -> (None, None)
 
-                (rf, rb, rfe, rbe)
-            | _ -> (None, None, None, None)
+                let g() =
+                    let c = i.proxy.getNonActivated i.acCatalyst
+                    let ra = i.proxy.createActivationData c
+                    [ ra ]
+
+                let a =
+                    match rf, rb, rfe, rbe with
+                    | Some _, Some _, _, _ -> g()
+                    | _, _, Some _, Some _ -> g()
+                    | _ -> []
+
+                (rf, rb, rfe, rbe, a)
+            | _ -> (None, None, None, None, [])
 
         {
-            primary = { forwardRate = rf; backwardRate = rb }
-            similar = [ { reaction = re; rateData = { forwardRate = rfe; backwardRate = rbe } } ]
+            acPrimary = { forwardRate = rf; backwardRate = rb }
+            acSimilar = [ { reaction = re; rateData = { forwardRate = rfe; backwardRate = rbe } } ]
+            activationData = ra
         }

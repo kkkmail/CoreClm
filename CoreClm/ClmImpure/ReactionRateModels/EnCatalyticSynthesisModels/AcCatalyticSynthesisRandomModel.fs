@@ -7,6 +7,7 @@ open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
 open ClmImpure.ReactionRateModels.ReactionRateModelBase
 open ClmImpure.ReactionRateModels.SynthesisModel
+open ClmImpure.ReactionRateModels.ActivationModel
 
 module AcCatalyticSynthesisRandomModel =
 
@@ -14,6 +15,7 @@ module AcCatalyticSynthesisRandomModel =
         {
             acCatSynthRndParam : AcCatalyticSynthesisRandomParam
             synthesisModel : SynthesisModel
+            activationModel : ActivationModel
         }
 
 
@@ -24,13 +26,19 @@ module AcCatalyticSynthesisRandomModel =
             {
                 reaction = s
                 acCatalyst = c
-                getCatEnantiomer = getEnantiomer
-                acCatReactionCreator = AcCatalyticSynthesisReaction
-                getBaseRates = p.synthesisModel.getRates rnd
                 acEeParams = p.acCatSynthRndParam.acCatSynthRndEeParams
-                rateGenerationType = t
-                rnd = rnd
+
+                proxy =
+                    {
+                        getNonActivated = fun e -> e.peptide
+                        getCatEnantiomer = getEnantiomer
+                        acCatReactionCreator = AcCatalyticSynthesisReaction
+                        createActivationData = p.activationModel.createActivationData rnd
+                        getBaseRates = p.synthesisModel.getRates rnd
+                        rateGenerationType = t
+                        rnd = rnd
+                    }
             }
             |> calculateAcCatRates
 
-        member model.getRates t rnd r = getRatesImpl model.dictionaryData getEnantiomer (calculateAcCatSynthRates rnd t) r
+        member model.getRates t rnd r = getAcRatesImpl model.dictionaryData getEnantiomer (calculateAcCatSynthRates rnd t) r
