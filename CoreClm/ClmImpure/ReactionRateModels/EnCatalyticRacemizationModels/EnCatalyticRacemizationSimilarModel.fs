@@ -18,6 +18,8 @@ module EnCatalyticRacemizationSimilarModel =
 
 
     type EnCatalyticRacemizationSimilarModel (p : EnCatalyticRacemizationSimilarParamWithModel) =
+        let dictionaryData = toDictionaryData p.enCatRacemModel.rateDictionary
+
         let calculateSimRatesImpl rnd t (EnCatalyticRacemizationReaction (s, c, u)) =
             let (RacemizationReaction a) = s
             {
@@ -33,15 +35,15 @@ module EnCatalyticRacemizationSimilarModel =
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = (fun e -> [ a.createSameChirality e |> RacemizationReaction ])
                 getBaseRates = p.enCatRacemModel.inputParams.racemizationModel.getRates rnd
-                getBaseCatRates = p.enCatRacemModel.getRates rnd t
+                getBaseCatRates = p.enCatRacemModel.getRates t rnd
                 enSimParams = p.enCatRacemSimParam
                 eeParams = p.enCatRacemModel.inputParams.enCatRacemRndParam.enCatRacemRndEeParams
-                rateDictionary = p.enCatRacemModel.rateDictionary
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
             }
             |> calculateEnSimRates
 
-        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.getRates t rnd r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.enCatRacemModel.rateDictionary

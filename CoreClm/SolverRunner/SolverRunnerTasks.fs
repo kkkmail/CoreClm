@@ -84,6 +84,7 @@ module SolverRunnerTasks =
                     binaryInfo = binaryInfo
                     y0 = commandLineParams.y0
                     tEnd = commandLineParams.tEnd
+                    description = w.modelData.modelData.modelDataParams.modelInfo.description
                 }
 
             let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)

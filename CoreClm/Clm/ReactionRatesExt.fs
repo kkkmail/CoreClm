@@ -173,3 +173,58 @@ module ReactionRatesExt =
             match p.modelParam with
             | EnCatalyticRacemizationRateParam (EnCatRacemRndParam d) -> Some (p.usage, d)
             | _ -> None
+
+
+    type AcCatalyticSynthesisRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | AcCatalyticSynthesisRateParam (AcCatSynthRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+    type AcFwdCatalyticLigationRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | AcFwdCatalyticLigationRateParam (AcFwdCatLigRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+    type AcBkwCatalyticLigationRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | AcBkwCatalyticLigationRateParam (AcBkwCatLigRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+    type AcCatalyticDestructionRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | AcCatalyticDestructionRateParam (AcCatDestrRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+    type AcCatalyticRacemizationRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | AcCatalyticRacemizationRateParam (AcCatRacemRndParam d) -> Some (p.usage, d)
+            | _ -> None
+
+
+
+    type ActivationRandomParam
+        with
+
+        static member paramGetter (p : ReactionRateModelParamWithUsage) =
+            match p.modelParam with
+            | ActivationRateParam (ActivationRndParam d) -> Some (p.usage, d)
+            | _ -> None

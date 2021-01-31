@@ -351,3 +351,6 @@ MigrationBackup/
 
 # Rider directory
 .idea/
+
+# Generated model code
+CoreClm/Model/ModelCode*.fs

@@ -14,10 +14,10 @@ module EnCatalyticRacemizationModel =
         | EnCatRacemRndModel of EnCatalyticRacemizationRandomModel
         | EnCatRacemSimModel of EnCatalyticRacemizationSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | EnCatRacemRndModel m -> m.getRates rnd t r
-            | EnCatRacemSimModel m -> m.getRates rnd t r
+            | EnCatRacemRndModel m -> m.getRates t rnd r
+            | EnCatRacemSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

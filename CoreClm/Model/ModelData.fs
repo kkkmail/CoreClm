@@ -9,6 +9,7 @@ open Clm.ReactionRatesBase
 open Clm.ReactionRates
 open Clm.ReactionRateParams
 open Clm.CalculationData
+open ClmSys.ModelData
 open ClmSys.ContGenPrimitives
 
 module ModelData =
@@ -20,7 +21,8 @@ module ModelData =
     let aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-    let allSubst = createAllSubst chiralAminoAcids peptides
+    let peptideCatalysts = getPeptideCatalysts peptides
+    let allSubst = createAllSubst chiralAminoAcids peptides peptideCatalysts
     let allInd = createAllInd allSubst
 
 
@@ -12027,6 +12029,7 @@ module ModelData =
                                                 maxPeptideLength = MaxPeptideLength.ThreeMax
                                                 seedValue = 1006348014
                                                 clmDefaultValueId = ClmDefaultValueId 4002000020L
+                                                description = None
                                             }
 
                                         allParams =
@@ -12091,7 +12094,6 @@ module ModelData =
                                                                     getRateMultiplierDistr = DeltaRateMultDistrGetter
                                                                     getEeDistr = DeltaEeDistributionGetter
                                                                 }
-
                                                         }
                                                         |> CatLigSimParam
                                                         |> CatalyticLigationRateParam
@@ -12099,6 +12101,9 @@ module ModelData =
                                                 }
 
                                             |]
+
+                                        collisionData = CollisionData.defaultValue
+                                        dictionaryUpdateType = AllRateData
                                     }
 
                                 allSubstData =

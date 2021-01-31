@@ -14,10 +14,10 @@ module CatalyticDestructionModel =
         | CatDestrRndModel of CatalyticDestructionRandomModel
         | CatDestrSimModel of CatalyticDestructionSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | CatDestrRndModel m -> m.getRates rnd t r
-            | CatDestrSimModel m -> m.getRates rnd t r
+            | CatDestrRndModel m -> m.getRates t rnd r
+            | CatDestrSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

@@ -14,10 +14,10 @@ module CatalyticSynthesisModel =
         | CatSynthRndModel of CatalyticSynthesisRandomModel
         | CatSynthSimModel of CatalyticSynthesisSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | CatSynthRndModel m -> m.getRates rnd t r
-            | CatSynthSimModel m -> m.getRates rnd t r
+            | CatSynthRndModel m -> m.getRates t rnd r
+            | CatSynthSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

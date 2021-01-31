@@ -92,10 +92,10 @@ module Defaults_004_004_000 =
             //===========================================================
             let destrParam = ReactionRateProviderParams.defaultDestrRndParamImpl (Some 0.001, None)
 
-            let enCatSynthRndParam = (destrParam, (Some e.enCatDestrScarcity), e.enCatDestrMultiplier)
+            let enCatDestrRndParam = (destrParam, (Some e.enCatDestrScarcity), e.enCatDestrMultiplier)
 
             let enCatDestrParam =
-                ReactionRateProviderParams.defaultEnCatDestrSimParam enCatSynthRndParam (Some e.enCatDestrSimilarity) catRateGenType
+                ReactionRateProviderParams.defaultEnCatDestrSimParam enCatDestrRndParam (Some e.enCatDestrSimilarity) catRateGenType
             //===========================================================
             let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (e.ligForward, e.ligBackward)
 

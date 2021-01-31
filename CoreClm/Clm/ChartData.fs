@@ -30,6 +30,7 @@ module ChartData =
             binaryInfo : BinaryInfo
             y0 : decimal
             tEnd : decimal
+            description : string option
         }
 
 

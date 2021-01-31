@@ -10,7 +10,13 @@ module LigationModel =
 
         member model.getRates rnd r =
             match model with
-            | LigRndModel m -> m.getRates rnd r
+            | LigRndModel m ->
+//                printfn $"LigationModel.getRates: r = {r}."
+                m.getRates rnd r
+
+        member model.tryGetRates r =
+            match model with
+            | LigRndModel m -> m.tryGetRates r
 
         member model.inputParams =
             match model with

@@ -1,13 +1,11 @@
 ﻿namespace Clm
 
-open System.Collections.Generic
-open FSharp.Collections
 open Clm.Distributions
 open Clm.ReactionTypes
-open Clm.Substances
 open Clm.ReactionRatesBase
 
 module ReactionRateParams =
+
     type FoodCreationParam =
         {
             foodCreationRate : double
@@ -88,6 +86,25 @@ module ReactionRateParams =
         | EnCatSynthSimParam of EnCatalyticSynthesisSimilarParam
 
 
+    type AcCatalyticSynthesisRandomParam =
+        {
+            synthesisParam : SynthesisParam
+            acCatSynthRndEeParams : AcCatRatesEeParam
+        }
+
+
+    type AcCatalyticSynthesisSimilarParam =
+        {
+            acCatSynthParam : AcCatalyticSynthesisRandomParam
+            acCatSynthSimParam : AcCatRatesSimilarityParam
+        }
+
+
+    type AcCatalyticSynthesisParam =
+        | AcCatSynthRndParam of AcCatalyticSynthesisRandomParam
+        | AcCatSynthSimParam of AcCatalyticSynthesisSimilarParam
+
+
     type DestructionRandomParam =
         {
             destructionDistribution : Distribution
@@ -138,6 +155,25 @@ module ReactionRateParams =
         | EnCatDestrSimParam of EnCatalyticDestructionSimilarParam
 
 
+    type AcCatalyticDestructionRandomParam =
+        {
+            destructionParam : DestructionParam
+            acCatDestrRndEeParams : AcCatRatesEeParam
+        }
+
+
+    type AcCatalyticDestructionSimilarParam =
+        {
+            acCatDestrParam : AcCatalyticDestructionRandomParam
+            acCatDestrSimParam : AcCatRatesSimilarityParam
+        }
+
+
+    type AcCatalyticDestructionParam =
+        | AcCatDestrRndParam of AcCatalyticDestructionRandomParam
+        | AcCatDestrSimParam of AcCatalyticDestructionSimilarParam
+
+
     type SedDirRatesEeParam =
         {
             sedDirRateMultiplierDistr : RateMultiplierDistribution
@@ -175,17 +211,6 @@ module ReactionRateParams =
             sedDirSimBaseDistribution : Distribution
             getRateMultiplierDistr : RateMultiplierDistributionGetter
             getEeDistr : EeDistributionGetter
-        }
-
-
-    type SedDirRatesSimInfo =
-        {
-            sedDirRatesInfo : SedDirRatesInfo
-
-            aminoAcids : list<AminoAcid>
-            reagents : Map<AminoAcid, list<SedDirReagent>>
-            simParams : SedDirSimilarityParam
-            rateDictionary : Dictionary<SedimentationDirectReaction, RateData>
         }
 
 
@@ -262,6 +287,44 @@ module ReactionRateParams =
         | EnCatLigSimParam of EnCatalyticLigationSimilarParam
 
 
+    type AcFwdCatalyticLigationRandomParam =
+        {
+            ligationParam : LigationParam
+            acFwdCatLigRndEeParams : AcCatRatesEeParam
+        }
+
+
+    type AcFwdCatalyticLigationSimilarParam =
+        {
+            acFwdCatLigSimParam : AcCatRatesSimilarityParam
+            acFwdCatLigParam : AcFwdCatalyticLigationRandomParam
+        }
+
+
+    type AcFwdCatalyticLigationParam =
+        | AcFwdCatLigRndParam of AcFwdCatalyticLigationRandomParam
+        | AcFwdCatLigSimParam of AcFwdCatalyticLigationSimilarParam
+
+
+    type AcBkwCatalyticLigationRandomParam =
+        {
+            ligationParam : LigationParam
+            acBkwCatLigRndEeParams : AcCatRatesEeParam
+        }
+
+
+    type AcBkwCatalyticLigationSimilarParam =
+        {
+            acBkwCatLigSimParam : AcCatRatesSimilarityParam
+            acBkwCatLigParam : AcBkwCatalyticLigationRandomParam
+        }
+
+
+    type AcBkwCatalyticLigationParam =
+        | AcBkwCatLigRndParam of AcBkwCatalyticLigationRandomParam
+        | AcBkwCatLigSimParam of AcBkwCatalyticLigationSimilarParam
+
+
     type RacemizationRandomParam =
         {
             racemizationDistribution : Distribution
@@ -309,3 +372,33 @@ module ReactionRateParams =
     type EnCatalyticRacemizationParam =
         | EnCatRacemRndParam of EnCatalyticRacemizationRandomParam
         | EnCatRacemSimParam of EnCatalyticRacemizationSimilarParam
+
+
+    type AcCatalyticRacemizationRandomParam =
+        {
+            racemizationParam : RacemizationParam
+            acCatRacemRndEeParams : AcCatRatesEeParam
+        }
+
+
+    type AcCatalyticRacemizationSimilarParam =
+        {
+            acCatRacemParam : AcCatalyticRacemizationRandomParam
+            acCatRacemSimParam : AcCatRatesSimilarityParam
+        }
+
+
+    type AcCatalyticRacemizationParam =
+        | AcCatRacemRndParam of AcCatalyticRacemizationRandomParam
+        | AcCatRacemSimParam of AcCatalyticRacemizationSimilarParam
+
+
+    type ActivationRandomParam =
+        {
+            activationDistribution : Distribution
+            forwardScale : double option
+        }
+
+
+    type ActivationParam =
+        | ActivationRndParam of ActivationRandomParam

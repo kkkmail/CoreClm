@@ -34,4 +34,4 @@ module CatalyticRacemizationRandomModel =
             }
             |> calculateCatRates
 
-        member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateCatSynthRates rnd t) r
+        member model.getRates t rnd r = getRatesImpl model.dictionaryData getEnantiomer (calculateCatSynthRates rnd t) r

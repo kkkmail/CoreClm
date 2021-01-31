@@ -9,6 +9,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open Clm.Substances
 open Clm.ReactionTypes
+open ClmSys.ModelData
 open Clm.ReactionRates
 
 module ModelParams =
@@ -17,13 +18,16 @@ module ModelParams =
     let DefaultRootFolder = DefaultRootDrive + @":\" + ClmBaseName + @"\"
 
     [<Literal>]
-    let DefaultResultLocationFolder = DefaultRootFolder + @"Results"
+    let DefaultResultLocationFolder = DefaultRootFolder + "Results"
 
     [<Literal>]
-    let DefaultFileStorageFolder = DefaultRootFolder + @"FileStorage"
+    let DefaultFileStorageFolder = DefaultRootFolder + "FileStorage"
 
     [<Literal>]
-    let DefaultModelDataFile = __SOURCE_DIRECTORY__ + @"\..\Model\ModelCode.fs"
+    let ModelDataFolder = __SOURCE_DIRECTORY__ + @"\..\Model\"
+
+    [<Literal>]
+    let DefaultModelDataFile = "ModelCode"
 
 
     let toModelName (n : Guid) = n.ToString()
@@ -39,13 +43,15 @@ module ModelParams =
             maxPeptideLength : MaxPeptideLength
             seedValue : int
             clmDefaultValueId : ClmDefaultValueId
+            description : string option
         }
-
 
     type ModelDataParams =
         {
             modelInfo : ModelInfo
             allParams : array<ReactionRateModelParamWithUsage>
+            collisionData : CollisionData
+            dictionaryUpdateType : DictionaryUpdateType
         }
 
 
@@ -152,7 +158,14 @@ module ModelParams =
         }
 
 
-    let updateDescription d (lst : List<ClmDefaultValue>) = lst |> List.map (fun e -> { e with description = Some d })
+    /// Updates description with a given one if there none available at the source.
+    let private tryUpdateDescription d e =
+        match e.description with
+        | Some _ -> e
+        | None -> { e with description = Some d }
+
+
+    let updateDescription d lst = lst |> List.map (tryUpdateDescription d)
 
 
     /// Additional information needed to produce command line params for solver runner.

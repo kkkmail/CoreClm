@@ -1,9 +1,11 @@
 ﻿namespace ContGenServiceInfo
 
 open System
+open System.IO
 open System.ServiceModel
 open System.Threading
 
+open ClmSys.DistributionData
 open Softellect.Sys
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.AppSettings
@@ -15,7 +17,6 @@ open ClmSys.VersionInfo
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.GeneralData
-open Clm.ModelParams
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodePrimitives
@@ -24,6 +25,8 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
 open ClmSys.ContGenData
 open ClmSys.PartitionerData
+open ClmSys.ModelData
+open Clm.ModelParams
 
 module ServiceInfo =
 
@@ -105,17 +108,6 @@ module ServiceInfo =
         abstract tryRequestResults : q:byte[] -> byte[]
 
 
-    ////type MessagingClient = MessagingClient<ClmMessageData, ClmError>
-    ////type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
-    ////type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
-    //type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData, ClmError>>
-    //type Message = Message<ClmMessageData>
-    //type MessageInfo = MessageInfo<ClmMessageData>
-    //type MessagingService = MessagingService<ClmMessageData, ClmError>
-    //type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
-    //type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
-
-
     let contGenServiceAddress = ConfigKey "ContGenServiceAddress"
     let contGenServiceHttpPort = ConfigKey "ContGenServiceHttpPort"
     let contGenServiceNetTcpPort = ConfigKey "ContGenServiceNetTcpPort"
@@ -130,6 +122,7 @@ module ServiceInfo =
     let partitionerId = ConfigKey "PartitionerId"
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
+    let dictionaryUpdateType = ConfigKey "DictionaryUpdateType"
 
 
     let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
@@ -151,6 +144,54 @@ module ServiceInfo =
         provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
         provider.trySet messagingServiceCommunicationType ct.value |> ignore
 
+    let sugSynthCollKey = ConfigKey "SugSynthColl"
+    let catSynthCollKey = ConfigKey "CatSynthColl"
+    let enCatSynthCollKey = ConfigKey "EnCatSynthColl"
+    let acCatSynthCollKey = ConfigKey "AcCatSynthColl"
+    let catDestrCollKey = ConfigKey "CatDestrColl"
+    let enCatDestrCollKey = ConfigKey "EnCatDestrColl"
+    let acCatDestrCollKey = ConfigKey "AcCatDestrColl"
+    let catLigCollKey = ConfigKey "CatLigColl"
+    let enCatLigCollKey = ConfigKey "EnCatLigColl"
+    let acFwdCatLigCollKey = ConfigKey "AcFwdCatLigColl"
+    let acBkwCatLigCollKey = ConfigKey "AcBkwCatLigColl"
+    let catRacemCollKey = ConfigKey "CatRacemColl"
+    let enCatRacemCollKey = ConfigKey "EnCatRacemColl"
+    let acCatRacemCollKey = ConfigKey "AcCatRacemColl"
+    let sedDirCollKey = ConfigKey "SedDirColl"
+    let acCollKey = ConfigKey "AcColl"
+
+
+    type AppSettingsProvider
+        with
+
+        member provider.trySetPairCollisionResolution key (c : PairCollisionResolution) =
+            provider.trySet key (c.serialize())
+
+        member provider.trySetTripleCollisionResolution key (c : TripleCollisionResolution) =
+            provider.trySet key (c.serialize())
+
+        /// Generated.
+        member provider.trySetCollisionData (d : CollisionData) =
+            [
+                provider.trySetPairCollisionResolution sugSynthCollKey d.sugSynthColl
+                provider.trySetPairCollisionResolution catSynthCollKey d.catSynthColl
+                provider.trySetTripleCollisionResolution enCatSynthCollKey d.enCatSynthColl
+                provider.trySetPairCollisionResolution acCatSynthCollKey d.acCatSynthColl
+                provider.trySetPairCollisionResolution catDestrCollKey d.catDestrColl
+                provider.trySetTripleCollisionResolution enCatDestrCollKey d.enCatDestrColl
+                provider.trySetPairCollisionResolution acCatDestrCollKey d.acCatDestrColl
+                provider.trySetPairCollisionResolution catLigCollKey d.catLigColl
+                provider.trySetTripleCollisionResolution enCatLigCollKey d.enCatLigColl
+                provider.trySetPairCollisionResolution acFwdCatLigCollKey d.acFwdCatLigColl
+                provider.trySetPairCollisionResolution acBkwCatLigCollKey d.acBkwCatLigColl
+                provider.trySetPairCollisionResolution catRacemCollKey d.catRacemColl
+                provider.trySetTripleCollisionResolution enCatRacemCollKey d.enCatRacemColl
+                provider.trySetPairCollisionResolution acCatRacemCollKey d.acCatRacemColl
+                provider.trySetPairCollisionResolution sedDirCollKey d.sedDirColl
+                provider.trySetPairCollisionResolution acCollKey d.acColl
+            ]
+
 
     type ContGenSettings
         with
@@ -167,6 +208,8 @@ module ServiceInfo =
                     provider.trySet minUsefulEe w.contGenInfo.minUsefulEe.value |> ignore
                     provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
                     provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
+                    provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
+                    provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
 
                     provider.trySave() |> Rop.bindError toErr
                 with
@@ -227,6 +270,38 @@ module ServiceInfo =
         | _ -> d
 
 
+    let tryCreateCollisionType s =
+        match s with
+        | nameof(NoCollisionResolution) -> NoCollisionResolution |> Some |> Ok
+        | nameof(ExcludeDuplicates) -> ExcludeDuplicates |> Some |> Ok
+        | EmptyString -> None |> Ok
+        | _ -> Error s
+
+
+    let getCollisionData (provider : AppSettingsProvider) =
+        let getPairCollision defaultValue key = (PairCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
+        let getTripleCollision defaultValue key = (TripleCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
+
+        {
+            sugSynthColl = getPairCollision PairCollisionResolution.defaultValue sugSynthCollKey
+            catSynthColl = getPairCollision PairCollisionResolution.defaultValue catSynthCollKey
+            enCatSynthColl = getTripleCollision TripleCollisionResolution.defaultValue enCatSynthCollKey
+            acCatSynthColl = getPairCollision PairCollisionResolution.defaultValue acCatSynthCollKey
+            catDestrColl = getPairCollision PairCollisionResolution.defaultValue catDestrCollKey
+            enCatDestrColl = getTripleCollision TripleCollisionResolution.defaultValue enCatDestrCollKey
+            acCatDestrColl = getPairCollision PairCollisionResolution.defaultValue acCatDestrCollKey
+            catLigColl = getPairCollision PairCollisionResolution.defaultValue catLigCollKey
+            enCatLigColl = getTripleCollision TripleCollisionResolution.defaultValue enCatLigCollKey
+            acFwdCatLigColl = getPairCollision PairCollisionResolution.defaultValue acFwdCatLigCollKey
+            acBkwCatLigColl = getPairCollision PairCollisionResolution.defaultValue acBkwCatLigCollKey
+            catRacemColl = getPairCollision PairCollisionResolution.defaultValue catRacemCollKey
+            enCatRacemColl = getTripleCollision TripleCollisionResolution.defaultValue enCatRacemCollKey
+            acCatRacemColl = getPairCollision PairCollisionResolution.defaultValue acCatRacemCollKey
+            sedDirColl = getPairCollision PairCollisionResolution.defaultValue sedDirCollKey
+            acColl = getPairCollision PairCollisionResolution.defaultValue acCollKey
+        }
+
+
     let loadMessagingSettings providerRes =
         let messagingServiceCommunicationType = getCommunicationType providerRes messagingServiceCommunicationType NetTcpCommunication
         let serviceAddress = getServiceAddress providerRes messagingServiceAddress defaultMessagingServiceAddress
@@ -234,7 +309,7 @@ module ServiceInfo =
         let netTcpServicePort = getServiceNetTcpPort providerRes messagingNetTcpServicePort defaultMessagingNetTcpServicePort
 
         let h = HttpServiceAccessInfo.create serviceAddress httpServicePort messagingHttpServiceName.value
-        let n = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort messagingNetTcpServiceName.value
+        let n = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort messagingNetTcpServiceName.value WcfSecurityMode.defaultValue
         let m = ServiceAccessInfo.create h n
         let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion m
 
@@ -247,7 +322,7 @@ module ServiceInfo =
         let contGenServiceNetTcpPort = getServiceNetTcpPort providerRes contGenServiceNetTcpPort defaultContGenNetTcpServicePort
         let contGenServiceCommunicationType = getCommunicationType providerRes contGenServiceCommunicationType NetTcpCommunication
 
-        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort
+        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort WcfSecurityMode.defaultValue
 
         (contGenSvcInfo, contGenServiceCommunicationType)
 
@@ -275,6 +350,13 @@ module ServiceInfo =
                         match provider.tryGetInt earlyExitCheckFrequencyInMinutes with
                         | Ok (Some p) when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
                         | _ -> EarlyExitCheckFreq.defaultValue
+
+                    collisionData = getCollisionData provider
+
+                    dictionaryUpdateType =
+                        match provider.tryGet DictionaryUpdateType.tryDeserialize dictionaryUpdateType with
+                        | Ok (Some v) -> v
+                        | _ -> AllRateData
                 }
             | _ ->
                 {
@@ -282,6 +364,8 @@ module ServiceInfo =
                     partitionerId = defaultPartitionerId
                     lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
                     earlyExitCheckFreq = EarlyExitCheckFreq.defaultValue
+                    collisionData = CollisionData.defaultValue
+                    dictionaryUpdateType = AllRateData
                 }
 
         let (contGenSvcInfo, contGenServiceCommunicationType) = loadContGenServiceSettings providerRes
@@ -295,6 +379,8 @@ module ServiceInfo =
                 messagingSvcInfo = messagingSvcInfo
                 messagingCommType = messagingServiceCommunicationType
             }
+
+//        printfn "loadContGenSettings: Using settings:\n%A" w
 
         w
 

@@ -1,5 +1,6 @@
 ﻿namespace ServiceProxy
 
+open Clm.ReactionRateParams
 open Softellect.Messaging.ServiceInfo
 
 open Clm.ModelParams
@@ -14,6 +15,7 @@ open ClmSys.Logging
 open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
 open Clm.CalculationData
+open ClmSys.ModelData
 open NoSql.FileSystemTypes
 
 module ModelRunnerProxy =
@@ -157,6 +159,8 @@ module ModelRunnerProxy =
             resultLocation : string
             earlyExitInfoOpt : EarlyExitInfo option
             lastAllowedNodeErr : LastAllowedNodeErr
+            collisionData : CollisionData
+            dictionaryUpdateType : DictionaryUpdateType
         }
 
 

@@ -25,12 +25,13 @@ module EnCatalyticLigationSimilarModelExt =
             | _ -> None
 
 
-        static member tryCreate a (p, m) =
+        static member tryCreate u a (p, m) =
             let creator b (d : EnCatalyticLigationSimilarParam) =
                 {
                     enCatLigModel = b
                     peptideBondData = a
                     enCatLigSimParam = d.enCatLigSimParam
+                    dictionaryUpdateType = u
                 }
                 |> EnCatalyticLigationSimilarModel |> EnCatLigSimModel |> EnCatalyticLigationRateModel
 

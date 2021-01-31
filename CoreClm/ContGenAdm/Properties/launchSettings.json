@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ContGenAdm": {
+      "commandName": "Project",
+      "commandLineArgs": "add -i 4005000000 -n 20 -m 3 -y 10 -t 250000 -r 1 -g -v 1813825663 -u false"
+    }
+  }
+}

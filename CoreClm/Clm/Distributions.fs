@@ -1,5 +1,7 @@
 ﻿namespace Clm
+
 open System
+open ClmSys.DistributionData
 
 /// The distributions that we need fall into the following categories:
 ///     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.
@@ -10,7 +12,7 @@ open System
 ///        This distribution produces value near mean.
 module Distributions =
 
-    // https://en.wikipedia.org/wiki/Marsaglia_polar_method
+    /// https://en.wikipedia.org/wiki/Marsaglia_polar_method
     let rec getS (r : unit -> double) =
         let u = r() * 2.0 - 1.0
         let v = r() * 2.0 - 1.0
@@ -34,16 +36,36 @@ module Distributions =
     /// Generates only 0.
     let delta _ = 0.0
 
+
+    /// Assuming that v is a uniformly distributed on [0, 1) variable:
     /// Generates only -1 and 1 with equal probability.
     let biDelta v = if v < 0.5 then -1.0 else 1.0
 
+
+    /// Assuming that v is a uniformly distributed on [0, 1) variable:
+    /// Generates 0 with probability q and -1 and 1 with equal probability: (1 - q) / 2.
+    /// If q <= 0 then it becomes a BiDelta distribution.
+    /// If q > = 1 then it becomes a Delta distribution.
+    let triDelta q v =
+        match q with
+        | x when x >= 1.0 -> delta v
+        | x when x <= 0.0 -> biDelta v
+        | x when ((1.0 - x) / 2.0) < v && v < ((1.0 + x) / 2.0) -> delta v
+        | _ -> biDelta v
+
+
+    /// Assuming that v is a uniformly distributed on [0, 1) variable:
     /// Generates values on (-1, 1).
     let uniform v = 2.0 * (v - 0.5)
 
+
+    /// Assuming that v is a uniformly distributed on [0, 1) variable:
     /// Generates values on (0, 3) with mean 1.
     let triangular v = 3.0 * (1.0 - sqrt(1.0 - v))
 
-     /// Generates values on (-1, 1) with max / mean at 0.
+
+    /// Assuming that v is a uniformly distributed on [0, 1) variable:
+    /// Generates values on (-1, 1) with max / mean at 0.
     let symmetricTriangular v = v |> toSymmetricTriangular
 
 
@@ -61,6 +83,9 @@ module Distributions =
     let BiDeltaName = "BiDelta"
 
     [<Literal>]
+    let TriDeltaName = "TriDeltaName"
+
+    [<Literal>]
     let UniformName = "Uniform"
 
     [<Literal>]
@@ -73,6 +98,7 @@ module Distributions =
     type DistributionType =
         | Delta
         | BiDelta
+        | TriDelta of double
         | Uniform
         | Triangular
         | SymmetricTriangular
@@ -81,6 +107,7 @@ module Distributions =
             match d with
             | Delta -> delta
             | BiDelta -> biDelta
+            | TriDelta p -> triDelta p
             | Uniform -> uniform
             | Triangular -> triangular
             | SymmetricTriangular -> symmetricTriangular
@@ -89,6 +116,7 @@ module Distributions =
             match d with
             | Delta -> 0.0
             | BiDelta -> 0.0
+            | TriDelta _ -> 0.0
             | Uniform -> 0.0
             | Triangular -> 1.0
             | SymmetricTriangular -> 0.0
@@ -97,6 +125,7 @@ module Distributions =
             match d with
             | Delta -> 0.0
             | BiDelta -> 1.0 / 2.0 |> sqrt
+            | TriDelta p -> (1.0 - p) |> sqrt
             | Uniform -> 1.0 / 3.0 |> sqrt
             | Triangular -> 1.0 / 2.0 |> sqrt
             | SymmetricTriangular -> 1.0 / 6.0 |> sqrt
@@ -139,19 +168,51 @@ module Distributions =
             nextDouble : unit -> double
         }
 
+        /// Returns 0 all the time.
+        static member zero =
+            {
+                seed = 0
+                next = fun () -> 0
+                nextN = fun _ -> 0
+                nextDouble = fun () -> 0.0
+            }
+
         static member create so =
             let seed =
                 match so with
                 | Some s -> s
                 | None -> Random().Next()
 
+//            let rnd = Random(seed)
+//
+//            {
+//                seed = seed
+//                next = rnd.Next
+//                nextN = rnd.Next
+//                nextDouble = rnd.NextDouble
+//            }
+
             let rnd = Random(seed)
 
             {
                 seed = seed
-                next = rnd.Next
-                nextN = (fun n -> rnd.Next(n))
-                nextDouble = rnd.NextDouble
+                next =
+                    fun () ->
+                        let v = rnd.Next()
+//                        printfn $"RandomValueGetter.next = {v}"
+                        v
+
+                nextN =
+                    fun n ->
+                        let v = rnd.Next n
+//                        printfn $"RandomValueGetter.nextN {n} = {v}"
+                        v
+
+                nextDouble =
+                    fun () ->
+                        let v = rnd.NextDouble()
+//                        printfn $"RandomValueGetter.nextDouble = {v}"
+                        v
             }
 
         static member create() = RandomValueGetter.create None
@@ -171,6 +232,11 @@ module Distributions =
 
         member this.randomValueGetter =
             match this with | RandomValueGetterBased r | ThresholdValueBased r -> r
+
+        override this.ToString() =
+            match this with
+            | RandomValueGetterBased v -> $"{nameof(RandomValueGetterBased)}, seed = {v.seed}"
+            | ThresholdValueBased v -> $"{nameof(ThresholdValueBased)}, seed = {v.seed}"
 
 
     /// First scale, then shift. This is more convenient here than the other way around.
@@ -212,8 +278,8 @@ module Distributions =
         member d.createScaled newScale = { d.value with distributionParams = { d.value.distributionParams with scale = newScale } } |> Distribution
         member d.createShifted newShift = { d.value with distributionParams = { d.distributionParams with shift = newShift } } |> Distribution
         member d.createThresholded newThreshold = { d.value with distributionParams = { d.distributionParams with threshold = newThreshold } } |> Distribution
-        member __.next (rnd : RandomValueGetter) = rnd.next()
-        member __.nextN (rnd : RandomValueGetter) n = rnd.nextN n
+        member _.next (rnd : RandomValueGetter) = rnd.next()
+        member _.nextN (rnd : RandomValueGetter) n = rnd.nextN n
 
         member d.successNumber (s : SuccessNumberGetter) (noOfTries : int64) =
             match d.value.distributionParams.threshold with
@@ -225,15 +291,16 @@ module Distributions =
                     match s with
                         | RandomValueGetterBased rnd ->
                             let stdDev = 0.0
-                            let s = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
-                            getGaussian rnd.nextDouble m s
+                            let st = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
+                            getGaussian rnd.nextDouble m st
                         | ThresholdValueBased _ -> double m
-                printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m s sn
+                printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m (s.ToString()) sn
                 min (max 0L (int64 sn)) noOfTries |> int
             | None -> noOfTries |> int
 
         static member createDelta p = { distributionType = Delta; distributionParams = p } |> Distribution
         static member createBiDelta p = { distributionType = BiDelta; distributionParams = p } |> Distribution
+        static member createTriDelta q p = { distributionType = TriDelta q; distributionParams = p } |> Distribution
         static member createUniform p = { distributionType = Uniform; distributionParams = p } |> Distribution
         static member createTriangular p = { distributionType = Triangular; distributionParams = p } |> Distribution
         static member createSymmetricTriangular p = { distributionType = SymmetricTriangular; distributionParams = p } |> Distribution
@@ -252,6 +319,9 @@ module Distributions =
 
         static member createBiDelta scale =
             Distribution.createBiDelta { threshold = None; scale = scale; shift = None } |> EeDistribution
+
+        static member createTriDelta q scale =
+            Distribution.createTriDelta q { threshold = None; scale = scale; shift = None } |> EeDistribution
 
         static member private getMeanAndWidth mean =
             match mean with

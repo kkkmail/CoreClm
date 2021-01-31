@@ -8,7 +8,7 @@ module VersionInfo =
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
     ///     3. Version number (below) is increased.
-    let messagingDataVersion = MessagingDataVersion 104
+    let messagingDataVersion = MessagingDataVersion 106
 
 
     /// This is an overall system version.

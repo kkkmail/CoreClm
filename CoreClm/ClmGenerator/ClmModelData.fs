@@ -1,5 +1,6 @@
 ﻿namespace Clm.Generator
 
+open Clm.ReactionRateParams
 open FSharp.Collections
 
 open ClmSys.VersionInfo
@@ -15,6 +16,8 @@ open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
 open Clm.Generator.ReactionRatesExt
 open Clm.Distributions
+open ClmSys.DistributionData
+open ClmSys.ModelData
 
 module ClmModelData =
 
@@ -34,6 +37,10 @@ module ClmModelData =
             updateFuncType : UpdateFuncType
             clmDefaultValueId : ClmDefaultValueId
             successNumberType : SuccessNumberType
+            collisionData : CollisionData
+            dictionaryUpdateType : DictionaryUpdateType
+            seedValue : int option
+            description : string option
         }
 
 
@@ -43,7 +50,7 @@ module ClmModelData =
             modelCommandLineParams : list<ModelCommandLineParam>
         }
 
-        static member create g (c : ClmTask) =
+        static member create u coll so g (c : ClmTask) =
             match g c.clmTaskInfo.clmDefaultValueId with
             | Ok v ->
                 {
@@ -57,6 +64,10 @@ module ClmModelData =
                             updateFuncType = UseFunctions
                             clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
                             successNumberType = v.defaultRateParams.successNumberType
+                            collisionData = coll
+                            dictionaryUpdateType = u
+                            seedValue = so
+                            description = v.description
                         }
 
                     modelCommandLineParams = c.commandLineParams
@@ -76,7 +87,8 @@ module ClmModelData =
     let aminoAcids = AminoAcid.getAminoAcids numberOfAminoAcids
     let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
     let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-    let allSubst = createAllSubst chiralAminoAcids peptides
+    let peptideCatalysts = getPeptideCatalysts peptides
+    let allSubst = createAllSubst chiralAminoAcids peptides peptideCatalysts
     let allInd = createAllInd allSubst
 "
 
@@ -87,13 +99,19 @@ module ClmModelData =
             sugSynth : list<ChiralSugar * SugCatalyst>
             catSynthPairs : list<SynthesisReaction * SynthCatalyst>
             enCatSynth : list<SynthesisReaction * EnSynthCatalyst * ChiralSugar>
+            acCatSynth : list<SynthesisReaction * AcSynthCatalyst>
             catDestrPairs : list<DestructionReaction * DestrCatalyst>
             enCatDestr : list<DestructionReaction * EnDestrCatalyst * ChiralSugar>
+            acCatDestr : list<DestructionReaction * AcDestrCatalyst>
             catLigPairs : list<LigationReaction * LigCatalyst>
             enCatLig : list<LigationReaction * EnLigCatalyst * ChiralSugar>
+            acFwdCatLig : list<LigationReaction * AcFwdLigCatalyst>
+            acBkwCatLig : list<LigationReaction * AcBkwLigCatalyst>
             catRacemPairs : list<RacemizationReaction * RacemizationCatalyst>
             enCatRacem : list<RacemizationReaction * EnRacemCatalyst * ChiralSugar>
+            acCatRacem : list<RacemizationReaction * AcRacemCatalyst>
             sedDirPairs : list<ChiralAminoAcid * SedDirAgent>
+            acPairs : list<ChiralSugar * Peptide>
         }
 
         member data.getReactions rnd rateProvider t n =
@@ -114,61 +132,141 @@ module ClmModelData =
             | DestructionName -> createReactions (fun a -> DestructionReaction a |> Destruction) data.substInfo.chiralAminoAcids
             | CatalyticSynthesisName -> createReactions (fun x -> CatalyticSynthesisReaction x |> CatalyticSynthesis) data.catSynthPairs
             | EnCatalyticSynthesisName -> createReactions (fun x -> EnCatalyticSynthesisReaction x |> EnCatalyticSynthesis) data.enCatSynth
+            | AcCatalyticSynthesisName -> createReactions (fun x -> AcCatalyticSynthesisReaction x |> AcCatalyticSynthesis) data.acCatSynth
             | CatalyticDestructionName -> createReactions (fun x -> CatalyticDestructionReaction x |> CatalyticDestruction) data.catDestrPairs
             | EnCatalyticDestructionName -> createReactions (fun x -> EnCatalyticDestructionReaction x |> EnCatalyticDestruction) data.enCatDestr
+            | AcCatalyticDestructionName -> createReactions (fun x -> AcCatalyticDestructionReaction x |> AcCatalyticDestruction) data.acCatDestr
             | LigationName -> createReactions (fun x -> x |> Ligation) data.substInfo.ligationPairs
             | CatalyticLigationName -> createReactions (fun x -> CatalyticLigationReaction x |> CatalyticLigation) data.catLigPairs
             | EnCatalyticLigationName -> createReactions (fun x -> EnCatalyticLigationReaction x |> EnCatalyticLigation) data.enCatLig
+            | AcFwdCatalyticLigationName -> createReactions (fun x -> AcFwdCatalyticLigationReaction x |> AcFwdCatalyticLigation) data.acFwdCatLig
+            | AcBkwCatalyticLigationName -> createReactions (fun x -> AcBkwCatalyticLigationReaction x |> AcBkwCatalyticLigation) data.acBkwCatLig
             | SedimentationDirectName -> createReactions (fun (c, r) -> SedimentationDirectReaction ([ c ] |> SedDirReagent, r) |> SedimentationDirect) data.sedDirPairs
             | SedimentationAllName -> []
             | RacemizationName -> createReactions (fun a -> RacemizationReaction a |> Racemization) data.substInfo.chiralAminoAcids
-            | EnCatalyticRacemizationName -> createReactions (fun x -> EnCatalyticRacemizationReaction x |> EnCatalyticRacemization) data.enCatRacem
             | CatalyticRacemizationName -> createReactions (fun x -> CatalyticRacemizationReaction x |> CatalyticRacemization) data.catRacemPairs
+            | EnCatalyticRacemizationName -> createReactions (fun x -> EnCatalyticRacemizationReaction x |> EnCatalyticRacemization) data.enCatRacem
+            | AcCatalyticRacemizationName -> createReactions (fun x -> AcCatalyticRacemizationReaction x |> AcCatalyticRacemization) data.acCatRacem
+            | ActivationName -> createReactions (fun x -> ActivationReaction x |> Activation) data.acPairs
+
+
+    let generateValue  (d : Distribution) rnd (data : array<'A>) coll generated =
+//        printfn "\n\ngenerateValue:Starting..."
+
+        let getValue next =
+//            printfn "generateValue.getValue: next = %A, data.Length = %A" next data.Length
+            (next :: generated) |> List.sort, data.[next]
+
+        let adjust next =
+//            printfn "generateValue.adjust: next = %A" next
+
+            let rec inner rem n =
+//                printfn "generateValue.adjust.inner: n = %A" n
+                match rem with
+                | [] -> n
+                | h :: t ->
+                    match h > n with
+                    | true -> n
+                    | false -> inner t (n + 1)
+            inner generated next
+
+        match coll with
+        | NoCollisionResolution ->
+            let next = d.nextN rnd data.Length
+//            printfn "generateValue: next = %A" next
+            getValue next
+        | ExcludeDuplicates ->
+            let next = d.nextN rnd (data.Length - generated.Length)
+            let adjusted = adjust next
+//            printfn "generateValue: next = %A, adjusted = %A" next adjusted
+            getValue adjusted
 
 
     let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + B, E(A) + E(B))
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
-        printfn "generatePairs: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>)
+        printfn "\n\ngeneratePairs:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    pairCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) i.pairCollision i.successNumberType
 
-        let sng =
-            rnd
-            |>
-            match i.successNumberType with
-            | RandomValueBased -> RandomValueGetterBased
-            | ThresholdBased -> ThresholdValueBased
+        // PairCollision should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
+        // This is an extremely rare scenario and as such implementation is not worth an effort.
+        match i.pairCollision with
+        | PairCollision -> invalidOp $"generatePairs: {nameof(i.pairCollision)} = {PairCollision} is not supported yet!"
+        | EachInPair ct ->
+            let sng =
+                rnd
+                |>
+                match i.successNumberType with
+                | RandomValueBased -> RandomValueGetterBased
+                | ThresholdBased -> ThresholdValueBased
 
-        match rateProvider.tryGetPrimaryDistribution i.reactionName with
-        | Some d ->
-            let sn = d.successNumber sng noOfTries
-            printfn "generatePairs: successNumberType = %A, sn = %A" i.successNumberType sn
-            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length]) ]
-        | None -> []
+            match rateProvider.tryGetPrimaryDistribution i.reactionName with
+            | Some d ->
+                let generate data coll (idx, gen) =
+                    let (i, a) = generateValue d rnd data coll idx
+                    (i, a :: gen)
+
+                let generateA a = generate i.a ct.collisionA a
+                let generateB b = generate i.b ct.collisionB b
+
+                let sn = d.successNumber sng noOfTries
+                printfn "generatePairs: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
+
+//                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length]) ]
+                let ((_, a), (_, b)) =
+                    [ for _ in 1..sn -> ()]
+                    |> List.fold (fun (a, b) _ -> (generateA a, generateB b)) (([], []), ([], []))
+
+                let retVal = (a, b) ||> List.zip |> List.rev
+//                retVal |> List.map (fun (a, b) -> printfn "    %s, %s" (a.ToString()) (b.ToString())) |> ignore
+                retVal
+            | None -> []
 
 
     let generateTriples<'A, 'B, 'C> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
-        // ??? must adjust for 8X ??? reduction due to grouping???
+        // ??? must adjust for 8X ??? reduction due to grouping ???
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
-        printfn "generateTriples: noOfTries = %A, typedefof<'A> = %A, typedefof<'B> = %A, typedefof<'C> = %A\n" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>)
+        printfn "generateTriples:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    typedefof<'C> = %A\n    tripleCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>) i.tripleCollision i.successNumberType
 
-        let sng =
-            rnd
-            |>
-            match i.successNumberType with
-            | RandomValueBased -> RandomValueGetterBased
-            | ThresholdBased -> ThresholdValueBased
+        // ExcludeDuplicates should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
+        // This is an extremely rare scenario and as such implementation is not worth an effort.
+        match i.tripleCollision with
+        | TripleCollision -> invalidOp $"generateTriples: {nameof(i.tripleCollision)} = {TripleCollision} is not supported yet!"
+        | EachInTriple ct ->
+            let sng =
+                rnd
+                |>
+                match i.successNumberType with
+                | RandomValueBased -> RandomValueGetterBased
+                | ThresholdBased -> ThresholdValueBased
 
-        match rateProvider.tryGetPrimaryDistribution i.reactionName with
-        | Some d ->
-            let sn = d.successNumber sng noOfTries
-            printfn "generateTriples: successNumberType = %A, sn = %A" i.successNumberType sn
-            [ for _ in 1..sn -> (i.a.[d.nextN rnd i.a.Length], i.b.[d.nextN rnd i.b.Length], i.c.[d.nextN rnd i.c.Length]) ]
-        | None -> []
+            match rateProvider.tryGetPrimaryDistribution i.reactionName with
+            | Some d ->
+                let generate data coll (idx, gen) =
+                    let (i, a) = generateValue d rnd data coll idx
+                    (i, a :: gen)
+
+                let generateA a = generate i.a ct.collisionA a
+                let generateB b = generate i.b ct.collisionB b
+                let generateC c = generate i.c ct.collisionC c
+
+                let sn = d.successNumber sng noOfTries
+                printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A\n\n" i.successNumberType sn i.reactionName
+
+//                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length], i.c.generatorData.[d.nextN rnd i.c.generatorData.Length]) ]
+                let ((_, a), (_, b), (_, c)) =
+                    [ for _ in 1..sn -> ()]
+                    |> List.fold (fun (a, b, c) _ -> (generateA a, generateB b, generateC c)) (([], []), ([], []), ([], []))
+
+                let retVal = (a, b, c) |||> List.zip3 |> List.rev
+//                retVal |> List.map (fun (a, b, c) -> printfn "    %s, %s, %s" (a.ToString()) (b.ToString()) (c.ToString())) |> ignore
+                retVal
+            | None -> []
 
 
     type RandomChoiceModelData =
         {
             commonData : RateGenerationCommonData
+            collisionData : CollisionData
         }
 
         member data.noOfRawReactions n =
@@ -180,28 +278,31 @@ module ClmModelData =
             | WasteRemovalName -> 1L
             | WasteRecyclingName -> 1L
             | SynthesisName -> int64 si.chiralAminoAcids.Length
-            | SugarSynthesisName -> sugLen
+            | SugarSynthesisName -> sugLen * (int64 si.sugSynthCatalysts.Length)
             | DestructionName -> int64 si.chiralAminoAcids.Length
             | CatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length)
-            | EnCatalyticSynthesisName ->
-                (int64 si.synthesisReactions.Length) * (int64 si.synthCatalysts.Length) * sugLen * 2L
+            | EnCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.enSynthCatalysts.Length) * sugLen * 2L
+            | AcCatalyticSynthesisName -> (int64 si.synthesisReactions.Length) * (int64 si.acSynthCatalysts.Length)
             | CatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length)
-            | EnCatalyticDestructionName ->
-                (int64 si.destructionReactions.Length) * (int64 si.destrCatalysts.Length) * sugLen * 2L
+            | EnCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.enDestrCatalysts.Length) * sugLen * 2L
+            | AcCatalyticDestructionName -> (int64 si.destructionReactions.Length) * (int64 si.acDestrCatalysts.Length)
             | LigationName -> int64 si.ligationPairs.Length
             | CatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length)
-            | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.ligCatalysts.Length) * sugLen * 2L
+            | EnCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.enLigCatalysts.Length) * sugLen * 2L
+            | AcFwdCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.acFwdLigCatalysts.Length)
+            | AcBkwCatalyticLigationName -> (int64 si.ligationReactions.Length) * (int64 si.acBkwLigCatalysts.Length)
             | SedimentationDirectName -> (int64 si.allChains.Length) * (int64 si.allChains.Length)
             | SedimentationAllName -> int64 si.chiralAminoAcids.Length
             | RacemizationName -> int64 si.chiralAminoAcids.Length
             | CatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length)
-            | EnCatalyticRacemizationName ->
-                (int64 si.racemizationReactions.Length) * (int64 si.racemCatalysts.Length) * sugLen * 2L
+            | EnCatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.enRacemCatalysts.Length) * sugLen * 2L
+            | AcCatalyticRacemizationName -> (int64 si.racemizationReactions.Length) * (int64 si.acRacemCatalysts.Length)
+            | ActivationName -> (int64 si.acSynthCatalysts.Length)
 
         member data.getReactions rnd rateProvider n = data.commonData.getReactions rnd rateProvider RandomChoice n
 
         /// Note that currently all generators share the same success number type.
-        static member create rnd rateProvider (si : SubstInfo) st =
+        static member create rnd rateProvider (si : SubstInfo) st coll =
             let generatePairs x = generatePairs rnd x rateProvider
             let generateTriples x = generateTriples rnd x rateProvider
 
@@ -209,17 +310,25 @@ module ClmModelData =
                 commonData =
                     {
                         substInfo = si
-                        sugSynth = generatePairs (si.sugSynthInfo st)
-                        catSynthPairs = generatePairs (si.catSynthInfo st)
-                        enCatSynth = generateTriples (si.enCatSynthInfo st)
-                        catDestrPairs = generatePairs (si.catDestrInfo st)
-                        enCatDestr = generateTriples (si.enCatDestrInfo st)
-                        catLigPairs = generatePairs (si.catLigInfo st)
-                        enCatLig = generateTriples (si.enCatLigInfo st)
-                        catRacemPairs = generatePairs (si.catRacemInfo st)
-                        enCatRacem = generateTriples (si.enCatRacemInfo st)
-                        sedDirPairs = generatePairs (si.sedDirInfo st)
+                        sugSynth = generatePairs (si.sugSynthInfo coll.sugSynthColl st)
+                        catSynthPairs = generatePairs (si.catSynthInfo coll.catSynthColl st)
+                        enCatSynth = generateTriples (si.enCatSynthInfo coll.enCatSynthColl st)
+                        acCatSynth = generatePairs (si.acCatSynthInfo coll.acCatSynthColl st)
+                        catDestrPairs = generatePairs (si.catDestrInfo coll.catDestrColl st)
+                        enCatDestr = generateTriples (si.enCatDestrInfo coll.enCatDestrColl st)
+                        acCatDestr = generatePairs (si.acCatDestrInfo coll.acCatDestrColl st)
+                        catLigPairs = generatePairs (si.catLigInfo coll.catLigColl st)
+                        enCatLig = generateTriples (si.enCatLigInfo coll.enCatLigColl st)
+                        acFwdCatLig = generatePairs (si.acFwdCatLigInfo coll.acFwdCatLigColl st)
+                        acBkwCatLig = generatePairs (si.acBkwCatLigInfo coll.acBkwCatLigColl st)
+                        catRacemPairs = generatePairs (si.catRacemInfo coll.catRacemColl st)
+                        enCatRacem = generateTriples (si.enCatRacemInfo coll.enCatRacemColl st)
+                        acCatRacem = generatePairs (si.acCatRacemInfo coll.acCatRacemColl st)
+                        sedDirPairs = generatePairs (si.sedDirInfo coll.sedDirColl st)
+                        acPairs = generatePairs (si.acPairsInfo coll.acColl st)
                     }
+
+                collisionData = coll
             }
 
 
@@ -242,6 +351,6 @@ module ClmModelData =
 
                 b
 
-        static member create rnd t rateProvider si st =
+        static member create rnd t rateProvider si st coll =
             match t with
-            | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si st |> RandomChoiceModel
+            | RandomChoice -> RandomChoiceModelData.create rnd rateProvider si st coll |> RandomChoiceModel

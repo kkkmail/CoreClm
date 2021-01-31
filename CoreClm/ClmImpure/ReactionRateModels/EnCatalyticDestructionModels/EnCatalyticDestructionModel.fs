@@ -14,10 +14,10 @@ module EnCatalyticDestructionModel =
         | EnCatDestrRndModel of EnCatalyticDestructionRandomModel
         | EnCatDestrSimModel of EnCatalyticDestructionSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | EnCatDestrRndModel m -> m.getRates rnd t r
-            | EnCatDestrSimModel m -> m.getRates rnd t r
+            | EnCatDestrRndModel m -> m.getRates t rnd r
+            | EnCatDestrSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

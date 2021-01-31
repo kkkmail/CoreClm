@@ -60,7 +60,7 @@ module CalculationData =
         }
 
 
-    let createAllSubst chiralAminoAcids  peptides =
+    let createAllSubst chiralAminoAcids  peptides peptideCatalysts =
         Substance.allSimple
         @
         (chiralAminoAcids |> List.map (fun a -> Chiral a))
@@ -68,9 +68,12 @@ module CalculationData =
         (peptides |> List.map (fun p -> PeptideChain p))
         @
         (ChiralSugar.all |> List.map ChiralSug)
+        @
+        (peptideCatalysts |> List.map ActivatedPeptide |> List.map ActivatedPeptideChain)
 
 
     let createAllInd allSubst = allSubst |> List.mapi (fun i s -> (s, i)) |> Map.ofList
+    let getPeptideCatalysts (peptides : list<Peptide>) = peptides |> List.filter (fun p -> p.length > 2)
 
 
     type SubstInfo =
@@ -80,16 +83,22 @@ module CalculationData =
             chiralAminoAcids : list<ChiralAminoAcid>
             chiralSugars : list<ChiralSugar>
             peptides : list<Peptide>
+            peptideCatalysts : list<Peptide>
             synthCatalysts : list<SynthCatalyst>
             sugSynthCatalysts : list<SugCatalyst>
             enSynthCatalysts : list<EnSynthCatalyst>
+            acSynthCatalysts : list<AcSynthCatalyst>
             destrCatalysts : list<DestrCatalyst>
             enDestrCatalysts : list<EnDestrCatalyst>
+            acDestrCatalysts : list<AcDestrCatalyst>
             ligCatalysts : list<LigCatalyst>
             enLigCatalysts : list<EnLigCatalyst>
+            acFwdLigCatalysts : list<AcFwdLigCatalyst>
+            acBkwLigCatalysts : list<AcBkwLigCatalyst>
             ligationPairs : list<LigationReaction>
             racemCatalysts : list<RacemizationCatalyst>
             enRacemCatalysts : list<EnRacemCatalyst>
+            acRacemCatalysts : list<AcRacemCatalyst>
 
             sedDirReagents : Map<AminoAcid, list<SedDirReagent>>
             sedDirAgents : list<SedDirAgent>
@@ -106,7 +115,8 @@ module CalculationData =
             let allChains = (chiralAminoAcids |> List.map (fun a -> [ a ])) @ (peptides |> List.map (fun p -> p.aminoAcids))
             let allLigChains = allChains |> List.filter(fun a -> a.Length < p.maxPeptideLength.length)
             let aminoAcids = AminoAcid.getAminoAcids p.numberOfAminoAcids
-            let allSubst = createAllSubst chiralAminoAcids peptides
+            let peptideCatalysts = getPeptideCatalysts peptides
+            let allSubst = createAllSubst chiralAminoAcids peptides peptideCatalysts
 
             let reagents =
                 allChains
@@ -128,16 +138,22 @@ module CalculationData =
                 chiralAminoAcids = chiralAminoAcids
                 chiralSugars = ChiralSugar.all
                 peptides = peptides
-                synthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SynthCatalyst p)
-                sugSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> SugCatalyst p)
-                enSynthCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnSynthCatalyst p)
-                destrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> DestrCatalyst p)
-                enDestrCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnDestrCatalyst p)
-                ligCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> LigCatalyst p)
-                enLigCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnLigCatalyst p)
+                peptideCatalysts = peptideCatalysts
+                synthCatalysts = peptideCatalysts |> List.map (fun p -> SynthCatalyst p)
+                sugSynthCatalysts = peptideCatalysts |> List.map (fun p -> SugCatalyst p)
+                enSynthCatalysts = peptideCatalysts |> List.map (fun p -> EnSynthCatalyst p)
+                acSynthCatalysts = peptideCatalysts |> List.map (fun p -> p |> ActivatedPeptide |> AcSynthCatalyst)
+                destrCatalysts = peptideCatalysts |> List.map (fun p -> DestrCatalyst p)
+                enDestrCatalysts = peptideCatalysts |> List.map (fun p -> EnDestrCatalyst p)
+                acDestrCatalysts = peptideCatalysts |> List.map (fun p -> p |> ActivatedPeptide |> AcDestrCatalyst)
+                ligCatalysts = peptideCatalysts |> List.map (fun p -> LigCatalyst p)
+                enLigCatalysts = peptideCatalysts |> List.map (fun p -> EnLigCatalyst p)
+                acFwdLigCatalysts = peptideCatalysts |> List.map (fun p -> p |> ActivatedPeptide |> AcFwdLigCatalyst)
+                acBkwLigCatalysts = peptideCatalysts |> List.map (fun p -> p |> ActivatedPeptide |> AcBkwLigCatalyst)
                 ligationPairs = ligationPairs
-                racemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> RacemizationCatalyst p)
-                enRacemCatalysts = peptides |> List.filter (fun p -> p.length > 2) |> List.map (fun p -> EnRacemCatalyst p)
+                racemCatalysts = peptideCatalysts |> List.map (fun p -> RacemizationCatalyst p)
+                enRacemCatalysts = peptideCatalysts |> List.map (fun p -> EnRacemCatalyst p)
+                acRacemCatalysts = peptideCatalysts |> List.map (fun p -> p |> ActivatedPeptide |> AcRacemCatalyst)
                 sedDirReagents = aminoAcids |> List.map (fun a -> (a, simReagents a)) |> Map.ofList
 
                 sedDirAgents =
@@ -156,24 +172,37 @@ module CalculationData =
         member si.ligationReactions = si.ligationPairs
         member si.racemizationReactions = si.chiralAminoAcids |> List.map RacemizationReaction
 
-        member si.sugSynthInfo t =
+        member si.sugSynthInfo i t =
             {
+                pairCollision = i
                 a = si.chiralSugars |> Array.ofList
                 b = si.sugSynthCatalysts |> Array.ofList
                 reactionName = ReactionName.SugarSynthesisName
                 successNumberType = t
             }
 
-        member si.catSynthInfo t =
+        member si.acPairsInfo i t =
             {
+                pairCollision = i
+
+                a = si.chiralSugars |> Array.ofList
+                b = si.peptideCatalysts |> Array.ofList
+                reactionName = ReactionName.ActivationName
+                successNumberType = t
+            }
+
+        member si.catSynthInfo i t =
+            {
+                pairCollision = i
                 a = si.synthesisReactions |> Array.ofList
                 b = si.synthCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticSynthesisName
                 successNumberType = t
             }
 
-        member si.enCatSynthInfo t =
+        member si.enCatSynthInfo i t =
             {
+                tripleCollision = i
                 a = si.synthesisReactions |> Array.ofList
                 b = si.enSynthCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
@@ -181,16 +210,27 @@ module CalculationData =
                 successNumberType = t
             }
 
-        member si.catDestrInfo t =
+        member si.acCatSynthInfo i t =
             {
+                pairCollision = i
+                a = si.synthesisReactions |> Array.ofList
+                b = si.acSynthCatalysts |> Array.ofList
+                reactionName = ReactionName.AcCatalyticSynthesisName
+                successNumberType = t
+            }
+
+        member si.catDestrInfo i t =
+            {
+                pairCollision = i
                 a = si.destructionReactions |> Array.ofList
                 b = si.destrCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticDestructionName
                 successNumberType = t
             }
 
-        member si.enCatDestrInfo t =
+        member si.enCatDestrInfo i t =
             {
+                tripleCollision = i
                 a = si.destructionReactions |> Array.ofList
                 b = si.enDestrCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
@@ -198,16 +238,27 @@ module CalculationData =
                 successNumberType = t
             }
 
-        member si.catLigInfo t =
+        member si.acCatDestrInfo i t =
             {
+                pairCollision = i
+                a = si.destructionReactions |> Array.ofList
+                b = si.acDestrCatalysts |> Array.ofList
+                reactionName = ReactionName.AcCatalyticDestructionName
+                successNumberType = t
+            }
+
+        member si.catLigInfo i t =
+            {
+                pairCollision = i
                 a = si.ligationReactions |> Array.ofList
                 b = si.ligCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticLigationName
                 successNumberType = t
             }
 
-        member si.enCatLigInfo t =
+        member si.enCatLigInfo i t =
             {
+                tripleCollision = i
                 a = si.ligationReactions |> Array.ofList
                 b = si.enLigCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
@@ -215,16 +266,36 @@ module CalculationData =
                 successNumberType = t
             }
 
-        member si.catRacemInfo t =
+        member si.acFwdCatLigInfo i t =
             {
+                pairCollision = i
+                a = si.ligationReactions |> Array.ofList
+                b = si.acFwdLigCatalysts |> Array.ofList
+                reactionName = ReactionName.AcFwdCatalyticLigationName
+                successNumberType = t
+            }
+
+        member si.acBkwCatLigInfo i t =
+            {
+                pairCollision = i
+                a = si.ligationReactions |> Array.ofList
+                b = si.acBkwLigCatalysts |> Array.ofList
+                reactionName = ReactionName.AcBkwCatalyticLigationName
+                successNumberType = t
+            }
+
+        member si.catRacemInfo i t =
+            {
+                pairCollision = i
                 a = si.racemizationReactions |> Array.ofList
                 b = si.racemCatalysts |> Array.ofList
                 reactionName = ReactionName.CatalyticRacemizationName
                 successNumberType = t
             }
 
-        member si.enCatRacemInfo t =
+        member si.enCatRacemInfo i t =
             {
+                tripleCollision = i
                 a = si.racemizationReactions |> Array.ofList
                 b = si.enRacemCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
@@ -232,8 +303,18 @@ module CalculationData =
                 successNumberType = t
             }
 
-        member si.sedDirInfo t =
+        member si.acCatRacemInfo i t =
             {
+                pairCollision = i
+                a = si.racemizationReactions |> Array.ofList
+                b = si.acRacemCatalysts |> Array.ofList
+                reactionName = ReactionName.AcCatalyticRacemizationName
+                successNumberType = t
+            }
+
+        member si.sedDirInfo i t =
+            {
+                pairCollision = i
                 a = si.chiralAminoAcids |> Array.ofList
                 b = si.sedDirAgents |> Array.ofList
                 reactionName = ReactionName.SedimentationDirectName
@@ -456,7 +537,8 @@ module CalculationData =
             let maxPeptideLength = this.modelDataParams.modelInfo.maxPeptideLength
             let chiralAminoAcids = ChiralAminoAcid.getAminoAcids numberOfAminoAcids
             let peptides = Peptide.getPeptides maxPeptideLength numberOfAminoAcids
-            let allSubst = createAllSubst chiralAminoAcids peptides
+            let peptideCatalysts = getPeptideCatalysts peptides
+            let allSubst = createAllSubst chiralAminoAcids peptides peptideCatalysts
             let allInd = createAllInd allSubst
 
             {

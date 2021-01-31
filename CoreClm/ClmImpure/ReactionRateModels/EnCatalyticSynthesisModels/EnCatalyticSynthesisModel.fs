@@ -14,10 +14,10 @@ module EnCatalyticSynthesisModel =
         | EnCatSynthRndModel of EnCatalyticSynthesisRandomModel
         | EnCatSynthSimModel of EnCatalyticSynthesisSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | EnCatSynthRndModel m -> m.getRates rnd t r
-            | EnCatSynthSimModel m -> m.getRates rnd t r
+            | EnCatSynthRndModel m -> m.getRates t rnd r
+            | EnCatSynthSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

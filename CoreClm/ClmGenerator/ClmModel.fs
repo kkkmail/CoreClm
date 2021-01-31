@@ -23,7 +23,7 @@ open ClmSys.ClmErrors
 module ClmModel =
 
     type ClmModel (modelParams : ModelGenerationParams, modelDataId : ModelDataId, clmTaskId : ClmTaskId) =
-        let rnd = RandomValueGetter.create()
+        let rnd = RandomValueGetter.create modelParams.seedValue
         let generationType = RandomChoice
         let reactionShift = reactionShift modelParams.updateFuncType
         let seedValue = rnd.seed
@@ -42,8 +42,8 @@ module ClmModel =
             }
             |> SubstInfo.create
 
-        let rateProvider = ReactionRateProvider (rrp, si)
-        let bf = RateGenerationData.create rnd generationType rateProvider si modelParams.successNumberType
+        let rateProvider = ReactionRateProvider (rrp, si, modelParams.dictionaryUpdateType)
+        let bf = RateGenerationData.create rnd generationType rateProvider si modelParams.successNumberType modelParams.collisionData
 
         let modelInfo =
             {
@@ -55,6 +55,7 @@ module ClmModel =
                 maxPeptideLength = modelParams.maxPeptideLength
                 seedValue = seedValue
                 clmDefaultValueId = modelParams.clmDefaultValueId
+                description = modelParams.description
             }
 
         let noOfRawReactions n = bf.noOfRawReactions n
@@ -66,7 +67,7 @@ module ClmModel =
             |> List.concat
             |> List.distinct
 
-        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates rnd generationType).forwardRate
+        let kW = (SedimentationAllReaction |> SedimentationAll |> rateProvider.getRates generationType rnd).forwardRate
 
         let allReacMap =
             allReac
@@ -190,6 +191,8 @@ module ClmModel =
                             {
                                 modelInfo = modelInfo
                                 allParams = rrp.allParams() |> Array.ofList
+                                collisionData = modelParams.collisionData
+                                dictionaryUpdateType = modelParams.dictionaryUpdateType
                             }
                         allSubstData =
                             {
@@ -385,6 +388,8 @@ module ClmModel =
                 "open Clm.ReactionRates"
                 "open Clm.ReactionRateParams"
                 "open Clm.CalculationData"
+                "open ClmSys.ModelData"
+                "open ClmSys.DistributionData"
                 "open ClmSys.ContGenPrimitives" + Nl
                 "module ModelData = "
                 paramCode + Nl
@@ -395,13 +400,18 @@ module ClmModel =
             @ [ modelDataParamsCode ]
 
 
-        let generateAndSave() =
+        let generateAndSave fno =
             try
                 printfn "Generating..."
                 let s = generate()
 
+                let fileName =
+                    ModelDataFolder +
+                    (fno |> Option.defaultValue DefaultModelDataFile) +
+                    ".fs"
+
                 printfn "Writing..."
-                File.WriteAllLines(DefaultModelDataFile, s)
+                File.WriteAllLines(fileName, s)
                 printfn "Done."
 
                 Ok s
@@ -432,6 +442,8 @@ module ClmModel =
                                 {
                                     modelInfo = modelInfo
                                     allParams = rateProvider.providerParams.allParams() |> Array.ofList
+                                    collisionData = modelParams.collisionData
+                                    dictionaryUpdateType = modelParams.dictionaryUpdateType
                                 }
 
                             modelBinaryData =
@@ -454,5 +466,5 @@ module ClmModel =
 
         member model.allSubstances = si.allSubst
         member model.allReactions = allReac
-        member model.generateCode() = generateAndSave()
+        member model.generateCode fno = generateAndSave fno
         member model.getModelData() = getModelDataImpl clmTaskId

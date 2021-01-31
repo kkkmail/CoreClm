@@ -12,6 +12,10 @@ module SynthesisModel =
             match model with
             | SynthRndModel m -> m.getRates rnd r
 
+        member model.tryGetRates r =
+            match model with
+            | SynthRndModel m -> m.tryGetRates r
+
         member model.inputParams =
             match model with
             | SynthRndModel m -> m.inputParams |> SynthRndParam

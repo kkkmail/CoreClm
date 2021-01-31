@@ -175,8 +175,8 @@ module ServiceInfo =
 
 
     /// Low level WCF messaging client.
-    type WorkerNodeResponseHandler private (url, communicationType) =
-        let tryGetWcfService() = tryGetWcfService<IWorkerNodeWcfService> communicationType url
+    type WorkerNodeResponseHandler private (url, communicationType, securityMode) =
+        let tryGetWcfService() = tryGetWcfService<IWorkerNodeWcfService> communicationType securityMode url
 
         let configureWcfErr e = e |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
         let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
@@ -191,7 +191,8 @@ module ServiceInfo =
             member _.monitor p = monitorImpl p
             member _.ping() = pingImpl()
 
-        new (i : WorkerNodeServiceAccessInfo, communicationType) = WorkerNodeResponseHandler(i.value.getUrl communicationType, communicationType)
+        new (i : WorkerNodeServiceAccessInfo, communicationType, securityMode) =
+            WorkerNodeResponseHandler(i.value.getUrl communicationType, communicationType, securityMode)
 
 
     let workerNodeName = ConfigKey "WorkerNodeName"
@@ -212,7 +213,8 @@ module ServiceInfo =
         let workerNodeServiceNetTcpPort = getServiceNetTcpPort providerRes workerNodeServiceNetTcpPort defaultWorkerNodeNetTcpServicePort
         let workerNodeServiceCommunicationType = getCommunicationType providerRes workerNodeServiceCommunicationType NetTcpCommunication
 
-        let workerNodeSvcInfo = WorkerNodeServiceAccessInfo.create workerNodeServiceAddress workerNodeServiceHttpPort workerNodeServiceNetTcpPort
+        let workerNodeSvcInfo =
+            WorkerNodeServiceAccessInfo.create workerNodeServiceAddress workerNodeServiceHttpPort workerNodeServiceNetTcpPort WcfSecurityMode.defaultValue
 
         (workerNodeSvcInfo, workerNodeServiceCommunicationType)
 

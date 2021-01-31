@@ -18,4 +18,4 @@ module SedimentationDirectRandomModel =
                 | RandomChoice -> p.sedDirDistribution.nextDouble rnd |> Some
             getForwardRates (p.forwardScale, k)
 
-        member model.getRates rnd t r = getRatesImpl model.rateDictionary getEnantiomer (calculateRates rnd t) r
+        member model.getRates t rnd r = getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd t) r

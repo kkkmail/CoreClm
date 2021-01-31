@@ -93,10 +93,9 @@ module SvcCommandLine =
     let loadContGenInfo (c : ContGenInfo) p =
         let contGenInfo =
             {
-                minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue c.minUsefulEe
-                partitionerId = tryGetPartitioner p |> Option.defaultValue c.partitionerId
-                lastAllowedNodeErr = c.lastAllowedNodeErr
-                earlyExitCheckFreq = c.earlyExitCheckFreq
+                c with
+                    minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue c.minUsefulEe
+                    partitionerId = tryGetPartitioner p |> Option.defaultValue c.partitionerId
             }
 
         contGenInfo
@@ -108,7 +107,7 @@ module SvcCommandLine =
 
         let serviceAddress = tryGetServiceAddress p |> Option.defaultValue h.httpServiceAddress
         let netTcpServicePort = tryGetServicePort p |> Option.defaultValue n.netTcpServicePort
-        let contGenSvcInfo = ContGenServiceAccessInfo.create serviceAddress h.httpServicePort netTcpServicePort
+        let contGenSvcInfo = ContGenServiceAccessInfo.create serviceAddress h.httpServicePort netTcpServicePort WcfSecurityMode.defaultValue
 
         contGenSvcInfo
 
@@ -120,7 +119,7 @@ module SvcCommandLine =
         let serviceAddress = tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
         let netTcpServicePort = tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
         let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
-        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName
+        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName WcfSecurityMode.defaultValue
         let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
         let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
 
@@ -147,9 +146,26 @@ module SvcCommandLine =
         saveContGenSettings load tryGet
 
 
-    /// TODO kk:20200517 - Propagate early exit info to command line parameters.
-    //  (p : list<ContGenRunArgs>)
-    // Result<ContGenServiceData, ClmError>
+    let getMessageProcessorProxy i (d : MessagingClientAccessInfo) =
+        let i =
+            {
+                messagingClientName = ContGenServiceName.netTcpServiceName.value.value |> MessagingClientName
+                storageType = getClmConnectionString |> MsSqlDatabase
+            }
+
+        let messagingClientData =
+            {
+                msgAccessInfo = d
+                communicationType = NetTcpCommunication
+                msgClientProxy = createMessagingClientProxy i d.msgClientId
+                expirationTime = MessagingClientData.defaultExpirationTime
+            }
+
+        printfn "tryGetContGenServiceData::Calling MessagingClient messagingClientData..."
+        let messagingClient = MessagingClient messagingClientData
+        messagingClient.messageProcessorProxy
+
+
     let tryGetContGenServiceData (logger : Logger) p : Result<ContGenServiceData, ClmError> =
         let w = loadSettings p
         printfn "getContGenServiceData: w = %A" w
@@ -159,25 +175,6 @@ module SvcCommandLine =
                 msgClientId = w.contGenInfo.partitionerId.messagingClientId
                 msgSvcAccessInfo = w.messagingSvcInfo
             }
-
-        let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
-            let i =
-                {
-                    messagingClientName = ContGenServiceName.netTcpServiceName.value.value |> MessagingClientName
-                    storageType = getClmConnectionString |> MsSqlDatabase
-                }
-
-            let messagingClientData =
-                {
-                    msgAccessInfo = d
-                    communicationType = NetTcpCommunication
-                    msgClientProxy = createMessagingClientProxy i d.msgClientId
-                    expirationTime = MessagingClientData.defaultExpirationTime
-                }
-
-            printfn "tryGetContGenServiceData::Calling MessagingClient messagingClientData..."
-            let messagingClient = MessagingClient messagingClientData
-            messagingClient.messageProcessorProxy
 
         let data =
             {
@@ -194,11 +191,13 @@ module SvcCommandLine =
                                             frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
 
                                 lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
+                                collisionData = w.contGenInfo.collisionData
+                                dictionaryUpdateType = w.contGenInfo.dictionaryUpdateType
                             }
 
                         runnerProxy =
                             {
-                                getMessageProcessorProxy = getMessageProcessorProxy
+                                getMessageProcessorProxy = getMessageProcessorProxy i
                             }
 
                         messagingClientAccessInfo = i

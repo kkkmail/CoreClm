@@ -31,9 +31,9 @@ module WorkerNodeData =
 
         member w.value = let (WorkerNodeServiceAccessInfo v) = w in v
 
-        static member create address httpPort netTcpPort =
+        static member create address httpPort netTcpPort securityMode =
             let h = HttpServiceAccessInfo.create address httpPort WorkerNodeServiceName.httpServiceName.value
-            let n = NetTcpServiceAccessInfo.create address netTcpPort WorkerNodeServiceName.netTcpServiceName.value
+            let n = NetTcpServiceAccessInfo.create address netTcpPort WorkerNodeServiceName.netTcpServiceName.value securityMode
             ServiceAccessInfo.create h n |> WorkerNodeServiceAccessInfo
 
 

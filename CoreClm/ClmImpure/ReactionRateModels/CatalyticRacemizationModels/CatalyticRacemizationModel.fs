@@ -14,10 +14,10 @@ module CatalyticRacemizationModel =
         | CatRacemRndModel of CatalyticRacemizationRandomModel
         | CatRacemSimModel of CatalyticRacemizationSimilarModel
 
-        member model.getRates rnd t r =
+        member model.getRates t rnd r =
             match model with
-            | CatRacemRndModel m -> m.getRates rnd t r
-            | CatRacemSimModel m -> m.getRates rnd t r
+            | CatRacemRndModel m -> m.getRates t rnd r
+            | CatRacemSimModel m -> m.getRates t rnd r
 
         member model.inputParams =
             match model with

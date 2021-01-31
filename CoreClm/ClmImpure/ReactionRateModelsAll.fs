@@ -19,6 +19,12 @@ open ClmImpure.ReactionRateModels.EnCatalyticSynthesisModel
 open ClmImpure.ReactionRateModels.EnCatalyticLigationModel
 open ClmImpure.ReactionRateModels.EnCatalyticDestructionModel
 open ClmImpure.ReactionRateModels.EnCatalyticRacemizationModel
+open ClmImpure.ReactionRateModels.AcCatalyticSynthesisModel
+open ClmImpure.ReactionRateModels.AcFwdCatalyticLigationModel
+open ClmImpure.ReactionRateModels.AcBkwCatalyticLigationModel
+open ClmImpure.ReactionRateModels.AcCatalyticDestructionModel
+open ClmImpure.ReactionRateModels.AcCatalyticRacemizationModel
+open ClmImpure.ReactionRateModels.ActivationModel
 
 module ReactionRateModelsAll =
 
@@ -31,16 +37,22 @@ module ReactionRateModelsAll =
         | DestructionRateModel of DestructionModel
         | CatalyticSynthesisRateModel of CatalyticSynthesisModel
         | EnCatalyticSynthesisRateModel of EnCatalyticSynthesisModel
+        | AcCatalyticSynthesisRateModel of AcCatalyticSynthesisModel
         | CatalyticDestructionRateModel of CatalyticDestructionModel
         | EnCatalyticDestructionRateModel of EnCatalyticDestructionModel
+        | AcCatalyticDestructionRateModel of AcCatalyticDestructionModel
         | LigationRateModel of LigationModel
         | CatalyticLigationRateModel of CatalyticLigationModel
         | EnCatalyticLigationRateModel of EnCatalyticLigationModel
+        | AcFwdCatalyticLigationRateModel of AcFwdCatalyticLigationModel
+        | AcBkwCatalyticLigationRateModel of AcBkwCatalyticLigationModel
         | SedimentationDirectRateModel of SedimentationDirectModel
         | SedimentationAllRateModel of SedimentationAllModel
         | RacemizationRateModel of RacemizationModel
         | CatalyticRacemizationRateModel of CatalyticRacemizationModel
         | EnCatalyticRacemizationRateModel of EnCatalyticRacemizationModel
+        | AcCatalyticRacemizationRateModel of AcCatalyticRacemizationModel
+        | ActivationRateModel of ActivationModel
 
 
         member rm.getAllRates() =
@@ -53,16 +65,22 @@ module ReactionRateModelsAll =
             | DestructionRateModel m -> m.getAllRates() |> DestructionRates
             | CatalyticSynthesisRateModel m -> m.getAllRates() |> CatalyticSynthesisRates
             | EnCatalyticSynthesisRateModel m -> m.getAllRates() |> EnCatalyticSynthesisRates
+            | AcCatalyticSynthesisRateModel m -> m.getAllRates() |> AcCatalyticSynthesisRates
             | CatalyticDestructionRateModel m -> m.getAllRates() |> CatalyticDestructionRates
             | EnCatalyticDestructionRateModel m -> m.getAllRates() |> EnCatalyticDestructionRates
+            | AcCatalyticDestructionRateModel m -> m.getAllRates() |> AcCatalyticDestructionRates
             | LigationRateModel m -> m.getAllRates() |> LigationRates
             | CatalyticLigationRateModel m -> m.getAllRates() |> CatalyticLigationRates
             | EnCatalyticLigationRateModel m -> m.getAllRates() |> EnCatalyticLigationRates
+            | AcFwdCatalyticLigationRateModel m -> m.getAllRates() |> AcFwdCatalyticLigationRates
+            | AcBkwCatalyticLigationRateModel m -> m.getAllRates() |> AcBkwCatalyticLigationRates
             | SedimentationDirectRateModel m -> m.getAllRates() |> SedimentationDirectRates
             | SedimentationAllRateModel m -> m.getAllRates() |> SedimentationAllRates
             | RacemizationRateModel m -> m.getAllRates() |> RacemizationRates
             | CatalyticRacemizationRateModel m -> m.getAllRates() |> CatalyticRacemizationRates
             | EnCatalyticRacemizationRateModel m -> m.getAllRates() |> EnCatalyticRacemizationRates
+            | AcCatalyticRacemizationRateModel m -> m.getAllRates() |> AcCatalyticRacemizationRates
+            | ActivationRateModel m -> m.getAllRates() |> ActivationRates
 
 
     type ReactionRateModelWithUsage =

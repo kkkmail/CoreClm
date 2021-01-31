@@ -21,10 +21,10 @@ module ModelGenerator =
     let private addError g f e = ((f |> g |> ModelGeneratorErr) + e) |> Error
 
 
-    let generateModelCode (model : ClmModel) (c : ClmTask) =
+    let generateModelCode (model : ClmModel) (c : ClmTask) fno =
         let addError = addError GenerateModelCodeErr
 
-        match model.generateCode() with
+        match model.generateCode fno with
         | Ok r -> Ok r
         | Error e -> addError (UnableSaveModelCodeErr c.clmTaskInfo.clmTaskId) e
 
@@ -78,16 +78,16 @@ module ModelGenerator =
     type GenerateAllProxy
         with
 
-        static member create c =
+        static member create u coll so c =
             {
                 loadIncompleteClmTasks = fun () -> loadIncompleteClmTasks c
-                generateModel = (generateModel (GenerateModelProxy.create c)) >> (mapSuccessValue ())
+                generateModel = (generateModel (GenerateModelProxy.create u coll so c)) >> (mapSuccessValue ())
             }
 
 
-    let createModelGenerator (logger : Logger) c =
+    let createModelGenerator (logger : Logger) u coll so c =
         logger.logInfoString "createModelGenerator: Creating model generator..."
-        let proxy = GenerateAllProxy.create c
+        let proxy = GenerateAllProxy.create u coll so c
         let e = fun () -> generateAll proxy
         let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelGenerator - generateAll")
         h

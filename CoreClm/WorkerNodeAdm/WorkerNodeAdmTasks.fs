@@ -14,7 +14,7 @@ module WorkerNodeAdmTasks =
         let d = 30_000
         match getServiceAccessInfo p with
         | Ok i ->
-            let service = WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo, NetTcpCommunication)
+            let service = WorkerNodeResponseHandler(i.workerNodeServiceAccessInfo, NetTcpCommunication, WcfSecurityMode.defaultValue)
 
             while true do
                 try

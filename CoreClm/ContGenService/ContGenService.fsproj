@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <RunPostBuildEvent>1</RunPostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -26,9 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ClmDefaults\ClmDefaults.fsproj" />
     <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj" />
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />
+    <ProjectReference Include="..\ContGenAdm\ContGenAdm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\ContGen\ContGen.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
@@ -36,5 +39,9 @@
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
     <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy /Y &quot;$(ProjectDir)..\ContGenAdm\$(OutDir)ContGenAdm.*.json&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;copy /Y &quot;$(ProjectDir)..\ClmDefaults\$(OutDir)\ClmDefaults.*.json&quot; &quot;$(TargetDir)&quot;" />
+  </Target>
 
 </Project>

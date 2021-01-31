@@ -2,6 +2,7 @@
 
 open Argu
 
+open ClmSys.ModelData
 open Softellect.Sys.Logging
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.Primitives
@@ -33,17 +34,24 @@ module AdmCommandLine =
         }
 
 
-    type ContGenAdmSettings =
+    type GenerateModelSettings =
         {
-            contGenSettings : ContGenSettings
-
-            defaultValueId : ClmDefaultValueId
-            numberOfAminoAcids : NumberOfAminoAcids
-            maxPeptideLength : MaxPeptideLength
-            runData : list<RunData>
-            numberOfRepetitions : int
-            generateModelCode : bool
+            modelCodeFileName : string option
         }
+
+
+//    type ContGenAdmSettings =
+//        {
+//            contGenSettings : ContGenSettings
+//
+//            defaultValueId : ClmDefaultValueId
+//            numberOfAminoAcids : NumberOfAminoAcids
+//            maxPeptideLength : MaxPeptideLength
+//            runData : list<RunData>
+//            numberOfRepetitions : int
+//            generateModelCode : GenerateModelSettings option
+//            seedValue : int option
+//        }
 
 
     [<CliPrefix(CliPrefix.Dash)>]
@@ -55,6 +63,9 @@ module AdmCommandLine =
         | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TaskTEnd of list<decimal>
         | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
         | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode
+        | [<Unique>] [<AltCommandLine("-f")>]               ModelCodeFileName of string
+        | [<Unique>] [<AltCommandLine("-v")>]               SeedValue of int
+        | [<Unique>] [<AltCommandLine("-u")>]               UseNonOptionalRateDataOnly of bool
 
 
         with
@@ -68,6 +79,9 @@ module AdmCommandLine =
                 | TaskTEnd _ -> "value of tEnd."
                 | Repetitions _ -> "number of repetitions."
                 | GenerateModelCode -> "add in order to generate and save model code."
+                | ModelCodeFileName _ -> "use to override default name of a model code file (ModelCode)."
+                | SeedValue _ -> "optional seed value to be used during model generation."
+                | UseNonOptionalRateDataOnly _ -> "sets ReactionRateFunctions.useNonOptionalRateDataOnly to a given value."
 
 
     and
@@ -189,6 +203,24 @@ module AdmCommandLine =
         | None -> false
 
 
+    let getModelCodeFileName (p :list<AddClmTaskArgs>) =
+        p |> List.tryPick (fun e -> match e with | ModelCodeFileName s -> Some s | _ -> None)
+
+
+    let getSeedValue (p :list<AddClmTaskArgs>) =
+        p |> List.tryPick (fun e -> match e with | SeedValue v -> Some v | _ -> None)
+
+
+    let getDictionaryUpdateType (p :list<AddClmTaskArgs>) =
+        match p |> List.tryPick (fun e -> match e with | UseNonOptionalRateDataOnly v -> Some v | _ -> None) with
+        | Some n ->
+            match n with
+            | false -> AllRateData
+            | true -> NonOptionalRateDataOnly
+            |> Some
+        | None -> None
+
+
     let tryGetModelId (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | ModelId i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ModelDataId |> Some)
     let tryGetY0 (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | Y0 i -> Some i | _ -> None)
     let tryGetTEnd (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | TEnd i -> Some i | _ -> None)
@@ -206,7 +238,7 @@ module AdmCommandLine =
         let contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue n.netTcpServiceAddress
         let contGenHttpServicePort = tryGetContGenServicePort p |> Option.defaultValue h.httpServicePort
         let contGenNetTcpServicePort = tryGetContGenServicePort p |> Option.defaultValue n.netTcpServicePort
-        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenHttpServicePort contGenNetTcpServicePort
+        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenHttpServicePort contGenNetTcpServicePort n.netTcpSecurityMode
 
         let w1 =
             {
@@ -242,7 +274,7 @@ module AdmCommandLine =
         match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with
         | Some q, Some c ->
             let s = loadSettings p
-            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType) :> IContGenService
+            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
             h.tryCancelRunQueue q c |> reportResult logger "tryCancelRunQueueImpl"
         | _ -> Ok()
 
@@ -251,7 +283,7 @@ module AdmCommandLine =
         match tryGetRunQueueIdToModify p, getResultNotificationTypeOpt p with
         | Some q, Some c ->
             let s = loadSettings p
-            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType) :> IContGenService
+            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
             h.tryRequestResults q c  |> reportResult logger "tryRequestResultsImpl"
         | _ -> Ok()
 

@@ -6,7 +6,6 @@ open Softellect.Sys.Core
 open Softellect.Messaging.ServiceInfo
 open Softellect.Wcf.Common
 
-
 open ClmSys
 open GeneralPrimitives
 open GeneralData
@@ -14,6 +13,7 @@ open ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
+open ClmSys.ModelData
 
 module ContGenData =
 
@@ -22,9 +22,9 @@ module ContGenData =
 
         member i.value = let (ContGenServiceAccessInfo a) = i in a
 
-        static member create address httpPort netTcpPort =
+        static member create address httpPort netTcpPort securityMode =
             let h = HttpServiceAccessInfo.create address httpPort ContGenServiceName.httpServiceName.value
-            let n = NetTcpServiceAccessInfo.create address netTcpPort ContGenServiceName.netTcpServiceName.value
+            let n = NetTcpServiceAccessInfo.create address netTcpPort ContGenServiceName.netTcpServiceName.value securityMode
             ServiceAccessInfo.create h n |> ContGenServiceAccessInfo
 
 
@@ -34,6 +34,8 @@ module ContGenData =
             partitionerId : PartitionerId
             lastAllowedNodeErr : LastAllowedNodeErr
             earlyExitCheckFreq : EarlyExitCheckFreq
+            collisionData : CollisionData
+            dictionaryUpdateType : DictionaryUpdateType
         }
 
 

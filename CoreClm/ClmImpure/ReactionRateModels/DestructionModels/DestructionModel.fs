@@ -12,6 +12,10 @@ module DestructionModel =
             match model with
             | DestrRndModel m -> m.getRates rnd r
 
+        member model.tryGetRates r =
+            match model with
+            | DestrRndModel m -> m.tryGetRates r
+
         member model.inputParams =
             match model with
             | DestrRndModel m -> m.inputParams |> DestrRndParam

@@ -19,7 +19,7 @@ module SedimentationDirectSimilarModel =
 
 
     type SedimentationDirectSimilarModel (p : SedimentationDirectSimilarParamWithModel) =
-        inherit RateModel<SedimentationDirectSimilarParamWithModel, SedimentationDirectReaction>(p)
+        let dictionaryData = toDictionaryData p.sedDirModel.rateDictionary
 
         let calculateSimRatesImpl rnd t (SedimentationDirectReaction (s, c)) =
             {
@@ -27,7 +27,7 @@ module SedimentationDirectSimilarModel =
                     {
                         sedFormingSubst = s
                         sedDirAgent = c
-                        getBaseRates = p.sedDirModel.getRates rnd t
+                        getBaseRates = p.sedDirModel.getRates t rnd
                         eeParams = p.sedDirModel.inputParams.sedDirRatesEeParam
                         rateGenerationType = t
                         rnd = rnd
@@ -36,10 +36,10 @@ module SedimentationDirectSimilarModel =
                 aminoAcids = p.aminoAcids
                 reagents = p.reagents
                 simParams = p.sedDirSimParam
-                rateDictionary = p.sedDirModel.rateDictionary
+                dictionaryData = dictionaryData
             }
             |> calculateSedDirSimRates
 
-        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.getRates t rnd r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.sedDirModel.rateDictionary

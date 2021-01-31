@@ -18,6 +18,8 @@ module EnCatalyticDestructionSimilarModel =
 
 
     type EnCatalyticDestructionSimilarModel (p : EnCatalyticDestructionSimilarParamWithModel) =
+        let dictionaryData = toDictionaryData p.enCatDestrModel.rateDictionary
+
         let calculateSimRatesImpl rnd t (EnCatalyticDestructionReaction (s, c, u)) =
             let (DestructionReaction a) = s
             {
@@ -33,15 +35,15 @@ module EnCatalyticDestructionSimilarModel =
                 getCatReactEnantiomer = getEnantiomer
                 simReactionCreator = (fun e -> [ a.createSameChirality e |> DestructionReaction ])
                 getBaseRates = p.enCatDestrModel.inputParams.destructionModel.getRates rnd
-                getBaseCatRates = p.enCatDestrModel.getRates rnd t
+                getBaseCatRates = p.enCatDestrModel.getRates t rnd
                 enSimParams = p.enCatDestrSimParam
                 eeParams = p.enCatDestrModel.inputParams.enCatDestrRndParam.enCatDestrRndEeParams
-                rateDictionary = p.enCatDestrModel.rateDictionary
+                dictionaryData = dictionaryData
                 rateGenerationType = t
                 rnd = rnd
             }
             |> calculateEnSimRates
 
-        member _.getRates rnd t r = calculateSimRatesImpl rnd t r
+        member _.getRates t rnd r = calculateSimRatesImpl rnd t r
         member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.enCatDestrModel.rateDictionary
