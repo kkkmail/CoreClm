@@ -21,6 +21,10 @@ module ActivationModel =
             match model with
             | ActivationRndModel m -> m.inputParams |> ActivationRndParam
 
+        member model.dictionaryData =
+            match model with
+            | ActivationRndModel m -> m.dictionaryData
+
         member model.getAllRates() =
             match model with
             | ActivationRndModel m -> m.getAllRates()

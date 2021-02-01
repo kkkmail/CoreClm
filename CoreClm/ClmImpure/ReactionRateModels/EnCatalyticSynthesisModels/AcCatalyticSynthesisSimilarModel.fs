@@ -22,24 +22,29 @@ module AcCatalyticSynthesisSimilarModel =
 
         let calculateSimRatesImpl rnd t (AcCatalyticSynthesisReaction (s, c)) =
             let (SynthesisReaction a) = s
+
             {
                 reaction = s
                 acCatalyst = c
-                getReactionData = fun _ -> p.aminoAcids
-                inverse = fun (SynthesisReaction r) -> r.aminoAcid
-                getMatchingReactionMult = fun x -> x
-                getCatEnantiomer = getEnantiomer
-                acCatReactionCreator = AcCatalyticSynthesisReaction
-                simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
-                getCatReactEnantiomer = getEnantiomer
-                getBaseRates = p.acCatSynthModel.inputParams.synthesisModel.getRates rnd
-                getBaseCatRates = p.acCatSynthModel.getRates t
-                tryGetBaseCatRates = p.acCatSynthModel.tryGetRates
-                acSimParams = p.acCatSynthSimParam
                 acEeParams = p.acCatSynthModel.inputParams.acCatSynthRndParam.acCatSynthRndEeParams
-                dictionaryData = dictionaryData
-                rateGenerationType = t
-                rnd = rnd
+
+                proxy = failwith ""
+//                    {
+//                        getReactionData = fun _ -> p.aminoAcids
+//                        inverse = fun (SynthesisReaction r) -> r.aminoAcid
+//                        getMatchingReactionMult = fun x -> x
+//                        getCatEnantiomer = getEnantiomer
+//                        acCatReactionCreator = AcCatalyticSynthesisReaction
+//                        simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
+//                        getCatReactEnantiomer = getEnantiomer
+//                        getBaseRates = p.acCatSynthModel.inputParams.synthesisModel.getRates rnd
+//                        getBaseCatRates = p.acCatSynthModel.getRates t
+//                        tryGetBaseCatRates = p.acCatSynthModel.tryGetRates
+//                        acSimParams = p.acCatSynthSimParam
+//                        dictionaryData = dictionaryData
+//                        rateGenerationType = t
+//                        rnd = rnd
+//                    }
             }
             |> calculateAcSimRates
 

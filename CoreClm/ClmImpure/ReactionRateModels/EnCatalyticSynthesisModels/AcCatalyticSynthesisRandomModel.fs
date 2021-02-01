@@ -41,4 +41,12 @@ module AcCatalyticSynthesisRandomModel =
             }
             |> calculateAcCatRates
 
-        member model.getRates t rnd r = getAcRatesImpl model.dictionaryData getEnantiomer (calculateAcCatSynthRates rnd t) r
+        member private model.info =
+            {
+                dictionaryData = model.dictionaryData
+                acRateDictionary = p.activationModel.dictionaryData.rateDictionary
+                getEnantiomer = getEnantiomer
+                getAcEnantiomer = getEnantiomer
+            }
+
+        member model.getRates t rnd r = getAcRatesImpl model.info (calculateAcCatSynthRates rnd t) r
