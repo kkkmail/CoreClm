@@ -627,7 +627,7 @@ module ReactionRateFunctions =
     /// 'C - deactivated catalyst (C)
     /// 'RCA - reaction catalysed by activated catalyst, e.g. A + C* -> B + C
     /// 'RA - activation reaction e.g.: C + Z -> C* + W
-    type AcCatRatesSimInfoProxy<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC when 'R : equality> =
+    type AcCatRatesSimInfoProxy<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'R : equality> =
         {
             acCatRatesInfoProxy : AcCatRatesInfoProxy<'R, 'CA, 'C, 'RCA, 'RA>
             inverse : 'R -> 'A
@@ -636,7 +636,7 @@ module ReactionRateFunctions =
             getCatReactEnantiomer : 'RCA -> 'RCA
             getBaseCatRates : RandomValueGetter -> 'RCA -> RateData
             getMatchingReactionMult : double -> double
-            tryGetBaseCatRates : 'RC -> RateData
+            tryGetBaseCatRates : 'RCA -> RateData
         }
 
     /// 'A - type of "similarity" variable - e.g. amino acid for AC catalytic synthesis reaction or
@@ -646,11 +646,11 @@ module ReactionRateFunctions =
     /// 'C - deactivated catalyst (C)
     /// 'RCA - reaction catalysed by activated catalyst, e.g. A + C* -> B + C
     /// 'RA - activation reaction e.g.: C + Z -> C* + W
-    type AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC when 'R : equality> =
+    type AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'R : equality> =
         {
             reaction : 'R
             acCatalyst : 'CA
-            proxy : AcCatRatesSimInfoProxy<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC>
+            proxy : AcCatRatesSimInfoProxy<'A, 'R, 'CA, 'C, 'RCA, 'RA>
 
 //            getNonActivated : 'CA -> 'C
 //            getCatEnantiomer : 'CA -> 'CA
@@ -665,6 +665,7 @@ module ReactionRateFunctions =
             acSimParams : AcCatRatesSimilarityParam
             acEeParams : AcCatRatesEeParam
             dictionaryData : DictionaryData<'RCA, 'CA>
+            acRateDictionary : Dictionary<'RA, RateData>
         }
 
         member i.toAcCatRatesInfo r c e =
@@ -691,16 +692,16 @@ module ReactionRateFunctions =
 //        (r : 'RCA)
 //        (x : RelatedAcReactions<'RCA, 'RA>) =
 
-    let calculateAcSimCatRates i s c e =
+    let calculateAcSimCatRates<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA>) s c e =
         let reaction = (s, c) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
         let related = i.toAcCatRatesInfo s c e |> calculateAcCatRates
 
-        let info =
+        let (info : RelatedAcReactionsUpdateInfo<'RCA, 'CA, 'RA>) =
             {
                 dictionaryData = i.dictionaryData // : DictionaryData<'RCA, 'CA>
-                acRateDictionary = failwith "" //  : Dictionary<'RA, RateData>
+                acRateDictionary = i.acRateDictionary //  : Dictionary<'RA, RateData>
                 getEnantiomer = i.proxy.getCatReactEnantiomer //  : 'RCA -> 'RCA
-                getAcEnantiomer = i.proxy.acCatRatesInfoProxy.getCatEnantiomer //  : 'RA -> 'RA
+                getAcEnantiomer = i.proxy.acCatRatesInfoProxy.getAcEnantiomer //  : 'RA -> 'RA
             }
 
 //        printfn "calculateSimCatRates: related = %A" related
@@ -789,7 +790,7 @@ module ReactionRateFunctions =
 
         a
 
-    let getAcSimRates (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC>) aa getEeParams rateMult =
+    let getAcSimRates<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA>) aa getEeParams rateMult =
 //        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =
@@ -830,7 +831,7 @@ module ReactionRateFunctions =
         b
 
 
-    let calculateAcSimRates<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA, 'RC>) =
+    let calculateAcSimRates<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA>) =
 //        printfn "calculateAcSimRates: Starting. i = %A" i
         let r = (i.reaction, i.acCatalyst) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
         let re = (i.reaction, i.proxy.acCatRatesInfoProxy.getCatEnantiomer i.acCatalyst) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator

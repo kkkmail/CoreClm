@@ -32,6 +32,7 @@ module AcCatalyticSynthesisRandomModel =
                     {
                         getNonActivated = fun e -> e.peptide
                         getCatEnantiomer = getEnantiomer
+                        getAcEnantiomer = getEnantiomer
                         acCatReactionCreator = AcCatalyticSynthesisReaction
                         createActivationData = p.activationModel.createActivationData rnd
                         getBaseRates = p.synthesisModel.getRates rnd

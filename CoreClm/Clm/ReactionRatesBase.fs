@@ -490,6 +490,7 @@ module ReactionRatesBase =
             acCatReactionCreator : ('R * 'CA) -> 'RCA
             getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
             createActivationData : 'C -> ReactionRateData<'RA> // Get or creates rates of activation reaction.
+            getAcEnantiomer : 'RA -> 'RA // Creates an enantiomer of activation reaction.
             rateGenerationType : RateGenerationType
             rnd : RandomValueGetter
         }
