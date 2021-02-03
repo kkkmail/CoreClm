@@ -168,6 +168,9 @@ module Distributions =
             nextDouble : unit -> double
         }
 
+        /// Returns true when rnd returns a value greater or equal than 0.5.
+        member rnd.nextBool() = rnd.nextDouble() >= 0.5
+
         /// Returns 0 all the time.
         static member zero =
             {

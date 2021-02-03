@@ -92,10 +92,14 @@ module Defaults_004_005_000 =
                     sugarScarcity = 0.0005
             }
 
-        /// Use: "ContGenAdm.exe add -i 4005000000 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
+        /// Use: "ContGenAdm.exe add -i 40050000XX -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
+        /// Adjust XX to match the actual number.
         static member codeGenValue_001 =
             {
-                activationScarcity = 0.001_000
+//                activationScarcity = 0.001_000
+//                activationMultiplier = 100_000.0
+
+                activationScarcity = 1.0
                 activationMultiplier = 100_000.0
 
                 acCatSynthScarcity = 0.001_000

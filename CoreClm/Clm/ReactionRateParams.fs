@@ -393,10 +393,13 @@ module ReactionRateParams =
         | AcCatRacemSimParam of AcCatalyticRacemizationSimilarParam
 
 
+    /// TODO kk:20210203 - eeDistribution is not yet implemented. That makes activation 100% enantioselective.
+    /// This parameter should be added and properly propagated.
     type ActivationRandomParam =
         {
             activationDistribution : Distribution
             forwardScale : double option
+//            eeDistribution : EeDistribution option
         }
 
 
