@@ -20,5 +20,10 @@ module AcCatalyticSynthesisRandomModelExt =
             | _ -> None
 
         static member tryCreate (p, m) =
-            let creator b d = { synthesisModel = b; acCatSynthRndParam = d } |> AcCatalyticSynthesisRandomModel |> AcCatSynthRndModel |> AcCatalyticSynthesisRateModel
+            let creator b d =
+                { synthesisModel = b; acCatSynthRndParam = d; activationModel = a }
+                |> AcCatalyticSynthesisRandomModel
+                |> AcCatSynthRndModel
+                |> AcCatalyticSynthesisRateModel
+
             tryCreateModelWithBase AcCatalyticSynthesisRandomParam.paramGetter creator SynthesisModel.modelGetter SynthesisModel.tryCreate (p, m)
