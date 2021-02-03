@@ -16,6 +16,6 @@ module ActivationModelExt =
             | ActivationRateModel d -> Some d
             | _ -> None
 
-        static member tryCreate (si : SubstInfo) (p, m) =
+        static member tryCreate (p, m) =
             (p, m)
             |> ActivationRandomModel.tryCreate

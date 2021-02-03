@@ -45,20 +45,33 @@ module ReactionRateModelExtBase =
         let (baseGetter, baseCreator) = y
         let (acGetter, acCreator) = z
 
-        let create b d u =
+        let create b d ac u =
             {
-                model = creator b d
+                model = creator b d ac
                 usage = u
             }
 
         match tryPickParam picker p with
         | Some (u, d), q ->
-            match tryGetModel baseGetter m with
-            | Some b -> q, (create b d u) :: m
-            | None ->
+            match tryGetModel baseGetter m, tryGetModel acGetter m with
+            | Some b, Some ac -> q, (create b d ac u) :: m
+            | Some b, None ->
+                let (q2, m2) = acCreator (q, m)
+
+                match tryGetModel acGetter m2 with
+                | Some ac -> q2, (create b d ac u) :: m2
+                | None -> (q2, m2)
+            | None, Some ac ->
                 let (q1, m1) = baseCreator (q, m)
 
                 match tryGetModel baseGetter m1 with
-                | Some b -> q1, (create b d u) :: m1
+                | Some b -> q1, (create b d ac u) :: m1
                 | None -> (q1, m1)
+            | None, None ->
+                let (q1, m1) = baseCreator (q, m)
+                let (q2, m2) = acCreator (q1, m1)
+
+                match tryGetModel baseGetter m2, tryGetModel acGetter m2 with
+                | Some b, Some ac -> q2, (create b d ac u) :: m2
+                | _ -> (q2, m2)
         | None, _ -> (p, m)

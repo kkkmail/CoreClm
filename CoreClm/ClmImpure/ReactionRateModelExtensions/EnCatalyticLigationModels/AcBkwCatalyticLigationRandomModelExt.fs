@@ -4,10 +4,12 @@ open Clm.ReactionRateParams
 open Clm.ReactionRatesExt
 open ClmImpure.ReactionRateModelsAll
 open ClmImpure.ReactionRateModels.LigationModel
+open ClmImpure.ReactionRateModels.ActivationModel
 open ClmImpure.ReactionRateModels.AcBkwCatalyticLigationRandomModel
 open ClmImpure.ReactionRateModels.AcBkwCatalyticLigationModel
 open ClmImpure.ReactionRateModelExtensions.ReactionRateModelExtBase
 open ClmImpure.ReactionRateModelExtensions.LigationModelExt
+open ClmImpure.ReactionRateModelExtensions.ActivationModelExt
 
 module AcBkwCatalyticLigationRandomModelExt =
 
@@ -20,5 +22,14 @@ module AcBkwCatalyticLigationRandomModelExt =
             | _ -> None
 
         static member tryCreate (p, m) =
-            let creator b d = { ligationModel = b; acBkwCatLigationParam = d } |> AcBkwCatalyticLigationRandomModel |> AcBkwCatLigRndModel |> AcBkwCatalyticLigationRateModel
-            tryCreateModelWithBase AcBkwCatalyticLigationRandomParam.paramGetter creator LigationModel.modelGetter LigationModel.tryCreate (p, m)
+            let creator b d ac =
+                { ligationModel = b; acBkwCatLigationParam = d; activationModel = ac }
+                |> AcBkwCatalyticLigationRandomModel
+                |> AcBkwCatLigRndModel
+                |> AcBkwCatalyticLigationRateModel
+
+            let x = (AcBkwCatalyticLigationRandomParam.paramGetter, creator)
+            let y = (LigationModel.modelGetter, LigationModel.tryCreate)
+            let z = (ActivationModel.modelGetter, ActivationModel.tryCreate)
+
+            tryCreateAcModelWithBase x y z (p, m)
