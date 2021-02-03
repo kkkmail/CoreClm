@@ -75,4 +75,5 @@ module AcFwdCatalyticLigationSimilarModel =
             |> calculateAcSimRates
 
         member _.getRates t rnd r = calculateSimRatesImpl rnd t r
+        member _.inputParams = p
         member _.getAllRates() = getAllRatesImpl p.acFwdCatLigModel.rateDictionary

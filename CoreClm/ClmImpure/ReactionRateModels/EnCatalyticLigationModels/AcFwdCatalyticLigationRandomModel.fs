@@ -22,7 +22,7 @@ module AcFwdCatalyticLigationRandomModel =
     type AcFwdCatalyticLigationRandomModel (p : AcFwdCatalyticLigationRandomParamWithModel) =
         inherit RateModel<AcFwdCatalyticLigationRandomParamWithModel, AcFwdCatalyticLigationReaction>(p)
 
-        let calculateCatSynthRates rnd t (AcFwdCatalyticLigationReaction (s, c)) =
+        let calculateAcCatRatesImpl rnd t (AcFwdCatalyticLigationReaction (s, c)) =
             {
                 reaction = s
                 acCatalyst = c
@@ -52,4 +52,4 @@ module AcFwdCatalyticLigationRandomModel =
 
         member model.getRates t rnd r =
 //            printfn $"AcFwdCatalyticLigationRandomModel.getRates: r = {r}, t = {t}."
-            getAcRatesImpl model.info (calculateCatSynthRates rnd t) r
+            getAcRatesImpl model.info (calculateAcCatRatesImpl rnd t) r

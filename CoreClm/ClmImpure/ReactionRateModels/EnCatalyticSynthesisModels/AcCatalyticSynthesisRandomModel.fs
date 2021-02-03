@@ -22,7 +22,7 @@ module AcCatalyticSynthesisRandomModel =
     type AcCatalyticSynthesisRandomModel (p : AcCatalyticSynthesisRandomParamWithModel) =
         inherit RateModel<AcCatalyticSynthesisRandomParamWithModel, AcCatalyticSynthesisReaction>(p)
 
-        let calculateAcCatSynthRates rnd t (AcCatalyticSynthesisReaction (s, c)) =
+        let calculateAcCatRatesImpl rnd t (AcCatalyticSynthesisReaction (s, c)) =
             {
                 reaction = s
                 acCatalyst = c
@@ -50,4 +50,4 @@ module AcCatalyticSynthesisRandomModel =
                 getAcEnantiomer = getEnantiomer
             }
 
-        member model.getRates t rnd r = getAcRatesImpl model.info (calculateAcCatSynthRates rnd t) r
+        member model.getRates t rnd r = getAcRatesImpl model.info (calculateAcCatRatesImpl rnd t) r
