@@ -20,34 +20,41 @@ module AcCatalyticSynthesisSimilarModel =
     type AcCatalyticSynthesisSimilarModel (p : AcCatalyticSynthesisSimilarParamWithModel) =
         let dictionaryData = toDictionaryData p.acCatSynthModel.rateDictionary
 
-        let calculateSimRatesImpl rnd t (AcCatalyticSynthesisReaction (s, c)) =
+        let calculateSimRatesImpl rnd (t : RateGenerationType) (AcCatalyticSynthesisReaction (s, c)) =
             let (SynthesisReaction a) = s
 
             let (info : AcCatRatesSimInfo<AminoAcid, SynthesisReaction, AcSynthCatalyst, Peptide, AcCatalyticSynthesisReaction, ActivationReaction>) =
-                failwith ""
-//                {
-//                    reaction = s
-//                    acCatalyst = c
-//                    acEeParams = p.acCatSynthModel.inputParams.acCatSynthRndParam.acCatSynthRndEeParams
-//
-//                    proxy = failwith ""
-////                        {
-////                            getReactionData = fun _ -> p.aminoAcids
-////                            inverse = fun (SynthesisReaction r) -> r.aminoAcid
-////                            getMatchingReactionMult = fun x -> x
-////                            getCatEnantiomer = getEnantiomer
-////                            acCatReactionCreator = AcCatalyticSynthesisReaction
-////                            simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
-////                            getCatReactEnantiomer = getEnantiomer
-////                            getBaseRates = p.acCatSynthModel.inputParams.synthesisModel.getRates rnd
-////                            getBaseCatRates = p.acCatSynthModel.getRates t
-////                            tryGetBaseCatRates = p.acCatSynthModel.tryGetRates
-////                            acSimParams = p.acCatSynthSimParam
-////                            dictionaryData = dictionaryData
-////                            rateGenerationType = t
-////                            rnd = rnd
-////                        }
-//                }
+                {
+                    reaction = s
+                    acCatalyst = c
+                    acSimParams = p.acCatSynthSimParam
+                    acEeParams = p.acCatSynthModel.inputParams.acCatSynthRndParam.acCatSynthRndEeParams
+                    dictionaryData = dictionaryData
+                    acRateDictionary = p.acCatSynthModel.inputParams.activationModel.dictionaryData.rateDictionary
+
+                    proxy =
+                        {
+                            acCatRatesInfoProxy =
+                                {
+                                    getNonActivated = fun e -> e.peptide
+                                    getCatEnantiomer = getEnantiomer
+                                    acCatReactionCreator = AcCatalyticSynthesisReaction
+                                    getBaseRates = p.acCatSynthModel.inputParams.synthesisModel.getRates rnd
+                                    createActivationData = p.acCatSynthModel.inputParams.activationModel.createActivationData rnd
+                                    getAcEnantiomer = getEnantiomer
+                                    rateGenerationType = t
+                                    rnd = rnd
+                                }
+
+                            inverse = fun (SynthesisReaction r) -> r.aminoAcid
+                            getReactionData = fun _ -> p.aminoAcids
+                            simReactionCreator = (fun e -> [ a.createSameChirality e |> SynthesisReaction ])
+                            getCatReactEnantiomer = getEnantiomer
+                            getBaseCatRates = p.acCatSynthModel.getRates t
+                            getMatchingReactionMult = id
+                            tryGetBaseCatRates = p.acCatSynthModel.tryGetRates
+                        }
+                }
 
             info
             |> calculateAcSimRates

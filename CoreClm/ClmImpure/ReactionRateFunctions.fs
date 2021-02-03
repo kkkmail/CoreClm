@@ -650,6 +650,10 @@ module ReactionRateFunctions =
         {
             reaction : 'R
             acCatalyst : 'CA
+            acSimParams : AcCatRatesSimilarityParam
+            acEeParams : AcCatRatesEeParam
+            dictionaryData : DictionaryData<'RCA, 'CA>
+            acRateDictionary : Dictionary<'RA, RateData>
             proxy : AcCatRatesSimInfoProxy<'A, 'R, 'CA, 'C, 'RCA, 'RA>
 
 //            getNonActivated : 'CA -> 'C
@@ -662,10 +666,6 @@ module ReactionRateFunctions =
 //            rnd : RandomValueGetter
 
 //            getCatReactEnantiomer : 'RCA -> 'RCA
-            acSimParams : AcCatRatesSimilarityParam
-            acEeParams : AcCatRatesEeParam
-            dictionaryData : DictionaryData<'RCA, 'CA>
-            acRateDictionary : Dictionary<'RA, RateData>
         }
 
         member i.toAcCatRatesInfo r c e =
