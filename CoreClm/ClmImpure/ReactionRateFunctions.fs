@@ -153,28 +153,34 @@ module ReactionRateFunctions =
         (calculateRates : 'R -> RelatedReactions<'R>)
         (reaction : 'R)  =
 //        printfn $"getRatesImpl: reaction = {reaction}."
+        let result =
+            match d.rateDictionary.TryGetValue reaction with
+            | true, rates -> rates
+            | false, _ ->
+                match d.hasReactionKey reaction with
+                | false ->
+                    calculateRates reaction
+                    |> updateRelatedReactions d getEnantiomer reaction
+                | true ->
+                    // This is only applicable for a small number of reaction types where the number of reactions is extremely
+                    // large, e.g. AcFwdCatalyticLigationReaction.
+                    // If we end up here then the situation is as follows:
+                    //     1. One of the previous reactions had the same reaction key (== catalyst).
+                    //     2. However, DictionaryUpdateType.NonOptionalRateDataOnly was used and that resulted that we did
+                    //        not store all the reactions but only a reaction key.
+                    //     3. Had we stored the reaction in the dictionary, then it would've now returned a reaction with no data.
+                    //     4. So, we need to do the same here.
+                    {
+                        forwardRate = None
+                        backwardRate = None
+                    }
 
-        match d.rateDictionary.TryGetValue reaction with
-        | true, rates -> rates
-        | false, _ ->
-            match d.hasReactionKey reaction with
-            | false ->
-                calculateRates reaction
-                |> updateRelatedReactions d getEnantiomer reaction
-            | true ->
-                // This is only applicable for a small number of reaction types where the number of reactions is extremely
-                // large, e.g. AcFwdCatalyticLigationReaction.
-                // If we end up here then the situation is as follows:
-                //     1. One of the previous reactions had the same reaction key (== catalyst).
-                //     2. However, DictionaryUpdateType.NonOptionalRateDataOnly was used and that resulted that we did
-                //        not store all the reactions but only a reaction key.
-                //     3. Had we stored the reaction in the dictionary, then it would've now returned a reaction with no data.
-                //     4. So, we need to do the same here.
-                {
-                    forwardRate = None
-                    backwardRate = None
-                }
+        match box reaction with
+        | :? ActivationReaction as r ->
+            printfn $"getRatesImpl: reaction: %0A{r}, result: %0A{result}."
+        | _ -> ()
 
+        result
 
     let getAcRatesImpl<'RCA, 'CA, 'RA>
         (i : RelatedAcReactionsUpdateInfo<'RCA, 'CA, 'RA>)

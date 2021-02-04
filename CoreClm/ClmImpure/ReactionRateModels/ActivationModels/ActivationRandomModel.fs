@@ -15,7 +15,14 @@ module ActivationRandomModel =
 
         let calculateRates rnd _ =
             let d = p.activationDistribution
-            getRates (p.forwardScale, d.nextDouble rnd |> Some) (None, None)
+            let result = getRates (p.forwardScale, d.nextDouble rnd |> Some) (None, None)
+            printfn $"ActivationRandomModel.calculateRates: result = %0A{result}."
+            result
+
+        let calculateNullRates rnd _ =
+            let result = getRates (None, None) (None, None)
+            printfn $"ActivationRandomModel.calculateNullRates: result = %0A{result}."
+            result
 
         let getActivationReaction (rnd : RandomValueGetter) p =
             let s =
@@ -25,7 +32,13 @@ module ActivationRandomModel =
 
             ActivationReaction (s, p)
 
-        member model.getRates rnd r = getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd) r
+        member private model.getRatesInternal rnd r =
+            printfn "ActivationRandomModel.getRatesInternal..."
+            getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd) r
+
+        member model.getRates rnd r =
+            printfn "ActivationRandomModel.getRates..."
+            getRatesImpl model.dictionaryData getEnantiomer (calculateNullRates rnd) r
 
         /// TODO kk:20210203 - Note that currently this function is 100% enantioselective.
         /// Refer to ActivationRandomParam for the necessary tweaks.
@@ -33,8 +46,12 @@ module ActivationRandomModel =
         member model.createActivationData (rnd : RandomValueGetter) (p : Peptide) : ReactionRateData<ActivationReaction> =
             let r = getActivationReaction rnd p
 
-            {
-                reaction = r
-                rateData = model.getRates rnd r
-            }
+            let result =
+                {
+                    reaction = r
+                    rateData = model.getRatesInternal rnd r
+                }
+
+            printfn $"ActivationRandomModel.createActivationData: reaction = %0A{result.reaction}, rateData = %0A{result.rateData}."
+            result
 

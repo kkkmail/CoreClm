@@ -70,6 +70,8 @@ module RateProvider =
         let tryPick getter = allModels |> List.tryPick getter
 
         let getRatesImpl t rnd a =
+            printfn $"ReactionRateProvider.getRatesImpl: {a.GetType().Name}."
+
             match a with
             | FoodCreation r -> tryPick FoodCreationModel.modelGetter |> bind (fun m -> m.getRates r)
             | WasteRemoval r -> tryPick WasteRemovalModel.modelGetter |> bind (fun m -> m.getRates r)
