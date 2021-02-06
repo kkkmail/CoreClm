@@ -36,9 +36,12 @@ module ActivationRandomModel =
             printfn "ActivationRandomModel.getRatesInternal..."
             getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd) r
 
+        /// Activation reactions are different because we calculate them only when needed.
+        /// As such the primary generation route is "disabled".
         member model.getRates rnd r =
             printfn "ActivationRandomModel.getRates..."
-            getRatesImpl model.dictionaryData getEnantiomer (calculateNullRates rnd) r
+//            getRatesImpl model.dictionaryData getEnantiomer (calculateNullRates rnd) r
+            getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd) r
 
         /// TODO kk:20210203 - Note that currently this function is 100% enantioselective.
         /// Refer to ActivationRandomParam for the necessary tweaks.
