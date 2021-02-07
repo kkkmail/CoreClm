@@ -7,36 +7,6 @@ open Clm.ReactionRatesBase
 open Clm.ReactionRateParams
 
 module ReactionRates =
-    let calculateSedDirRates (i : SedDirRatesInfo) =
-        let reaction = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
-        let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction
-
-        let rf, rfe =
-            let k =
-                match i.rateGenerationType with
-                | RandomChoice -> i.eeParams.sedDirRateMultiplierDistr.nextDouble i.rnd
-
-            match k, i.eeParams.eeDistribution with
-            | Some k0, Some df ->
-                let s0 = i.getBaseRates reaction
-                let fEe = df.nextDouble i.rnd
-
-                let kf = k0 * (1.0 + fEe)
-                let kfe = k0 * (1.0 - fEe)
-
-                let (rf, rfe) =
-                    match s0.forwardRate with
-                    | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
-                    | None -> (None, None)
-
-                (rf, rfe)
-            | _ -> (None, None)
-
-        {
-            primary = { forwardRate = rf; backwardRate = None }
-            similar = [ { reaction = re; rateData = { forwardRate = rfe; backwardRate = None } } ]
-        }
-
 
     type AllRatesData =
         | FoodCreationRates of list<ReactionRateData<FoodCreationReaction>>

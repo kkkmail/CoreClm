@@ -532,8 +532,8 @@ module ReactionRatesBase =
     /// A + C* -> B + C
     /// and so the activated catalyst is not conserved, but rather is transformed into non-activated one.
     let calculateAcCatRates<'R, 'CA, 'C, 'RCA, 'RA> (i : AcCatRatesInfo<'R, 'CA, 'C, 'RCA, 'RA>) : RelatedAcReactions<'RCA, 'RA> =
-//        printfn "calculateAcCatRates: Starting..."
         let re = (i.reaction, i.proxy.getCatEnantiomer i.acCatalyst) |> i.proxy.acCatReactionCreator
+        printfn $"calculateAcCatRates: Starting, re = {re}"
 
         let rf, rb, rfe, rbe, ra =
             match  i.acEeParams.rateMult i.proxy.rateGenerationType i.proxy.rnd with
@@ -553,10 +553,13 @@ module ReactionRatesBase =
                 let g() =
                     let c = i.proxy.getNonActivated i.acCatalyst
                     let ra = i.proxy.createActivationData c
+                    printfn $"calculateAcCatRates: g: c = {c}, ra = {ra}"
                     [ ra ]
 
+                printfn $"calculateAcCatRates: rf = {rf}, rb = {rb}, rfe = {rfe}, rbe = {rbe}"
+
                 let a =
-                    match rf, rb, rfe, rbe with
+                    match rf, rfe, rb, rbe with
                     | Some _, Some _, _, _ -> g()
                     | _, _, Some _, Some _ -> g()
                     | _ -> []

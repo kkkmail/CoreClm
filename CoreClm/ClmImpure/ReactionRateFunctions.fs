@@ -7,13 +7,14 @@ open Clm.Distributions
 open Clm.Substances
 open Clm.ReactionRatesBase
 open Clm.ReactionRates
+open ClmSys.DistributionData
 open Clm.ReactionRateParams
 open Clm.ReactionTypes
 
 module ReactionRateFunctions =
 
     /// !!! Internally mutable structure !!!
-    /// Structure to hold the key set and the a function to produce a key out of reaction.
+    /// Structure to hold the key set and a function to produce a key out of reaction.
     type KeySetData<'R, 'C> =
         {
             keySet : HashSet<'C>
@@ -147,6 +148,65 @@ module ReactionRateFunctions =
         x.acPrimary
 
 
+    /// Samples a new value out of a given data array.
+    /// If duplicates need to be excluded (ExcludeDuplicates) then
+    /// excludes both found element and its enantiomer.
+    let generateValue (d : Distribution) rnd (data : array<'A>) (getEnantiomer : 'A -> 'A) coll generated =
+//        printfn "\n\ngenerateValue:Starting..."
+
+        let getValue next =
+//            printfn $"generateValue.getValue: next = {next}, data.Length = {data.Length}."
+            let nextVal = data.[next]
+            let e = getEnantiomer nextVal
+            let g a = a |> List.distinct |> List.sort, nextVal
+            let x = next :: generated
+
+            match data |> Array.tryFindIndex (fun a -> a = e) with
+            | None ->
+//                printfn $"generateValue.getValue: Unable to find index for nextVal = '{nextVal}', e = '{e}'."
+                g x
+            | Some v ->
+//                printfn $"generateValue.getValue: v = {v}."
+                g (v :: x)
+
+        let adjust next =
+//            printfn "generateValue.adjust: next = %A" next
+
+            let rec inner rem n =
+//                printfn "generateValue.adjust.inner: n = %A" n
+                match rem with
+                | [] -> n
+                | h :: t ->
+                    match h > n with
+                    | true -> n
+                    | false -> inner t (n + 1)
+            inner generated next
+
+        match coll with
+        | NoCollisionResolution ->
+            let next = d.nextN rnd data.Length
+//            printfn "generateValue: next = %A" next
+            getValue next
+        | ExcludeDuplicates ->
+            let next = d.nextN rnd (data.Length - generated.Length)
+            let adjusted = adjust next
+//            printfn "generateValue: next = %A, adjusted = %A" next adjusted
+            getValue adjusted
+
+
+    /// Samples n unique values without collisions from an array.
+    let generateUniqueValues (d : Distribution) rnd (data : array<'A>) n =
+        let generate (idx, gen) =
+            let (i, a) = generateValue d rnd data id ExcludeDuplicates idx
+            (i, a :: gen)
+
+        let (_, a) =
+            [ for _ in 1..n -> () ]
+            |> List.fold (fun e _ -> generate e) ([], [])
+
+        a |> List.rev
+
+
     let getRatesImpl<'R, 'C>
         (d : DictionaryData<'R, 'C>)
         (getEnantiomer : 'R -> 'R)
@@ -175,10 +235,9 @@ module ReactionRateFunctions =
                         backwardRate = None
                     }
 
-        match box reaction with
-        | :? ActivationReaction as r ->
-            printfn $"getRatesImpl: reaction: {r}, result: %0A{result}."
-        | _ -> ()
+//        match box reaction with
+//        | :? ActivationReaction as r -> printfn $"getRatesImpl: reaction: {r}, result: %0A{result}."
+//        | _ -> ()
 
         result
 
@@ -344,6 +403,7 @@ module ReactionRateFunctions =
 
         a
 
+
     let getSimRates i aa getEeParams rateMult =
 //        printfn "getSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
@@ -384,6 +444,7 @@ module ReactionRateFunctions =
 
         b
 
+
     let calculateSimRates<'A, 'R, 'C, 'RC when 'A : equality and 'R : equality> (i : CatRatesSimInfo<'A, 'R, 'C, 'RC>) =
         let r = (i.reaction, i.catalyst) |> i.catReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.catalyst) |> i.catReactionCreator
@@ -404,6 +465,60 @@ module ReactionRateFunctions =
         |> ignore
 
         cr
+
+
+    let calculateActivationRates (i : ActivationRandomInfo) (r : ActivationReaction) =
+        let (ActivationReaction (s, p)) = r
+        let re = (s.enantiomer, p) |> ActivationReaction
+
+        let rf, rfe =
+            let k0 = i.activationParam.activationDistribution.nextDouble i.rnd
+
+            match i.activationParam.eeDistribution with
+            | Some df ->
+                let fEe = df.nextDouble i.rnd
+
+                let kf = k0 * (1.0 + fEe)
+                let kfe = k0 * (1.0 - fEe)
+                let (rf, rfe) = kf |> ReactionRate |> Some, kfe |> ReactionRate |> Some
+                (rf, rfe)
+            | _ -> (None, None)
+
+        {
+            primary = { forwardRate = rf; backwardRate = None }
+            similar = [ { reaction = re; rateData = { forwardRate = rfe; backwardRate = None } } ]
+        }
+
+
+    let calculateSedDirRates (i : SedDirRatesInfo) =
+        let reaction = (i.sedFormingSubst, i.sedDirAgent) |> SedimentationDirectReaction
+        let re = (i.sedFormingSubst, i.sedDirAgent.enantiomer) |> SedimentationDirectReaction
+
+        let rf, rfe =
+            let k =
+                match i.rateGenerationType with
+                | RandomChoice -> i.eeParams.sedDirRateMultiplierDistr.nextDouble i.rnd
+
+            match k, i.eeParams.eeDistribution with
+            | Some k0, Some df ->
+                let s0 = i.getBaseRates reaction
+                let fEe = df.nextDouble i.rnd
+
+                let kf = k0 * (1.0 + fEe)
+                let kfe = k0 * (1.0 - fEe)
+
+                let (rf, rfe) =
+                    match s0.forwardRate with
+                    | Some (ReactionRate sf) -> (kf * sf |> ReactionRate |> Some, kfe * sf |> ReactionRate |> Some)
+                    | None -> (None, None)
+
+                (rf, rfe)
+            | _ -> (None, None)
+
+        {
+            primary = { forwardRate = rf; backwardRate = None }
+            similar = [ { reaction = re; rateData = { forwardRate = rfe; backwardRate = None } } ]
+        }
 
 
     type SedDirRatesSimInfo =
@@ -530,7 +645,7 @@ module ReactionRateFunctions =
 
     let getEnSimNoRates i creator aa r =
         aa
-        |> List.map (fun a -> creator a)
+        |> List.map creator
         |> List.concat
         |> List.map (fun e -> e, calculateSimEnCatRates i e i.enCatalyst EnCatRatesEeParam.defaultValue)
 
@@ -797,18 +912,18 @@ module ReactionRateFunctions =
         a
 
     let getAcSimRates<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA>) aa getEeParams rateMult =
-//        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =
             chooseAcData i aa
             |> List.map (fun (e, b) -> e, b, match b with | true -> i.proxy.getMatchingReactionMult rateMult | false -> 0.0)
 
-//        x
-//        |> List.filter (fun (_, b, _) -> b)
-//        |> List.sortBy (fun (a, _, _) -> a.ToString())
-//        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
-//        |> ignore
-//        printfn "\n"
+        x
+        |> List.filter (fun (_, b, _) -> b)
+        |> List.sortBy (fun (a, _, _) -> a.ToString())
+        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
+        |> ignore
+        printfn "\n"
 
         let a =
             x
@@ -838,33 +953,39 @@ module ReactionRateFunctions =
 
 
     let calculateAcSimRates<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA>) =
-//        printfn "calculateAcSimRates: Starting. i = %A" i
+        printfn $"calculateAcSimRates: Starting. i = {i}"
         let r = (i.reaction, i.acCatalyst) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
         let re = (i.reaction, i.proxy.acCatRatesInfoProxy.getCatEnantiomer i.acCatalyst) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
         let br = i.proxy.acCatRatesInfoProxy.getBaseRates i.reaction // (bf, bb)
         let aa = i.proxy.getReactionData i.reaction
         let rnd = i.proxy.acCatRatesInfoProxy.rnd
 
-//        printfn $"calculateAcSimRates: r = {r}, re = {re}"
-//        printfn "calculateAcSimRates: aa ="
-//        aa |> List.map (fun a -> printfn $"    {a}") |> ignore
+        printfn $"calculateAcSimRates: r = {r}, re = {re}"
+        printfn "calculateAcSimRates: aa ="
+        aa |> List.map (fun a -> printfn $"    {a}") |> ignore
 
         let cr =
             match i.dictionaryData.hasReactionKey r with
-            | false -> i.proxy.getBaseCatRates rnd r
+            | false ->
+                printfn "calculateAcSimRates: Calling i.proxy.getBaseCatRates rnd r ..."
+                i.proxy.getBaseCatRates rnd r
             | true ->
-//                printfn "calculateAcSimRates: reaction has a key (catalyst) in the dictionary. Do not create new reactions."
+                printfn "calculateAcSimRates: reaction has a key (catalyst) in the dictionary. Do not create new reactions."
                 i.proxy.tryGetBaseCatRates r
 
+        printfn "calculateAcSimRates: cr = %A" cr
+
         match (cr.forwardRate, cr.backwardRate) with
-        | None, None -> getAcSimNoRates i i.proxy.simReactionCreator aa i.reaction
+        | None, None ->
+            printfn "calculateAcSimRates: Calling getAcSimNoRates ..."
+            getAcSimNoRates i i.proxy.simReactionCreator aa i.reaction
         | _ ->
+            printfn "calculateAcSimRates: Getting cre ..."
             let cre = i.proxy.getBaseCatRates rnd re
             let rateMult = getRateMult br cr cre
-//            printfn "calculateAcSimRates: br = %s, cr = %s, cre = %s, rateMult = %A\n" (br.ToString()) (cr.ToString()) (cre.ToString()) rateMult
+            printfn $"calculateAcSimRates: br = {br}, cr = {cr}, cre = {cre}, rateMult = %A{rateMult}\n"
             let getAcEeParams = getAcEeParams i cr cre
             getAcSimRates i aa getAcEeParams rateMult
         |> ignore
 
-//        printfn "calculateAcSimRates: cr = %A" cr
         cr

@@ -14,9 +14,9 @@ open Clm.ModelParams
 open Clm.CalculationData
 open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
+open ClmImpure.ReactionRateFunctions
 open Clm.Generator.ReactionRatesExt
 open Clm.Distributions
-open ClmSys.DistributionData
 open ClmSys.ModelData
 
 module ClmModelData =
@@ -150,52 +150,6 @@ module ClmModelData =
             | ActivationName -> createReactions (fun x -> ActivationReaction x |> Activation) data.acPairs
 
 
-    /// Samples a new value out of a given data array.
-    /// If duplicates need to be excluded (ExcludeDuplicates) then
-    /// excludes both found element and its enantiomer.
-    let generateValue  (d : Distribution) rnd (data : array<'A>) (getEnantiomer : 'A -> 'A) coll generated =
-        printfn "\n\ngenerateValue:Starting..."
-
-        let getValue next =
-            printfn $"generateValue.getValue: next = {next}, data.Length = {data.Length}."
-            let nextVal = data.[next]
-            let e = getEnantiomer nextVal
-            let g a = a |> List.distinct |> List.sort, nextVal
-            let x = next :: generated
-
-            match data |> Array.tryFindIndex (fun a -> a = e) with
-            | None ->
-                printfn $"generateValue.getValue: Unable to find index for nextVal = '{nextVal}', e = '{e}'."
-                g x
-            | Some v ->
-                printfn $"generateValue.getValue: v = {v}."
-                g (v :: x)
-
-        let adjust next =
-//            printfn "generateValue.adjust: next = %A" next
-
-            let rec inner rem n =
-//                printfn "generateValue.adjust.inner: n = %A" n
-                match rem with
-                | [] -> n
-                | h :: t ->
-                    match h > n with
-                    | true -> n
-                    | false -> inner t (n + 1)
-            inner generated next
-
-        match coll with
-        | NoCollisionResolution ->
-            let next = d.nextN rnd data.Length
-//            printfn "generateValue: next = %A" next
-            getValue next
-        | ExcludeDuplicates ->
-            let next = d.nextN rnd (data.Length - generated.Length)
-            let adjusted = adjust next
-//            printfn "generateValue: next = %A, adjusted = %A" next adjusted
-            getValue adjusted
-
-
     let generatePairs<'A, 'B when 'A : equality and 'B : equality> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + B, E(A) + E(B))
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
@@ -225,7 +179,6 @@ module ClmModelData =
                 let sn = d.successNumber sng noOfTries
                 printfn "generatePairs: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
 
-//                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length]) ]
                 let ((_, a), (_, b)) =
                     [ for _ in 1..sn -> ()]
                     |> List.fold (fun (a, b) _ -> (generateA a, generateB b)) (([], []), ([], []))
@@ -239,7 +192,7 @@ module ClmModelData =
     let generateTriples<'A, 'B, 'C when 'A : equality and 'B : equality and 'C : equality> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
         // ??? must adjust for 8X ??? reduction due to grouping ???
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
-        printfn "generateTriples:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    typedefof<'C> = %A\n    tripleCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>) i.tripleCollision i.successNumberType
+        printfn "\n\ngenerateTriples:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    typedefof<'C> = %A\n    tripleCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>) i.tripleCollision i.successNumberType
 
         // TripleCollision should ensure that when individual duplicates are allowed we still won't get duplicate triples.
         // This is an extremely rare (and currently unused) scenario and as such implementation is not worth an effort.
@@ -266,7 +219,6 @@ module ClmModelData =
                 let sn = d.successNumber sng noOfTries
                 printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A\n\n" i.successNumberType sn i.reactionName
 
-//                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length], i.c.generatorData.[d.nextN rnd i.c.generatorData.Length]) ]
                 let ((_, a), (_, b), (_, c)) =
                     [ for _ in 1..sn -> ()]
                     |> List.fold (fun (a, b, c) _ -> (generateA a, generateB b, generateC c)) (([], []), ([], []), ([], []))
@@ -346,11 +298,11 @@ module ClmModelData =
                     collisionData = coll
                 }
 
-            printfn $"RandomChoiceModelData.create: result.commonData.acPairs.Length = {result.commonData.acPairs.Length}."
-            result.commonData.acPairs
-            |> List.sort
-            |> List.map (fun (s, p) -> printfn $"    {s}, {p}")
-            |> ignore
+//            printfn $"RandomChoiceModelData.create: result.commonData.acPairs.Length = {result.commonData.acPairs.Length}."
+//            result.commonData.acPairs
+//            |> List.sort
+//            |> List.map (fun (s, p) -> printfn $"    {s}, {p}")
+//            |> ignore
 
             result
 

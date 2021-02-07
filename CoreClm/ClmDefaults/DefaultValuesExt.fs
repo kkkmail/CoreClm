@@ -750,8 +750,8 @@ module DefaultValuesExt =
 
         static member defaultActivationRndParamImpl (threshold, mult) =
             {
-                activationDistribution = defaultRateDistribution threshold 1.0
-                forwardScale = Some mult
+                activationDistribution = defaultRateDistribution threshold mult
+                eeDistribution = defaultEeDistribution |> Some
             }
 
         static member defaultActivationParamImpl (threshold, mult) =

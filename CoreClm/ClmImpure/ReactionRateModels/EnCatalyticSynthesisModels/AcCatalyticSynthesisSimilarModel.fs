@@ -23,7 +23,7 @@ module AcCatalyticSynthesisSimilarModel =
         let calculateSimRatesImpl rnd (t : RateGenerationType) (AcCatalyticSynthesisReaction (s, c)) =
             let (SynthesisReaction a) = s
 
-            let (info : AcCatRatesSimInfo<AminoAcid, SynthesisReaction, AcSynthCatalyst, Peptide, AcCatalyticSynthesisReaction, ActivationReaction>) =
+            let info =
                 {
                     reaction = s
                     acCatalyst = c
