@@ -177,7 +177,7 @@ module ReactionRateFunctions =
 
         match box reaction with
         | :? ActivationReaction as r ->
-            printfn $"getRatesImpl: reaction: %0A{r}, result: %0A{result}."
+            printfn $"getRatesImpl: reaction: {r}, result: %0A{result}."
         | _ -> ()
 
         result

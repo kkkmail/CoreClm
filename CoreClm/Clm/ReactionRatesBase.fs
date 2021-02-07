@@ -74,6 +74,8 @@ module ReactionRatesBase =
             pairCollision : PairCollisionResolution
             a : array<'A>
             b : array<'B>
+            getEnantiomerA : 'A -> 'A
+            getEnantiomerB : 'B -> 'B
             reactionName : ReactionName
             successNumberType : SuccessNumberType
         }
@@ -85,6 +87,9 @@ module ReactionRatesBase =
             a : array<'A>
             b : array<'B>
             c : array<'C>
+            getEnantiomerA : 'A -> 'A
+            getEnantiomerB : 'B -> 'B
+            getEnantiomerC : 'C -> 'C
             reactionName : ReactionName
             successNumberType : SuccessNumberType
         }

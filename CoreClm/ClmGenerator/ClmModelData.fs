@@ -151,6 +151,8 @@ module ClmModelData =
 
 
     /// Samples a new value out of a given data array.
+    /// If duplicates need to be excluded (ExcludeDuplicates) then
+    /// excludes both found element and its enantiomer.
     let generateValue  (d : Distribution) rnd (data : array<'A>) (getEnantiomer : 'A -> 'A) coll generated =
         printfn "\n\ngenerateValue:Starting..."
 
@@ -158,11 +160,13 @@ module ClmModelData =
             printfn $"generateValue.getValue: next = {next}, data.Length = {data.Length}."
             let nextVal = data.[next]
             let e = getEnantiomer nextVal
-            let g a = a |> List.sort |> List.distinct, nextVal
+            let g a = a |> List.distinct |> List.sort, nextVal
             let x = next :: generated
 
             match data |> Array.tryFindIndex (fun a -> a = e) with
-            | None -> g x
+            | None ->
+                printfn $"generateValue.getValue: Unable to find index for nextVal = '{nextVal}', e = '{e}'."
+                g x
             | Some v ->
                 printfn $"generateValue.getValue: v = {v}."
                 g (v :: x)
@@ -198,7 +202,7 @@ module ClmModelData =
         printfn "\n\ngeneratePairs:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    pairCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) i.pairCollision i.successNumberType
 
         // PairCollision should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
-        // This is an extremely rare scenario and as such implementation is not worth an effort.
+        // This is an extremely rare (and currently unused) scenario and as such implementation is not worth an effort.
         match i.pairCollision with
         | PairCollision -> invalidOp $"generatePairs: {nameof(i.pairCollision)} = {PairCollision} is not supported yet!"
         | EachInPair ct ->
@@ -215,8 +219,8 @@ module ClmModelData =
                     let (i, a) = generateValue d rnd data getEnantiomer coll idx
                     (i, a :: gen)
 
-                let generateA a = generate i.a id ct.collisionA a
-                let generateB b = generate i.b id ct.collisionB b
+                let generateA a = generate i.a i.getEnantiomerA ct.collisionA a
+                let generateB b = generate i.b i.getEnantiomerB ct.collisionB b
 
                 let sn = d.successNumber sng noOfTries
                 printfn "generatePairs: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
@@ -237,8 +241,8 @@ module ClmModelData =
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
         printfn "generateTriples:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    typedefof<'C> = %A\n    tripleCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>) i.tripleCollision i.successNumberType
 
-        // ExcludeDuplicates should ensure that when individual duplicates are allowed we still won't get duplicate triples.
-        // This is an extremely rare scenario and as such implementation is not worth an effort.
+        // TripleCollision should ensure that when individual duplicates are allowed we still won't get duplicate triples.
+        // This is an extremely rare (and currently unused) scenario and as such implementation is not worth an effort.
         match i.tripleCollision with
         | TripleCollision -> invalidOp $"generateTriples: {nameof(i.tripleCollision)} = {TripleCollision} is not supported yet!"
         | EachInTriple ct ->
@@ -255,9 +259,9 @@ module ClmModelData =
                     let (i, a) = generateValue d rnd data getEnantiomer coll idx
                     (i, a :: gen)
 
-                let generateA a = generate i.a id ct.collisionA a
-                let generateB b = generate i.b id ct.collisionB b
-                let generateC c = generate i.c id ct.collisionC c
+                let generateA a = generate i.a i.getEnantiomerA ct.collisionA a
+                let generateB b = generate i.b i.getEnantiomerB ct.collisionB b
+                let generateC c = generate i.c i.getEnantiomerC ct.collisionC c
 
                 let sn = d.successNumber sng noOfTries
                 printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A\n\n" i.successNumberType sn i.reactionName
