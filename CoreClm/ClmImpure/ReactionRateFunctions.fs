@@ -379,8 +379,25 @@ module ReactionRateFunctions =
         |> List.map (fun e -> e, calculateSimCatRates i e i.catalyst CatRatesEeParam.defaultValue)
 
 
-    let chooseData i aa =
+    let chooseData i (aa : list<'A>) =
         let a =
+            let sng =
+                i.rnd
+                |>
+                match i.simParams.catRatesSimGeneration with
+                | DistributionBased _ -> RandomValueGetterBased
+                | FixedValue _ -> ThresholdValueBased
+
+            let d =
+                match i.simParams.catRatesSimGeneration with
+                | DistributionBased d | FixedValue d  -> d
+
+            let sn = d.successNumber sng (int64 (aa.Length - 1))
+
+            let chosen = generateUniqueValues d i.rnd (aa |> Array.ofList) sn
+
+            // ========================================================
+
             match i.simParams.catRatesSimGeneration with
             | DistributionBased simBaseDistribution -> aa |> List.map (fun a -> a, simBaseDistribution.isDefined i.rnd)
             | FixedValue d ->
