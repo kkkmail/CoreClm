@@ -297,9 +297,14 @@ module Distributions =
                             let st = (stdDev * stdDev + p * (1.0 - p) * mean * mean) * (double noOfTries) |> sqrt
                             getGaussian rnd.nextDouble m st
                         | ThresholdValueBased _ -> double m
-                printfn "successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m (s.ToString()) sn
+//                printfn "Distribution.successNumber: noOfTries = %A, p = %A, m = %A, s = %A, sn = %A" noOfTries p m (s.ToString()) sn
                 min (max 0L (int64 sn)) noOfTries |> int
             | None -> noOfTries |> int
+
+        member d.thresholdValue =
+            match d.value.distributionParams.threshold with
+            | Some p -> p
+            | None -> 1.0
 
         static member createDelta p = { distributionType = Delta; distributionParams = p } |> Distribution
         static member createBiDelta p = { distributionType = BiDelta; distributionParams = p } |> Distribution

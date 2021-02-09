@@ -18,12 +18,12 @@ module AcCatalyticDestructionSimilarModel =
 
 
     type AcCatalyticDestructionSimilarModel (p : AcCatalyticDestructionSimilarParamWithModel) =
-        do printfn $"AcCatalyticDestructionSimilarModel: p = %A{p}"
+//        do printfn $"AcCatalyticDestructionSimilarModel: p = %A{p}"
         let dictionaryData = toDictionaryData p.acCatDestrModel.rateDictionary
 
         let calculateSimRatesImpl rnd t (AcCatalyticDestructionReaction (s, c)) =
             let (DestructionReaction a) = s
-            printfn $"AcCatalyticDestructionSimilarModel.calculateSimRatesImpl: s = {s}, c = {c}."
+//            printfn $"AcCatalyticDestructionSimilarModel.calculateSimRatesImpl: s = {s}, c = {c}."
 
             let info =
                 {

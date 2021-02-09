@@ -708,7 +708,7 @@ module ReactionRateFunctions =
 //        x
 //        |> List.filter (fun (_, b, _) -> b)
 //        |> List.sortBy (fun (a, _, _) -> a.ToString())
-//        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
+//        |> List.map (fun (a, _, r) -> printfn $"x: a = {}, r = {r}")
 //        |> ignore
 //        printfn "\n"
 
@@ -720,7 +720,7 @@ module ReactionRateFunctions =
 //        a
 //        |> List.filter (fun (_, b, _) -> b)
 //        |> List.sortBy (fun (a, _, _) -> a.ToString())
-//        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
+//        |> List.map (fun (a, _, r) -> printfn $"a: a = {a}, r = {r}")
 //        |> ignore
 //        printfn "\n"
 
@@ -732,7 +732,7 @@ module ReactionRateFunctions =
 //        b
 //        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
 //        |> List.sortBy (fun (a, _) -> a.ToString())
-//        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
+//        |> List.map (fun (a, r) -> printfn $"b: a = {a}, r = {r}")
 //        |> ignore
 //        printfn "\n"
 
@@ -742,8 +742,8 @@ module ReactionRateFunctions =
     let calculateEnSimRates i =
         let r = (i.reaction, i.enCatalyst, i.energySource) |> i.enCatReactionCreator
         let re = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.energySource) |> i.enCatReactionCreator
-        let ru = (i.reaction, i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
-        let reu = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+//        let ru = (i.reaction, i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
+//        let reu = (i.reaction, i.getCatEnantiomer i.enCatalyst, i.getEnergySourceEnantiomer i.energySource) |> i.enCatReactionCreator
 
         let br = i.getBaseRates i.reaction // (bf, bb)
         let cr = r |> i.getBaseCatRates // (f, b)
@@ -798,17 +798,6 @@ module ReactionRateFunctions =
             dictionaryData : DictionaryData<'RCA, 'CA>
             acRateDictionary : Dictionary<'RA, RateData>
             proxy : AcCatRatesSimInfoProxy<'A, 'R, 'CA, 'C, 'RCA, 'RA>
-
-//            getNonActivated : 'CA -> 'C
-//            getCatEnantiomer : 'CA -> 'CA
-//            acCatReactionCreator : ('R * 'CA) -> 'RCA
-//            activationReactorCreator : 'C -> 'RA
-//            getBaseRates : 'R -> RateData
-//            getActivationRates : 'RA -> RateData
-//            rateGenerationType : RateGenerationType
-//            rnd : RandomValueGetter
-
-//            getCatReactEnantiomer : 'RCA -> 'RCA
         }
 
         member i.toAcCatRatesInfo r c e =
@@ -817,23 +806,9 @@ module ReactionRateFunctions =
                 acCatalyst = c
                 acEeParams = e
                 proxy = i.proxy.acCatRatesInfoProxy
-
-//                getNonActivated = i.getNonActivated
-//                getCatEnantiomer = i.getCatEnantiomer
-//                acCatReactionCreator = i.acCatReactionCreator
-//                activationReactorCreator = i.activationReactorCreator
-//                getBaseRates = i.getBaseRates
-//                getActivationRates = i.getActivationRates
-//                rateGenerationType = i.rateGenerationType
-//                rnd = i.rnd
             }
 
 
-
-//    let updateRelatedAcReactions<'RCA, 'CA, 'RA>
-//        (i : RelatedAcReactionsUpdateInfo<'RCA, 'CA, 'RA>)
-//        (r : 'RCA)
-//        (x : RelatedAcReactions<'RCA, 'RA>) =
 
     let calculateAcSimCatRates<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA>) s c e =
         let reaction = (s, c) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
@@ -852,21 +827,6 @@ module ReactionRateFunctions =
 
 
     let getAcEeParams i cr cre rateMult d  =
-//        match d with
-//        | AcNone -> AcCatRatesEeParam.defaultValue
-//        | AcForwardRateOnly ->
-//            {
-//                rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
-//                acFwdEeDistribution = i.acSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
-//            }
-//            |> AcForwardRateOnlyParam
-//        | AcBackwardRateOnly ->
-//            {
-//                rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
-//                acBkwEeDistribution = i.acSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
-//            }
-//            |> AcBackwardRateOnlyParam
-
         match d with
         | true ->
             match i.acEeParams with
@@ -886,19 +846,6 @@ module ReactionRateFunctions =
         | false -> AcCatRatesEeParam.defaultValue
 
 
-//    let getRateMult br cr cre =
-//        match cr.forwardRate, cre.forwardRate, cr.backwardRate, cre.backwardRate with
-//        | Some (ReactionRate a), Some (ReactionRate b), _, _ ->
-//            match br.forwardRate with
-//            | Some (ReactionRate c) -> (a + b) / 2.0 / c
-//            | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #1..."
-//        | _, _, Some (ReactionRate a), Some (ReactionRate b) ->
-//            match br.backwardRate with
-//            | Some (ReactionRate c) -> (a + b) / 2.0 / c
-//            | None -> failwith "calculateSimRates::calculateCatRates::FUBAR #2..."
-//        | _ -> failwith "calculateSimRates::calculateCatRates::FUBAR #3..."
-
-
     let getAcSimNoRates i creator aa r =
         aa
         |> List.map creator
@@ -906,7 +853,6 @@ module ReactionRateFunctions =
         |> List.map (fun e -> e, calculateAcSimCatRates i e i.acCatalyst AcCatRatesEeParam.defaultValue)
 
 
-    // (i : AcCatRatesSimInfo<'A, 'A, 'C, 'D>)
     let chooseAcData i aa =
         let a =
             let rnd = i.proxy.acCatRatesInfoProxy.rnd
@@ -934,18 +880,18 @@ module ReactionRateFunctions =
         a
 
     let getAcSimRates<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA>) aa getEeParams rateMult =
-        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
+//        printfn "getAcSimRates: aa = %A\n" ("[ " + (aa |> List.fold (fun acc r -> acc + (if acc <> "" then "; " else "") + r.ToString()) "") + " ]")
 
         let x =
             chooseAcData i aa
             |> List.map (fun (e, b) -> e, b, match b with | true -> i.proxy.getMatchingReactionMult rateMult | false -> 0.0)
 
-        x
-        |> List.filter (fun (_, b, _) -> b)
-        |> List.sortBy (fun (a, _, _) -> a.ToString())
-        |> List.map (fun (a, _, r) -> printfn "x: a = %s, r = %A" (a.ToString()) r)
-        |> ignore
-        printfn "\n"
+//        x
+//        |> List.filter (fun (_, b, _) -> b)
+//        |> List.sortBy (fun (a, _, _) -> a.ToString())
+//        |> List.map (fun (a, _, r) -> printfn $"x: a = {a}, r = {r}")
+//        |> ignore
+//        printfn "\n"
 
         let a =
             x
@@ -955,7 +901,7 @@ module ReactionRateFunctions =
 //        a
 //        |> List.filter (fun (_, b, _) -> b)
 //        |> List.sortBy (fun (a, _, _) -> a.ToString())
-//        |> List.map (fun (a, _, r) -> printfn "a: a = %s, r = %A" (a.ToString()) r)
+//        |> List.map (fun (a, _, r) -> printfn $"a: a = {a}, r = {r}")
 //        |> ignore
 //        printfn "\n"
 
@@ -967,7 +913,7 @@ module ReactionRateFunctions =
 //        b
 //        |> List.filter (fun (_, r) -> match (r.forwardRate, r.backwardRate) with | None, None -> false | _ -> true)
 //        |> List.sortBy (fun (a, _) -> a.ToString())
-//        |> List.map (fun (a, r) -> printfn "b: a = %s, r = %s" (a.ToString()) (r.ToString()))
+//        |> List.map (fun (a, r) -> printfn $"b: a = {a}, r = {r}")
 //        |> ignore
 //        printfn "\n"
 
@@ -975,37 +921,37 @@ module ReactionRateFunctions =
 
 
     let calculateAcSimRates<'A, 'R, 'CA, 'C, 'RCA, 'RA when 'A : equality and 'R : equality> (i : AcCatRatesSimInfo<'A, 'R, 'CA, 'C, 'RCA, 'RA>) =
-        printfn $"calculateAcSimRates: Starting. i = {i}"
+//        printfn $"calculateAcSimRates: Starting. i = {i}"
         let r = (i.reaction, i.acCatalyst) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
         let re = (i.reaction, i.proxy.acCatRatesInfoProxy.getCatEnantiomer i.acCatalyst) |> i.proxy.acCatRatesInfoProxy.acCatReactionCreator
         let br = i.proxy.acCatRatesInfoProxy.getBaseRates i.reaction // (bf, bb)
         let aa = i.proxy.getReactionData i.reaction
         let rnd = i.proxy.acCatRatesInfoProxy.rnd
 
-        printfn $"calculateAcSimRates: r = {r}, re = {re}"
-        printfn "calculateAcSimRates: aa ="
-        aa |> List.map (fun a -> printfn $"    {a}") |> ignore
+//        printfn $"calculateAcSimRates: r = {r}, re = {re}"
+//        printfn "calculateAcSimRates: aa ="
+//        aa |> List.map (fun a -> printfn $"    {a}") |> ignore
 
         let cr =
             match i.dictionaryData.hasReactionKey r with
             | false ->
-                printfn "calculateAcSimRates: Calling i.proxy.getBaseCatRates rnd r ..."
+//                printfn "calculateAcSimRates: Calling i.proxy.getBaseCatRates rnd r ..."
                 i.proxy.getBaseCatRates rnd r
             | true ->
-                printfn "calculateAcSimRates: reaction has a key (catalyst) in the dictionary. Do not create new reactions."
+//                printfn "calculateAcSimRates: reaction has a key (catalyst) in the dictionary. Do not create new reactions."
                 i.proxy.tryGetBaseCatRates r
 
-        printfn "calculateAcSimRates: cr = %A" cr
+//        printfn "calculateAcSimRates: cr = %A" cr
 
         match (cr.forwardRate, cr.backwardRate) with
         | None, None ->
-            printfn "calculateAcSimRates: Calling getAcSimNoRates ..."
+//            printfn "calculateAcSimRates: Calling getAcSimNoRates ..."
             getAcSimNoRates i i.proxy.simReactionCreator aa i.reaction
         | _ ->
-            printfn "calculateAcSimRates: Getting cre ..."
+//            printfn "calculateAcSimRates: Getting cre ..."
             let cre = i.proxy.getBaseCatRates rnd re
             let rateMult = getRateMult br cr cre
-            printfn $"calculateAcSimRates: br = {br}, cr = {cr}, cre = {cre}, rateMult = %A{rateMult}\n"
+//            printfn $"calculateAcSimRates: br = {br}, cr = {cr}, cre = {cre}, rateMult = %A{rateMult}\n"
             let getAcEeParams = getAcEeParams i cr cre
             getAcSimRates i aa getAcEeParams rateMult
         |> ignore

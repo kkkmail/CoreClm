@@ -153,7 +153,7 @@ module ClmModelData =
     let generatePairs<'A, 'B when 'A : equality and 'B : equality> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + B, E(A) + E(B))
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
-        printfn "\n\ngeneratePairs:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    pairCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) i.pairCollision i.successNumberType
+//        printfn $"\n\ngeneratePairs:\n    noOfTries = {noOfTries}\n    typedefof<'A> = {(typedefof<'A>)}\n    typedefof<'B> = {(typedefof<'B>)}\n    pairCollision = %0A{i.pairCollision}\n    successNumberType = %0A{i.successNumberType}"
 
         // PairCollision should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
         // This is an extremely rare (and currently unused) scenario and as such implementation is not worth an effort.
@@ -177,7 +177,7 @@ module ClmModelData =
                 let generateB b = generate i.b i.getEnantiomerB ct.collisionB b
 
                 let sn = d.successNumber sng noOfTries
-                printfn "generatePairs: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
+                printfn $"generatePairs: reaction: {i.reactionName}, noOfTries = {noOfTries}, threshold = {d.thresholdValue}, successNumberType = {i.successNumberType}, successNumber = {sn}"
 
                 let ((_, a), (_, b)) =
                     [ for _ in 1..sn -> ()]
@@ -192,7 +192,7 @@ module ClmModelData =
     let generateTriples<'A, 'B, 'C when 'A : equality and 'B : equality and 'C : equality> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
         // ??? must adjust for 8X ??? reduction due to grouping ???
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
-        printfn "\n\ngenerateTriples:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    typedefof<'C> = %A\n    tripleCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>) i.tripleCollision i.successNumberType
+//        printfn $"\n\ngenerateTriples:\n    noOfTries = {noOfTries}\n    typedefof<'A> = {(typedefof<'A>)}\n    typedefof<'B> = {(typedefof<'B>)}\n    typedefof<'C> = {(typedefof<'C>)}\n    tripleCollision = %0A{i.tripleCollision}\n    successNumberType = %0A{i.successNumberType}"
 
         // TripleCollision should ensure that when individual duplicates are allowed we still won't get duplicate triples.
         // This is an extremely rare (and currently unused) scenario and as such implementation is not worth an effort.
@@ -217,7 +217,7 @@ module ClmModelData =
                 let generateC c = generate i.c i.getEnantiomerC ct.collisionC c
 
                 let sn = d.successNumber sng noOfTries
-                printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A\n\n" i.successNumberType sn i.reactionName
+                printfn $"generateTriples: reaction: {i.reactionName}, noOfTries = {noOfTries}, threshold = {d.thresholdValue}, successNumberType = {i.successNumberType}, successNumber = {sn}"
 
                 let ((_, a), (_, b), (_, c)) =
                     [ for _ in 1..sn -> ()]

@@ -21,10 +21,7 @@ module ActivationRandomModel =
                 }
 
             let result = calculateActivationRates i r
-
-//            let d = p.activationDistribution
-//            let result = getRates (p.forwardScale, d.nextDouble rnd |> Some) (None, None)
-            printfn $"ActivationRandomModel.calculateRates: r = {r}, result = %0A{result}."
+//            printfn $"ActivationRandomModel.calculateRates: r = {r}, result = %0A{result}."
             result
 
         let calculateNullRates rnd _ =
@@ -39,13 +36,13 @@ module ActivationRandomModel =
                 | true -> Rs Z
 
             let result = ActivationReaction (s, p)
-            printfn $"getActivationReaction: result = {result}"
+//            printfn $"ActivationRandomModel.getActivationReaction: result = {result}"
             result
 
         member private model.getRatesInternal rnd r =
-            printfn $"ActivationRandomModel.getRatesInternal: Starting..."
+//            printfn $"ActivationRandomModel.getRatesInternal: Starting..."
             let result = getRatesImpl model.dictionaryData getEnantiomer (calculateRates rnd) r
-            printfn $"ActivationRandomModel.getRatesInternal: r = {r}, result = {result}"
+//            printfn $"ActivationRandomModel.getRatesInternal: r = {r}, result = {result}"
             result
 
         /// Activation reactions are different because we calculate them only when needed.
@@ -64,6 +61,6 @@ module ActivationRandomModel =
                     rateData = model.getRatesInternal rnd r
                 }
 
-            printfn $"ActivationRandomModel.createActivationData: reaction = {result.reaction}, rateData = %0A{result.rateData}."
+//            printfn $"ActivationRandomModel.createActivationData: reaction = {result.reaction}, rateData = %0A{result.rateData}."
             result
 

@@ -516,15 +516,6 @@ module ReactionRatesBase =
             acCatalyst : 'CA
             acEeParams : AcCatRatesEeParam
             proxy : AcCatRatesInfoProxy<'R, 'CA, 'C, 'RCA, 'RA>
-
-//            getNonActivated : 'CA -> 'C
-//            getCatEnantiomer : 'CA -> 'CA
-//            acCatReactionCreator : ('R * 'CA) -> 'RCA
-//            activationReactorCreator : 'C -> 'RA
-//            getBaseRates : 'R -> RateData // Get rates of base (not catalyzed) reaction.
-//            getActivationRates : 'RA -> RateData // Get rates of activation reaction.
-//            rateGenerationType : RateGenerationType
-//            rnd : RandomValueGetter
         }
 
 
@@ -533,7 +524,7 @@ module ReactionRatesBase =
     /// and so the activated catalyst is not conserved, but rather is transformed into non-activated one.
     let calculateAcCatRates<'R, 'CA, 'C, 'RCA, 'RA> (i : AcCatRatesInfo<'R, 'CA, 'C, 'RCA, 'RA>) : RelatedAcReactions<'RCA, 'RA> =
         let re = (i.reaction, i.proxy.getCatEnantiomer i.acCatalyst) |> i.proxy.acCatReactionCreator
-        printfn $"calculateAcCatRates: Starting, re = {re}"
+//        printfn $"calculateAcCatRates: Starting, re = {re}"
 
         let rf, rb, rfe, rbe, ra =
             match  i.acEeParams.rateMult i.proxy.rateGenerationType i.proxy.rnd with
@@ -553,10 +544,10 @@ module ReactionRatesBase =
                 let g() =
                     let c = i.proxy.getNonActivated i.acCatalyst
                     let ra = i.proxy.createActivationData c
-                    printfn $"calculateAcCatRates: g: c = {c}, ra = {ra}"
+//                    printfn $"calculateAcCatRates: g: c = {c}, ra = {ra}"
                     [ ra ]
 
-                printfn $"calculateAcCatRates: rf = {rf}, rb = {rb}, rfe = {rfe}, rbe = {rbe}"
+//                printfn $"calculateAcCatRates: rf = {rf}, rb = {rb}, rfe = {rfe}, rbe = {rbe}"
 
                 let a =
                     match rf, rfe, rb, rbe with
