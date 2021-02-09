@@ -128,27 +128,30 @@ module Defaults_004_005_000 =
 
         static member defaultValue =
             {
-                activationScarcity = 0.000_100
+//                activationScarcity = 0.000_100
+//                activationMultiplier = 100_000.0
+
+                activationScarcity = 1.0
                 activationMultiplier = 100_000.0
 
-                acCatSynthScarcity = 0.000_100
+                acCatSynthScarcity = 0.000_050
                 acCatSynthMultiplier = 100_000.0
-                acCatSynthSimilarity = 0.1
+                acCatSynthSimilarity = 0.2
 
-                acCatDestrScarcity = 0.000_100
+                acCatDestrScarcity = 0.000_050
                 acCatDestrMultiplier = 100_000.0
-                acCatDestrSimilarity = 0.1
+                acCatDestrSimilarity = 0.2
 
                 ligForward = 0.001
                 ligBackward = 0.010
 
-                acFwdCatLigScarcity = 0.000_000_001
+                acFwdCatLigScarcity = 0.000_000_002
                 acFwdCatLigMultiplier = 100_000.0
-                acFwdCatLigSimilarity = 0.000_000_001
+                acFwdCatLigSimilarity = 0.000_000_002
 
-                acBkwCatLigScarcity = 0.000_000_001
+                acBkwCatLigScarcity = 0.000_000_002
                 acBkwCatLigMultiplier = 100_000.0
-                acBkwCatLigSimilarity = 0.000_000_001
+                acBkwCatLigSimilarity = 0.000_000_002
 
                 sugarForward = 100.0
                 sugarBackward = 0.001
