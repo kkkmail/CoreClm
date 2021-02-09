@@ -379,22 +379,24 @@ module ReactionRateFunctions =
         |> List.map (fun e -> e, calculateSimCatRates i e i.catalyst CatRatesEeParam.defaultValue)
 
 
+    /// TODO kk:20210209 - This function may and will produce statistical collisions.
+    /// See: https://github.com/kkkmail/CoreClm/issues/4
     let chooseData i (aa : list<'A>) =
         let a =
-            let sng =
-                i.rnd
-                |>
-                match i.simParams.catRatesSimGeneration with
-                | DistributionBased _ -> RandomValueGetterBased
-                | FixedValue _ -> ThresholdValueBased
-
-            let d =
-                match i.simParams.catRatesSimGeneration with
-                | DistributionBased d | FixedValue d  -> d
-
-            let sn = d.successNumber sng (int64 (aa.Length - 1))
-
-            let chosen = generateUniqueValues d i.rnd (aa |> Array.ofList) sn
+//            let sng =
+//                i.rnd
+//                |>
+//                match i.simParams.catRatesSimGeneration with
+//                | DistributionBased _ -> RandomValueGetterBased
+//                | FixedValue _ -> ThresholdValueBased
+//
+//            let d =
+//                match i.simParams.catRatesSimGeneration with
+//                | DistributionBased d | FixedValue d  -> d
+//
+//            let sn = d.successNumber sng (int64 (aa.Length - 1))
+//
+//            let chosen = generateUniqueValues d i.rnd (aa |> Array.ofList) sn
 
             // ========================================================
 
@@ -667,6 +669,9 @@ module ReactionRateFunctions =
         |> List.map (fun e -> e, calculateSimEnCatRates i e i.enCatalyst EnCatRatesEeParam.defaultValue)
 
 
+    /// TODO kk:20210209 - This function may and will produce statistical collisions.
+    /// See: https://github.com/kkkmail/CoreClm/issues/4
+    ///
     /// Note that it is nearly identical to chooseData above.
     /// We keep them separately as it is likely that this function will be changed.
     let chooseEnData i aa =
