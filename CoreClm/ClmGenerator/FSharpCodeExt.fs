@@ -62,6 +62,12 @@ module FSharpCodeExt =
         | None -> "None"
 
 
+    let stringOptFSharpString (s : string option) =
+        match s with
+        | Some v -> $"Some \"{v}\""
+        | None -> "None"
+
+
     let arrayToFSharpString (a : double[]) (shift : string) =
         let s =
             a

@@ -373,9 +373,11 @@ module ClmModel =
 
             let paramCode =
                 "    let seedValue = " + seedValue.ToString() + Nl +
+                "    let clmDefaultValueId = ClmDefaultValueId " + (modelParams.clmDefaultValueId.ToString()) + Nl +
                 "    let numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + Nl +
                 "    let maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + Nl +
                 "    let numberOfSubstances = " + (si.allSubst.Length).ToString() + Nl +
+                "    let description = " + (stringOptFSharpString modelParams.description) + Nl +
                 generateSubst() +
                 coeffSedAllCode
 

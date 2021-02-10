@@ -92,15 +92,14 @@ module Defaults_004_005_000 =
                     sugarScarcity = 0.0005
             }
 
-        /// Use: "ContGenAdm.exe add -i 40050000XX -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
-        /// Adjust XX to match the actual number.
+        /// Use: "ContGenAdm.exe add -i 4005000004 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member codeGenValue_001 =
             {
 //                activationScarcity = 0.001_000
 //                activationMultiplier = 100_000.0
 
                 activationScarcity = 1.0
-                activationMultiplier = 100_000.0
+                activationMultiplier = 10_000.0
 
                 acCatSynthScarcity = 0.001_000
                 acCatSynthMultiplier = 100_000.0
@@ -126,13 +125,14 @@ module Defaults_004_005_000 =
                 sugarScarcity = 0.001
             }
 
+        /// Use: "ContGenAdm.exe add -i 4005000005 -n 20 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member defaultValue =
             {
 //                activationScarcity = 0.000_100
 //                activationMultiplier = 100_000.0
 
                 activationScarcity = 1.0
-                activationMultiplier = 100_000.0
+                activationMultiplier = 10_000.0
 
                 acCatSynthScarcity = 0.000_050
                 acCatSynthMultiplier = 100_000.0
@@ -196,7 +196,7 @@ module Defaults_004_005_000 =
             //===========================================================
             let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
             //===========================================================
-            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.000_1, Some 0.000_1)
+            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, Some 0.001)
 
             let acCatSynthRndParam = (synthParam, (Some e.acCatSynthScarcity), e.acCatSynthMultiplier)
 
