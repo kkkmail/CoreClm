@@ -156,7 +156,7 @@ function StartSertice([string] $serviceName)
 }
 
 # https://stackoverflow.com/questions/14708825/how-to-create-a-windows-service-in-powershell-for-network-service-account
-function ReinstallService ([string] $serviceName, [string] $binaryPath, [string] $description = "", [string] $login = "NT AUTHORITY\NETWORK SERVICE", [string] $password = "", [string] $startUpType = "Automatic")
+function ReinstallService ([string] $serviceName, [string] $binaryPath, [string] $description = "", [string] $login = "NT AUTHORITY\LOCAL SERVICE", [string] $password = "", [string] $startUpType = "Automatic")
 {
     Write-Host "Attempting to reinstall service: $serviceName..."
 
