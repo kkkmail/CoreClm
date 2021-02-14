@@ -25,6 +25,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="ClmFunctions.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Install-WorkerNodeService.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Start-WorkerNodeService.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Stop-WorkerNodeService.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Uninstall-WorkerNodeService.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="VersionInfo.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="WorkerNodeCommandLine.fs" />
     <Compile Include="WorkerNodeImplementation.fs" />
     <Compile Include="WorkerNodeServiceTasks.fs" />
@@ -38,6 +56,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup />
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy /Y &quot;$(ProjectDir)..\WorkerNodeAdm\$(OutDir)WorkerNodeAdm.*.json&quot; &quot;$(TargetDir)&quot;" />
