@@ -85,102 +85,102 @@ function CleanAll()
 # https://stackoverflow.com/questions/35064964/powershell-script-to-check-if-service-is-started-if-not-then-start-it
 function TryStopService([string] $serviceName)
 {
+    Write-Host "Attempting to stop service: $serviceName..."
     $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
 
     if($service)
     {
         if ($service.Status -ne 'Running')
         {
-            Write-Host "Service: $serviceName is not running."
+            Write-Host "    Service: $serviceName is not running."
         }
         else
         {
-            Write-Host "Attempting to stop service: $serviceName..."
             Stop-Service -name $serviceName
+            Write-Host "    Stopped service: $serviceName."
         }
     }
     else
     {
-        Write-Host "Service: $serviceName is not found."
+        Write-Host "    Service: $serviceName is not found."
     }
 }
 
 function UninstallService([string] $serviceName)
 {
+    Write-Host "Attempting to uninstall service: $serviceName..."
     if (Get-Service $serviceName -ErrorAction SilentlyContinue)
     {
-        # using WMI to remove Windows service because PowerShell does not have CmdLet for this
-        $serviceToRemove = Get-WmiObject -Class Win32_Service -Filter "name='$serviceName'"
-
-        $serviceToRemove.delete()
-        Write-Host "Service removed: $serviceName"
+        Remove-Service -Name $serviceName
+        Write-Host "    Uninstalled service: $serviceName."
     }
     else
     {
-        Write-Host "Service: $serviceName does not exist!"
+        Write-Host "    Service: $serviceName is not found."
     }
 }
 
 function StartSertice([string] $serviceName)
 {
+    Write-Host "Attempting to start service: $serviceName..."
+    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+
+    if($service)
+    {
+        if ($service.Status -eq 'Running')
+        {
+            Write-Host "    Service: $serviceName is already running."
+            return
+        }
+    }
+
     # Trying to start new service.
-    Write-Host "Trying to start new service: $serviceName"
-    $serviceToStart = Get-WmiObject -Class Win32_Service -Filter "name='$serviceName'"
-    $serviceToStart.startservice()
-    Write-Host "Service started: $serviceName"
+    Write-Host "    Trying to start new service: $serviceName."
+    Start-Service -Name $serviceName
 
     #Check that service has started.
-    Write-Host "Waiting 5 seconds to give service time to start..."
+    Write-Host "    Waiting 5 seconds to give service time to start..."
     Start-Sleep -s 5
     $testService = Get-Service -Name $serviceName
 
     if ($testService.Status -ne "Running")
     {
-        [string] $errMessage = "Failed to start service: $serviceName"
+        [string] $errMessage = "    Failed to start service: $serviceName"
         Write-Host $errMessage
         Throw $errMessage
     }
     else
     {
-        Write-Host "Service: $serviceName started successfully."
+        Write-Host "    Started service: $serviceName."
     }
 }
 
 # https://stackoverflow.com/questions/14708825/how-to-create-a-windows-service-in-powershell-for-network-service-account
 function ReinstallService ([string] $serviceName, [string] $binaryPath, [string] $description = "", [string] $login = "NT AUTHORITY\NETWORK SERVICE", [string] $password = "", [string] $startUpType = "Automatic")
 {
-    Write-Host "Trying to create service: $serviceName"
+    Write-Host "Attempting to reinstall service: $serviceName..."
 
     #Check Parameters
     if ((Test-Path $binaryPath)-eq $false)
     {
-        Write-Host "BinaryPath to service was not found: $binaryPath"
-        Write-Host "Service was NOT installed."
+        Write-Host "    BinaryPath to service was not found: $binaryPath."
+        Write-Host "    Service was NOT installed."
         return
     }
 
     if (("Automatic", "Manual", "Disabled") -notcontains $startUpType)
     {
-        Write-Host "Value for startUpType parameter should be (Automatic or Manual or Disabled) and it was $startUpType"
-        Write-Host "Service was NOT installed."
+        Write-Host "    Value for startUpType parameter should be (Automatic or Manual or Disabled) but it was $startUpType."
+        Write-Host "    Service was NOT installed."
         return
     }
 
-    # Verify if the service already exists, and if yes remove it first.
-    if (Get-Service $serviceName -ErrorAction SilentlyContinue)
-    {
-        TryStopService -serviceName $serviceName
-
-        # using WMI to remove Windows service because PowerShell does not have CmdLet for this.
-        $serviceToRemove = Get-WmiObject -Class Win32_Service -Filter "name='$serviceName'"
-
-        $serviceToRemove.delete()
-        Write-Host "Service removed: $serviceName"
-    }
+    TryStopService -serviceName $serviceName
+    UninstallService -serviceName $serviceName
 
     # if password is empty, create a dummy one to allow having credentias for system accounts:
-    #NT AUTHORITY\LOCAL SERVICE
-    #NT AUTHORITY\NETWORK SERVICE
+    #     NT AUTHORITY\LOCAL SERVICE
+    #     NT AUTHORITY\NETWORK SERVICE
     if ($password -eq "")
     {
         $secpassword = (new-object System.Security.SecureString)
@@ -193,10 +193,9 @@ function ReinstallService ([string] $serviceName, [string] $binaryPath, [string]
     $mycreds = New-Object System.Management.Automation.PSCredential ($login, $secpassword)
 
     # Creating Windows Service using all provided parameters.
-    Write-Host "Installing service: $serviceName"
+    Write-Host "Installing service: $serviceName with user name: '$login'..."
     New-Service -name $serviceName -binaryPathName $binaryPath -Description $description -displayName $serviceName -startupType $startUpType -credential $mycreds
-
-    Write-Host "Installation completed: $serviceName"
+    Write-Host "    Installed service: $serviceName."
 
     # Trying to start new service.
     StartSertice -serviceName $serviceName
@@ -227,99 +226,101 @@ function GetBinaryPathName ([string] $serviceName)
 function GetDescription([string] $serviceName, [string] $messagingDataVersion, [string] $versionNumber)
 {
     [string] $description = "$serviceName, version $versionNumber.$messagingDataVersion"
+    return $description
 }
 
-function Install([string] $serviceName, [string] $messagingDataVersion = "",  [string] $versionNumber = "")
+function InstallSvc([string] $serviceName, [string] $messagingDataVersion = "",  [string] $versionNumber = "")
 {
     $versionNumber = GetValueOrDefault -value $versionNumber -defaultValue $global:versionNumber
     [string] $windowsServiceName = GetServiceName -serviceName $serviceName -messagingDataVersion $messagingDataVersion
     [string] $binaryPath = GetBinaryPathName -serviceName $serviceName
     [string] $description = GetDescription -serviceName $serviceName -versionNumber $versionNumber -messagingDataVersion $messagingDataVersion
-    Reinstall-Service -serviceName $serviceName -binaryPath $binaryPath -description $description
+    ReinstallService -serviceName $windowsServiceName -binaryPath $binaryPath -description $description
 }
 
-function Uninstall([string] $serviceName, [string] $messagingDataVersion = "")
+function UninstallSvc([string] $serviceName, [string] $messagingDataVersion = "")
 {
     [string] $windowsServiceName = GetServiceName -serviceName $serviceName -messagingDataVersion $messagingDataVersion
-    TryStopService -serviceName $serviceName
-    UninstallService -serviceName $serviceName
+    TryStopService -serviceName $windowsServiceName
+    UninstallService -serviceName $windowsServiceName
 }
 
-function Start([string] $serviceName, [string] $messagingDataVersion = "")
+function StartSvc([string] $serviceName, [string] $messagingDataVersion = "")
 {
     [string] $windowsServiceName = GetServiceName -serviceName $serviceName -messagingDataVersion $messagingDataVersion
+    StartSertice -serviceName $windowsServiceName
 }
 
-function Stop([string] $serviceName, [string] $messagingDataVersion = "")
+function StopSvc([string] $serviceName, [string] $messagingDataVersion = "")
 {
     [string] $windowsServiceName = GetServiceName -serviceName $serviceName -messagingDataVersion $messagingDataVersion
-    TryStopService -serviceName $serviceName
+    TryStopService -serviceName $windowsServiceName
 }
 
 #===================================================================================================
 
 function InstallMessagingService([string] $messagingDataVersion = "",  [string] $versionNumber = "")
 {
-    Install -serviceName $global:messagingServiceName -messagingDataVersion $messagingDataVersion -versionNumber $versionNumber
+    InstallSvc -serviceName $global:messagingServiceName -messagingDataVersion $messagingDataVersion -versionNumber $versionNumber
 }
 
 function UninstallMessagingService([string] $messagingDataVersion = "")
 {
-    Uninstall -serviceName $global:messagingServiceName -messagingDataVersion $messagingDataVersion
+    UninstallSvc -serviceName $global:messagingServiceName -messagingDataVersion $messagingDataVersion
 }
 
 function StartMessagingService([string] $messagingDataVersion = "")
 {
-    Start -serviceName $global:messagingServiceName -messagingDataVersion $messagingDataVersion
+    StartSvc -serviceName $global:messagingServiceName -messagingDataVersion $messagingDataVersion
 }
 
 function StopMessagingService([string] $messagingDataVersion = "")
 {
-    Stop -serviceName $global:messagingServiceName -messagingDataVersion $messagingDataVersion
+    StopSvc -serviceName $global:messagingServiceName -messagingDataVersion $messagingDataVersion
 }
 
 #===================================================================================================
 
 function InstallWorkerNodeService([string] $messagingDataVersion = "",  [string] $versionNumber = "")
 {
-    Install -serviceName $global:workerNodeServiceName -messagingDataVersion $messagingDataVersion -versionNumber $versionNumber
+    InstallSvc -serviceName $global:workerNodeServiceName -messagingDataVersion $messagingDataVersion -versionNumber $versionNumber
 }
 
 function UninstallWorkerNodeService([string] $messagingDataVersion = "")
 {
-    Uninstall -serviceName $global:workerNodeServiceName -messagingDataVersion $messagingDataVersion
+    UninstallSvc -serviceName $global:workerNodeServiceName -messagingDataVersion $messagingDataVersion
 }
 
 function StartWorkerNodeService([string] $messagingDataVersion = "")
 {
-    Start -serviceName $global:workerNodeServiceName -messagingDataVersion $messagingDataVersion
+    StartSvc -serviceName $global:workerNodeServiceName -messagingDataVersion $messagingDataVersion
 }
 
 function StopWorkerNodeService([string] $messagingDataVersion = "")
 {
-    Stop -serviceName $global:workerNodeServiceName -messagingDataVersion $messagingDataVersion
+    StopSvc -serviceName $global:workerNodeServiceName -messagingDataVersion $messagingDataVersion
 }
 
 #===================================================================================================
 
 function InstallContGenService([string] $messagingDataVersion = "",  [string] $versionNumber = "")
 {
-    Install -serviceName $global:contGenServiceName -messagingDataVersion $messagingDataVersion -versionNumber $versionNumber
+    InstallSvc -serviceName $global:contGenServiceName -messagingDataVersion $messagingDataVersion -versionNumber $versionNumber
 }
 
 function UninstallContGenService([string] $messagingDataVersion = "")
 {
-    Uninstall -serviceName $global:contGenServiceName -messagingDataVersion $messagingDataVersion
+    UninstallSvc -serviceName $global:contGenServiceName -messagingDataVersion $messagingDataVersion
 }
 
 function StartContGenService([string] $messagingDataVersion = "")
 {
-    Start -serviceName $global:contGenServiceName -messagingDataVersion $messagingDataVersion
+    StartSvc -serviceName $global:contGenServiceName -messagingDataVersion $messagingDataVersion
 }
 
 function StopContGenService([string] $messagingDataVersion = "")
 {
-    Stop -serviceName $global:contGenServiceName -messagingDataVersion $messagingDataVersion
+    StopSvc -serviceName $global:contGenServiceName -messagingDataVersion $messagingDataVersion
 }
 
 #===================================================================================================

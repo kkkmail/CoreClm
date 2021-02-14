@@ -1,3 +1,4 @@
-. ./ClmFunctions.ps1
+param([string] $messagingDataVersion = "", [string] $versionNumber = "")
 
-Reinstall-Service -serviceName "MessagingService-108" -binaryPath "MessagingService.exe" -description "Clm Messaging Service, version 6.0.1.108"
+. ./ClmFunctions.ps1
+InstallMessagingService -messagingDataVersion $messagingDataVersion -versionNumber $versionNumber
