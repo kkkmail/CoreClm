@@ -155,7 +155,7 @@ module ServiceImplementation =
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : ProgressUpdateInfo) =
-        printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
+        //printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
 
         let updateProgress t completed =
             let rso, result =
