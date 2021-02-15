@@ -177,6 +177,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.chiralSugars |> Array.ofList
                 b = si.sugSynthCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.SugarSynthesisName
                 successNumberType = t
             }
@@ -187,6 +189,8 @@ module CalculationData =
 
                 a = si.chiralSugars |> Array.ofList
                 b = si.peptideCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.ActivationName
                 successNumberType = t
             }
@@ -196,6 +200,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.synthesisReactions |> Array.ofList
                 b = si.synthCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.CatalyticSynthesisName
                 successNumberType = t
             }
@@ -206,6 +212,9 @@ module CalculationData =
                 a = si.synthesisReactions |> Array.ofList
                 b = si.enSynthCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
+                getEnantiomerC = getEnantiomer
                 reactionName = ReactionName.EnCatalyticSynthesisName
                 successNumberType = t
             }
@@ -215,6 +224,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.synthesisReactions |> Array.ofList
                 b = si.acSynthCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.AcCatalyticSynthesisName
                 successNumberType = t
             }
@@ -224,6 +235,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.destructionReactions |> Array.ofList
                 b = si.destrCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.CatalyticDestructionName
                 successNumberType = t
             }
@@ -234,6 +247,9 @@ module CalculationData =
                 a = si.destructionReactions |> Array.ofList
                 b = si.enDestrCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
+                getEnantiomerC = getEnantiomer
                 reactionName = ReactionName.EnCatalyticDestructionName
                 successNumberType = t
             }
@@ -243,6 +259,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.destructionReactions |> Array.ofList
                 b = si.acDestrCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.AcCatalyticDestructionName
                 successNumberType = t
             }
@@ -252,6 +270,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.ligationReactions |> Array.ofList
                 b = si.ligCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.CatalyticLigationName
                 successNumberType = t
             }
@@ -262,6 +282,9 @@ module CalculationData =
                 a = si.ligationReactions |> Array.ofList
                 b = si.enLigCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
+                getEnantiomerC = getEnantiomer
                 reactionName = ReactionName.EnCatalyticLigationName
                 successNumberType = t
             }
@@ -271,6 +294,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.ligationReactions |> Array.ofList
                 b = si.acFwdLigCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.AcFwdCatalyticLigationName
                 successNumberType = t
             }
@@ -280,6 +305,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.ligationReactions |> Array.ofList
                 b = si.acBkwLigCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.AcBkwCatalyticLigationName
                 successNumberType = t
             }
@@ -289,6 +316,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.racemizationReactions |> Array.ofList
                 b = si.racemCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.CatalyticRacemizationName
                 successNumberType = t
             }
@@ -299,6 +328,9 @@ module CalculationData =
                 a = si.racemizationReactions |> Array.ofList
                 b = si.enRacemCatalysts |> Array.ofList
                 c = si.chiralSugars |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
+                getEnantiomerC = getEnantiomer
                 reactionName = ReactionName.EnCatalyticRacemizationName
                 successNumberType = t
             }
@@ -308,6 +340,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.racemizationReactions |> Array.ofList
                 b = si.acRacemCatalysts |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.AcCatalyticRacemizationName
                 successNumberType = t
             }
@@ -317,6 +351,8 @@ module CalculationData =
                 pairCollision = i
                 a = si.chiralAminoAcids |> Array.ofList
                 b = si.sedDirAgents |> Array.ofList
+                getEnantiomerA = getEnantiomer
+                getEnantiomerB = getEnantiomer
                 reactionName = ReactionName.SedimentationDirectName
                 successNumberType = t
             }

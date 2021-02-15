@@ -9,6 +9,7 @@ open Clm.ReactionRatesBase
 
 module Defaults_004_005_000 =
 
+    /// Feel free to change the values here in any way as long as they are not used for actual calculations.
     /// Activated catalytic reactions playground.
     type DefaultDataParam =
         {
@@ -91,12 +92,14 @@ module Defaults_004_005_000 =
                     sugarScarcity = 0.0005
             }
 
-        /// Feel free to change the values here in any way as long as they are not used for actual calculations.
-        /// Use: "ContGenAdm.exe add -i 4005000000 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
+        /// Use: "ContGenAdm.exe add -i 4005000004 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member codeGenValue_001 =
             {
-                activationScarcity = 0.001_000
-                activationMultiplier = 100_000.0
+//                activationScarcity = 0.001_000
+//                activationMultiplier = 100_000.0
+
+                activationScarcity = 1.0
+                activationMultiplier = 10_000.0
 
                 acCatSynthScarcity = 0.001_000
                 acCatSynthMultiplier = 100_000.0
@@ -122,29 +125,33 @@ module Defaults_004_005_000 =
                 sugarScarcity = 0.001
             }
 
+        /// Use: "ContGenAdm.exe add -i 4005000005 -n 20 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member defaultValue =
             {
-                activationScarcity = 0.000_100
-                activationMultiplier = 100_000.0
+//                activationScarcity = 0.000_100
+//                activationMultiplier = 100_000.0
 
-                acCatSynthScarcity = 0.000_100
+                activationScarcity = 1.0
+                activationMultiplier = 10_000.0
+
+                acCatSynthScarcity = 0.000_050
                 acCatSynthMultiplier = 100_000.0
-                acCatSynthSimilarity = 0.1
+                acCatSynthSimilarity = 0.2
 
-                acCatDestrScarcity = 0.000_100
+                acCatDestrScarcity = 0.000_050
                 acCatDestrMultiplier = 100_000.0
-                acCatDestrSimilarity = 0.1
+                acCatDestrSimilarity = 0.2
 
                 ligForward = 0.001
                 ligBackward = 0.010
 
-                acFwdCatLigScarcity = 0.000_000_001
+                acFwdCatLigScarcity = 0.000_000_002
                 acFwdCatLigMultiplier = 100_000.0
-                acFwdCatLigSimilarity = 0.000_000_001
+                acFwdCatLigSimilarity = 0.000_000_002
 
-                acBkwCatLigScarcity = 0.000_000_001
+                acBkwCatLigScarcity = 0.000_000_002
                 acBkwCatLigMultiplier = 100_000.0
-                acBkwCatLigSimilarity = 0.000_000_001
+                acBkwCatLigSimilarity = 0.000_000_002
 
                 sugarForward = 100.0
                 sugarBackward = 0.001
@@ -154,13 +161,14 @@ module Defaults_004_005_000 =
 
     let data =
             [
-                DefaultDataParam.zero
-                DefaultDataParam.zero01
-                DefaultDataParam.zero02
-                DefaultDataParam.zero03
+                DefaultDataParam.zero               // 0
+                DefaultDataParam.zero01             // 1
+                DefaultDataParam.zero02             // 2
+                DefaultDataParam.zero03             // 3
 
-//                DefaultDataParam.codeGenValue_001
-//                DefaultDataParam.defaultValue
+                DefaultDataParam.codeGenValue_001   // 4
+
+                DefaultDataParam.defaultValue       // 5
 
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
 //                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }
@@ -188,7 +196,7 @@ module Defaults_004_005_000 =
             //===========================================================
             let wasteRecyclingParam = ReactionRateProviderParams.defaultWasteRecyclingParam 0.1
             //===========================================================
-            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.000_1, Some 0.000_1)
+            let synthParam = ReactionRateProviderParams.defaultSynthRndParamImpl (Some 0.001, Some 0.001)
 
             let acCatSynthRndParam = (synthParam, (Some e.acCatSynthScarcity), e.acCatSynthMultiplier)
 

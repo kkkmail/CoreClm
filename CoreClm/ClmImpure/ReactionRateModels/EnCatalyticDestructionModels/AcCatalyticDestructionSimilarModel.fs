@@ -18,29 +18,47 @@ module AcCatalyticDestructionSimilarModel =
 
 
     type AcCatalyticDestructionSimilarModel (p : AcCatalyticDestructionSimilarParamWithModel) =
+//        do printfn $"AcCatalyticDestructionSimilarModel: p = %A{p}"
         let dictionaryData = toDictionaryData p.acCatDestrModel.rateDictionary
 
         let calculateSimRatesImpl rnd t (AcCatalyticDestructionReaction (s, c)) =
             let (DestructionReaction a) = s
-            {
-                reaction = s
-                acCatalyst = c
-                getReactionData = fun _ -> p.aminoAcids
-                inverse = fun (DestructionReaction r) -> r.aminoAcid
-                getMatchingReactionMult = fun x -> x
-                getCatEnantiomer = getEnantiomer
-                acCatReactionCreator = AcCatalyticDestructionReaction
-                simReactionCreator = (fun e -> [ a.createSameChirality e |> DestructionReaction ])
-                getCatReactEnantiomer = getEnantiomer
-                getBaseRates = p.acCatDestrModel.inputParams.destructionModel.getRates rnd
-                getBaseCatRates = p.acCatDestrModel.getRates t
-                tryGetBaseCatRates = p.acCatDestrModel.tryGetRates
-                acSimParams = p.acCatDestrSimParam
-                acEeParams = p.acCatDestrModel.inputParams.acCatDestrRndParam.acCatDestrRndEeParams
-                dictionaryData = dictionaryData
-                rateGenerationType = t
-                rnd = rnd
-            }
+//            printfn $"AcCatalyticDestructionSimilarModel.calculateSimRatesImpl: s = {s}, c = {c}."
+
+            let info =
+                {
+                    reaction = s
+                    acCatalyst = c
+                    acSimParams = p.acCatDestrSimParam
+                    acEeParams = p.acCatDestrModel.inputParams.acCatDestrRndParam.acCatDestrRndEeParams
+                    dictionaryData = dictionaryData
+                    acRateDictionary = p.acCatDestrModel.inputParams.activationModel.dictionaryData.rateDictionary
+
+                    proxy =
+                        {
+                            acCatRatesInfoProxy =
+                                {
+                                    getNonActivated = fun e -> e.peptide
+                                    getCatEnantiomer = getEnantiomer
+                                    acCatReactionCreator = AcCatalyticDestructionReaction
+                                    getBaseRates = p.acCatDestrModel.inputParams.destructionModel.getRates rnd
+                                    createActivationData = p.acCatDestrModel.inputParams.activationModel.createActivationData rnd
+                                    getAcEnantiomer = getEnantiomer
+                                    rateGenerationType = t
+                                    rnd = rnd
+                                }
+
+                            inverse = fun (DestructionReaction r) -> r.aminoAcid
+                            getReactionData = fun _ -> p.aminoAcids
+                            simReactionCreator = (fun e -> [ a.createSameChirality e |> DestructionReaction ])
+                            getCatReactEnantiomer = getEnantiomer
+                            getBaseCatRates = p.acCatDestrModel.getRates t
+                            getMatchingReactionMult = id
+                            tryGetBaseCatRates = p.acCatDestrModel.tryGetRates
+                        }
+                }
+
+            info
             |> calculateAcSimRates
 
         member _.getRates t rnd r = calculateSimRatesImpl rnd t r

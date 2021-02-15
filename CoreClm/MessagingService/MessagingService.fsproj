@@ -20,6 +20,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\ClmFunctions.ps1" Link="ClmFunctions.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Install-MessagingService.ps1" Link="Install-MessagingService.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Start-MessagingService.ps1" Link="Start-MessagingService.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Stop-MessagingService.ps1" Link="Stop-MessagingService.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\Uninstall-MessagingService.ps1" Link="Uninstall-MessagingService.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\VersionInfo.ps1" Link="VersionInfo.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="MsgSvcCommandLine.fs" />
     <Compile Include="MsgServiceTasks.fs" />
     <Compile Include="MsgImplementation.fs" />
@@ -29,5 +47,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup />
 
 </Project>

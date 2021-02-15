@@ -62,6 +62,12 @@ module FSharpCodeExt =
         | None -> "None"
 
 
+    let stringOptFSharpString (s : string option) =
+        match s with
+        | Some v -> $"Some \"{v}\""
+        | None -> "None"
+
+
     let arrayToFSharpString (a : double[]) (shift : string) =
         let s =
             a
@@ -820,7 +826,7 @@ module FSharpCodeExt =
             | ActivationRndParam q ->
                 shift + "{" + Nl +
                 shift + "    activationDistribution = " + q.activationDistribution.toFSharpCode + Nl +
-                shift + "    forwardScale = " + (doubleOptFSharpString q.forwardScale) + Nl +
+                shift + "    eeDistribution = " + (toEeDistrOpt q.eeDistribution) + Nl +
                 shift + "}" + Nl +
                 shift + "|> ActivationRndParam" + Nl
 

@@ -211,14 +211,16 @@ module ClmModel =
                     }
             }
 
-        let generate () =
-            let t0 = DateTime.Now
-            printfn "t0 = %A" t0
-            let r0 = allReac |> List.map (fun r -> processReaction r)
-            printfn "r0.Length = %A" r0.Length
-            let t11 = DateTime.Now
-            printfn "t11 = %A" t11
-            printfn "t11 - t0 = %A" (t11 - t0).TotalSeconds
+        let generate() =
+//            let t0 = DateTime.Now
+//            printfn "t0 = %A" t0
+
+            let r0 = allReac |> List.map processReaction
+
+//            printfn "r0.Length = %A" r0.Length
+//            let t11 = DateTime.Now
+//            printfn "t11 = %A" t11
+//            printfn "t11 - t0 = %A" (t11 - t0).TotalSeconds
 
 
             let reactions =
@@ -228,9 +230,9 @@ module ClmModel =
                 |> Map.ofList
 
 
-            let t1 = DateTime.Now
-            printfn "t1 = %A" t1
-            printfn "t1 - t11 = %A" (t1 - t11).TotalSeconds
+//            let t1 = DateTime.Now
+//            printfn "t1 = %A" t1
+//            printfn "t1 - t11 = %A" (t1 - t11).TotalSeconds
 
 
             let getReaction s =
@@ -288,9 +290,10 @@ module ClmModel =
                 si.allSubst |> List.map (fun s -> shift + "            " + (g s)) |> String.concat Nl
 
 
-            let t2 = DateTime.Now
-            printfn "t2 = %A" t2
-            printfn "t2 - t1 = %A" (t2 - t1).TotalSeconds
+//            let t2 = DateTime.Now
+//            printfn "t2 = %A" t2
+//            printfn "t2 - t1 = %A" (t2 - t1).TotalSeconds
+
             let totalCode = generateTotals()
             let totalSubstCode = generateTotalSubst()
 
@@ -370,9 +373,11 @@ module ClmModel =
 
             let paramCode =
                 "    let seedValue = " + seedValue.ToString() + Nl +
+                "    let clmDefaultValueId = ClmDefaultValueId " + (modelParams.clmDefaultValueId.ToString()) + Nl +
                 "    let numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + Nl +
                 "    let maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + Nl +
                 "    let numberOfSubstances = " + (si.allSubst.Length).ToString() + Nl +
+                "    let description = " + (stringOptFSharpString modelParams.description) + Nl +
                 generateSubst() +
                 coeffSedAllCode
 
@@ -402,7 +407,7 @@ module ClmModel =
 
         let generateAndSave fno =
             try
-                printfn "Generating..."
+//                printfn "generateAndSave: Generating..."
                 let s = generate()
 
                 let fileName =
@@ -410,14 +415,14 @@ module ClmModel =
                     (fno |> Option.defaultValue DefaultModelDataFile) +
                     ".fs"
 
-                printfn "Writing..."
+//                printfn "generateAndSave: Writing..."
                 File.WriteAllLines(fileName, s)
-                printfn "Done."
+//                printfn "Done."
 
                 Ok s
             with
             | e ->
-                printfn "Exception occurred: %A" e
+                printfn "generateAndSave: Exception occurred: %A" e
                 e |> WriteFileExn |> FileErr |> Error
 
 

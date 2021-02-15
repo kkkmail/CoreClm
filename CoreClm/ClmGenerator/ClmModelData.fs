@@ -14,9 +14,9 @@ open Clm.ModelParams
 open Clm.CalculationData
 open ClmImpure.RateProvider
 open ClmImpure.ReactionsExt
+open ClmImpure.ReactionRateFunctions
 open Clm.Generator.ReactionRatesExt
 open Clm.Distributions
-open ClmSys.DistributionData
 open ClmSys.ModelData
 
 module ClmModelData =
@@ -150,45 +150,13 @@ module ClmModelData =
             | ActivationName -> createReactions (fun x -> ActivationReaction x |> Activation) data.acPairs
 
 
-    let generateValue  (d : Distribution) rnd (data : array<'A>) coll generated =
-//        printfn "\n\ngenerateValue:Starting..."
-
-        let getValue next =
-//            printfn "generateValue.getValue: next = %A, data.Length = %A" next data.Length
-            (next :: generated) |> List.sort, data.[next]
-
-        let adjust next =
-//            printfn "generateValue.adjust: next = %A" next
-
-            let rec inner rem n =
-//                printfn "generateValue.adjust.inner: n = %A" n
-                match rem with
-                | [] -> n
-                | h :: t ->
-                    match h > n with
-                    | true -> n
-                    | false -> inner t (n + 1)
-            inner generated next
-
-        match coll with
-        | NoCollisionResolution ->
-            let next = d.nextN rnd data.Length
-//            printfn "generateValue: next = %A" next
-            getValue next
-        | ExcludeDuplicates ->
-            let next = d.nextN rnd (data.Length - generated.Length)
-            let adjusted = adjust next
-//            printfn "generateValue: next = %A, adjusted = %A" next adjusted
-            getValue adjusted
-
-
-    let generatePairs<'A, 'B> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
+    let generatePairs<'A, 'B when 'A : equality and 'B : equality> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B>) (rateProvider : ReactionRateProvider) =
         // !!! must adjust for 4x reduction due to grouping of (A + B, A + E(B), E(A) + B, E(A) + E(B))
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) / 4L
-        printfn "\n\ngeneratePairs:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    pairCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) i.pairCollision i.successNumberType
+//        printfn $"\n\ngeneratePairs:\n    noOfTries = {noOfTries}\n    typedefof<'A> = {(typedefof<'A>)}\n    typedefof<'B> = {(typedefof<'B>)}\n    pairCollision = %0A{i.pairCollision}\n    successNumberType = %0A{i.successNumberType}"
 
         // PairCollision should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
-        // This is an extremely rare scenario and as such implementation is not worth an effort.
+        // This is an extremely rare (and currently unused) scenario and as such implementation is not worth an effort.
         match i.pairCollision with
         | PairCollision -> invalidOp $"generatePairs: {nameof(i.pairCollision)} = {PairCollision} is not supported yet!"
         | EachInPair ct ->
@@ -201,17 +169,16 @@ module ClmModelData =
 
             match rateProvider.tryGetPrimaryDistribution i.reactionName with
             | Some d ->
-                let generate data coll (idx, gen) =
-                    let (i, a) = generateValue d rnd data coll idx
+                let generate data getEnantiomer coll (idx, gen) =
+                    let (i, a) = generateValue d rnd data getEnantiomer coll idx
                     (i, a :: gen)
 
-                let generateA a = generate i.a ct.collisionA a
-                let generateB b = generate i.b ct.collisionB b
+                let generateA a = generate i.a i.getEnantiomerA ct.collisionA a
+                let generateB b = generate i.b i.getEnantiomerB ct.collisionB b
 
                 let sn = d.successNumber sng noOfTries
-                printfn "generatePairs: successNumberType = %A, sn = %A, reaction: %A" i.successNumberType sn i.reactionName
+                printfn $"generatePairs: reaction: {i.reactionName}, noOfTries = {noOfTries}, threshold = {d.thresholdValue}, successNumberType = {i.successNumberType}, successNumber = {sn}"
 
-//                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length]) ]
                 let ((_, a), (_, b)) =
                     [ for _ in 1..sn -> ()]
                     |> List.fold (fun (a, b) _ -> (generateA a, generateB b)) (([], []), ([], []))
@@ -222,13 +189,13 @@ module ClmModelData =
             | None -> []
 
 
-    let generateTriples<'A, 'B, 'C> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
+    let generateTriples<'A, 'B, 'C when 'A : equality and 'B : equality and 'C : equality> (rnd : RandomValueGetter) (i : RateGeneratorInfo<'A, 'B, 'C>) (rateProvider : ReactionRateProvider) =
         // ??? must adjust for 8X ??? reduction due to grouping ???
         let noOfTries = (int64 i.a.Length) * (int64 i.b.Length) * (int64 i.c.Length) / 8L
-        printfn "generateTriples:\n    noOfTries = %A\n    typedefof<'A> = %A\n    typedefof<'B> = %A\n    typedefof<'C> = %A\n    tripleCollision = %A\n    successNumberType = %A" noOfTries (typedefof<'A>) (typedefof<'B>) (typedefof<'C>) i.tripleCollision i.successNumberType
+//        printfn $"\n\ngenerateTriples:\n    noOfTries = {noOfTries}\n    typedefof<'A> = {(typedefof<'A>)}\n    typedefof<'B> = {(typedefof<'B>)}\n    typedefof<'C> = {(typedefof<'C>)}\n    tripleCollision = %0A{i.tripleCollision}\n    successNumberType = %0A{i.successNumberType}"
 
-        // ExcludeDuplicates should ensure that when individual duplicates are allowed we still won't get duplicate pairs.
-        // This is an extremely rare scenario and as such implementation is not worth an effort.
+        // TripleCollision should ensure that when individual duplicates are allowed we still won't get duplicate triples.
+        // This is an extremely rare (and currently unused) scenario and as such implementation is not worth an effort.
         match i.tripleCollision with
         | TripleCollision -> invalidOp $"generateTriples: {nameof(i.tripleCollision)} = {TripleCollision} is not supported yet!"
         | EachInTriple ct ->
@@ -241,18 +208,17 @@ module ClmModelData =
 
             match rateProvider.tryGetPrimaryDistribution i.reactionName with
             | Some d ->
-                let generate data coll (idx, gen) =
-                    let (i, a) = generateValue d rnd data coll idx
+                let generate data getEnantiomer coll (idx, gen) =
+                    let (i, a) = generateValue d rnd data getEnantiomer coll idx
                     (i, a :: gen)
 
-                let generateA a = generate i.a ct.collisionA a
-                let generateB b = generate i.b ct.collisionB b
-                let generateC c = generate i.c ct.collisionC c
+                let generateA a = generate i.a i.getEnantiomerA ct.collisionA a
+                let generateB b = generate i.b i.getEnantiomerB ct.collisionB b
+                let generateC c = generate i.c i.getEnantiomerC ct.collisionC c
 
                 let sn = d.successNumber sng noOfTries
-                printfn "generateTriples: successNumberType = %A, sn = %A, reaction: %A\n\n" i.successNumberType sn i.reactionName
+                printfn $"generateTriples: reaction: {i.reactionName}, noOfTries = {noOfTries}, threshold = {d.thresholdValue}, successNumberType = {i.successNumberType}, successNumber = {sn}"
 
-//                let retVal = [ for _ in 1..sn -> (i.a.generatorData.[d.nextN rnd i.a.generatorData.Length], i.b.generatorData.[d.nextN rnd i.b.generatorData.Length], i.c.generatorData.[d.nextN rnd i.c.generatorData.Length]) ]
                 let ((_, a), (_, b), (_, c)) =
                     [ for _ in 1..sn -> ()]
                     |> List.fold (fun (a, b, c) _ -> (generateA a, generateB b, generateC c)) (([], []), ([], []), ([], []))
@@ -306,30 +272,39 @@ module ClmModelData =
             let generatePairs x = generatePairs rnd x rateProvider
             let generateTriples x = generateTriples rnd x rateProvider
 
-            {
-                commonData =
-                    {
-                        substInfo = si
-                        sugSynth = generatePairs (si.sugSynthInfo coll.sugSynthColl st)
-                        catSynthPairs = generatePairs (si.catSynthInfo coll.catSynthColl st)
-                        enCatSynth = generateTriples (si.enCatSynthInfo coll.enCatSynthColl st)
-                        acCatSynth = generatePairs (si.acCatSynthInfo coll.acCatSynthColl st)
-                        catDestrPairs = generatePairs (si.catDestrInfo coll.catDestrColl st)
-                        enCatDestr = generateTriples (si.enCatDestrInfo coll.enCatDestrColl st)
-                        acCatDestr = generatePairs (si.acCatDestrInfo coll.acCatDestrColl st)
-                        catLigPairs = generatePairs (si.catLigInfo coll.catLigColl st)
-                        enCatLig = generateTriples (si.enCatLigInfo coll.enCatLigColl st)
-                        acFwdCatLig = generatePairs (si.acFwdCatLigInfo coll.acFwdCatLigColl st)
-                        acBkwCatLig = generatePairs (si.acBkwCatLigInfo coll.acBkwCatLigColl st)
-                        catRacemPairs = generatePairs (si.catRacemInfo coll.catRacemColl st)
-                        enCatRacem = generateTriples (si.enCatRacemInfo coll.enCatRacemColl st)
-                        acCatRacem = generatePairs (si.acCatRacemInfo coll.acCatRacemColl st)
-                        sedDirPairs = generatePairs (si.sedDirInfo coll.sedDirColl st)
-                        acPairs = generatePairs (si.acPairsInfo coll.acColl st)
-                    }
+            let result =
+                {
+                    commonData =
+                        {
+                            substInfo = si
+                            sugSynth = generatePairs (si.sugSynthInfo coll.sugSynthColl st)
+                            catSynthPairs = generatePairs (si.catSynthInfo coll.catSynthColl st)
+                            enCatSynth = generateTriples (si.enCatSynthInfo coll.enCatSynthColl st)
+                            acCatSynth = generatePairs (si.acCatSynthInfo coll.acCatSynthColl st)
+                            catDestrPairs = generatePairs (si.catDestrInfo coll.catDestrColl st)
+                            enCatDestr = generateTriples (si.enCatDestrInfo coll.enCatDestrColl st)
+                            acCatDestr = generatePairs (si.acCatDestrInfo coll.acCatDestrColl st)
+                            catLigPairs = generatePairs (si.catLigInfo coll.catLigColl st)
+                            enCatLig = generateTriples (si.enCatLigInfo coll.enCatLigColl st)
+                            acFwdCatLig = generatePairs (si.acFwdCatLigInfo coll.acFwdCatLigColl st)
+                            acBkwCatLig = generatePairs (si.acBkwCatLigInfo coll.acBkwCatLigColl st)
+                            catRacemPairs = generatePairs (si.catRacemInfo coll.catRacemColl st)
+                            enCatRacem = generateTriples (si.enCatRacemInfo coll.enCatRacemColl st)
+                            acCatRacem = generatePairs (si.acCatRacemInfo coll.acCatRacemColl st)
+                            sedDirPairs = generatePairs (si.sedDirInfo coll.sedDirColl st)
+                            acPairs = generatePairs (si.acPairsInfo coll.acColl st)
+                        }
 
-                collisionData = coll
-            }
+                    collisionData = coll
+                }
+
+//            printfn $"RandomChoiceModelData.create: result.commonData.acPairs.Length = {result.commonData.acPairs.Length}."
+//            result.commonData.acPairs
+//            |> List.sort
+//            |> List.map (fun (s, p) -> printfn $"    {s}, {p}")
+//            |> ignore
+
+            result
 
 
     type RateGenerationData =

@@ -83,7 +83,7 @@ module ReactionRateModelsExt =
                     CatalyticRacemizationModel.tryCreate si
                     EnCatalyticRacemizationModel.tryCreate si
                     AcCatalyticRacemizationModel.tryCreate si
-                    ActivationModel.tryCreate si
+                    ActivationModel.tryCreate
                 ]
                 |> List.fold (fun acc r -> r acc) (p, [])
             )

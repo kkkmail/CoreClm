@@ -4,13 +4,17 @@ open Softellect.Sys.MessagingPrimitives
 
 module VersionInfo =
 
+    /// ! Do not forget to update messagingDataVersion in VersionInfo.ps1 when this parameter is updated !
+    ///
     /// Increment BY TWO when:
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
     ///     3. Version number (below) is increased.
-    let messagingDataVersion = MessagingDataVersion 106
+    let messagingDataVersion = MessagingDataVersion 108
 
 
+    /// ! Do not forget to update versionNumber in VersionInfo.ps1 when this parameter is updated !
+    ///
     /// This is an overall system version.
     [<Literal>]
     let VersionNumberValue = "6.0.1"

@@ -7,6 +7,7 @@ open Clm.ReactionRateParams
 open ClmImpure.ReactionRateFunctions
 open ClmImpure.ReactionRateModels.ReactionRateModelBase
 open ClmImpure.ReactionRateModels.DestructionModel
+open ClmImpure.ReactionRateModels.ActivationModel
 
 module AcCatalyticDestructionRandomModel =
 
@@ -14,23 +15,39 @@ module AcCatalyticDestructionRandomModel =
         {
             acCatDestrRndParam : AcCatalyticDestructionRandomParam
             destructionModel : DestructionModel
+            activationModel : ActivationModel
         }
 
 
     type AcCatalyticDestructionRandomModel (p : AcCatalyticDestructionRandomParamWithModel) =
         inherit RateModel<AcCatalyticDestructionRandomParamWithModel, AcCatalyticDestructionReaction>(p)
 
-        let calculateAcCatDestrRates rnd t (AcCatalyticDestructionReaction (s, c)) =
+        let calculateAcCatRatesImpl rnd t (AcCatalyticDestructionReaction (s, c)) =
             {
                 reaction = s
                 acCatalyst = c
-                getCatEnantiomer = getEnantiomer
-                acCatReactionCreator = AcCatalyticDestructionReaction
-                getBaseRates = p.destructionModel.getRates rnd
                 acEeParams = p.acCatDestrRndParam.acCatDestrRndEeParams
-                rateGenerationType = t
-                rnd = rnd
+
+                proxy =
+                    {
+                        getNonActivated = fun e -> e.peptide
+                        getCatEnantiomer = getEnantiomer
+                        getAcEnantiomer = getEnantiomer
+                        acCatReactionCreator = AcCatalyticDestructionReaction
+                        createActivationData = p.activationModel.createActivationData rnd
+                        getBaseRates = p.destructionModel.getRates rnd
+                        rateGenerationType = t
+                        rnd = rnd
+                    }
             }
             |> calculateAcCatRates
 
-        member model.getRates t rnd r = getRatesImpl model.dictionaryData getEnantiomer (calculateAcCatDestrRates rnd t) r
+        member private model.info =
+            {
+                dictionaryData = model.dictionaryData
+                acRateDictionary = p.activationModel.dictionaryData.rateDictionary
+                getEnantiomer = getEnantiomer
+                getAcEnantiomer = getEnantiomer
+            }
+
+        member model.getRates t rnd r = getAcRatesImpl model.info (calculateAcCatRatesImpl rnd t) r

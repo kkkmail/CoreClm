@@ -32,14 +32,14 @@ module ContGenAdmTasks =
         let so = getSeedValue p
 
         let settings = loadContGenSettings()
-        printfn "addClmTask: settings =\n%A" settings
+//        printfn "addClmTask: settings =\n%A" settings
 
         let dictionaryUpdateType = getDictionaryUpdateType p |> Option.defaultValue settings.contGenInfo.dictionaryUpdateType
-        printfn $"addClmTask: dictionaryUpdateType = {dictionaryUpdateType}"
+//        printfn $"addClmTask: dictionaryUpdateType = {dictionaryUpdateType}"
 
         match i, n, m, c with
         | Some i, Some n, Some m, Some c ->
-            printfn "addClmTask: Updating parameters. Using number of amino acids: %A, max peptide length: %A, index of default: %A." (n.length) (m.length) i
+            printfn $"addClmTask: Using number of amino acids: {n.length}, max peptide length: {m.length}, index of default: {i}."
             match loadClmDefaultValue i with
             | Ok _ ->
                 let r = getNumberOrRepetitions p
@@ -65,7 +65,7 @@ module ContGenAdmTasks =
                     | true ->
                         let sw = Stopwatch()
                         sw.Start()
-                        printfn "addClmTask: Generating model..."
+//                        printfn "addClmTask: Generating model..."
                         let proxy = GenerateModelProxy.create dictionaryUpdateType settings.contGenInfo.collisionData so getClmConnectionString
                         let fno = getModelCodeFileName p
 
@@ -80,15 +80,15 @@ module ContGenAdmTasks =
                         let elapsed = String.Format("{0:hh\\:mm\\:ss}", sw.Elapsed)
                         use proc = Process.GetCurrentProcess()
                         let memUsed = Math.Round((double proc.PeakWorkingSet64) / (1024.0 * 1024.0 * 1024.0), 2)
-                        printfn $"\naddClmTask: Total generation time: {elapsed}, max memory used: %.2f{memUsed} GB."
+                        printfn $"addClmTask: Total generation time: {elapsed}, max memory used: %.2f{memUsed} GiB.\n"
                         result
                     | false -> Ok()
                 | Error e -> logError e
             | Error e ->
-                printfn "updateParameters: Cannot find data for default set index %A, Error: %A" i e
+                printfn "addClmTask: Cannot find data for default set index %A, Error: %A" i e
                 Ok()
         | _ ->
-            printfn "updateParameters: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
+            printfn "addClmTask: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
             Ok()
 
 

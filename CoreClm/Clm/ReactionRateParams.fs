@@ -396,9 +396,16 @@ module ReactionRateParams =
     type ActivationRandomParam =
         {
             activationDistribution : Distribution
-            forwardScale : double option
+            eeDistribution : EeDistribution option
         }
 
+
+    type ActivationRandomInfo =
+        {
+            activationParam : ActivationRandomParam
+//            rateGenerationType : RateGenerationType
+            rnd : RandomValueGetter
+        }
 
     type ActivationParam =
         | ActivationRndParam of ActivationRandomParam
