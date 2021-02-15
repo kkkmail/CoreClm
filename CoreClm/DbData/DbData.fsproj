@@ -14,6 +14,7 @@
     <Compile Include="DynamicSql.fs" />
     <Compile Include="DatabaseTypes.fs" />
     <Compile Include="MsgSvcDatabaseTypes.fs" />
+    <Compile Include="WorkerNodeDatabaseTypes.fs" />
     <Content Include="MsgClient.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

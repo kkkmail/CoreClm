@@ -22,7 +22,7 @@ type ModelTests(output : ITestOutputHelper) =
         let cgUpdate = update
 
         let modelDataId = cgModelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
-        let mdo = loadModelData getClmConnectionString modelDataId
+        let mdo = loadModelData getContGenConnectionString modelDataId
 
         let rnd = Random()
         let x = [| for _ in 1..cgModelDataParamsWithExtraData.regularParams.allSubstData.allSubst.Length -> rnd.NextDouble() |]

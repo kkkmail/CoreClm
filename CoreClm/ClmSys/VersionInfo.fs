@@ -31,6 +31,10 @@ module VersionInfo =
     let MsgSvcBaseName = "msg601"
 
 
+    [<Literal>]
+    let WorkerNodeSvcBaseName = "wns601"
+
+
     /// Default port on which messaging communication is performed.
     let defaultServicePort = 5000 + messagingDataVersion.value
 

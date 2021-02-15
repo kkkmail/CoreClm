@@ -27,7 +27,7 @@ open Configuration
 
 module DatabaseTypes =
 
-    type ClmDB = SqlProgrammabilityProvider<ClmSqlProviderName, ConfigFile = ContGenAppConfigFile>
+    type ClmDB = SqlProgrammabilityProvider<ContGenSqlProviderName, ConfigFile = ContGenAppConfigFile>
 
 
     type ClmDefaultValueTable = ClmDB.dbo.Tables.ClmDefaultValue
@@ -37,7 +37,7 @@ module DatabaseTypes =
     type ClmDefaultValueData = SqlCommandProvider<"
         select *
         from dbo.ClmDefaultValue
-        where clmDefaultValueId = @clmDefaultValueId", ClmConnectionStringValue, ResultType.DataReader>
+        where clmDefaultValueId = @clmDefaultValueId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type ClmTaskTable = ClmDB.dbo.Tables.ClmTask
@@ -47,21 +47,21 @@ module DatabaseTypes =
     type ClmTaskData = SqlCommandProvider<"
         select *
         from dbo.ClmTask
-        where clmTaskId = @clmTaskId", ClmConnectionStringValue, ResultType.DataReader>
+        where clmTaskId = @clmTaskId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type ClmTaskByDefaultData = SqlCommandProvider<"
         select top 1 *
         from dbo.ClmTask
         where clmDefaultValueId = @clmDefaultValueId
-        order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
+        order by createdOn", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type ClmTaskAllIncompleteData = SqlCommandProvider<"
         select *
         from dbo.ClmTask
         where remainingRepetitions > 0 and clmTaskStatusId = 0
-        order by clmTaskOrder", ClmConnectionStringValue, ResultType.DataReader>
+        order by clmTaskOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
@@ -72,7 +72,7 @@ module DatabaseTypes =
         select *
         from dbo.CommandLineParam
         where clmTaskId = @clmTaskId
-        order by createdOn", ClmConnectionStringValue, ResultType.DataReader>
+        order by createdOn", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type ModelDataTable = ClmDB.dbo.Tables.ModelData
@@ -89,7 +89,7 @@ module DatabaseTypes =
             modelBinaryData,
             createdOn
         from dbo.ModelData
-        where modelDataId = @modelDataId", ClmConnectionStringValue, ResultType.DataReader>
+        where modelDataId = @modelDataId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type ResultDataTable = ClmDB.dbo.Tables.ResultData
@@ -99,7 +99,7 @@ module DatabaseTypes =
     type ResultDataTableData = SqlCommandProvider<"
         select *
         from dbo.ResultData
-        where resultDataId = @resultDataId", ClmConnectionStringValue, ResultType.DataReader>
+        where resultDataId = @resultDataId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
@@ -110,7 +110,7 @@ module DatabaseTypes =
     type RunQueueTableData = SqlCommandProvider<"
         select *
         from dbo.RunQueue
-        where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
+        where runQueueId = @runQueueId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     /// SQL to load all not started RunQueue.
@@ -122,7 +122,7 @@ module DatabaseTypes =
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
-        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+        order by runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     /// SQL to load RunQueue by runQueueId.
@@ -133,7 +133,7 @@ module DatabaseTypes =
         from dbo.RunQueue r
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-        where runQueueId = @runQueueId", ClmConnectionStringValue, ResultType.DataReader>
+        where runQueueId = @runQueueId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     /// SQL to load first not started RunQueue.
@@ -145,7 +145,7 @@ module DatabaseTypes =
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
-        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+        order by runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     /// SQL to load all currently running models == total progress.
@@ -158,7 +158,7 @@ module DatabaseTypes =
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.runQueueStatusId = 2 and t.clmTaskStatusId = 0 and r.workerNodeId is not null
-        order by runQueueOrder", ClmConnectionStringValue, ResultType.DataReader>
+        order by runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type WorkerNodeTable = ClmDB.dbo.Tables.WorkerNode
@@ -168,7 +168,7 @@ module DatabaseTypes =
     type WorkerNodeTableData = SqlCommandProvider<"
         select *
         from dbo.WorkerNode
-        where workerNodeId = @workerNodeId", ClmConnectionStringValue, ResultType.DataReader>
+        where workerNodeId = @workerNodeId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type ClmDefaultValue
@@ -518,7 +518,7 @@ module DatabaseTypes =
                     values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
                 when matched then
                     update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
-            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let result = cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
                                     , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
@@ -627,7 +627,7 @@ module DatabaseTypes =
                     UPDATE dbo.ClmTask
                     SET remainingRepetitions = @remainingRepetitions
                     WHERE clmTaskId = @clmTaskId
-                ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+                ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let recordsUpdated =
                 cmd.Execute(
@@ -671,7 +671,7 @@ module DatabaseTypes =
                         values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
                     when matched then
                         update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
-                    ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+                    ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
                 cmdWithBinaryData.Execute(
                     modelDataId = m.modelDataId.value,
@@ -721,7 +721,7 @@ module DatabaseTypes =
                             ,@maxWeightedAverageAbsEe
                             ,@maxLastEe
                             ,@createdOn)
-            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let result =
                 cmd.Execute(
@@ -815,7 +815,7 @@ module DatabaseTypes =
                         ,maxWeightedAverageAbsEe = source.maxWeightedAverageAbsEe
                         ,maxLastEe = source.maxLastEe
                         ,createdOn = source.createdOn;
-            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let result =
                 cmd.Execute(
@@ -960,7 +960,7 @@ module DatabaseTypes =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
 
-            use cmd = new SqlCommandProvider<"delete from dbo.RunQueue where runQueueId = @runQueueId", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            use cmd = new SqlCommandProvider<"delete from dbo.RunQueue where runQueueId = @runQueueId", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             match cmd.Execute(runQueueId = runQueueId.value) = 1 with
             | true -> Ok ()
@@ -1051,13 +1051,13 @@ module DatabaseTypes =
         order by nodePriority desc, workLoad, newid()"
 
 
-    type AvailableWorkerNodeTableData = SqlCommandProvider<AvailableWorkerNodeSql, ClmConnectionStringValue, ResultType.DataReader>
+    type AvailableWorkerNodeTableData = SqlCommandProvider<AvailableWorkerNodeSql, ContGenConnectionStringValue, ResultType.DataReader>
 
 
     let tryGetAvailableWorkerNode c (LastAllowedNodeErr m) =
         let g() =
             use conn = getOpenConn c
-            use cmd = new SqlCommandProvider<AvailableWorkerNodeSql, ClmConnectionStringValue, ResultType.DataTable>(conn)
+            use cmd = new SqlCommandProvider<AvailableWorkerNodeSql, ContGenConnectionStringValue, ResultType.DataTable>(conn)
             let table = cmd.Execute (m / 1<minute>)
 
             match table.Rows |> Seq.tryHead with

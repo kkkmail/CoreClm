@@ -150,7 +150,7 @@ module SvcCommandLine =
         let i =
             {
                 messagingClientName = ContGenServiceName.netTcpServiceName.value.value |> MessagingClientName
-                storageType = getClmConnectionString |> MsSqlDatabase
+                storageType = getContGenConnectionString |> MsSqlDatabase
             }
 
         let messagingClientData =
@@ -182,7 +182,7 @@ module SvcCommandLine =
                     {
                         runnerData =
                             {
-                                getConnectionString = getClmConnectionString
+                                getConnectionString = getContGenConnectionString
                                 minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
 

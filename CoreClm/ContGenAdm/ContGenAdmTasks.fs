@@ -21,7 +21,7 @@ module ContGenAdmTasks =
         Ok()
 
 
-    let loadClmDefaultValue = loadClmDefaultValue getClmConnectionString
+    let loadClmDefaultValue = loadClmDefaultValue getContGenConnectionString
 
 
     let addClmTask (p :list<AddClmTaskArgs>) =
@@ -59,14 +59,14 @@ module ContGenAdmTasks =
                         createdOn = DateTime.Now
                     }
 
-                match addClmTask getClmConnectionString t with
+                match addClmTask getContGenConnectionString t with
                 | Ok() ->
                     match getGenerateModelCode p with
                     | true ->
                         let sw = Stopwatch()
                         sw.Start()
 //                        printfn "addClmTask: Generating model..."
-                        let proxy = GenerateModelProxy.create dictionaryUpdateType settings.contGenInfo.collisionData so getClmConnectionString
+                        let proxy = GenerateModelProxy.create dictionaryUpdateType settings.contGenInfo.collisionData so getContGenConnectionString
                         let fno = getModelCodeFileName p
 
                         let result =
@@ -98,7 +98,7 @@ module ContGenAdmTasks =
             | Some i -> i * 1_000
             | None -> 30_000
 
-        let modelMonitor = ModelMonitor.create getClmConnectionString
+        let modelMonitor = ModelMonitor.create getContGenConnectionString
 
         while true do
             try

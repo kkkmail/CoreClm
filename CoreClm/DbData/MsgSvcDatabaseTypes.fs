@@ -54,7 +54,7 @@ module MsgSvcDatabaseTypes =
     let serializationFormat = BinaryZippedFormat
 
 
-    type MsgSvcDB = SqlProgrammabilityProvider<MsgSvcSqlProviderName, ConfigFile = MsgAppConfigFile>
+    type MsgSvcDB = SqlProgrammabilityProvider<MessagingSqlProviderName, ConfigFile = MessagingAppConfigFile>
     type MessageTable = MsgSvcDB.dbo.Tables.Message
     type MessageTableRow = MessageTable.Row
 
@@ -62,7 +62,7 @@ module MsgSvcDatabaseTypes =
     type MessageDatabaseData = SqlCommandProvider<"
         select *
         from dbo.Message
-        where messageId = @messageId", MsgSvcConnectionStringValue, ResultType.DataReader>
+        where messageId = @messageId", MessagingConnectionStringValue, ResultType.DataReader>
 
 
     type TryPickRecipientMessageData = SqlCommandProvider<"
@@ -70,7 +70,7 @@ module MsgSvcDatabaseTypes =
            from dbo.Message
            where recipientId = @recipientId and dataVersion = @dataVersion
            order by messageOrder
-           ", MsgSvcConnectionStringValue, ResultType.DataReader>
+           ", MessagingConnectionStringValue, ResultType.DataReader>
 
 
     type TryPickSenderMessageData = SqlCommandProvider<"
@@ -78,7 +78,7 @@ module MsgSvcDatabaseTypes =
            from dbo.Message
            where senderId = @senderId and dataVersion = @dataVersion
            order by messageOrder
-           ", MsgSvcConnectionStringValue, ResultType.DataReader>
+           ", MessagingConnectionStringValue, ResultType.DataReader>
 
 
     let tryCreateMessageImpl (r : MessageTableRow) =
@@ -188,7 +188,7 @@ module MsgSvcDatabaseTypes =
 				insert into Message (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
 				select @messageIdValue, @senderId, @recipientId, @dataVersion, @deliveryTypeId, @messageData, @createdOn
 				where not exists (select 1 from Message where messageId = @messageIdValue)
-            ", ClmConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            ", MessagingConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let result = cmd.Execute(messageId = m.messageDataInfo.messageId.value
                                     ,senderId = m.messageDataInfo.sender.value
@@ -212,7 +212,7 @@ module MsgSvcDatabaseTypes =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
 
-            use cmd = new SqlCommandProvider<"delete from dbo.Message where messageId = @messageId", MsgSvcConnectionStringValue>(connectionString)
+            use cmd = new SqlCommandProvider<"delete from dbo.Message where messageId = @messageId", MessagingConnectionStringValue>(connectionString)
 
             match cmd.Execute(messageId = messageId.value) with
             | 0 | 1 -> Ok()
@@ -231,7 +231,7 @@ module MsgSvcDatabaseTypes =
                 where
                     deliveryTypeId = 1
                     and dataVersion = @dataVersion
-                    and createdOn < @createdOn", MsgSvcConnectionStringValue>(connectionString)
+                    and createdOn < @createdOn", MessagingConnectionStringValue>(connectionString)
 
             let _ = cmd.Execute(messagingDataVersion.value, DateTime.Now - expirationTime)
             Ok()
