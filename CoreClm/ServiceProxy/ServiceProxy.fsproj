@@ -15,6 +15,7 @@
     <Compile Include="ModelGeneratorProxy.fs" />
     <Compile Include="ModelRunnerProxy.fs" />
     <Compile Include="SolverRunnerProxy.fs" />
+    <Compile Include="SolverProcessProxy.fs" />
     <Compile Include="WorkerNodeProxy.fs" />
   </ItemGroup>
 

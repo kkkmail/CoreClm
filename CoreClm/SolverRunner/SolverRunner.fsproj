@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -25,6 +26,9 @@
 
   <ItemGroup>
     <Compile Include="SolverRunnerTasks.fs" />
+    <Compile Include="SolverRunnerCommandLine.fs" />
+    <Compile Include="SolverRunnerImplementation.fs" />
+    <Compile Include="SolverRunnerProgram.fs" />
   </ItemGroup>
 
 </Project>

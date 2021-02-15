@@ -336,7 +336,7 @@ module ServiceImplementation =
     let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d =
         match d with
         | WorkerNumberOfSores c ->
-            let cores = max 0 (min c Environment.ProcessorCount)
+            let cores = max 0 (min c (2 * Environment.ProcessorCount))
 
             let send() =
                 {

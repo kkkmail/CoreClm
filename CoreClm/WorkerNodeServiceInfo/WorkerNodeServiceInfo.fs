@@ -345,7 +345,7 @@ module ServiceInfo =
 
                             noOfCores =
                                 let n = proxy.tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
-                                max 0 (min n Environment.ProcessorCount)
+                                max 0 (min n (2 * Environment.ProcessorCount))
 
                             nodePriority =
                                 match w.workerNodeInfo.nodePriority.value with
