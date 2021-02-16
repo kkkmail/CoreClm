@@ -16,12 +16,12 @@ module Program =
 //        | Error e ->
 //            -1
 
-    try
-        let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
-        let results = parser.Parse argv
-        let usage = parser.PrintUsage()
-        runSolver results usage
-    with
-        | exn ->
-            printfn $"{exn.Message}"
-            UnknownException
+        try
+            let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
+            let results = parser.Parse argv
+            let usage = parser.PrintUsage()
+            runSolver results usage
+        with
+            | exn ->
+                printfn $"{exn.Message}"
+                UnknownException
