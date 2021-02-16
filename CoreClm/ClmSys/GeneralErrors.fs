@@ -102,6 +102,7 @@ module GeneralErrors =
         | TryCancelRunQueueErr of RunQueueId
         | TryFailRunQueueErr of RunQueueId
         | TryPickRunQueue
+        | TryLoadRunQueue of RunQueueId
 
     type ServiceInstallerError =
         | InstallServiceErr of exn

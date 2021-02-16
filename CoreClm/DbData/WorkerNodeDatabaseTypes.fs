@@ -54,14 +54,14 @@ module WorkerNodeDatabaseTypes =
 
     type WorkerNodeRunModelData
         with
-//        static member tryCreate (r : RunQueueTableRow) : ClmResult<WorkerNodeRunModelData> =
-//            let w() =
-//                try
-//                    r.workerNodeRunModelData |> deserialize serializationFormat
-//                with
-//                | e -> failwith ""
-//
-//            tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
+        static member tryCreate (r : RunQueueTableRow) : ClmResult<WorkerNodeRunModelData> =
+            let w() =
+                try
+                    r.workerNodeRunModelData |> deserialize serializationFormat
+                with
+                | e -> e |> DbExn |> DbErr |> Error
+
+            tryRopFun (fun e -> e |> DbExn |> DbErr) w
 
         member r.addRow(t : RunQueueTable) =
             let newRow =
@@ -97,8 +97,18 @@ module WorkerNodeDatabaseTypes =
         tryDbFun g |> Rop.unwrapResultOption
 
 
-    let tryLoadRunQueue c q =
-        failwith ""
+    let tryLoadRunQueue c (q : RunQueueId) =
+        let g() =
+            use conn = getOpenConn c
+            use d = new RunQueueTableData(conn)
+            let t = new RunQueueTable()
+            d.Execute q.value |> t.Load
+
+            match t.Rows |> Seq.tryFind (fun e -> e.runQueueId = q.value) with
+            | Some v -> v |> WorkerNodeRunModelData.tryCreate
+            | None -> toError TryLoadRunQueue q
+
+        tryDbFun g
 
 
     let saveRunQueue c (w : WorkerNodeRunModelData) =

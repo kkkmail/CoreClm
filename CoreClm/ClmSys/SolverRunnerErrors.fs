@@ -8,7 +8,7 @@ module SolverRunnerErrors =
     type CriticalErrorType =
         | ErrorCodeBased
         | ExceptionBased
-        | ErrroMessageBased
+        | ErrorMessageBased
 
 
     type SolverRunnerCriticalError =
@@ -42,7 +42,7 @@ module SolverRunnerErrors =
         static member fromErrMessage e =
             {
                 errorId = ErrorId.getNewId()
-                errorType = ErrroMessageBased
+                errorType = ErrorMessageBased
                 result = UnknownException
                 errorMessageOpt = Some e
                 exceptionOpt = None
