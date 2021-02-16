@@ -96,8 +96,12 @@ module GeneralErrors =
         | MapRunQueueErr of Guid
         | LoadWorkerNodeInfoErr of Guid
         | RunQueueTryUpdateRowErr of RunQueueTryUpdateRowError
-        | TryStartRunQueueErr of RunQueueId
 
+        | TryStartRunQueueErr of RunQueueId
+        | TryCompleteRunQueueErr of RunQueueId
+        | TryCancelRunQueueErr of RunQueueId
+        | TryFailRunQueueErr of RunQueueId
+        | TryPickRunQueue
 
     type ServiceInstallerError =
         | InstallServiceErr of exn

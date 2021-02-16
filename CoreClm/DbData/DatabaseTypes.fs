@@ -27,7 +27,7 @@ open Configuration
 
 module DatabaseTypes =
 
-    type ClmDB = SqlProgrammabilityProvider<ContGenSqlProviderName, ConfigFile = ContGenAppConfigFile>
+    type ClmDB = SqlProgrammabilityProvider<ContGenSqlProviderName, ConfigFile = AppConfigFile>
 
 
     type ClmDefaultValueTable = ClmDB.dbo.Tables.ClmDefaultValue

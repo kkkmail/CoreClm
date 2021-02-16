@@ -14,3 +14,7 @@ module SolverRunnerPrimitives =
     type CancellationType =
         | CancelWithResults of string option
         | AbortCalculation of string option
+
+
+    type ProcessId =
+        | ProcessId of int

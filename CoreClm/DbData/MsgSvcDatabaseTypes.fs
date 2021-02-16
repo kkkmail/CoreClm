@@ -54,7 +54,7 @@ module MsgSvcDatabaseTypes =
     let serializationFormat = BinaryZippedFormat
 
 
-    type MsgSvcDB = SqlProgrammabilityProvider<MessagingSqlProviderName, ConfigFile = MessagingAppConfigFile>
+    type MsgSvcDB = SqlProgrammabilityProvider<MessagingSqlProviderName, ConfigFile = AppConfigFile>
     type MessageTable = MsgSvcDB.dbo.Tables.Message
     type MessageTableRow = MessageTable.Row
 

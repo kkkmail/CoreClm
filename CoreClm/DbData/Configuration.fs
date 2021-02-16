@@ -20,15 +20,7 @@ module Configuration =
 
 
     [<Literal>]
-    let ContGenAppConfigFile : string = __SOURCE_DIRECTORY__ + @"\..\ContGenService\app.config"
-
-
-    [<Literal>]
-    let MessagingAppConfigFile : string = __SOURCE_DIRECTORY__ + @"\..\MessagingService\app.config"
-
-
-    [<Literal>]
-    let WorkerNodeAppConfigFile : string = __SOURCE_DIRECTORY__ + @"\..\WorkerNodeService\app.config"
+    let AppConfigFile : string = __SOURCE_DIRECTORY__ + @"\app.config"
 
 
     [<Literal>]
