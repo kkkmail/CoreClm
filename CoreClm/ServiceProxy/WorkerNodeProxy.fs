@@ -1,5 +1,7 @@
 ﻿namespace ServiceProxy
 
+open ClmSys.PartitionerPrimitives
+open ClmSys.WorkerNodeData
 open Softellect.Messaging.Primitives
 
 open NoSql.FileSystemTypes
@@ -9,6 +11,7 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerErrors
 open ClmSys.WorkerNodePrimitives
+open WorkerNodeServiceInfo.ServiceInfo
 
 module WorkerNodeProxy =
 
@@ -48,3 +51,51 @@ module WorkerNodeProxy =
                 loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
                 logCrit = saveSolverRunnerErrFs name
             }
+
+
+    type SendMessageProxy =
+        {
+            partitionerId : PartitionerId
+            sendMessage : MessageInfo -> UnitResult
+        }
+
+
+    type OnRegisterProxy =
+        {
+            workerNodeInfo : WorkerNodeInfo
+            sendMessageProxy : SendMessageProxy
+        }
+
+
+    type OnUpdateProgressProxy =
+        {
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
+            sendMessageProxy : SendMessageProxy
+        }
+
+
+//    type OnRunModelProxy =
+//        {
+//            workerNodeId : WorkerNodeId
+//            getSolverRunner : WorkerNodeRunModelData -> SolverRunner
+//            sendMessageProxy : SendMessageProxy
+//            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
+//        }
+
+    type OnStartProxy =
+        {
+            loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
+            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
+            noOfCores : int
+        }
+
+
+    type OnProcessMessageProxy =
+        {
+            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
+            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
+        }
+
+
+

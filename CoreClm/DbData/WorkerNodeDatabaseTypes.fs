@@ -34,6 +34,14 @@ module WorkerNodeDatabaseTypes =
 
     let serializationFormat = BinaryZippedFormat
 
+
+    /// Binds an unsuccessful database update operation to a given continuation function.
+    let bindError f q r =
+        match r = 1 with
+        | true -> Ok ()
+        | false -> toError f q
+
+
     type WorkerNodeDB = SqlProgrammabilityProvider<WorkerNodeSqlProviderName, ConfigFile = AppConfigFile>
     type RunQueueTable = WorkerNodeDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
@@ -46,25 +54,42 @@ module WorkerNodeDatabaseTypes =
 
 
     /// SQL to load first not started runQueueId.
-    type RunQueueFirstTableData = SqlCommandProvider<"
+    [<Literal>]
+    let runQueueFirstSql = "
         select top 1 runQueueId
         from dbo.RunQueue
-        where runQueueStatusId = 0
-        order by runQueueOrder", WorkerNodeConnectionStringValue, ResultType.DataReader>
+        where runQueueStatusId = " + RunQueueStatus_NotStarted + "
+        order by runQueueOrder"
+
+
+    type RunQueueFirstTableData =
+        SqlCommandProvider<runQueueFirstSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
 
 
     /// Sql to load count of all running solvers.
-    type RunningSolversCountTableData = SqlCommandProvider<"
+    [<Literal>]
+    let runningSolversCountSql = "
         select isnull(count(*), 0) as runCount
         from dbo.RunQueue
-        where runQueueStatusId = 2", WorkerNodeConnectionStringValue, ResultType.DataReader>
+        where runQueueStatusId = " + RunQueueStatus_InProgress
+
+
+    type RunningSolversCountTableData =
+        SqlCommandProvider<runningSolversCountSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
 
 
     /// Sql to load all running solvers.
-    type RunningSolversTableData = SqlCommandProvider<"
-        select runQueueId, processId
+    [<Literal>]
+    let runningSolversSql = "
+        select
+            runQueueId,
+            processId
         from dbo.RunQueue
-        where runQueueStatusId = 2", WorkerNodeConnectionStringValue, ResultType.DataReader>
+        where runQueueStatusId = " + RunQueueStatus_InProgress
+
+
+    type RunningSolversTableData =
+        SqlCommandProvider<runningSolversSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
 
 
     let mapSolverRunnerInfo (reader : DynamicSqlDataReader) =
@@ -179,14 +204,27 @@ module WorkerNodeDatabaseTypes =
         tryDbFun g
 
 
+    [<Literal>]
+    let tryStartRunQueueSql = "
+        update dbo.RunQueue
+        set
+            processId = @processId,
+            runQueueStatusId = " + RunQueueStatus_InProgress + ",
+            startedOn = (getdate()),
+            modifiedOn = (getdate())
+        where runQueueId = @runQueueId and processId is null and runQueueStatusId = " + RunQueueStatus_NotStarted
+
+
     /// kk:20210215 - The allowed transitions for RunQueue are as follows:
-    ///     1. RunQueue starts with runQueueStatusId = 0 (NotStarted) and processId = null. The value of
+    ///     0. The following
+    ///     1. RunQueue starts with runQueueStatusId = NotStarted and processId = null. The value of
     ///        startedOn should be null at this point but this is irrelevant as it is not used.
     ///     2. When a WorkerNode decides to spawn a SolverRunner (and it looks that for the time being
     ///        spawning instead of using threads is much better on 64+ core machines and under NET5) then it
     ///        spawns SolverRunner ans passes it runQueueId.
     ///     3. SolverRunner should attempt to set processId from null to its process id and transition runQueueStatusId
-    ///        from 0 to 2 (InProgress). If that fails then it bails out and doesn't run.
+    ///        from NotStarted to InProgress. Other transitions are not allowed at this point.
+    ///        If that fails then it bails out and doesn't run.
     ///     4. WorkerNode at restart (or WorkerNodeAdm if asked at any time) may examine running processes and
     ///        if it is found that a SolverRunner with the appropriate RunQueueId is not running and RunQueue has not
     ///        terminated in one of the possible ways, then it may clear the value of processId and transition
@@ -196,100 +234,80 @@ module WorkerNodeDatabaseTypes =
     ///        provided that it is running SolverRunner with that RunQueueId.
     ///        Regardless the presence of such SolverRunner, RunQueue with that id and not one of final states
     ///        should be cancelled and its runQueueStatusId should be transitioned from InProgress or NotStarted
-    ///        to 6 (Cancelled).
-    ///     6. When SolverRunner completed successfully, it should transition runQueueStatusId from 2 to 3 (Completed).
-    ///     7. And if SolverRunner fails (and catches the error), then it should transition runQueueStatusId from 2
-    ///        to 4 (Failed) and also set an error message.
+    ///        to Cancelled.
+    ///     6. When SolverRunner completed successfully, it should transition runQueueStatusId from InProgress to Completed.
+    ///     7. And if SolverRunner fails (and catches the error), then it should transition runQueueStatusId from
+    ///        InProgress to Failed and also set an error message.
+    ///      8. WorkerNode may request a cancellation by transitioning runQueueStatusId from InProgress to CancelRequested.
     let tryStartRunQueue c (q : RunQueueId) (ProcessId pid) =
         let g() =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
-
-            use cmd = new SqlCommandProvider<"
-                update dbo.RunQueue
-                set
-                    processId = @processId,
-                    runQueueStatusId = 2,
-                    startedOn = (getdate()),
-                    modifiedOn = (getdate())
-                where runQueueId = @runQueueId and processId is null and runQueueStatusId = 0
-            ", WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-            let result = cmd.Execute(runQueueId = q.value, processId = pid)
-
-            match result = 1 with
-            | true -> Ok ()
-            | false -> toError TryStartRunQueueErr q
+            use cmd = new SqlCommandProvider<tryStartRunQueueSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            cmd.Execute(runQueueId = q.value, processId = pid) |> bindError TryStartRunQueueErr q
 
         tryDbFun g
+
+
+    /// Can transition to Completed from InProgress and CancelRequested.
+    [<Literal>]
+    let tryCompleteRunQueueSql = "
+        update dbo.RunQueue
+        set
+            runQueueStatusId = " + RunQueueStatus_Completed + ",
+            processId = null,
+            modifiedOn = (getdate())
+        where runQueueId = @runQueueId and processId is not null and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
     let tryCompleteRunQueue c (q : RunQueueId) =
         let g() =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
-
-            use cmd = new SqlCommandProvider<"
-                update dbo.RunQueue
-                set
-                    runQueueStatusId = 3,
-                    processId = null,
-                    modifiedOn = (getdate())
-                where runQueueId = @runQueueId and processId is not null and runQueueStatusId = 2
-            ", WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-            let result = cmd.Execute(runQueueId = q.value)
-
-            match result = 1 with
-            | true -> Ok ()
-            | false -> toError TryCompleteRunQueueErr q
+            use cmd = new SqlCommandProvider<tryCompleteRunQueueSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            cmd.Execute(runQueueId = q.value) |> bindError TryCompleteRunQueueErr q
 
         tryDbFun g
 
+
+    /// Can transition to Cancelled from NotStarted, InProgress, and CancelRequested.
+    [<Literal>]
+    let tryCancelRunQueueSql = "
+        update dbo.RunQueue
+        set
+            runQueueStatusId = " + RunQueueStatus_Cancelled + ",
+            processId = null,
+            modifiedOn = (getdate()),
+            errorMessage = @errorMessage
+        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_NotStarted + ", " + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
     let tryCancelRunQueue c (q : RunQueueId) (errMsg : string) =
         let g() =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
-
-            use cmd = new SqlCommandProvider<"
-                update dbo.RunQueue
-                set
-                    runQueueStatusId = 6,
-                    processId = null,
-                    modifiedOn = (getdate()),
-                    errorMessage = @errorMessage
-                where runQueueId = @runQueueId and runQueueStatusId in (0, 2)
-            ", WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-            let result = cmd.Execute(runQueueId = q.value, errorMessage = errMsg)
-
-            match result = 1 with
-            | true -> Ok ()
-            | false -> toError TryCancelRunQueueErr q
+            use cmd = new SqlCommandProvider<tryCancelRunQueueSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            cmd.Execute(runQueueId = q.value, errorMessage = errMsg) |> bindError TryCancelRunQueueErr q
 
         tryDbFun g
+
+
+    /// Can transition to Failed from InProgress and CancelRequested.
+    [<Literal>]
+    let tryFailRunQueueSql = "
+        update dbo.RunQueue
+        set
+            runQueueStatusId = " + RunQueueStatus_Failed + ",
+            processId = null,
+            modifiedOn = (getdate()),
+            errorMessage = @errorMessage
+        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
     let tryFailRunQueue c (q : RunQueueId) (errMsg : string) =
         let g() =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
-
-            use cmd = new SqlCommandProvider<"
-                update dbo.RunQueue
-                set
-                    runQueueStatusId = 4,
-                    processId = null,
-                    modifiedOn = (getdate()),
-                    errorMessage = @errorMessage
-                where runQueueId = @runQueueId and runQueueStatusId = 2
-            ", WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-            let result = cmd.Execute(runQueueId = q.value, errorMessage = errMsg)
-
-            match result = 1 with
-            | true -> Ok ()
-            | false -> toError TryFailRunQueueErr q
+            use cmd = new SqlCommandProvider<tryFailRunQueueSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            cmd.Execute(runQueueId = q.value, errorMessage = errMsg) |> bindError TryFailRunQueueErr q
 
         tryDbFun g

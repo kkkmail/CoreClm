@@ -70,27 +70,6 @@ module ServiceImplementation =
         }
 
 
-    type SendMessageProxy =
-        {
-            partitionerId : PartitionerId
-            sendMessage : MessageInfo -> UnitResult
-        }
-
-
-    type OnRegisterProxy =
-        {
-            workerNodeInfo : WorkerNodeInfo
-            sendMessageProxy : SendMessageProxy
-        }
-
-
-    type OnUpdateProgressProxy =
-        {
-            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-            sendMessageProxy : SendMessageProxy
-        }
-
-
     let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
         printfn "onSaveResult: Sending results with resultDataId = %A." r.resultDataId
 
@@ -228,14 +207,6 @@ module ServiceImplementation =
         w, result |> Rop.bindError (addError OnRunModelErr CannotRunModelErr)
 
 
-    type OnStartProxy =
-        {
-            loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
-            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
-            noOfCores : int
-        }
-
-
     let onStart (proxy : OnStartProxy) s =
         match s.workerNodeState with
         | NotStartedWorkerNode ->
@@ -255,14 +226,6 @@ module ServiceImplementation =
 
             g, result
         | StartedWorkerNode -> s, Ok()
-
-
-    type OnProcessMessageProxy =
-        {
-            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
-            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
-        }
 
 
     let onRunModelWrkMsg (proxy : OnProcessMessageProxy) s d m =
