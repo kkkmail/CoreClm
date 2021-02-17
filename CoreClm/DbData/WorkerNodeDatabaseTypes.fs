@@ -1,5 +1,6 @@
 namespace DbData
 
+open ClmSys.WorkerNodeData
 open FSharp.Data
 open System
 open FSharp.Data.Sql
@@ -50,6 +51,62 @@ module WorkerNodeDatabaseTypes =
         from dbo.RunQueue
         where runQueueStatusId = 0
         order by runQueueOrder", WorkerNodeConnectionStringValue, ResultType.DataReader>
+
+
+    /// Sql to load count of all running solvers.
+    type RunningSolversCountTableData = SqlCommandProvider<"
+        select isnull(count(*), 0) as runCount
+        from dbo.RunQueue
+        where runQueueStatusId = 2", WorkerNodeConnectionStringValue, ResultType.DataReader>
+
+
+    /// Sql to load all running solvers.
+    type RunningSolversTableData = SqlCommandProvider<"
+        select runQueueId, processId
+        from dbo.RunQueue
+        where runQueueStatusId = 2", WorkerNodeConnectionStringValue, ResultType.DataReader>
+
+
+    let mapSolverRunnerInfo (reader : DynamicSqlDataReader) =
+        {
+            processId = reader?processId |> ProcessId
+            runQueueId = reader?runQueueId |> RunQueueId
+        }
+
+
+    let tryLoadSolverRunners c =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn c
+                    use data = new RunningSolversTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute())
+                    while (reader.Read()) do yield mapSolverRunnerInfo reader
+                        }
+            |> List.ofSeq
+            |> Ok
+
+        tryDbFun g
+
+
+    let private mapSolverRunnersCount (reader : DynamicSqlDataReader) =
+        int reader?runCount |> Ok
+
+
+    let tryGetRunningSolversCount c =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn c
+                    use data = new RunningSolversCountTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute())
+                    while (reader.Read()) do yield mapSolverRunnersCount reader
+                        }
+            |> List.ofSeq
+            |> List.tryHead
+            |> Ok
+
+        tryDbFun g |> Rop.unwrapResultOption
 
 
     type WorkerNodeRunModelData

@@ -60,7 +60,7 @@
   <ItemGroup />
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(ProjectDir)..\WorkerNodeAdm\$(OutDir)WorkerNodeAdm.*.json&quot; &quot;$(TargetDir)&quot;" />
+    <Exec Command="copy /Y &quot;$(ProjectDir)..\WorkerNodeAdm\$(OutDir)WorkerNodeAdm.*.json&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;copy /Y &quot;$(ProjectDir)..\SolverRunner\$(OutDir)SolverRunner.*.json&quot; &quot;$(TargetDir)&quot;" />
   </Target>
 
 </Project>

@@ -2,17 +2,13 @@ namespace SolverRunner
 
 open Argu
 open System
-open ClmSys.GeneralPrimitives
+
 
 module SolverRunnerCommandLine =
 
-    [<Literal>]
-    let SolverRunnerName = "SolverRunner.exe"
-
-
     [<CliPrefix(CliPrefix.None)>]
     type SolverRunnerArguments =
-        | [<Unique>] [<AltCommandLine("q")>]  RunQueue of Guid
+        | [<Mandatory>] [<Unique>] [<AltCommandLine("q")>] RunQueue of Guid
 
     with
         interface IArgParserTemplate with
