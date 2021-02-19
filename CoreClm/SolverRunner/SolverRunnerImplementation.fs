@@ -47,6 +47,11 @@ module SolverRunnerImplementation =
     let private toError g f = f |> g |> SolverRunnerErr |> Error
     let private addError g f e = ((f |> g |> SolverRunnerErr) + e) |> Error
 
+    type SendMessageProxy
+        with
+        static member create =
+            0
+
 
     let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
         printfn "onSaveResult: Sending results with resultDataId = %A." r.resultDataId
@@ -105,6 +110,19 @@ module SolverRunnerImplementation =
             let r2 = proxy.tryDeleteWorkerNodeRunModelData p.runQueueId
             combineUnitResults r1 r2
         else r1
+
+
+    type SolverRunnerProxy
+        with
+        static member create c r =
+            {
+                updateProgress = 0
+                saveResult = 0
+                saveCharts = 0
+                logCrit = 0
+                checkCancellation = 0
+                checkRunning = 0
+            }
 
 
     type SolverProcess(proxy : SolverProcessProxy) =

@@ -51,7 +51,6 @@ module ServiceImplementation =
 
     type WorkerNodeRunnerState
         with
-
         static member maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
 
         static member defaultValue =
@@ -94,45 +93,50 @@ module ServiceImplementation =
         s, result
 
 
-    type OnRunModelProxy =
-        {
-            workerNodeId : WorkerNodeId
-            getSolverRunner : WorkerNodeRunModelData -> SolverRunner
-            sendMessageProxy : SendMessageProxy
-            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-        }
+    let onRunModel (proxy : OnRunModelProxy) (d : WorkerNodeRunModelData) =
+        let failed e =
+            {
+                partitionerRecipient = proxy.sendMessageProxy.partitionerId
+                deliveryType = GuaranteedDelivery
+                messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = Failed (ErrorMessage $"{e}") }
+            }.getMessageInfo()
+            |> proxy.sendMessageProxy.sendMessage
+
+        match proxy.tryGetRunningSolversCount() with
+        | Ok n ->
+            failwith ""
+        | Error e -> failed e
 
 
-    let onRunModel (proxy : OnRunModelProxy) (s : WorkerNodeRunnerState) (d : WorkerNodeRunModelData) =
-        let w, result =
-            match s.numberOfWorkerCores > s.runningWorkers.Count with
-            | true ->
-                let solver = proxy.getSolverRunner d
-                let m = async { solver.runSolver() }
-                Async.Start m
-
-                let res =
-                    {
-                        partitionerRecipient = proxy.sendMessageProxy.partitionerId
-                        deliveryType = GuaranteedDelivery
-                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = InProgress 0.0M }
-                    }.getMessageInfo()
-                    |> proxy.sendMessageProxy.sendMessage
-
-                { s with runningWorkers = s.runningWorkers.Add(d.runningProcessData.runQueueId, RunnerStateWithCancellation.defaultValue solver.notifyOfResults) }, res
-            | false ->
-                let res =
-                    {
-                        partitionerRecipient = proxy.sendMessageProxy.partitionerId
-                        deliveryType = GuaranteedDelivery
-                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = AllCoresBusy proxy.workerNodeId }
-                    }.getMessageInfo()
-                    |> proxy.sendMessageProxy.sendMessage
-
-                let r2 = proxy.tryDeleteWorkerNodeRunModelData d.runningProcessData.runQueueId
-                s, combineUnitResults res r2
-
-        w, result |> Rop.bindError (addError OnRunModelErr CannotRunModelErr)
+//        let w, result =
+//            match s.numberOfWorkerCores > s.runningWorkers.Count with
+//            | true ->
+//                let solver = proxy.getSolverRunner d
+//                let m = async { solver.runSolver() }
+//                Async.Start m
+//
+//                let res =
+//                    {
+//                        partitionerRecipient = proxy.sendMessageProxy.partitionerId
+//                        deliveryType = GuaranteedDelivery
+//                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = InProgress 0.0M }
+//                    }.getMessageInfo()
+//                    |> proxy.sendMessageProxy.sendMessage
+//
+//                { s with runningWorkers = s.runningWorkers.Add(d.runningProcessData.runQueueId, RunnerStateWithCancellation.defaultValue solver.notifyOfResults) }, res
+//            | false ->
+//                let res =
+//                    {
+//                        partitionerRecipient = proxy.sendMessageProxy.partitionerId
+//                        deliveryType = GuaranteedDelivery
+//                        messageData = UpdateProgressPrtMsg { runQueueId = d.runningProcessData.runQueueId; progress = AllCoresBusy proxy.workerNodeId }
+//                    }.getMessageInfo()
+//                    |> proxy.sendMessageProxy.sendMessage
+//
+//                let r2 = proxy.tryDeleteWorkerNodeRunModelData d.runningProcessData.runQueueId
+//                s, combineUnitResults res r2
+//
+//        w, result |> Rop.bindError (addError OnRunModelErr CannotRunModelErr)
 
 
     let onStart (proxy : OnStartProxy) s =
@@ -163,58 +167,55 @@ module ServiceImplementation =
         | StartedWorkerNode -> s, Ok()
 
 
-    let onRunModelWrkMsg (proxy : OnProcessMessageProxy) d m =
-        match proxy.saveWorkerNodeRunModelData d with
-        | Ok() -> proxy.onRunModel d.runningProcessData.runQueueId
-        | Error e -> addError OnProcessMessageErr (CannotSaveModelDataErr (m, d.runningProcessData.runQueueId)) e
+//    let onRunModelWrkMsg (proxy : OnProcessMessageProxy) d m =
+//        match proxy.saveWorkerNodeRunModelData d with
+//        | Ok() -> proxy.onRunModel d.runningProcessData.runQueueId
+//        | Error e -> addError OnProcessMessageErr (CannotSaveModelDataErr (m, d.runningProcessData.runQueueId)) e
 
 
-    let onCancelRunWrkMsg t s (q, c) =
-        //printfn "onCancelRunWrkMsg: Starting: %A ..." q
-
-        let (w, r1) =
-            match s.runningWorkers |> Map.tryFind q with
-            | Some x -> { s with runningWorkers = s.runningWorkers |> Map.add q { x with cancellationTypeOpt = Some c } }, Ok()
-            | None ->
-                // kk:20200404 - At this point we don't care if we could not find a running run queue id when trying to cancel it.
-                // Otherwise we would have to send a message back that we did not find it and then the caller would have to deal with it!
-                // But, ... the model could have been completed in between and we generally don't care about individual models anyway!
-                // Anyway, the current view is: if you ask me to cancel but I don't have it, then I just ignore the request.
-                s, Ok()
-
-        let result = t q |> combineUnitResults r1
-        //printfn "onCancelRunWrkMsg: result: %A" result
-        w, result
-
-
-    let onRequestResultWrkMsg s (q, c) =
-        let result =
-            match s.runningWorkers |> Map.tryFind q with
-            | Some x -> x.notifyOfResults c
-            | None -> CannotFindRunQueueErr q |> toError OnRequestResultErr
-        s, result
+//    let onCancelRunWrkMsg t s (q, c) =
+//        //printfn "onCancelRunWrkMsg: Starting: %A ..." q
+//
+//        let (w, r1) =
+//            match s.runningWorkers |> Map.tryFind q with
+//            | Some x -> { s with runningWorkers = s.runningWorkers |> Map.add q { x with cancellationTypeOpt = Some c } }, Ok()
+//            | None ->
+//                // kk:20200404 - At this point we don't care if we could not find a running run queue id when trying to cancel it.
+//                // Otherwise we would have to send a message back that we did not find it and then the caller would have to deal with it!
+//                // But, ... the model could have been completed in between and we generally don't care about individual models anyway!
+//                // Anyway, the current view is: if you ask me to cancel but I don't have it, then I just ignore the request.
+//                s, Ok()
+//
+//        let result = t q |> combineUnitResults r1
+//        //printfn "onCancelRunWrkMsg: result: %A" result
+//        w, result
 
 
-    let onProcessMessage (proxy : OnProcessMessageProxy) s (m : Message) =
+//    let onRequestResultWrkMsg s (q, c) =
+//        let result =
+//            match s.runningWorkers |> Map.tryFind q with
+//            | Some x -> x.notifyOfResults c
+//            | None -> CannotFindRunQueueErr q |> toError OnRequestResultErr
+//        s, result
+
+
+    let onProcessMessage (proxy : OnProcessMessageProxy) (m : Message) =
         match m.messageData with
         | UserMsg (WorkerNodeMsg x) ->
             match x with
             | RunModelWrkMsg d ->
-                //printfn "onProcessMessage: RunModelWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId d.runningProcessData.runQueueId
-                onRunModelWrkMsg proxy s d m.messageDataInfo.messageId
-            | CancelRunWrkMsg q ->
-                //printfn "onProcessMessage: CancelRunWrkMsg, messageId = %A, runQueueId = %A" m.messageDataInfo.messageId q
-                onCancelRunWrkMsg proxy.tryDeleteWorkerNodeRunModelData s q
-            | RequestResultWrkMsg q ->
-                printfn "onProcessMessage: RequestResultWrkMsg, messageId = %A, %A" m.messageDataInfo.messageId q
-                onRequestResultWrkMsg s q
-        | _ -> s, (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessageErr |> toError OnProcessMessageErr
+                match proxy.saveWorkerNodeRunModelData d with
+                | Ok() -> proxy.onRunModel d.runningProcessData.runQueueId
+                | Error e -> addError OnProcessMessageErr (CannotSaveModelDataErr (m.messageDataInfo.messageId, d.runningProcessData.runQueueId)) e
+            | CancelRunWrkMsg q -> q ||> proxy.requestCancellation
+            | RequestResultWrkMsg q -> q ||> proxy.notifyOfResults
+        | _ -> (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessageErr |> toError OnProcessMessageErr
 
 
     type OnProcessMessageType = OnProcessMessageType<WorkerNodeRunnerState>
     type OnGetMessagesProxy = OnGetMessagesProxy<WorkerNodeRunnerState>
     let onGetMessages = onGetMessages<WorkerNodeRunnerState>
-    let onGetState (s : WorkerNodeRunnerState) = s, s.toWorkerNodeRunnerMonitorState() |> WrkNodeState
+//    let onGetState (s : WorkerNodeRunnerState) = s, s.toWorkerNodeRunnerMonitorState() |> WrkNodeState
 
 
     type OnConfigureWorkerProxy = OnRegisterProxy
@@ -241,10 +242,10 @@ module ServiceImplementation =
             w, result
 
 
-    let onCheckCancellation (s : WorkerNodeRunnerState) q =
-        match s.runningWorkers |> Map.tryFind q with
-        | Some x -> s, x.cancellationTypeOpt
-        | None -> s, None
+//    let onCheckCancellation (s : WorkerNodeRunnerState) q =
+//        match s.runningWorkers |> Map.tryFind q with
+//        | Some x -> s, x.cancellationTypeOpt
+//        | None -> s, None
 
 
     let sendMessageProxy i =
@@ -254,13 +255,15 @@ module ServiceImplementation =
         }
 
 
-    let onRunModelProxy i p =
-        {
-            workerNodeId = i.workerNodeServiceInfo.workerNodeInfo.workerNodeId
-            getSolverRunner = getSolverRunner p
-            sendMessageProxy = sendMessageProxy i
-            tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
-        }
+//    let onRunModelProxy i p =
+//        {
+//            workerNodeId = i.workerNodeServiceInfo.workerNodeInfo.workerNodeId
+//            numberOfWorkerCores = ""
+//            getSolverRunner = getSolverRunner p
+//            sendMessageProxy = sendMessageProxy i
+//            tryGetRunningSolversCount = 0
+//            tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
+//        }
 
 
     let onRegisterProxy i : OnRegisterProxy =
@@ -280,7 +283,8 @@ module ServiceImplementation =
     let onProcessMessageProxy i p =
         {
             saveWorkerNodeRunModelData = i.workerNodeProxy.saveWorkerNodeRunModelData
-            tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
+            requestCancellation = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
+            notifyOfResults = 0
             onRunModel = onRunModel (onRunModelProxy i p)
         }
 
@@ -289,13 +293,13 @@ module ServiceImplementation =
         | Start of OnStartProxy * AsyncReplyChannel<UnitResult>
         | Register of AsyncReplyChannel<UnitResult>
         | Unregister of AsyncReplyChannel<UnitResult>
-        | UpdateProgress of AsyncReplyChannel<UnitResult> * ProgressUpdateInfo
-        | SaveResult of AsyncReplyChannel<UnitResult> * ResultDataWithId
-        | SaveCharts of AsyncReplyChannel<UnitResult> * ChartGenerationResult
+//        | UpdateProgress of AsyncReplyChannel<UnitResult> * ProgressUpdateInfo
+//        | SaveResult of AsyncReplyChannel<UnitResult> * ResultDataWithId
+//        | SaveCharts of AsyncReplyChannel<UnitResult> * ChartGenerationResult
         | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
-        | GetState of AsyncReplyChannel<WorkerNodeMonitorResponse>
+//        | GetState of AsyncReplyChannel<WorkerNodeMonitorResponse>
         | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
-        | CheckCancellation of AsyncReplyChannel<CancellationType option> * RunQueueId
+//        | CheckCancellation of AsyncReplyChannel<CancellationType option> * RunQueueId
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
@@ -313,13 +317,13 @@ module ServiceImplementation =
                             | Start (p, r) -> return! onStart p s |> (withReply r) |> loop
                             | Register r -> return! onRegister onRegisterProxy s |> (withReply r) |> loop
                             | Unregister r -> return! onUnregister onRegisterProxy s |> (withReply r) |> loop
-                            | UpdateProgress (r, p) -> return! onUpdateProgress onUpdateProgressProxy s p |> (withReply r) |> loop
-                            | SaveResult (r, p) -> return! (s, onSaveResult sendMessageProxy p) |> (withReply r) |> loop
-                            | SaveCharts (r, c) -> return! (s, onSaveCharts sendMessageProxy c) |> (withReply r) |> loop
+//                            | UpdateProgress (r, p) -> return! onUpdateProgress onUpdateProgressProxy s p |> (withReply r) |> loop
+//                            | SaveResult (r, p) -> return! (s, onSaveResult sendMessageProxy p) |> (withReply r) |> loop
+//                            | SaveCharts (r, c) -> return! (s, onSaveCharts sendMessageProxy c) |> (withReply r) |> loop
                             | GetMessages (p, r) -> return! onGetMessages p s |> (withReply r) |> loop
-                            | GetState r -> return! onGetState s |> (withReply r) |> loop
+//                            | GetState r -> return! onGetState s |> (withReply r) |> loop
                             | ConfigureWorker (r, d) -> return! onConfigureWorker onConfigureWorkerProxy s d |> (withReply r) |> loop
-                            | CheckCancellation (r, q) -> return! onCheckCancellation s q |> (withReply r) |> loop
+//                            | CheckCancellation (r, q) -> return! onCheckCancellation s q |> (withReply r) |> loop
                         }
 
                 WorkerNodeRunnerState.defaultValue |> loop
@@ -328,22 +332,22 @@ module ServiceImplementation =
         member w.start() = messageLoop.PostAndReply (fun reply -> Start (w.onStartProxy, reply))
         member _.register() = messageLoop.PostAndReply Register
         member _.unregister() = messageLoop.PostAndReply Unregister
-        member _.updateProgress p = messageLoop.PostAndReply (fun r -> UpdateProgress (r, p))
-        member _.saveResult p = messageLoop.PostAndReply (fun r -> SaveResult (r, p))
-        member _.saveCharts p = messageLoop.PostAndReply (fun r -> SaveCharts (r, p))
+//        member _.updateProgress p = messageLoop.PostAndReply (fun r -> UpdateProgress (r, p))
+//        member _.saveResult p = messageLoop.PostAndReply (fun r -> SaveResult (r, p))
+//        member _.saveCharts p = messageLoop.PostAndReply (fun r -> SaveCharts (r, p))
         member w.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages (w.onGetMessagesProxy, reply))
-        member _.getState () = messageLoop.PostAndReply GetState
+//        member _.getState () = messageLoop.PostAndReply GetState
         member _.configure d = messageLoop.PostAndReply (fun r -> ConfigureWorker (r, d))
-        member _.checkCancellation q = messageLoop.PostAndReply (fun r -> CheckCancellation (r, q))
+//        member _.checkCancellation q = messageLoop.PostAndReply (fun r -> CheckCancellation (r, q))
 
-        member w.solverRunnerProxy =
-            {
-                updateProgress = w.updateProgress
-                saveResult = w.saveResult
-                saveCharts = w.saveCharts
-                logCrit = i.workerNodeProxy.logCrit
-                checkCancellation = w.checkCancellation
-            }
+//        member w.solverRunnerProxy =
+//            {
+//                updateProgress = w.updateProgress
+//                saveResult = w.saveResult
+//                saveCharts = w.saveCharts
+//                logCrit = i.workerNodeProxy.logCrit
+//                checkCancellation = w.checkCancellation
+//            }
 
         member w.onStartProxy =
             {

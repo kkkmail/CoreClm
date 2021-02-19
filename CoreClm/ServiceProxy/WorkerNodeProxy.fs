@@ -7,6 +7,7 @@ open Softellect.Messaging.Primitives
 open NoSql.FileSystemTypes
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerErrors
@@ -74,14 +75,6 @@ module WorkerNodeProxy =
         }
 
 
-//    type OnRunModelProxy =
-//        {
-//            workerNodeId : WorkerNodeId
-//            getSolverRunner : WorkerNodeRunModelData -> SolverRunner
-//            sendMessageProxy : SendMessageProxy
-//            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-//        }
-
     type OnStartProxy =
         {
             loadAllWorkerNodeRunModelData : unit -> ListResult<RunQueueId>
@@ -93,9 +86,22 @@ module WorkerNodeProxy =
     type OnProcessMessageProxy =
         {
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
-            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
+            requestCancellation : RunQueueId -> CancellationType -> UnitResult
+            notifyOfResults : RunQueueId -> ResultNotificationType -> UnitResult
             onRunModel : RunQueueId -> UnitResult
         }
+
+
+    type OnRunModelProxy =
+        {
+            workerNodeId : WorkerNodeId
+            numberOfWorkerCores : int
+            onRunModel : RunQueueId -> UnitResult
+            sendMessageProxy : SendMessageProxy
+            tryGetRunningSolversCount : unit -> ClmResult<int>
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
+        }
+
 
 
 

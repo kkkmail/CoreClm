@@ -17,4 +17,5 @@ module SolverRunner =
             saveCharts : ChartGenerationResult -> UnitResult
             logCrit : SolverRunnerCriticalError -> UnitResult
             checkCancellation : RunQueueId -> CancellationType option
+            checkRunning : RunQueueId -> UnitResult
         }

@@ -85,7 +85,7 @@ module WorkerNodeDatabaseTypes =
             runQueueId,
             processId
         from dbo.RunQueue
-        where runQueueStatusId = " + RunQueueStatus_InProgress
+        where runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
     type RunningSolversTableData =
@@ -299,15 +299,38 @@ module WorkerNodeDatabaseTypes =
         update dbo.RunQueue
         set
             runQueueStatusId = " + RunQueueStatus_CancelRequested + ",
+            notificationTypeId = @notificationTypeId,
             modifiedOn = (getdate())
         where runQueueId = @runQueueId and runQueueStatusId = " + RunQueueStatus_InProgress
 
 
-    let tryRequestCancelRunQueue c (q : RunQueueId) =
+    let tryRequestCancelRunQueue c (q : RunQueueId) (r : CancellationType) =
         let g() =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
             use cmd = new SqlCommandProvider<tryRequestCancelRunQueueSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-            cmd.Execute(runQueueId = q.value) |> bindError TryRequestCancelRunQueue q
+            cmd.Execute(runQueueId = q.value, notificationTypeId = r.value) |> bindError TryRequestCancelRunQueue q
 
         tryDbFun g
+
+
+    /// Can request notification of results when state is InProgress or CancelRequested.
+    [<Literal>]
+    let tryNotifySql = "
+        update dbo.RunQueue
+        set
+            notificationTypeId = @notificationTypeId,
+            modifiedOn = (getdate())
+        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+
+
+    let tryNotifyRunQueue c (q : RunQueueId) (r : ResultNotificationType option) =
+        let g() =
+            let v = r |> Option.bind (fun e -> Some e.value) |> Option.defaultValue 0
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+            use cmd = new SqlCommandProvider<tryNotifySql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            cmd.Execute(runQueueId = q.value, notificationTypeId = v) |> bindError TryNotifyRunQueueErr q
+
+        tryDbFun g
+

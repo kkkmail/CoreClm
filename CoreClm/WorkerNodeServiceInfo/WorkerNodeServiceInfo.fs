@@ -293,6 +293,8 @@ module ServiceInfo =
         | _ -> None
 
 
+    /// Type parameter 'P is needed because this class is shared by WorkerNodeService and WorkerNodeAdm
+    /// and they do have different type of this 'P.
     type WorkerNodeSettingsProxy<'P> =
         {
             tryGetClientId : 'P -> WorkerNodeId option
