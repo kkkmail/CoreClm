@@ -12,6 +12,7 @@ open ModelRunnerErrors
 open GeneralPrimitives
 open ContGenErrors
 open SolverRunnerPrimitives
+open SolverRunnerErrors
 
 module ClmErrors =
 
@@ -32,6 +33,7 @@ module ClmErrors =
         | DbErr of DbError
         | ModelGeneratorErr of ModelGeneratorError
         | WorkerNodeErr of WorkerNodeError
+        | SolverRunnerErr of SolverRunnerError
         | WorkerNodeServiceErr of WorkerNodeServiceError
         | ModelRunnerErr of ModelRunnerError
         | ContGenServiceErr of ContGenServiceError

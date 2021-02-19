@@ -84,8 +84,8 @@ module WorkerNodeProxy =
 
     type OnStartProxy =
         {
-            loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
-            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
+            loadAllWorkerNodeRunModelData : unit -> ListResult<RunQueueId>
+            onRunModel : RunQueueId -> UnitResult
             noOfCores : int
         }
 
@@ -94,7 +94,7 @@ module WorkerNodeProxy =
         {
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
             tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-            onRunModel : WorkerNodeRunnerState -> WorkerNodeRunModelData -> WorkerNodeRunnerResult
+            onRunModel : RunQueueId -> UnitResult
         }
 
 

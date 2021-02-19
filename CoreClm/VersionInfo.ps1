@@ -1,2 +1,2 @@
-[string] $global:messagingDataVersion = "108"
+[string] $global:messagingDataVersion = "110"
 [string] $global:versionNumber = "6.0.1"

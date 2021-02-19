@@ -10,6 +10,7 @@ open Softellect.Wcf.Common
 open Softellect.Messaging.Primitives
 open Softellect.Messaging.Client
 open Softellect.Messaging.Proxy
+open Softellect.Sys.Rop
 
 open ClmSys.Logging
 open ClmSys.WorkerNodeData
@@ -55,7 +56,6 @@ module ServiceImplementation =
 
         static member defaultValue =
             {
-                runningWorkers = Map.empty
                 numberOfWorkerCores = 0
                 workerNodeState = NotStartedWorkerNode
             }
@@ -68,35 +68,6 @@ module ServiceImplementation =
             messageProcessorProxy : MessageProcessorProxy
             minUsefulEe : MinUsefulEe
         }
-
-
-    let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
-        printfn "onSaveResult: Sending results with resultDataId = %A." r.resultDataId
-
-        {
-            partitionerRecipient = proxy.partitionerId
-            deliveryType = GuaranteedDelivery
-            messageData = r |> SaveResultPrtMsg
-        }.getMessageInfo()
-        |> proxy.sendMessage
-        |> Rop.bindError (addError OnSaveResultErr (SendResultMessageError (proxy.partitionerId.messagingClientId, r.resultDataId)))
-
-
-    let onSaveCharts (proxy : SendMessageProxy) (r : ChartGenerationResult) =
-        match r with
-        | GeneratedCharts c ->
-            printfn "onSaveCharts: Sending charts with resultDataId = %A." c.resultDataId
-
-            {
-                partitionerRecipient = proxy.partitionerId
-                deliveryType = GuaranteedDelivery
-                messageData = c |> SaveChartsPrtMsg
-            }.getMessageInfo()
-            |> proxy.sendMessage
-            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageError (proxy.partitionerId.messagingClientId, c.resultDataId)))
-        | NotGeneratedCharts ->
-            printfn "onSaveCharts: No charts."
-            Ok()
 
 
     let onRegister (proxy : OnRegisterProxy) s =
@@ -121,49 +92,6 @@ module ServiceImplementation =
             |> proxy.sendMessageProxy.sendMessage
 
         s, result
-
-
-    let toDeliveryType progress =
-        match progress with
-        | NotStarted -> (GuaranteedDelivery, false)
-        | InProgress _ -> (NonGuaranteedDelivery, false)
-        | Completed _ -> (GuaranteedDelivery, true)
-        | Failed _ -> (GuaranteedDelivery, true)
-        | Cancelled _ -> (GuaranteedDelivery, true)
-        | AllCoresBusy _ -> (GuaranteedDelivery, true)
-
-
-    let onUpdateProgress (proxy : OnUpdateProgressProxy) s (p : ProgressUpdateInfo) =
-        //printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
-
-        let updateProgress t completed =
-            let rso, result =
-                match s.runningWorkers |> Map.tryFind p.runQueueId with
-                | Some rs ->
-                    let result =
-                        {
-                            partitionerRecipient = proxy.sendMessageProxy.partitionerId
-                            deliveryType = t
-                            messageData = UpdateProgressPrtMsg p
-                        }.getMessageInfo()
-                        |> proxy.sendMessageProxy.sendMessage
-                        |> Rop.bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
-
-                    Some { rs with runnerState = { rs.runnerState with progress = p.progress; lastUpdated = DateTime.Now } }, result
-                | None -> None, p.runQueueId |> UnableToFindMappingErr |> OnUpdateProgressErr |> WorkerNodeErr |> Error
-
-            if completed
-            then
-                let r2 = proxy.tryDeleteWorkerNodeRunModelData p.runQueueId
-                { s with runningWorkers = s.runningWorkers.tryRemove p.runQueueId }, combineUnitResults result r2
-            else
-                match rso with
-                | Some rs -> { s with runningWorkers = s.runningWorkers.Add(p.runQueueId, rs) }, result
-                | None -> s, result
-
-        let (t, completed) = toDeliveryType p.progress
-        let w, result = updateProgress t completed
-        w, result
 
 
     type OnRunModelProxy =
@@ -212,37 +140,33 @@ module ServiceImplementation =
         | NotStartedWorkerNode ->
             let w = { s with numberOfWorkerCores = proxy.noOfCores; workerNodeState = StartedWorkerNode }
 
-            let doStart mi =
-                let m, mf = mi |> Rop.unzip
-
-                match foldErrors mf with
-                | None -> (m, w) ||> Rop.foldWhileOk proxy.onRunModel
-                | Some e -> s, Error e
-
-            let g, result =
-                match proxy.loadAllWorkerNodeRunModelData() with
-                | Ok mi -> doStart mi
-                | Error e -> w, Error e
-
-            g, result
+//            let doStart (mi : list<ClmResult<RunQueueId>>) : UnitResult =
+//                let m, mf = mi |> Rop.unzip
+//
+//                match foldErrors mf with
+//                | None ->
+//                    (m, Ok())
+//                    ||> Rop.foldWhileOk (fun e ->
+//                                                        proxy.onRunModel e
+//                                                        failwith "")
+//                    |> snd
+//                | Some e -> Error e
+//
+//            let result = proxy.loadAllWorkerNodeRunModelData() >>= doStart
+//
+////                match proxy.loadAllWorkerNodeRunModelData() with
+////                | Ok mi -> doStart mi
+////                | Error e -> Error e
+//
+//            w, result
+            failwith "onStart is not implemented yet."
         | StartedWorkerNode -> s, Ok()
 
 
-    let onRunModelWrkMsg (proxy : OnProcessMessageProxy) s d m =
-        let addError = addError OnProcessMessageErr
-        let toError = toError OnProcessMessageErr
-
-        match s.runningWorkers |> Map.tryFind d.runningProcessData.runQueueId with
-        | None ->
-            match proxy.saveWorkerNodeRunModelData d with
-            | Ok() ->
-                let w1, r1 = proxy.onRunModel s d
-
-                match r1 with
-                | Ok() -> w1, Ok()
-                | Error e -> w1, addError (OnRunModelFailedErr (m, d.runningProcessData.runQueueId)) e
-            | Error e -> s, addError (CannotSaveModelDataErr (m, d.runningProcessData.runQueueId)) e
-        | Some _ -> s, (m, d.runningProcessData.runQueueId) |> ModelAlreadyRunningErr |> toError
+    let onRunModelWrkMsg (proxy : OnProcessMessageProxy) d m =
+        match proxy.saveWorkerNodeRunModelData d with
+        | Ok() -> proxy.onRunModel d.runningProcessData.runQueueId
+        | Error e -> addError OnProcessMessageErr (CannotSaveModelDataErr (m, d.runningProcessData.runQueueId)) e
 
 
     let onCancelRunWrkMsg t s (q, c) =

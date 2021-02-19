@@ -91,19 +91,18 @@ module ServiceInfo =
 
     type WorkerNodeRunnerState =
         {
-            runningWorkers : Map<RunQueueId, RunnerStateWithCancellation>
             numberOfWorkerCores : int
             workerNodeState : WorkerNodeState
         }
 
-        member w.toWorkerNodeRunnerMonitorState() =
-            {
-                workers = w.runningWorkers |> Map.map (fun _ e -> e.runnerState)
-                noOfWorkerCores = w.numberOfWorkerCores
-            }
+//        member w.toWorkerNodeRunnerMonitorState() =
+//            {
+//                workers = w.runningWorkers |> Map.map (fun _ e -> e.runnerState)
+//                noOfWorkerCores = w.numberOfWorkerCores
+//            }
 
 
-    type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
+//    type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
 
 
     type WorkerNodeMonitorParam =
