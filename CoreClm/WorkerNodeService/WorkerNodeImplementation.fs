@@ -33,6 +33,7 @@ open ServiceProxy.SolverRunner
 open SolverRunner.SolverRunnerTasks
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.MessagingData
+open ServiceProxy.SolverProcessProxy
 
 module ServiceImplementation =
 
@@ -104,7 +105,11 @@ module ServiceImplementation =
 
         match proxy.tryGetRunningSolversCount() with
         | Ok n ->
-            failwith ""
+            match n < proxy.numberOfWorkerCores with
+            | true ->
+//                let solver
+                failwith ""
+            | false -> failwith ""
         | Error e -> failed e
 
 
@@ -214,7 +219,8 @@ module ServiceImplementation =
 
     type OnProcessMessageType = OnProcessMessageType<WorkerNodeRunnerState>
     type OnGetMessagesProxy = OnGetMessagesProxy<WorkerNodeRunnerState>
-    let onGetMessages = onGetMessages<WorkerNodeRunnerState>
+    let private onGetMessages = onGetMessages<unit>
+//    let onGetMessages = onGetMessages<WorkerNodeRunnerState>
 //    let onGetState (s : WorkerNodeRunnerState) = s, s.toWorkerNodeRunnerMonitorState() |> WrkNodeState
 
 

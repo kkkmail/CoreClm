@@ -2,54 +2,21 @@
 
 open ClmSys.GeneralPrimitives
 open GeneralErrors
-open ExitErrorCodes
 open Softellect.Sys.MessagingPrimitives
 
 module SolverRunnerErrors =
 
-    type CriticalErrorType =
-        | ErrorCodeBased
-        | ExceptionBased
-        | ErrorMessageBased
-
-
     type SolverRunnerCriticalError =
         {
             errorId : ErrorId
-            errorType : CriticalErrorType
-            result : int
-            errorMessageOpt : string option
-            exceptionOpt : exn option
+            errorMessage : string
         }
 
-        static member fromErrorCode e =
+        static member create e =
             {
                 errorId = ErrorId.getNewId()
-                errorType = ErrorCodeBased
-                result = e
-                errorMessageOpt = None
-                exceptionOpt = None
+                errorMessage = $"{e}"
             }
-
-        static member fromExn e =
-            {
-                errorId = ErrorId.getNewId()
-                errorType = ExceptionBased
-                result = UnknownException
-                errorMessageOpt = None
-                exceptionOpt = Some e
-            }
-
-
-        static member fromErrMessage e =
-            {
-                errorId = ErrorId.getNewId()
-                errorType = ErrorMessageBased
-                result = UnknownException
-                errorMessageOpt = Some e
-                exceptionOpt = None
-            }
-
 
     type OnSaveResultError =
         | SendResultMessageError of (MessagingClientId * ResultDataId)

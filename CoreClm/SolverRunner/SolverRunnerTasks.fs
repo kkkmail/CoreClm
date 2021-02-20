@@ -293,7 +293,7 @@ module SolverRunnerTasks =
         let logIfFailed errMessage result =
             match result with
             | Ok() -> ()
-            | Error e -> SolverRunnerCriticalError.fromErrMessage (errMessage + ":" + e.ToString()) |> proxy.logCrit |> ignore
+            | Error e -> SolverRunnerCriticalError.create (errMessage + ":" + e.ToString()) |> proxy.logCrit |> ignore
 
         let updateFinalProgress errMessage = proxy.updateProgress >> (logIfFailed errMessage)
         let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation

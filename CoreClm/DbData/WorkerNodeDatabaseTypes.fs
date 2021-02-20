@@ -26,6 +26,7 @@ open Clm.ModelParams
 open ClmSys.MessagingData
 open ClmSys.SolverRunnerPrimitives
 open MessagingServiceInfo.ServiceInfo
+open ClmSys.WorkerNodeErrors
 
 // ! Must be the last to open !
 open Configuration
@@ -331,6 +332,53 @@ module WorkerNodeDatabaseTypes =
             let connectionString = conn.ConnectionString
             use cmd = new SqlCommandProvider<tryNotifySql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
             cmd.Execute(runQueueId = q.value, notificationTypeId = v) |> bindError TryNotifyRunQueueErr q
+
+        tryDbFun g
+
+    [<Literal>]
+    let tryCheckCancellationSql = "
+        select
+            notificationTypeId
+        from dbo.RunQueue
+        where runQueueId = @runQueueId and runQueueStatusId = " + RunQueueStatus_CancelRequested
+
+
+    type CheckCancellationTableData =
+        SqlCommandProvider<tryCheckCancellationSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
+
+
+    let private mapCheckCancellation (reader : DynamicSqlDataReader) =
+        match int reader?notificationTypeId with
+        | 0 -> AbortCalculation None
+        | _ -> CancelWithResults None
+        |> Ok
+
+
+    let tryCheckCancellation c (RunQueueId q) =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn c
+                    use data = new CheckCancellationTableData(conn)
+                    use reader = new DynamicSqlDataReader(data.Execute(runQueueId = q))
+                    while (reader.Read()) do yield mapCheckCancellation reader
+                        }
+            |> List.ofSeq
+            |> List.tryHead
+            |> Ok
+
+        tryDbFun g |> Rop.unwrapResultOption
+
+
+    let deleteRunQueue c (q : RunQueueId) =
+        let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+            use cmd = new SqlCommandProvider<"delete from dbo.RunQueue where runQueueId = @runQueueId", WorkerNodeConnectionStringValue>(connectionString)
+
+            match cmd.Execute(runQueueId = q.value) with
+            | 0 | 1 -> Ok()
+            | _ -> q |> CannotDeleteRunQueue |> OnRunModelErr |> WorkerNodeErr |> Error
 
         tryDbFun g
 

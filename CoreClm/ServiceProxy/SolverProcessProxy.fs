@@ -3,11 +3,15 @@ namespace ServiceProxy
 open System
 open System.Diagnostics
 open ClmSys.GeneralPrimitives
+open ClmSys.PartitionerPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
+open ClmSys.VersionInfo
 open MessagingServiceInfo.ServiceInfo
 open DbData.WorkerNodeDatabaseTypes
 open DbData.Configuration
+open DbData.MsgSvcDatabaseTypes
+open Softellect.Messaging.Client
 
 module SolverProcessProxy =
 
@@ -57,6 +61,24 @@ module SolverProcessProxy =
             None
 
 
+    let checkRunning (RunQueueId q) : UnitResult =
+        failwith "checkRunning is not yet implemented."
+
+
+    type SendMessageProxy =
+        {
+            partitionerId : PartitionerId
+            sendMessage : MessageInfo -> UnitResult
+        }
+
+
+    type OnUpdateProgressProxy =
+        {
+            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
+            sendMessageProxy : SendMessageProxy
+        }
+
+
     type SolverProcessProxy =
         {
             tryLoadRunQueue : unit -> ClmResult<WorkerNodeRunModelData>
@@ -64,17 +86,35 @@ module SolverProcessProxy =
             tryCompleteRunQueue : unit -> UnitResult
             tryCancelRunQueue : string -> UnitResult
             tryFailRunQueue : string -> UnitResult
+            checkRunning : unit -> UnitResult
+            onUpdateProgressProxy : OnUpdateProgressProxy
         }
 
 
-        static member create (q : RunQueueId) : SolverProcessProxy =
-            let c = getWorkerNodeSvcConnectionString
-            let p = Process.GetCurrentProcess().Id |> ProcessId
+        static member create c m p q : SolverProcessProxy =
+            let pid = Process.GetCurrentProcess().Id |> ProcessId
+
+            // Send the message directly to local database.
+            let sendMessage i =
+                createMessage messagingDataVersion m i
+                |> saveMessage c
 
             {
                 tryLoadRunQueue = fun () -> tryLoadRunQueue c q
-                tryStartRunQueue = fun () -> tryStartRunQueue c q p
+                tryStartRunQueue = fun () -> tryStartRunQueue c q pid
                 tryCompleteRunQueue = fun () -> tryCompleteRunQueue c q
                 tryCancelRunQueue = tryCancelRunQueue c q
                 tryFailRunQueue = tryFailRunQueue c q
+                checkRunning = fun () -> checkRunning q
+
+                onUpdateProgressProxy =
+                    {
+                        tryDeleteWorkerNodeRunModelData = deleteRunQueue c
+
+                        sendMessageProxy =
+                            {
+                                partitionerId = p
+                                sendMessage = sendMessage
+                            }
+                    }
             }

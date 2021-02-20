@@ -10,6 +10,7 @@ module WorkerNodeErrors =
 
     type OnRunModelError =
         | CannotRunModelErr
+        | CannotDeleteRunQueue of RunQueueId
 
 
     type OnProcessMessageError =

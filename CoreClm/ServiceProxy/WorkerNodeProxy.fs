@@ -2,6 +2,7 @@
 
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodeData
+open ServiceProxy.SolverProcessProxy
 open Softellect.Messaging.Primitives
 
 open NoSql.FileSystemTypes
@@ -54,23 +55,9 @@ module WorkerNodeProxy =
             }
 
 
-    type SendMessageProxy =
-        {
-            partitionerId : PartitionerId
-            sendMessage : MessageInfo -> UnitResult
-        }
-
-
     type OnRegisterProxy =
         {
             workerNodeInfo : WorkerNodeInfo
-            sendMessageProxy : SendMessageProxy
-        }
-
-
-    type OnUpdateProgressProxy =
-        {
-            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
             sendMessageProxy : SendMessageProxy
         }
 
@@ -101,7 +88,3 @@ module WorkerNodeProxy =
             tryGetRunningSolversCount : unit -> ClmResult<int>
             tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
         }
-
-
-
-

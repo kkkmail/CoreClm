@@ -238,6 +238,6 @@ module FileSystemTypes =
     let loadWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = loadData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let tryDeleteWorkerNodeInfoFs serviceName (WorkerNodeId (MessagingClientId workerNodeId)) = tryDeleteData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName workerNodeId
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeInfoTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
-    let loadeWorkerNodeInfoAllFs serviceName () = loadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
+    let loadWorkerNodeInfoAllFs serviceName () = loadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
 
     let saveSolverRunnerErrFs serviceName (r : SolverRunnerCriticalError) = saveErrData<SolverRunnerCriticalError, Guid> serviceName solverRunnerErrTblName r.errorId.value r
