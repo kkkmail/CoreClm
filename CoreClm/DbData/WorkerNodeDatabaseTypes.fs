@@ -37,7 +37,7 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Binds an unsuccessful database update operation to a given continuation function.
-    let bindError f q r =
+    let private bindError f q r =
         match r = 1 with
         | true -> Ok ()
         | false -> toError f q
@@ -194,13 +194,17 @@ module WorkerNodeDatabaseTypes =
         tryDbFun g
 
 
+    let loadAllActiveRunQueueId c =
+        failwith ""
+
+
     let saveRunQueue c (w : WorkerNodeRunModelData) =
         let g() =
             use conn = getOpenConn c
             use t = new RunQueueTable()
             let row = w.addRow t
             t.Update conn |> ignore
-            row.runQueueId |> RunQueueId |> Ok
+            Ok()
 
         tryDbFun g
 
@@ -334,6 +338,7 @@ module WorkerNodeDatabaseTypes =
             cmd.Execute(runQueueId = q.value, notificationTypeId = v) |> bindError TryNotifyRunQueueErr q
 
         tryDbFun g
+
 
     [<Literal>]
     let tryCheckCancellationSql = "

@@ -14,8 +14,13 @@ open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerErrors
 open ClmSys.WorkerNodePrimitives
 open WorkerNodeServiceInfo.ServiceInfo
+open DbData.Configuration
+open DbData.WorkerNodeDatabaseTypes
 
 module WorkerNodeProxy =
+
+    let private name = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
+
 
     type StorageType =
         | LocalStorage of ConnectionString
@@ -34,41 +39,6 @@ module WorkerNodeProxy =
                 noOfProgressPoints = None
             }
 
-    type WorkerNodeProxy =
-        {
-            saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult
-            loadWorkerNodeRunModelData : RunQueueId -> ClmResult<WorkerNodeRunModelData>
-            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-            loadAllWorkerNodeRunModelData : unit -> ListResult<WorkerNodeRunModelData>
-            logCrit : SolverRunnerCriticalError -> UnitResult
-        }
-
-        static member create (i : WorkerNodeProxyData) =
-            let name = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
-
-            {
-                saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
-                loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
-                tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
-                loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
-                logCrit = saveSolverRunnerErrFs name
-            }
-
-
-    type OnRegisterProxy =
-        {
-            workerNodeInfo : WorkerNodeInfo
-            sendMessageProxy : SendMessageProxy
-        }
-
-
-    type OnStartProxy =
-        {
-            loadAllWorkerNodeRunModelData : unit -> ListResult<RunQueueId>
-            onRunModel : RunQueueId -> UnitResult
-            noOfCores : int
-        }
-
 
     type OnProcessMessageProxy =
         {
@@ -79,11 +49,58 @@ module WorkerNodeProxy =
         }
 
 
+    type WorkerNodeProxy =
+        {
+            onProcessMessageProxy : OnProcessMessageProxy
+            loadAllActiveRunQueueId : unit -> ListResult<RunQueueId>
+            logCrit : SolverRunnerCriticalError -> UnitResult
+        }
+
+//        static member createLocal (i : WorkerNodeProxyData) =
+//            let name = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
+//
+//            {
+//                saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
+//                loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
+//                tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
+//                loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
+//                logCrit = saveSolverRunnerErrFs name
+//            }
+
+        static member create c sr =
+            {
+                onProcessMessageProxy =
+                    {
+                        saveWorkerNodeRunModelData = saveRunQueue c
+                        requestCancellation = tryRequestCancelRunQueue c
+                        notifyOfResults = fun q r -> tryNotifyRunQueue c q (Some r)
+                        onRunModel = sr
+                    }
+
+                loadAllActiveRunQueueId = loadAllActiveRunQueueId c
+                logCrit = saveSolverRunnerErrFs name
+            }
+
+    type OnRegisterProxy =
+        {
+            workerNodeInfo : WorkerNodeInfo
+            sendMessageProxy : SendMessageProxy
+        }
+
+
+    type OnStartProxy =
+        {
+            loadAllActiveRunQueueId : unit -> ListResult<RunQueueId>
+            onRunModel : RunQueueId -> UnitResult
+            noOfCores : int
+        }
+
+
     type OnRunModelProxy =
         {
             workerNodeId : WorkerNodeId
             numberOfWorkerCores : int
-            onRunModel : RunQueueId -> UnitResult
+            runSolver : RunQueueId -> UnitResult
             sendMessageProxy : SendMessageProxy
             tryGetRunningSolversCount : unit -> ClmResult<int>
             tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
