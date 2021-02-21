@@ -6,61 +6,32 @@ open ClmSys.ClmErrors
 open ClmSys.ExitErrorCodes
 open ClmSys.GeneralPrimitives
 open ServiceProxy.SolverProcessProxy
-open ServiceProxy.WorkerNodeProxy
 open SolverRunner.SolverRunnerCommandLine
 open NoSql.FileSystemTypes
-open System
-open Argu
 open DbData.Configuration
 open DbData.WorkerNodeDatabaseTypes
-
-open Softellect.Sys.Core
 open Softellect.Sys
-open Softellect.Messaging.ServiceInfo
-open Softellect.Wcf.Common
 open Softellect.Messaging.Primitives
 open Softellect.Messaging.Client
-open Softellect.Messaging.Proxy
-
-open ClmSys.Logging
 open ClmSys.WorkerNodeData
-open ClmSys.TimerEvents
 open ContGenServiceInfo.ServiceInfo
 open WorkerNodeServiceInfo.ServiceInfo
-open ServiceProxy.MsgServiceProxy
 open MessagingServiceInfo.ServiceInfo
-open Clm.ModelParams
-open ServiceProxy.WorkerNodeProxy
-open ServiceProxy.MsgProcessorProxy
-open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.PartitionerPrimitives
-open ClmSys.GeneralPrimitives
-open ClmSys.WorkerNodeErrors
 open ClmSys.WorkerNodePrimitives
 open ServiceProxy.SolverRunner
 open SolverRunner.SolverRunnerTasks
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.MessagingData
 open ClmSys.SolverRunnerErrors
 open DbData.MsgSvcDatabaseTypes
-open System
 open System.Diagnostics
-open ClmSys.GeneralPrimitives
-open ClmSys.PartitionerPrimitives
-open ClmSys.SolverRunnerPrimitives
-open ClmSys.ClmErrors
 open ClmSys.VersionInfo
-open MessagingServiceInfo.ServiceInfo
-open DbData.WorkerNodeDatabaseTypes
-open DbData.Configuration
-open DbData.MsgSvcDatabaseTypes
-open Softellect.Messaging.Client
 
 module SolverRunnerImplementation =
 
     let private toError g f = f |> g |> SolverRunnerErr |> Error
     let private addError g f e = ((f |> g |> SolverRunnerErr) + e) |> Error
+
 
     let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
         printfn "onSaveResult: Sending results with resultDataId = %A." r.resultDataId
@@ -71,7 +42,7 @@ module SolverRunnerImplementation =
             messageData = r |> SaveResultPrtMsg
         }.getMessageInfo()
         |> proxy.sendMessage
-        |> Rop.bindError (addError OnSaveResultErr (SendResultMessageError (proxy.partitionerId.messagingClientId, r.resultDataId)))
+        |> Rop.bindError (addError OnSaveResultErr (SendResultMessageErr (proxy.partitionerId.messagingClientId, r.resultDataId)))
 
 
     let onSaveCharts (proxy : SendMessageProxy) (r : ChartGenerationResult) =
@@ -85,7 +56,7 @@ module SolverRunnerImplementation =
                 messageData = c |> SaveChartsPrtMsg
             }.getMessageInfo()
             |> proxy.sendMessage
-            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageError (proxy.partitionerId.messagingClientId, c.resultDataId)))
+            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.resultDataId)))
         | NotGeneratedCharts ->
             printfn "onSaveCharts: No charts."
             Ok()
@@ -116,23 +87,13 @@ module SolverRunnerImplementation =
 
         if completed
         then
-            let r2 = proxy.tryDeleteWorkerNodeRunModelData p.runQueueId
+            let r2 = proxy.tryDeleteWorkerNodeRunModelData()
             combineUnitResults r1 r2
         else r1
 
 
     let private tryLoadWorkerNodeSettings () = tryLoadWorkerNodeSettings None None
     let private name = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
-
-
-//    type SendMessageProxy
-//        with
-//        static member create (w : WorkerNodeSettings) : SendMessageProxy =
-//            failwith "SendMessageProxy.create is not yet implemented."
-////            {
-////                partitionerId = w.workerNodeInfo.partitionerId
-////                sendMessage = 0
-////            }
 
 
     type SolverRunnerProxy
@@ -151,32 +112,6 @@ module SolverRunnerImplementation =
                 checkCancellation = checkCancellation
             }
 
-//    let tryRunSolverRunner (proxy : SolverProcessProxy) =
-//        match proxy.tryLoadRunQueue (), tryLoadWorkerNodeSettings (), proxy.checkRunning() with
-//        | Ok w, Some s, Ok() ->
-//            let c = getWorkerNodeSvcConnectionString
-//            match proxy.tryStartRunQueue () with
-//            | Ok() ->
-//                let solverProxy = SolverRunnerProxy.create c proxy
-//                let solver = getSolverRunner solverProxy w
-//                solver.runSolver()
-//                Ok()
-//            | Error e -> Error e
-//        | Error e, _, _ -> Error e
-//        | _, None, _ -> InvalidSettings "Unable to load settings." |> WrkSettingsErr |> WorkerNodeErr |> Error
-//        | _, _, Error e -> Error e
-
-
-//    type SolverProcess(proxy : SolverProcessProxy) =
-//
-//        member x.run() = tryRunSolverRunner proxy
-
-
-//    let tryCreateSolver q : ClmResult<SolverProcess> =
-//        let c = getWorkerNodeSvcConnectionString
-//        let proxy = SolverProcessProxy.create c q
-//        let solver = SolverProcess proxy
-//        Ok solver
 
     // Send the message directly to local database.
     let private sendMessage c m i =
@@ -199,62 +134,35 @@ module SolverRunnerImplementation =
 
         match results.TryGetResult RunQueue |> Option.bind (fun e -> e |> RunQueueId |> Some) with
         | Some q ->
-            match tryLoadRunQueue c q, tryLoadWorkerNodeSettings(), checkRunning q with
-            | Ok w, Some s, Ok() ->
-                match tryStartRunQueue c q with
-                | Ok() ->
-                    let proxy =
-                        {
-                            tryDeleteWorkerNodeRunModelData = deleteRunQueue c
+            //, checkRunning q
+            match tryLoadRunQueue c q, tryLoadWorkerNodeSettings() with
+            | Ok w, Some s ->
+                match checkRunning q s.workerNodeInfo.noOfCores with
+                | CanRun ->
+                    match tryStartRunQueue c q with
+                    | Ok() ->
+                        let proxy =
+                            {
+                                tryDeleteWorkerNodeRunModelData = fun () -> deleteRunQueue c q
+                                tryUpdateProgress = tryUpdateProgressRunQueue c q
 
-                            sendMessageProxy =
-                                {
-                                    partitionerId = s.workerNodeInfo.partitionerId
-                                    sendMessage = sendMessage c s.workerNodeInfo.workerNodeId.messagingClientId
-                                }
-                        }
+                                sendMessageProxy =
+                                    {
+                                        partitionerId = s.workerNodeInfo.partitionerId
+                                        sendMessage = sendMessage c s.workerNodeInfo.workerNodeId.messagingClientId
+                                    }
+                            }
 
-                    let solverProxy = SolverRunnerProxy.create c logCrit proxy
-                    let solver = getSolverRunner solverProxy w
-                    solver.runSolver()
-                    CompletedSuccessfully
-                | Error e -> exitWithLogCrit e UnknownException
-            | Error e, _, _ -> exitWithLogCrit e DatabaseErrorOccurred
-            | _, None, _ -> exitWithLogCrit "Unable to load WorkerNodeSettings." CriticalError
-            | _, _, Error e -> exitWithLogCrit e CriticalError
+                        let solverProxy = SolverRunnerProxy.create c logCrit proxy
+                        let solver = getSolverRunner solverProxy w
+                        solver.runSolver()
+                        CompletedSuccessfully
+                    | Error e -> exitWithLogCrit e UnknownException
+                | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) UnknownException
+                | TooManyRunning n -> exitWithLogCrit (TooManyRunning n) UnknownException
+                | GetProcessesByNameExn e -> exitWithLogCrit e CriticalError
+            | Error e, _ -> exitWithLogCrit e DatabaseErrorOccurred
+            | _, None -> exitWithLogCrit "Unable to load WorkerNodeSettings." CriticalError
         | None ->
             printfn $"runSolver: {usage}."
             InvalidCommandLineArgs
-
-
-//        let g () = results.TryGetResult RunQueue |> Option.bind (fun e -> e |> RunQueueId |> tryLoadRunQueue c |> Some)
-//
-//        match g (), tryLoadWorkerNodeSettings () with
-//        | Some (Ok q) ->
-//            let proxy = SolverProcessProxy.create c q
-//
-//            match proxy.tryLoadRunQueue (), tryLoadWorkerNodeSettings (), proxy.checkRunning() with
-//            | Ok w, Some s, Ok() ->
-//                let c = getWorkerNodeSvcConnectionString
-//                match proxy.tryStartRunQueue () with
-//                | Ok() ->
-//                    let solverProxy = SolverRunnerProxy.create c proxy
-//                    let solver = getSolverRunner solverProxy w
-//                    solver.runSolver()
-//                    Ok()
-//                | Error e -> Error e
-//            | Error e, _, _ -> Error e
-//            | _, None, _ -> InvalidSettings "Unable to load settings." |> WrkSettingsErr |> WorkerNodeErr |> Error
-//            | _, _, Error e -> Error e
-//
-////            match tryCreateSolver q with
-////            | Ok solver ->
-////                solver.run()
-////                CompletedSuccessfully
-////            | Error e ->
-////                printfn $"runSolver: Error: {e}."
-////                DatabaseErrorOccurred
-//        | _ ->
-//            printfn $"runSolver: {usage}."
-//            InvalidCommandLineArgs
-

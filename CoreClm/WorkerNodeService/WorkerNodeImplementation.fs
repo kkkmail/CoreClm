@@ -58,7 +58,6 @@ module ServiceImplementation =
 
         static member defaultValue =
             {
-                numberOfWorkerCores = 0
                 workerNodeState = NotStartedWorkerNode
             }
 
@@ -96,53 +95,40 @@ module ServiceImplementation =
         s, result
 
 
-    let onRunModel (proxy : OnRunModelProxy) q =
-        let failed p =
-            {
-                partitionerRecipient = proxy.sendMessageProxy.partitionerId
-                deliveryType = GuaranteedDelivery
-                messageData = UpdateProgressPrtMsg { runQueueId = q; progress = p }
-            }.getMessageInfo()
-            |> proxy.sendMessageProxy.sendMessage
-
-        match proxy.tryGetRunningSolversCount() with
-        | Ok n ->
-            match n < proxy.numberOfWorkerCores with
-            | true -> proxy.runSolver q
-            | false -> AllCoresBusy proxy.workerNodeId |> failed
-        | Error e -> Failed (ErrorMessage $"{e}") |> failed
+//    let onRunModel (proxy : OnRunModelProxy) q =
+//        let failed p =
+//            {
+//                partitionerRecipient = proxy.sendMessageProxy.partitionerId
+//                deliveryType = GuaranteedDelivery
+//                messageData = UpdateProgressPrtMsg { runQueueId = q; progress = p }
+//            }.getMessageInfo()
+//            |> proxy.sendMessageProxy.sendMessage
+//
+//        match proxy.tryGetRunningSolversCount() with
+//        | Ok n ->
+//            match n < proxy.numberOfWorkerCores with
+//            | true -> proxy.runSolver q
+//            | false -> AllCoresBusy proxy.workerNodeId |> failed
+//        | Error e -> Failed (ErrorMessage $"{e}") |> failed
 
 
     let onStart (proxy : OnStartProxy) s =
         match s.workerNodeState with
         | NotStartedWorkerNode ->
-            let w = { s with numberOfWorkerCores = proxy.noOfCores; workerNodeState = StartedWorkerNode }
+            let w = { s with workerNodeState = StartedWorkerNode }
 
             let doStart (mi : list<ClmResult<RunQueueId>>) : UnitResult =
                 let m, mf = mi |> Rop.unzip
 
                 let r =
-                    m
-                    |> List.map id
-//
-//                match foldErrors mf with
-//                | None ->
-//                    (m, Ok())
-//                    ||> Rop.foldWhileOk (fun e ->
-//                                                        proxy.onRunModel e
-//                                                        failwith "")
-//                    |> snd
-//                | Some e -> Error e
-                failwith ""
+                    (m |> List.map proxy.onRunModel)
+                    @
+                    [ foldErrors mf |> toUnitResult ]
+                    |> foldUnitResults
+                r
 
             let result = proxy.loadAllActiveRunQueueId() >>= doStart
-//
-////                match proxy.loadAllWorkerNodeRunModelData() with
-////                | Ok mi -> doStart mi
-////                | Error e -> Error e
-//
-//            w, result
-            failwith "onStart is not implemented yet."
+            w, result
         | StartedWorkerNode -> s, Ok()
 
 
@@ -169,25 +155,25 @@ module ServiceImplementation =
         // s, s.toWorkerNodeRunnerMonitorState() |> WrkNodeState
 
 
-    let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d =
-        match d with
-        | WorkerNumberOfSores c ->
-            let cores = max 0 (min c (2 * Environment.ProcessorCount))
-
-            let send() =
-                {
-                    partitionerRecipient = proxy.sendMessageProxy.partitionerId
-                    deliveryType = GuaranteedDelivery
-                    messageData = { proxy.workerNodeInfo with noOfCores = cores } |> RegisterWorkerNodePrtMsg
-                }.getMessageInfo()
-                |> proxy.sendMessageProxy.sendMessage
-
-            let w, result =
-                match send() with
-                | Ok() -> { s with numberOfWorkerCores = cores }, Ok()
-                | Error e -> s, Error e
-
-            w, result
+//    let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d =
+//        match d with
+//        | WorkerNumberOfSores c ->
+//            let cores = max 0 (min c (2 * Environment.ProcessorCount))
+//
+//            let send() =
+//                {
+//                    partitionerRecipient = proxy.sendMessageProxy.partitionerId
+//                    deliveryType = GuaranteedDelivery
+//                    messageData = { proxy.workerNodeInfo with noOfCores = cores } |> RegisterWorkerNodePrtMsg
+//                }.getMessageInfo()
+//                |> proxy.sendMessageProxy.sendMessage
+//
+//            let w, result =
+//                match send() with
+//                | Ok() -> { s with numberOfWorkerCores = cores }, Ok()
+//                | Error e -> s, Error e
+//
+//            w, result
 
 
     let sendMessageProxy i =
@@ -226,7 +212,7 @@ module ServiceImplementation =
         | Unregister of AsyncReplyChannel<UnitResult>
         | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
         | GetState of AsyncReplyChannel<WorkerNodeMonitorResponse>
-        | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
+//        | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
@@ -246,7 +232,7 @@ module ServiceImplementation =
                             | Unregister r -> return! onUnregister onRegisterProxy s |> (withReply r) |> loop
                             | GetMessages (p, r) -> return! onGetMessages p s |> (withReply r) |> loop
                             | GetState r -> return! onGetState s |> (withReply r) |> loop
-                            | ConfigureWorker (r, d) -> return! onConfigureWorker onConfigureWorkerProxy s d |> (withReply r) |> loop
+//                            | ConfigureWorker (r, d) -> return! onConfigureWorker onConfigureWorkerProxy s d |> (withReply r) |> loop
                         }
 
                 WorkerNodeRunnerState.defaultValue |> loop
@@ -257,13 +243,12 @@ module ServiceImplementation =
         member _.unregister() = messageLoop.PostAndReply Unregister
         member w.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages (w.onGetMessagesProxy, reply))
         member _.getState() = messageLoop.PostAndReply GetState
-        member _.configure d = messageLoop.PostAndReply (fun r -> ConfigureWorker (r, d))
+//        member _.configure d = messageLoop.PostAndReply (fun r -> ConfigureWorker (r, d))
 
         member w.onStartProxy =
             {
                 loadAllActiveRunQueueId = i.workerNodeProxy.loadAllActiveRunQueueId
                 onRunModel = i.workerNodeProxy.onProcessMessageProxy.onRunModel
-                noOfCores = i.workerNodeServiceInfo.workerNodeInfo.noOfCores
             }
 
         member w.onGetMessagesProxy =
@@ -300,14 +285,8 @@ module ServiceImplementation =
         with
         static member create (j : ClmResult<WorkerNodeServiceInfo>) =
             let logger = Logger.defaultValue
-            let className = "WorkerNodeService"
-            let toError e = e |> WorkerNodeServiceErr |> Error
             let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
             let c = getWorkerNodeSvcConnectionString
-
-//            let msgDbLocation = getFileName MsgDatabase
-//            let connStrSqlite = @"Data Source=" + msgDbLocation + ";Version=3;foreign keys=true"
-//            logger.logInfoString (sprintf "%s: Using local database: '%s'." className msgDbLocation)
 
             match j with
             | Ok i ->
@@ -317,7 +296,6 @@ module ServiceImplementation =
                     let j =
                         {
                             messagingClientName = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
-//                            storageType = connStrSqlite |> SqliteConnectionString |> SqliteDatabase
                             storageType = c |> MsSqlDatabase
                         }
 

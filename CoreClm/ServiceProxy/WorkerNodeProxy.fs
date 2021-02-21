@@ -1,6 +1,5 @@
 ﻿namespace ServiceProxy
 
-open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodeData
 open ServiceProxy.SolverProcessProxy
 open Softellect.Messaging.Primitives
@@ -13,8 +12,6 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerErrors
 open ClmSys.WorkerNodePrimitives
-open WorkerNodeServiceInfo.ServiceInfo
-open DbData.Configuration
 open DbData.WorkerNodeDatabaseTypes
 
 module WorkerNodeProxy =
@@ -56,17 +53,6 @@ module WorkerNodeProxy =
             logCrit : SolverRunnerCriticalError -> UnitResult
         }
 
-//        static member createLocal (i : WorkerNodeProxyData) =
-//            let name = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
-//
-//            {
-//                saveWorkerNodeRunModelData = saveWorkerNodeRunModelDataFs name
-//                loadWorkerNodeRunModelData = loadWorkerNodeRunModelDataFs name
-//                tryDeleteWorkerNodeRunModelData = tryDeleteWorkerNodeRunModelDataFs name
-//                loadAllWorkerNodeRunModelData = loadWorkerNodeRunModelDataAllFs name
-//                logCrit = saveSolverRunnerErrFs name
-//            }
-
         static member create c sr =
             {
                 onProcessMessageProxy =
@@ -92,16 +78,14 @@ module WorkerNodeProxy =
         {
             loadAllActiveRunQueueId : unit -> ListResult<RunQueueId>
             onRunModel : RunQueueId -> UnitResult
-            noOfCores : int
         }
 
 
-    type OnRunModelProxy =
-        {
-            workerNodeId : WorkerNodeId
-            numberOfWorkerCores : int
-            runSolver : RunQueueId -> UnitResult
-            sendMessageProxy : SendMessageProxy
-            tryGetRunningSolversCount : unit -> ClmResult<int>
-            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-        }
+//    type OnRunModelProxy =
+//        {
+//            workerNodeId : WorkerNodeId
+//            runSolver : RunQueueId -> UnitResult
+//            sendMessageProxy : SendMessageProxy
+//            tryGetRunningSolversCount : unit -> ClmResult<int>
+//            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
+//        }

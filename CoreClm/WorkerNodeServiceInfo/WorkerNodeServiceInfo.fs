@@ -89,9 +89,9 @@ module ServiceInfo =
         | NotStartedWorkerNode
         | StartedWorkerNode
 
+
     type WorkerNodeRunnerState =
         {
-            numberOfWorkerCores : int
             workerNodeState : WorkerNodeState
         }
 
@@ -130,7 +130,7 @@ module ServiceInfo =
 
 
     type IWorkerNodeService =
-        abstract configure : WorkerNodeConfigParam -> UnitResult
+//        abstract configure : WorkerNodeConfigParam -> UnitResult
         abstract monitor : WorkerNodeMonitorParam -> ClmResult<WorkerNodeMonitorResponse>
 
         /// To check if service is working.
@@ -163,8 +163,8 @@ module ServiceInfo =
     [<ServiceContract(ConfigurationName = WorkerNodeWcfServiceName)>]
     type IWorkerNodeWcfService =
 
-        [<OperationContract(Name = "configure")>]
-        abstract configure : q:byte[] -> byte[]
+//        [<OperationContract(Name = "configure")>]
+//        abstract configure : q:byte[] -> byte[]
 
         [<OperationContract(Name = "monitor")>]
         abstract monitor : q:byte[] -> byte[]
@@ -181,12 +181,12 @@ module ServiceInfo =
         let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
         let pingWcfErr e = e |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
 
-        let configureImpl p = tryCommunicate tryGetWcfService (fun service -> service.configure) configureWcfErr p
+//        let configureImpl p = tryCommunicate tryGetWcfService (fun service -> service.configure) configureWcfErr p
         let monitorImpl p = tryCommunicate tryGetWcfService (fun service -> service.monitor) monitorWcfErr p
         let pingImpl() = tryCommunicate tryGetWcfService (fun service -> service.ping) pingWcfErr ()
 
         interface IWorkerNodeService with
-            member _.configure p = configureImpl p
+//            member _.configure p = configureImpl p
             member _.monitor p = monitorImpl p
             member _.ping() = pingImpl()
 

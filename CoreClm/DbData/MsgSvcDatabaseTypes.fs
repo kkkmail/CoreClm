@@ -34,7 +34,7 @@ module MsgSvcDatabaseTypes =
     let MsgSqliteConnStr =
         "Data Source=" + __SOURCE_DIRECTORY__ + @"\" + MsgDatabase + @";Version=3;foreign keys=true"
 
-
+    let getSqlLiteConnStr msgDbLocation = @"Data Source=" + msgDbLocation + ";Version=3;foreign keys=true"
     let msgSqliteConnStr = MsgSqliteConnStr |> SqliteConnectionString
 
 
@@ -49,6 +49,7 @@ module MsgSvcDatabaseTypes =
 //                   ConnectionString = MsgSqliteConnStr,
 //                   //ResolutionPath = resolutionPath,
 //                   CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL>
+
 
 
     let serializationFormat = BinaryZippedFormat

@@ -24,6 +24,7 @@ open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open Clm.ModelParams
 open ClmSys.MessagingData
+open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerPrimitives
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeErrors
@@ -189,7 +190,7 @@ module WorkerNodeDatabaseTypes =
 
             match t.Rows |> Seq.tryFind (fun e -> e.runQueueId = q.value) with
             | Some v -> v |> WorkerNodeRunModelData.tryCreate
-            | None -> toError TryLoadRunQueue q
+            | None -> toError TryLoadRunQueueErr q
 
         tryDbFun g
 
@@ -314,7 +315,7 @@ module WorkerNodeDatabaseTypes =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
             use cmd = new SqlCommandProvider<tryRequestCancelRunQueueSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-            cmd.Execute(runQueueId = q.value, notificationTypeId = r.value) |> bindError TryRequestCancelRunQueue q
+            cmd.Execute(runQueueId = q.value, notificationTypeId = r.value) |> bindError TryRequestCancelRunQueueErr q
 
         tryDbFun g
 
@@ -336,6 +337,26 @@ module WorkerNodeDatabaseTypes =
             let connectionString = conn.ConnectionString
             use cmd = new SqlCommandProvider<tryNotifySql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
             cmd.Execute(runQueueId = q.value, notificationTypeId = v) |> bindError TryNotifyRunQueueErr q
+
+        tryDbFun g
+
+
+    /// Can modify progress when state is InProgress or CancelRequested.
+    [<Literal>]
+    let tryUpdateProgressSql = "
+        update dbo.RunQueue
+        set
+            progress = @progress,
+            modifiedOn = (getdate())
+        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+
+
+    let tryUpdateProgressRunQueue c (q : RunQueueId) (p : TaskProgress) =
+        let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+            use cmd = new SqlCommandProvider<tryUpdateProgressSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            cmd.Execute(runQueueId = q.value, progress = p.value) |> bindError TryUpdateProgressRunQueueErr q
 
         tryDbFun g
 
