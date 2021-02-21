@@ -134,7 +134,6 @@ module SolverRunnerImplementation =
 
         match results.TryGetResult RunQueue |> Option.bind (fun e -> e |> RunQueueId |> Some) with
         | Some q ->
-            //, checkRunning q
             match tryLoadRunQueue c q, tryLoadWorkerNodeSettings() with
             | Ok w, Some s ->
                 match checkRunning q s.workerNodeInfo.noOfCores with

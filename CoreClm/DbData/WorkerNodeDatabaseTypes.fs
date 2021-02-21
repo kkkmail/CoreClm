@@ -96,8 +96,8 @@ module WorkerNodeDatabaseTypes =
 
     let mapSolverRunnerInfo (reader : DynamicSqlDataReader) =
         {
-            processId = reader?processId |> ProcessId
             runQueueId = reader?runQueueId |> RunQueueId
+            processId = reader?processId  |> Option.bind (fun e -> e |> ProcessId |> Some)
         }
 
 
@@ -141,7 +141,7 @@ module WorkerNodeDatabaseTypes =
         static member tryCreate (r : RunQueueTableRow) : ClmResult<WorkerNodeRunModelData> =
             let w() =
                 try
-                    r.workerNodeRunModelData |> deserialize serializationFormat
+                    r.workerNodeRunModelData |> deserialize serializationFormat |> Ok
                 with
                 | e -> e |> DbExn |> DbErr |> Error
 
@@ -195,8 +195,36 @@ module WorkerNodeDatabaseTypes =
         tryDbFun g
 
 
+    /// Sql to load incomplete run queue.
+    [<Literal>]
+    let incompleteRunQueueSql = "
+        select
+            runQueueId
+        from dbo.RunQueue
+        where runQueueStatusId in (" + RunQueueStatus_NotStarted + ", " + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+
+
+    type IncompleteRunQueueTableData =
+        SqlCommandProvider<incompleteRunQueueSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
+
+
+    let mapIncompleteRunQueue (reader : DynamicSqlDataReader) =
+        reader?runQueueId |> RunQueueId
+
+
     let loadAllActiveRunQueueId c =
-        failwith ""
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn c
+                    use data = new IncompleteRunQueueTableData(conn)
+                    use reader= new DynamicSqlDataReader(data.Execute())
+                    while (reader.Read()) do yield mapIncompleteRunQueue reader
+                        }
+            |> List.ofSeq
+            |> Ok
+
+        tryDbFun g
 
 
     let saveRunQueue c (w : WorkerNodeRunModelData) =
@@ -404,7 +432,7 @@ module WorkerNodeDatabaseTypes =
 
             match cmd.Execute(runQueueId = q.value) with
             | 0 | 1 -> Ok()
-            | _ -> q |> CannotDeleteRunQueue |> OnRunModelErr |> WorkerNodeErr |> Error
+            | _ -> q |> CannotDeleteRunQueueErr |> OnRunModelErr |> WorkerNodeErr |> Error
 
         tryDbFun g
 

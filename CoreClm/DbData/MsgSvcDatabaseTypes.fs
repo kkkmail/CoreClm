@@ -51,7 +51,6 @@ module MsgSvcDatabaseTypes =
 //                   CaseSensitivityChange = Common.CaseSensitivityChange.ORIGINAL>
 
 
-
     let serializationFormat = BinaryZippedFormat
 
 

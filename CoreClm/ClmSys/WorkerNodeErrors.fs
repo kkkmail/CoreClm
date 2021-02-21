@@ -9,8 +9,8 @@ open GeneralPrimitives
 module WorkerNodeErrors =
 
     type OnRunModelError =
-        | CannotRunModelErr
-        | CannotDeleteRunQueue of RunQueueId
+        | CannotRunModelErr of RunQueueId
+        | CannotDeleteRunQueueErr of RunQueueId
 
 
     type OnProcessMessageError =

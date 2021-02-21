@@ -68,17 +68,18 @@ module SolverProcessProxy =
     let checkRunning (RunQueueId q) n : CheckRunningResult =
         try
             let v = $"{q}".ToLower()
+            let pid = Process.GetCurrentProcess().Id
 
             let processes =
                 Process.GetProcessesByName(SolverRunnerName)
                 |> Array.map (fun e ->  e.Id, e.StartInfo.Arguments)
                 |> Array.map (fun (i, e) -> i, e.ToLower())
 
-            match processes.Length < n with
+            match processes.Length <= n with
             | true ->
                 let p =
                     processes
-                    |> Array.map (fun (i, e) -> i, e.Contains(v))
+                    |> Array.map (fun (i, e) -> i, e.Contains(v) && i <> pid)
                     |> Array.tryFind snd
 
                 match p with

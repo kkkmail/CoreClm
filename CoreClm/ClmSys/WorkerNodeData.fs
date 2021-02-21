@@ -85,6 +85,6 @@ module WorkerNodeData =
 
     type SolverRunnerInfo =
         {
-            processId : ProcessId
             runQueueId : RunQueueId
+            processId : ProcessId option
         }

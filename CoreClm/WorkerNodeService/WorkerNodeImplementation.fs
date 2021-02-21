@@ -95,64 +95,49 @@ module ServiceImplementation =
         s, result
 
 
-//    let onRunModel (proxy : OnRunModelProxy) q =
-//        let failed p =
-//            {
-//                partitionerRecipient = proxy.sendMessageProxy.partitionerId
-//                deliveryType = GuaranteedDelivery
-//                messageData = UpdateProgressPrtMsg { runQueueId = q; progress = p }
-//            }.getMessageInfo()
-//            |> proxy.sendMessageProxy.sendMessage
-//
-//        match proxy.tryGetRunningSolversCount() with
-//        | Ok n ->
-//            match n < proxy.numberOfWorkerCores with
-//            | true -> proxy.runSolver q
-//            | false -> AllCoresBusy proxy.workerNodeId |> failed
-//        | Error e -> Failed (ErrorMessage $"{e}") |> failed
-
-
     let onStart (proxy : OnStartProxy) s =
         match s.workerNodeState with
         | NotStartedWorkerNode ->
             let w = { s with workerNodeState = StartedWorkerNode }
 
-            let doStart (mi : list<ClmResult<RunQueueId>>) : UnitResult =
-                let m, mf = mi |> Rop.unzip
+            let result =
+                match proxy.loadAllActiveRunQueueId() with
+                | Ok m -> m |> List.map proxy.onRunModel |> foldUnitResults
+                | Error e -> Error e
 
-                let r =
-                    (m |> List.map proxy.onRunModel)
-                    @
-                    [ foldErrors mf |> toUnitResult ]
-                    |> foldUnitResults
-                r
-
-            let result = proxy.loadAllActiveRunQueueId() >>= doStart
             w, result
         | StartedWorkerNode -> s, Ok()
 
 
     let onProcessMessage (proxy : OnProcessMessageProxy) (m : Message) =
+        printfn $"onProcessMessage: Starting. messageId: {m.messageDataInfo.messageId}."
+
         match m.messageData with
         | UserMsg (WorkerNodeMsg x) ->
             match x with
             | RunModelWrkMsg d ->
+                printfn $"    onProcessMessage: runQueueId: {d.runningProcessData.runQueueId}."
+
                 match proxy.saveWorkerNodeRunModelData d with
-                | Ok() -> proxy.onRunModel d.runningProcessData.runQueueId
-                | Error e -> addError OnProcessMessageErr (CannotSaveModelDataErr (m.messageDataInfo.messageId, d.runningProcessData.runQueueId)) e
+                | Ok() ->
+                    printfn $"    onProcessMessage: saveWorkerNodeRunModelData with runQueueId: {d.runningProcessData.runQueueId} - OK."
+                    let result = proxy.onRunModel d.runningProcessData.runQueueId
+                    printfn $"    onProcessMessage: onRunModel with runQueueId: {d.runningProcessData.runQueueId} - {result}."
+                    result
+                | Error e ->
+                    printfn $"    onProcessMessage: saveWorkerNodeRunModelData with runQueueId: {d.runningProcessData.runQueueId} ERROR: {e}."
+                    addError OnProcessMessageErr (CannotSaveModelDataErr (m.messageDataInfo.messageId, d.runningProcessData.runQueueId)) e
             | CancelRunWrkMsg q -> q ||> proxy.requestCancellation
             | RequestResultWrkMsg q -> q ||> proxy.notifyOfResults
         | _ -> (m.messageDataInfo.messageId, m.messageData.getInfo()) |> InvalidMessageErr |> toError OnProcessMessageErr
 
 
-//    type OnProcessMessageType = OnProcessMessageType<unit>
     type OnGetMessagesProxy = OnGetMessagesProxy<WorkerNodeRunnerState>
     let private onGetMessages = onGetMessages<WorkerNodeRunnerState>
     type OnConfigureWorkerProxy = OnRegisterProxy
 
     let onGetState (s : WorkerNodeRunnerState) =
-        failwith ""
-        // s, s.toWorkerNodeRunnerMonitorState() |> WrkNodeState
+        failwith "onGetState is not implemented yet."
 
 
 //    let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d =
@@ -188,22 +173,6 @@ module ServiceImplementation =
             workerNodeInfo = i.workerNodeServiceInfo.workerNodeInfo
             sendMessageProxy = sendMessageProxy i
         }
-
-
-//    let onUpdateProgressProxy i =
-//        {
-//            tryDeleteWorkerNodeRunModelData = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
-//            sendMessageProxy = sendMessageProxy i
-//        }
-
-
-//    let onProcessMessageProxy i p =
-//        {
-//            saveWorkerNodeRunModelData = i.workerNodeProxy.saveWorkerNodeRunModelData
-//            requestCancellation = i.workerNodeProxy.tryDeleteWorkerNodeRunModelData
-//            notifyOfResults = 0
-//            onRunModel = onRunModel (onRunModelProxy i p)
-//        }
 
 
     type WorkerNodeMessage =
@@ -288,6 +257,11 @@ module ServiceImplementation =
             let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
             let c = getWorkerNodeSvcConnectionString
 
+            let sr (q : RunQueueId) : UnitResult =
+                match runSolverProcess q with
+                | Some _ -> Ok()
+                | None -> q |> CannotRunModelErr |> OnRunModelErr |> WorkerNodeErr |> Error
+
             match j with
             | Ok i ->
                 let w =
@@ -314,7 +288,7 @@ module ServiceImplementation =
                         let n =
                             {
                                 workerNodeServiceInfo = i
-                                workerNodeProxy = WorkerNodeProxy.create (failwith "") (failwith "")
+                                workerNodeProxy = WorkerNodeProxy.create c sr
                                 messageProcessorProxy = messagingClient.messageProcessorProxy
                                 minUsefulEe = MinUsefulEe.defaultValue
                             }

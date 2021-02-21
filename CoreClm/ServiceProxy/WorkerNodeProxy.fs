@@ -49,7 +49,7 @@ module WorkerNodeProxy =
     type WorkerNodeProxy =
         {
             onProcessMessageProxy : OnProcessMessageProxy
-            loadAllActiveRunQueueId : unit -> ListResult<RunQueueId>
+            loadAllActiveRunQueueId : unit -> ClmResult<list<RunQueueId>>
             logCrit : SolverRunnerCriticalError -> UnitResult
         }
 
@@ -63,7 +63,7 @@ module WorkerNodeProxy =
                         onRunModel = sr
                     }
 
-                loadAllActiveRunQueueId = loadAllActiveRunQueueId c
+                loadAllActiveRunQueueId = fun () -> loadAllActiveRunQueueId c
                 logCrit = saveSolverRunnerErrFs name
             }
 
@@ -76,7 +76,7 @@ module WorkerNodeProxy =
 
     type OnStartProxy =
         {
-            loadAllActiveRunQueueId : unit -> ListResult<RunQueueId>
+            loadAllActiveRunQueueId : unit -> ClmResult<list<RunQueueId>>
             onRunModel : RunQueueId -> UnitResult
         }
 
