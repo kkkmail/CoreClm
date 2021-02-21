@@ -2,6 +2,7 @@ namespace ServiceProxy
 
 open System
 open System.Diagnostics
+open System.Management
 open ClmSys.GeneralPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.SolverRunnerPrimitives
@@ -18,6 +19,10 @@ module SolverProcessProxy =
 
     [<Literal>]
     let SolverRunnerName = "SolverRunner.exe"
+
+
+    [<Literal>]
+    let SolverRunnerProcessName = "SolverRunner"
 
 
     let getAssemblyLocation() =
@@ -62,6 +67,13 @@ module SolverProcessProxy =
             None
 
 
+    /// http://codebetter.com/matthewpodwysocki/2010/02/05/using-and-abusing-the-f-dynamic-lookup-operator/
+    let (?) (this : 'Source) (prop : string) : 'Result =
+        let t = this.GetType()
+        let p = t.GetProperty(prop)
+        p.GetValue(this, null) :?> 'Result
+
+
     /// Checks that
     /// Returns Ok when a given RunQueueId is NOT running and when a number of
     /// running solvers is less than a maximum allowed number.
@@ -70,17 +82,43 @@ module SolverProcessProxy =
             let v = $"{q}".ToLower()
             let pid = Process.GetCurrentProcess().Id
 
+            //let wmiQuery = $"select CommandLine from Win32_Process where Name='{SolverRunnerProcessName}'"
+            let wmiQuery = $"select * from Win32_Process"
+            let searcher = new ManagementObjectSearcher(wmiQuery)
+            let retObjectCollection = searcher.Get()
+
+            let wmiQuery2 = $"select Handle, CommandLine from Win32_Process where Caption = '{SolverRunnerName}'"
+            let searcher2 = new ManagementObjectSearcher(wmiQuery2)
+            let retObjectCollection2 = searcher2.Get()
+
+            let y =
+                retObjectCollection2
+                |> Seq.cast
+                |> List.ofSeq
+
+            let z =
+                y
+                |> List.map (fun e -> e:>ManagementObject)
+
             let processes =
-                Process.GetProcessesByName(SolverRunnerName)
-                |> Array.map (fun e ->  e.Id, e.StartInfo.Arguments)
-                |> Array.map (fun (i, e) -> i, e.ToLower())
+                z
+                |> List.map (fun e -> e.["Handle"], e.["CommandLine"])
+                |> List.map (fun (a, b) -> int $"{a}", $"{b}")
+
+//            let x =
+//                Process.GetProcessesByName(SolverRunnerProcessName)
+
+//            let processes =
+//                x
+//                |> Array.map (fun e ->  e.Id, e.StartInfo.Arguments)
+//                |> Array.map (fun (i, e) -> i, e.ToLower())
 
             match processes.Length <= n with
             | true ->
                 let p =
                     processes
-                    |> Array.map (fun (i, e) -> i, e.Contains(v) && i <> pid)
-                    |> Array.tryFind snd
+                    |> List.map (fun (i, e) -> i, e.Contains(v) && i <> pid)
+                    |> List.tryFind snd
 
                 match p with
                 | None -> CanRun
