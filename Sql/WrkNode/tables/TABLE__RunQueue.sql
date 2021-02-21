@@ -9,6 +9,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[processId] [int] NULL,
 		[errorMessage] [nvarchar](max) NULL,
 		[notificationTypeId] [int] NOT NULL,
+		[progress] [money] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
 		[startedOn] [datetime] NULL,
 		[modifiedOn] [datetime] NOT NULL,
@@ -20,6 +21,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_runQueueStatusId]  DEFAULT ((0)) FOR [runQueueStatusId]
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_notificationTypeId]  DEFAULT ((0)) FOR [notificationTypeId]
+	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_progress]  DEFAULT ((0)) FOR [progress]
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_createdOn]  DEFAULT (getdate()) FOR [createdOn]
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_modifiedOn]  DEFAULT (getdate()) FOR [modifiedOn]
 	ALTER TABLE [dbo].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_RunQueue_NotificationType] FOREIGN KEY([notificationTypeId]) REFERENCES [dbo].[NotificationType] ([notificationTypeId])

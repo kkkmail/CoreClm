@@ -4,11 +4,31 @@
 		select * 
 		from 
 		( values
+			  (0, 'NoChartGeneration')
+			, (1, 'RegularChartGeneration')
+			, (2, 'ForceChartGeneration')
+		) as a (notificationTypeId, notificationTypeName)
+	)
+insert into NotificationType
+select valTbl.*
+from valTbl
+left outer join NotificationType on valTbl.notificationTypeId = NotificationType.notificationTypeId
+where NotificationType.notificationTypeId is null
+go
+
+
+;with 
+	valTbl as
+	(
+		select * 
+		from 
+		( values
 			  (0, 'NotStarted')
 			, (1, 'Inactive')
 			, (2, 'InProgress')
 			, (3, 'Completed')
 			, (4, 'Failed')
+			, (5, 'CancelRequested')
 			, (6, 'Cancelled')
 
 		) as a (runQueueStatusId, runQueueStatusName)

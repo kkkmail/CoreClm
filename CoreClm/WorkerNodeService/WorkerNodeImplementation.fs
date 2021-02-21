@@ -164,6 +164,10 @@ module ServiceImplementation =
     let private onGetMessages = onGetMessages<WorkerNodeRunnerState>
     type OnConfigureWorkerProxy = OnRegisterProxy
 
+    let onGetState (s : WorkerNodeRunnerState) =
+        failwith ""
+        // s, s.toWorkerNodeRunnerMonitorState() |> WrkNodeState
+
 
     let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d =
         match d with
@@ -221,6 +225,7 @@ module ServiceImplementation =
         | Register of AsyncReplyChannel<UnitResult>
         | Unregister of AsyncReplyChannel<UnitResult>
         | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
+        | GetState of AsyncReplyChannel<WorkerNodeMonitorResponse>
         | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
 
 
@@ -240,6 +245,7 @@ module ServiceImplementation =
                             | Register r -> return! onRegister onRegisterProxy s |> (withReply r) |> loop
                             | Unregister r -> return! onUnregister onRegisterProxy s |> (withReply r) |> loop
                             | GetMessages (p, r) -> return! onGetMessages p s |> (withReply r) |> loop
+                            | GetState r -> return! onGetState s |> (withReply r) |> loop
                             | ConfigureWorker (r, d) -> return! onConfigureWorker onConfigureWorkerProxy s d |> (withReply r) |> loop
                         }
 
@@ -250,6 +256,7 @@ module ServiceImplementation =
         member _.register() = messageLoop.PostAndReply Register
         member _.unregister() = messageLoop.PostAndReply Unregister
         member w.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages (w.onGetMessagesProxy, reply))
+        member _.getState() = messageLoop.PostAndReply GetState
         member _.configure d = messageLoop.PostAndReply (fun r -> ConfigureWorker (r, d))
 
         member w.onStartProxy =

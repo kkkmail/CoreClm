@@ -17,22 +17,22 @@ module VersionInfo =
     ///
     /// This is an overall system version.
     [<Literal>]
-    let VersionNumberValue = "6.0.1"
+    let VersionNumberValue = "6.0.2"
 
 
     /// A base name, which controls the database name and a working folder name.
     /// It is loosely the same as the version number.
     /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     [<Literal>]
-    let ClmBaseName = "clm601"
+    let ClmBaseName = "clm602"
 
 
     [<Literal>]
-    let MsgSvcBaseName = "msg601"
+    let MsgSvcBaseName = "msg602"
 
 
     [<Literal>]
-    let WorkerNodeSvcBaseName = "wns601"
+    let WorkerNodeSvcBaseName = "wns602"
 
 
     /// Default port on which messaging communication is performed.
@@ -41,16 +41,11 @@ module VersionInfo =
 
     /// Increment fractional part by 0.0001, e.g. 1.000 -> 1.001 if an updated version can read the previous version format.
     /// Increment integer part and reset fractional part, e.g. 1.023 -> 2.000, when the changes are completely incompatible with previous version.
-    let FileStructureVersion = 5.000m
-
-
-//    /// This is the name of the system. It is used, for example, to access Windows Registry.
-//    [<Literal>]
-//    let SystemName = "CLM"
+    let FileStructureVersion = 6.000m
 
 
     [<Literal>]
-    let CopyrightInfo = "MIT License - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2020."
+    let CopyrightInfo = "MIT License - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2021."
 
 
     type VersionNumber =
