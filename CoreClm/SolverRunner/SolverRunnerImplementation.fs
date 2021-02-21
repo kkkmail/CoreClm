@@ -124,7 +124,7 @@ module SolverRunnerImplementation =
         tryStartRunQueue c q pid
 
 
-    let runSolver (results : ParseResults<SolverRunnerArguments>) usage : int =
+    let runSolverProcessImpl (results : ParseResults<SolverRunnerArguments>) usage : int =
         let c = getWorkerNodeSvcConnectionString
         let logCrit = saveSolverRunnerErrFs name
 
@@ -153,8 +153,11 @@ module SolverRunnerImplementation =
                             }
 
                         let solverProxy = SolverRunnerProxy.create c logCrit proxy
-                        let solver = getSolverRunner solverProxy w
-                        solver.runSolver()
+
+                        // The call below does now return until the run is completed OR cancelled in some way.
+                        runSolver solverProxy w
+//                        let solver = getSolverRunner solverProxy w
+//                        solver.runSolver()
                         CompletedSuccessfully
                     | Error e -> exitWithLogCrit e UnknownException
                 | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) UnknownException

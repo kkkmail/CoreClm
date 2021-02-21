@@ -14,7 +14,7 @@ module Program =
             let parser = ArgumentParser.Create<SolverRunnerArguments>(programName = SolverRunnerName)
             let results = parser.Parse argv
             let usage = parser.PrintUsage()
-            runSolver results usage
+            runSolverProcessImpl results usage
         with
         | exn ->
             printfn $"{exn.Message}"

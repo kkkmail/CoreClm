@@ -74,44 +74,29 @@ module SolverProcessProxy =
         p.GetValue(this, null) :?> 'Result
 
 
-    /// Checks that
-    /// Returns Ok when a given RunQueueId is NOT running and when a number of
-    /// running solvers is less than a maximum allowed number.
+    /// Returns CanRun when a given RunQueueId is NOT used by any of the running solvers
+    /// and when a number of running solvers is less than a maximum allowed value.
+    ///
+    /// See:
+    ///     https://stackoverflow.com/questions/504208/how-to-read-command-line-arguments-of-another-process-in-c
+    ///     https://docs.microsoft.com/en-us/dotnet/core/porting/windows-compat-pack
+    ///     https://stackoverflow.com/questions/33635852/how-do-i-convert-a-weakly-typed-icollection-into-an-f-list
     let checkRunning (RunQueueId q) n : CheckRunningResult =
         try
             let v = $"{q}".ToLower()
             let pid = Process.GetCurrentProcess().Id
 
-            //let wmiQuery = $"select CommandLine from Win32_Process where Name='{SolverRunnerProcessName}'"
-            let wmiQuery = $"select * from Win32_Process"
+            let wmiQuery = $"select Handle, CommandLine from Win32_Process where Caption = '{SolverRunnerName}'"
             let searcher = new ManagementObjectSearcher(wmiQuery)
             let retObjectCollection = searcher.Get()
 
-            let wmiQuery2 = $"select Handle, CommandLine from Win32_Process where Caption = '{SolverRunnerName}'"
-            let searcher2 = new ManagementObjectSearcher(wmiQuery2)
-            let retObjectCollection2 = searcher2.Get()
-
-            let y =
-                retObjectCollection2
+            let processes =
+                retObjectCollection
                 |> Seq.cast
                 |> List.ofSeq
-
-            let z =
-                y
-                |> List.map (fun e -> e:>ManagementObject)
-
-            let processes =
-                z
+                |> List.map (fun e -> e :> ManagementObject)
                 |> List.map (fun e -> e.["Handle"], e.["CommandLine"])
                 |> List.map (fun (a, b) -> int $"{a}", $"{b}")
-
-//            let x =
-//                Process.GetProcessesByName(SolverRunnerProcessName)
-
-//            let processes =
-//                x
-//                |> Array.map (fun e ->  e.Id, e.StartInfo.Arguments)
-//                |> Array.map (fun (i, e) -> i, e.ToLower())
 
             match processes.Length <= n with
             | true ->

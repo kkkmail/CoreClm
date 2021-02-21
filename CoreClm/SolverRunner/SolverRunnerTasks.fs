@@ -247,49 +247,48 @@ module SolverRunnerTasks =
         | RunningSolver
 
 
-    type SolverRunnerMessage =
-        | RunSolver
-        | NotifyOfResults of ResultNotificationType
+//    type SolverRunnerMessage =
+//        | RunSolver
+//        | NotifyOfResults of ResultNotificationType
+//
+//
+//    type SolverRunner(proxy : SolverProxy) =
+//        let messageLoop =
+//            MailboxProcessor.Start(fun u ->
+//                let rec loop s =
+//                    async
+//                        {
+//                            match! u.Receive() with
+//                            | RunSolver ->
+//                                printfn "SolverRunner.RunSolver"
+//                                match s with
+//                                | NotRunningSolver ->
+//                                    let m = async { proxy.runSolver() }
+//                                    Async.Start m
+//                                    printfn "SolverRunner.RunSolver - started."
+//                                | RunningSolver -> ()
+//                                return! RunningSolver |> loop
+//                            | NotifyOfResults t ->
+//                                printfn "SolverRunner.NotifyOfResults: %A" t
+//                                proxy.notifyOfResults t |> proxy.logIfFailed
+//                                printfn "SolverRunner.NotifyOfResults - completed."
+//                                return! s |> loop
+//                        }
+//
+//                NotRunningSolver |> loop
+//                )
+//
+//        member _.runSolver() = messageLoop.Post RunSolver
+//
+//        member _.notifyOfResults t =
+//            printfn "SolverRunner.notifyOfResults was called."
+//            NotifyOfResults t |> messageLoop.Post
+//            printfn "SolverRunner.notifyOfResults - completed."
+//            Ok()
 
 
-    type SolverRunner(proxy : SolverProxy) =
-        let messageLoop =
-            MailboxProcessor.Start(fun u ->
-                let rec loop s =
-                    async
-                        {
-                            match! u.Receive() with
-                            | RunSolver ->
-                                printfn "SolverRunner.RunSolver"
-                                match s with
-                                | NotRunningSolver ->
-                                    let m = async { proxy.runSolver() }
-                                    Async.Start m
-                                    printfn "SolverRunner.RunSolver - started."
-                                | RunningSolver -> ()
-                                return! RunningSolver |> loop
-                            | NotifyOfResults t ->
-                                printfn "SolverRunner.NotifyOfResults: %A" t
-                                proxy.notifyOfResults t |> proxy.logIfFailed
-                                printfn "SolverRunner.NotifyOfResults - completed."
-                                return! s |> loop
-                        }
-
-                NotRunningSolver |> loop
-                )
-
-        member _.runSolver() = messageLoop.Post RunSolver
-
-        member _.notifyOfResults t =
-            printfn "SolverRunner.notifyOfResults was called."
-            NotifyOfResults t |> messageLoop.Post
-            printfn "SolverRunner.notifyOfResults - completed."
-            Ok()
-
-
-    /// Uncomment printfn below in case of severe issues.
-    /// Then run ContGenService and WorkerNodeService as EXE with redirect into dump files.
-    let getSolverRunner (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
+//    let getSolverRunner (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
+    let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
         let logIfFailed errMessage result =
             match result with
             | Ok() -> ()
@@ -324,7 +323,7 @@ module SolverRunnerTasks =
                 progress = p
             }
 
-        let runSolver() =
+        let runSolverImpl() =
             try
                 // Uncomment temporarily when you need to test cancellations.
                 //testCancellation proxy w
@@ -353,9 +352,13 @@ module SolverRunnerTasks =
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
             | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred.")
 
-        {
-            runSolver = runSolver
-            notifyOfResults = notifyOfResults
-            logIfFailed = logIfFailed "getSolverRunner - SolverRunner."
-        }
-        |> SolverRunner
+        let proxy =
+            {
+                runSolver = runSolverImpl
+                notifyOfResults = notifyOfResults
+                logIfFailed = logIfFailed "getSolverRunner - SolverRunner."
+            }
+
+//        proxy |> SolverRunner
+        proxy.runSolver()
+
