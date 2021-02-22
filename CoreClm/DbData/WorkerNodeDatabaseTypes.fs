@@ -4,26 +4,14 @@ open ClmSys.WorkerNodeData
 open FSharp.Data
 open System
 open FSharp.Data.Sql
-open System.Data.SQLite
-open Dapper
-open System.Data.Common
 open DynamicSql
-
 open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.Retry
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Messaging.Primitives
-open Softellect.Sys.MessagingClientErrors
-open Softellect.Sys.MessagingServiceErrors
-
-open ClmSys.VersionInfo
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
-open Clm.ModelParams
-open ClmSys.MessagingData
 open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerPrimitives
 open MessagingServiceInfo.ServiceInfo
@@ -238,7 +226,10 @@ module WorkerNodeDatabaseTypes =
         tryDbFun g
 
 
-    /// Can transition to InProgress from NotStarted.
+    /// Can transition to InProgress from NotStarted or InProgress (to restart).
+    /// If run queue is in RunQueueStatus_CancelRequested state then we don't allow restarting it automatically.
+    /// This could happen when cancel requested has propagated to the database but the system then crashed and
+    /// did not actually cancel the solver.
     [<Literal>]
     let tryStartRunQueueSql = "
         update dbo.RunQueue
@@ -247,7 +238,7 @@ module WorkerNodeDatabaseTypes =
             runQueueStatusId = " + RunQueueStatus_InProgress + ",
             startedOn = (getdate()),
             modifiedOn = (getdate())
-        where runQueueId = @runQueueId and processId is null and runQueueStatusId = " + RunQueueStatus_NotStarted
+        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_NotStarted + ", " + RunQueueStatus_InProgress + ")"
 
 
     let tryStartRunQueue c (q : RunQueueId) (ProcessId pid) =

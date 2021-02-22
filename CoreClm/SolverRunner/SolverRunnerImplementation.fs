@@ -73,8 +73,9 @@ module SolverRunnerImplementation =
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) (p : ProgressUpdateInfo) =
-        //printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
+        printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
         let t, completed = toDeliveryType p.progress
+        let r0 = proxy.tryUpdateProgress p.progress
 
         let r1 =
             {
@@ -85,11 +86,15 @@ module SolverRunnerImplementation =
             |> proxy.sendMessageProxy.sendMessage
             |> Rop.bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
-        if completed
-        then
-            let r2 = proxy.tryDeleteWorkerNodeRunModelData()
-            combineUnitResults r1 r2
-        else r1
+        let result =
+            if completed
+            then
+                let r2 = proxy.tryDeleteWorkerNodeRunModelData()
+                foldUnitResults [ r0; r1; r2 ]
+            else foldUnitResults [ r0; r1 ]
+
+        printfn "    onUpdateProgress: runQueueId = %A, result = %A." p.runQueueId result
+        result
 
 
     let private tryLoadWorkerNodeSettings () = tryLoadWorkerNodeSettings None None
@@ -128,12 +133,13 @@ module SolverRunnerImplementation =
         let c = getWorkerNodeSvcConnectionString
         let logCrit = saveSolverRunnerErrFs name
 
-        let exitWithLogCrit e x =
-            SolverRunnerCriticalError.create e |> logCrit |> ignore
-            x
-
         match results.TryGetResult RunQueue |> Option.bind (fun e -> e |> RunQueueId |> Some) with
         | Some q ->
+            let exitWithLogCrit e x =
+                printfn $"runSolver: Error: {e}, exit code: {x}."
+                SolverRunnerCriticalError.create q e |> logCrit |> ignore
+                x
+
             match tryLoadRunQueue c q, tryLoadWorkerNodeSettings() with
             | Ok w, Some s ->
                 match checkRunning q s.workerNodeInfo.noOfCores with
@@ -155,6 +161,7 @@ module SolverRunnerImplementation =
                         let solverProxy = SolverRunnerProxy.create c logCrit proxy
 
                         // The call below does now return until the run is completed OR cancelled in some way.
+                        printfn $"runSolver: Starting solver with runQueueId: {q}."
                         runSolver solverProxy w
 //                        let solver = getSolverRunner solverProxy w
 //                        solver.runSolver()

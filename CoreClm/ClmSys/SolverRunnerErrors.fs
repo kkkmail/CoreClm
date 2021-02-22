@@ -10,12 +10,14 @@ module SolverRunnerErrors =
     type SolverRunnerCriticalError =
         {
             errorId : ErrorId
+            runQueueId : RunQueueId
             errorMessage : string
         }
 
-        static member create e =
+        static member create q e =
             {
                 errorId = ErrorId.getNewId()
+                runQueueId = q
                 errorMessage = $"{e}"
             }
 
@@ -38,13 +40,8 @@ module SolverRunnerErrors =
         | TooManyRunning of int
         | GetProcessesByNameExn of exn
 
-//    type CheckRunningError =
-//        | AlreadyRunningErr of ProcessId
-//        | GetProcessesByNameExn of exn
-
 
     type SolverRunnerError =
         | OnSaveResultErr of OnSaveResultError
         | OnSaveChartsErr of OnSaveChartsError
         | OnUpdateProgressErr of OnUpdateProgressError
-//        | CheckRunningErr of CheckRunningError

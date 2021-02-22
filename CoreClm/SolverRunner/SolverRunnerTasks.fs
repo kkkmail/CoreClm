@@ -289,10 +289,12 @@ module SolverRunnerTasks =
 
 //    let getSolverRunner (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
     let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
+        let q = w.runningProcessData.runQueueId
+
         let logIfFailed errMessage result =
             match result with
             | Ok() -> ()
-            | Error e -> SolverRunnerCriticalError.create (errMessage + ":" + e.ToString()) |> proxy.logCrit |> ignore
+            | Error e -> SolverRunnerCriticalError.create q ($"errMessage + : + {e}") |> proxy.logCrit |> ignore
 
         let updateFinalProgress errMessage = proxy.updateProgress >> (logIfFailed errMessage)
         let runSolverData = RunSolverData.create w proxy.updateProgress None proxy.checkCancellation
