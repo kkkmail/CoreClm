@@ -1,5 +1,6 @@
 namespace DbData
 
+open ClmSys.SolverData
 open ClmSys.WorkerNodeData
 open FSharp.Data
 open System
@@ -427,3 +428,27 @@ module WorkerNodeDatabaseTypes =
 
         tryDbFun g
 
+
+    /// Can modify time related information when state is InProgress or CancelRequested.
+    [<Literal>]
+    let tryUpdateTimeSql = "
+        update dbo.RunQueue
+        set
+            tEnd = @tEnd,
+            maxEe = @maxEe,
+            maxAverageEe = @maxAverageEe,
+            maxWeightedAverageAbsEe = @maxWeightedAverageAbsEe,
+            maxLastEe = @maxLastEe,
+            modifiedOn = (getdate())
+        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+
+
+    let tryUpdateTime c (q : RunQueueId) t (ee : EeData) =
+        let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+            use cmd = new SqlCommandProvider<tryUpdateTimeSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            cmd.Execute(runQueueId = q.value, tEnd = t, maxEe = ee.maxEe, maxAverageEe = ee.maxAverageEe, maxWeightedAverageAbsEe = ee.maxWeightedAverageAbsEe, maxLastEe = ee.maxLastEe)
+            |> bindError TryUpdateProgressRunQueueErr q
+
+        tryDbFun g

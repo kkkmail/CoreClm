@@ -10,11 +10,18 @@ open ClmSys.GeneralPrimitives
 
 module SolverRunner =
 
-    type SolverRunnerProxy =
+    type SolverUpdateProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
+            updateTime : double -> double[] -> UnitResult
+            checkCancellation : RunQueueId -> CancellationType option
+        }
+
+
+    type SolverRunnerProxy =
+        {
+            solverUpdateProxy : SolverUpdateProxy
             saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartGenerationResult -> UnitResult
             logCrit : SolverRunnerCriticalError -> UnitResult
-            checkCancellation : RunQueueId -> CancellationType option
         }

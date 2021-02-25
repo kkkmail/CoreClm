@@ -113,7 +113,7 @@ module ChartData =
             cd.allChartData
             |> List.map (fun e -> e.enantiomericExcess |> List.ofArray)
             |> List.concat
-            |> List.map (fun e -> abs e)
+            |> List.map abs
             |> List.max
 
         member cd.maxAverageEe =

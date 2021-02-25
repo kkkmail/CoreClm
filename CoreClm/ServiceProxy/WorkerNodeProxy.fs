@@ -79,13 +79,3 @@ module WorkerNodeProxy =
             loadAllActiveRunQueueId : unit -> ClmResult<list<RunQueueId>>
             onRunModel : RunQueueId -> UnitResult
         }
-
-
-//    type OnRunModelProxy =
-//        {
-//            workerNodeId : WorkerNodeId
-//            runSolver : RunQueueId -> UnitResult
-//            sendMessageProxy : SendMessageProxy
-//            tryGetRunningSolversCount : unit -> ClmResult<int>
-//            tryDeleteWorkerNodeRunModelData : RunQueueId -> UnitResult
-//        }

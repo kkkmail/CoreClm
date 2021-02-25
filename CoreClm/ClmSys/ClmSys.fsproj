@@ -32,6 +32,7 @@
     <Compile Include="ModelData.fs" />
     <Compile Include="MessagingData.fs" />
     <Compile Include="PartitionerData.fs" />
+    <Compile Include="SolverData.fs" />
     <Compile Include="WorkerNodeData.fs" />
     <Compile Include="ContGenData.fs" />
     <Compile Include="ContGenAdmData.fs" />

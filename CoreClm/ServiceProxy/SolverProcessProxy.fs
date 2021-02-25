@@ -9,11 +9,9 @@ open ClmSys.SolverRunnerPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerErrors
 open ClmSys.ClmErrors
-open ClmSys.VersionInfo
 open MessagingServiceInfo.ServiceInfo
-open DbData.WorkerNodeDatabaseTypes
-open DbData.MsgSvcDatabaseTypes
-open Softellect.Messaging.Client
+open ClmSys.SolverData
+
 
 module SolverProcessProxy =
 
@@ -124,47 +122,6 @@ module SolverProcessProxy =
         {
             tryDeleteWorkerNodeRunModelData : unit -> UnitResult
             tryUpdateProgress : TaskProgress -> UnitResult
+            tryUpdateTime : double -> EeData -> UnitResult
             sendMessageProxy : SendMessageProxy
         }
-
-
-//    type SolverProcessProxy =
-//        {
-//            tryLoadRunQueue : unit -> ClmResult<WorkerNodeRunModelData>
-//            tryStartRunQueue : unit -> UnitResult
-//            tryCompleteRunQueue : unit -> UnitResult
-//            tryCancelRunQueue : string -> UnitResult
-//            tryFailRunQueue : string -> UnitResult
-//            checkRunning : unit -> UnitResult
-//            onUpdateProgressProxy : OnUpdateProgressProxy
-//        }
-//
-//
-//        static member create c m p q : SolverProcessProxy =
-//            let pid = Process.GetCurrentProcess().Id |> ProcessId
-//
-//            // Send the message directly to local database.
-//            let sendMessage i =
-//                createMessage messagingDataVersion m i
-//                |> saveMessage c
-//
-//            {
-//                tryLoadRunQueue = fun () -> tryLoadRunQueue c q
-//                tryStartRunQueue = fun () -> tryStartRunQueue c q pid
-//                tryCompleteRunQueue = fun () -> tryCompleteRunQueue c q
-//                tryCancelRunQueue = tryCancelRunQueue c q
-//                tryFailRunQueue = tryFailRunQueue c q
-//                checkRunning = fun () -> checkRunning q
-//
-//                onUpdateProgressProxy =
-//                    {
-//                        tryDeleteWorkerNodeRunModelData = fun () -> deleteRunQueue c q
-//                        tryUpdateProgress = tryUpdateProgressRunQueue c q
-//
-//                        sendMessageProxy =
-//                            {
-//                                partitionerId = p
-//                                sendMessage = sendMessage
-//                            }
-//                    }
-//            }

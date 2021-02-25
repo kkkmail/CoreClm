@@ -5,6 +5,7 @@ open Clm.ModelParams
 open ClmSys.ClmErrors
 open ClmSys.ExitErrorCodes
 open ClmSys.GeneralPrimitives
+open ClmSys.SolverData
 open ServiceProxy.SolverProcessProxy
 open SolverRunner.SolverRunnerCommandLine
 open NoSql.FileSystemTypes
@@ -97,6 +98,12 @@ module SolverRunnerImplementation =
         result
 
 
+    /// TODO kk:20210225 - It is not possible to calculate all ee values by a given time slice
+    /// but some are possible. Calculate them here.
+    let onUpdateTime (proxy : OnUpdateProgressProxy) t x =
+        proxy.tryUpdateTime t EeData.defaultValue
+
+
     let private tryLoadWorkerNodeSettings () = tryLoadWorkerNodeSettings None None
     let private name = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
 
@@ -110,11 +117,16 @@ module SolverRunnerImplementation =
                 | Error _ -> None
 
             {
-                updateProgress = onUpdateProgress proxy
+                solverUpdateProxy =
+                    {
+                        updateProgress = onUpdateProgress proxy
+                        updateTime = onUpdateTime proxy
+                        checkCancellation = checkCancellation
+                    }
+
                 saveResult = onSaveResult proxy.sendMessageProxy
                 saveCharts = onSaveCharts proxy.sendMessageProxy
                 logCrit = logCrit
-                checkCancellation = checkCancellation
             }
 
 
@@ -150,6 +162,7 @@ module SolverRunnerImplementation =
                             {
                                 tryDeleteWorkerNodeRunModelData = fun () -> deleteRunQueue c q
                                 tryUpdateProgress = tryUpdateProgressRunQueue c q
+                                tryUpdateTime = tryUpdateTime c q
 
                                 sendMessageProxy =
                                     {
@@ -163,8 +176,6 @@ module SolverRunnerImplementation =
                         // The call below does now return until the run is completed OR cancelled in some way.
                         printfn $"runSolver: Starting solver with runQueueId: {q}."
                         runSolver solverProxy w
-//                        let solver = getSolverRunner solverProxy w
-//                        solver.runSolver()
                         CompletedSuccessfully
                     | Error e -> exitWithLogCrit e UnknownException
                 | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) UnknownException

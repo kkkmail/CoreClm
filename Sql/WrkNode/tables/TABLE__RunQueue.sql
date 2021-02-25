@@ -10,6 +10,11 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[errorMessage] [nvarchar](max) NULL,
 		[notificationTypeId] [int] NOT NULL,
 		[progress] [money] NOT NULL,
+		[tEnd] [float] NOT NULL,
+		[maxEe] [float] NOT NULL,
+		[maxAverageEe] [float] NOT NULL,
+		[maxWeightedAverageAbsEe] [float] NOT NULL,
+		[maxLastEe] [float] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
 		[startedOn] [datetime] NULL,
 		[modifiedOn] [datetime] NOT NULL,
@@ -22,6 +27,11 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_runQueueStatusId]  DEFAULT ((0)) FOR [runQueueStatusId]
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_notificationTypeId]  DEFAULT ((0)) FOR [notificationTypeId]
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_progress]  DEFAULT ((0)) FOR [progress]
+	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_tEnd]  DEFAULT ((0)) FOR [tEnd]
+	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_maxEe]  DEFAULT ((0)) FOR [maxEe]
+	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_maxAverageEe]  DEFAULT ((0)) FOR [maxAverageEe]
+	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_maxWeightedAverageAbsEe]  DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
+	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_maxLastEe]  DEFAULT ((0)) FOR [maxLastEe]
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_createdOn]  DEFAULT (getdate()) FOR [createdOn]
 	ALTER TABLE [dbo].[RunQueue] ADD  CONSTRAINT [DF_RunQueue_modifiedOn]  DEFAULT (getdate()) FOR [modifiedOn]
 	ALTER TABLE [dbo].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_RunQueue_NotificationType] FOREIGN KEY([notificationTypeId]) REFERENCES [dbo].[NotificationType] ([notificationTypeId])

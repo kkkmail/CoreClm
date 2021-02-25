@@ -6,18 +6,10 @@ open ClmSys.GeneralPrimitives
 open ClmSys.GeneralData
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
+open ClmSys.SolverData
 
 
 module Solver =
-
-
-    type EeData =
-        {
-            maxEe : double
-            maxAverageEe : double
-            maxWeightedAverageAbsEe : double
-            maxLastEe : double
-        }
 
 
     type OdeParams =
@@ -59,11 +51,13 @@ module Solver =
             initialValues : double[]
             progressCallBack : (decimal -> UnitResult) option
             chartCallBack : (double -> double[] -> unit) option
+            timeCallBack : (double -> double[] -> UnitResult) option
             getEeData : (unit -> EeData) option
             noOfOutputPoints : int option
             noOfProgressPoints : int option
             checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
+            timeCheckFreq : TimeSpan
         }
 
         member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
@@ -84,9 +78,10 @@ module Solver =
         let mutable progressCount = 0
         let mutable outputCount = 0
         let mutable lastCheck = DateTime.Now
+        let mutable lastTimeCheck = lastCheck
         let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
 
-        let notify t r m =
+        let notifyProgress t r m =
             match n.progressCallBack with
             | Some c -> calculateProgress r m |> c
             | None -> Ok()
@@ -94,7 +89,19 @@ module Solver =
         let notifyChart t x =
             match n.chartCallBack with
             | Some c -> c t x
-            | None -> ignore()
+            | None -> ()
+
+        let notifyTime t x =
+            match n.timeCallBack with
+            | Some c ->
+                let fromLastTimeCheck = DateTime.Now - lastTimeCheck
+
+                if fromLastTimeCheck > n.timeCheckFreq
+                then
+                    lastTimeCheck <- DateTime.Now
+                    c t x
+                else Ok()
+            | None -> Ok()
 
         /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
         /// There seems to be no other easy and clean way. Revisit if that changes.
@@ -109,11 +116,12 @@ module Solver =
                 let cancel = n.checkCancellation n.runQueueId
 
                 match cancel with
-                | None -> ignore()
                 | Some c -> raise(ComputationAbortedException (n.runQueueId, c))
+                | None -> ()
 
         let f (x : double[]) (t : double) : double[] =
             checkCancellation()
+            notifyTime t x |> ignore
 
             match p.noOfProgressPoints with
             | Some k when k > 0 && n.tEnd > 0.0 ->
@@ -121,8 +129,8 @@ module Solver =
                 then
                     progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
                     //printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
-                    notify t progressCount k |> ignore
-            | _ -> ignore()
+                    notifyProgress t progressCount k |> ignore
+            | _ -> ()
 
             match p.noOfOutputPoints with
             | Some k when k > 0 ->
@@ -130,7 +138,7 @@ module Solver =
                 then
                     outputCount <- ((double k) * (t / n.tEnd) |> int) + 1
                     notifyChart t x
-            | _ -> ignore()
+            | _ -> ()
 
             n.derivative x
 
@@ -278,4 +286,4 @@ module Solver =
                                 (r.xEnd, p.controller.continueRun p.nSolveParam e)
                             else (a, b)) (p.nSolveParam.initialValues, true)
 
-        ignore()
+        ()
