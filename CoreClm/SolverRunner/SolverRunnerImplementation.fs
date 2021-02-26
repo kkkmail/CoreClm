@@ -111,10 +111,9 @@ module SolverRunnerImplementation =
     type SolverRunnerProxy
         with
         static member create c logCrit (proxy : OnUpdateProgressProxy) =
-            let checkCancellation q =
-                match tryCheckCancellation c q with
-                | Ok v -> v
-                | Error _ -> None
+            let checkCancellation q = tryCheckCancellation c q |> Rop.toOption |> Option.bind id
+            let checkNotification q = tryCheckNotification c q |> Rop.toOption |> Option.bind id
+            let clearNotification q = tryClearNotification c q
 
             {
                 solverUpdateProxy =
@@ -122,6 +121,12 @@ module SolverRunnerImplementation =
                         updateProgress = onUpdateProgress proxy
                         updateTime = onUpdateTime proxy
                         checkCancellation = checkCancellation
+                    }
+
+                solverNotificationProxy =
+                    {
+                        checkNotificationRequest = checkNotification
+                        clearNotificationRequest = clearNotification
                     }
 
                 saveResult = onSaveResult proxy.sendMessageProxy
@@ -173,9 +178,10 @@ module SolverRunnerImplementation =
 
                         let solverProxy = SolverRunnerProxy.create c logCrit proxy
 
-                        // The call below does now return until the run is completed OR cancelled in some way.
                         printfn $"runSolver: Starting solver with runQueueId: {q}."
-                        runSolver solverProxy w
+                        let solver = runSolver solverProxy w
+                        // The call below does not return until the run is completed OR cancelled in some way.
+                        solver.run()
                         CompletedSuccessfully
                     | Error e -> exitWithLogCrit e UnknownException
                 | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) UnknownException

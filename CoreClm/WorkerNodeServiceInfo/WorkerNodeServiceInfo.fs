@@ -63,26 +63,26 @@ module ServiceInfo =
             sprintf "T: %s;%s %A" s estCompl r.progress
 
 
-    type RunnerStateWithCancellation =
-        {
-            runnerState : RunnerState
-            cancellationTypeOpt : CancellationType option
-            notifyOfResults : ResultNotificationType -> UnitResult
-        }
+//    type RunnerStateWithCancellation =
+//        {
+//            runnerState : RunnerState
+//            cancellationTypeOpt : CancellationType option
+//            notifyOfResults : ResultNotificationType -> UnitResult
+//        }
+//
+//        static member defaultValue n =
+//            {
+//                runnerState = RunnerState.defaultValue
+//                cancellationTypeOpt = None
+//                notifyOfResults = n
+//            }
 
-        static member defaultValue n =
-            {
-                runnerState = RunnerState.defaultValue
-                cancellationTypeOpt = None
-                notifyOfResults = n
-            }
 
-
-    type WorkerNodeRunnerMonitorState =
-        {
-            workers : Map<RunQueueId, RunnerState>
-            noOfWorkerCores : int
-        }
+//    type WorkerNodeRunnerMonitorState =
+//        {
+//            workers : Map<RunQueueId, RunnerState>
+//            noOfWorkerCores : int
+//        }
 
 
     type WorkerNodeState =
@@ -112,21 +112,21 @@ module ServiceInfo =
     type WorkerNodeMonitorResponse =
         | CannotAccessWrkNode
         | ErrorOccurred of ClmError
-        | WrkNodeState of WorkerNodeRunnerMonitorState
+//        | WrkNodeState of WorkerNodeRunnerMonitorState
 
         override this.ToString() =
             match this with
             | CannotAccessWrkNode -> "Cannot access worker node."
-            | WrkNodeState s ->
-                let toString acc ((RunQueueId k), (v : RunnerState)) =
-                    acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
-
-                let x =
-                    match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
-                    | EmptyString -> "[]"
-                    | s -> "\n    [\n" + s + "    ]"
-                sprintf "Running: %s\nCount: %A, cores: %A" x s.workers.Count s.noOfWorkerCores
             | ErrorOccurred e -> "Error occurred: " + e.ToString()
+//            | WrkNodeState s ->
+//                let toString acc ((RunQueueId k), (v : RunnerState)) =
+//                    acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
+//
+//                let x =
+//                    match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
+//                    | EmptyString -> "[]"
+//                    | s -> "\n    [\n" + s + "    ]"
+//                sprintf "Running: %s\nCount: %A, cores: %A" x s.workers.Count s.noOfWorkerCores
 
 
     type IWorkerNodeService =

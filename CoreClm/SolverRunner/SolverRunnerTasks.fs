@@ -23,6 +23,8 @@ open System.Threading
 open ClmSys.SolverRunnerPrimitives
 open System
 open ClmSys.SolverData
+open ClmSys.TimerEvents
+open Softellect.Sys.Logging
 
 module SolverRunnerTasks =
 
@@ -246,6 +248,7 @@ module SolverRunnerTasks =
             runSolver : unit -> unit
             notifyOfResults : ResultNotificationType -> UnitResult
             logIfFailed : UnitResult -> unit
+            solverNotificationProxy : SolverNotificationProxy
         }
 
 
@@ -254,13 +257,41 @@ module SolverRunnerTasks =
         | RunningSolver
 
 
+    type SolverRunner(proxy : SolverProxy, q : RunQueueId) =
+
+        let logger = Logger.defaultValue
+
+        let notifyOfResults() =
+            match proxy.solverNotificationProxy.checkNotificationRequest q with
+            | Some t ->
+                let r1 = proxy.notifyOfResults t
+                let r2 = proxy.solverNotificationProxy.clearNotificationRequest q
+                combineUnitResults r1 r2
+            | None -> Ok()
+
+        let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger notifyOfResults "SolverRunner - notifyOfResults")
+        do h.start()
+
+
+        member _.run() =
+            printfn "SolverRunner.run was called."
+            proxy.runSolver()
+            printfn "SolverRunner.run - completed."
+
+//        member _.notifyOfResults t =
+//            printfn "SolverRunner.notifyOfResults was called."
+//            let result = proxy.notifyOfResults t
+//            printfn "SolverRunner.notifyOfResults - completed."
+//            result
+
+
     let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
         let q = w.runningProcessData.runQueueId
 
         let logIfFailed errMessage result =
             match result with
             | Ok() -> ()
-            | Error e -> SolverRunnerCriticalError.create q ($"errMessage + : + {e}") |> proxy.logCrit |> ignore
+            | Error e -> SolverRunnerCriticalError.create q ($"{errMessage} + : + {e}") |> proxy.logCrit |> ignore
 
         let updateFinalProgress errMessage = proxy.solverUpdateProxy.updateProgress >> (logIfFailed errMessage)
         let runSolverData = RunSolverData.create w proxy.solverUpdateProxy None
@@ -325,8 +356,8 @@ module SolverRunnerTasks =
                 runSolver = runSolverImpl
                 notifyOfResults = notifyOfResults
                 logIfFailed = logIfFailed "getSolverRunner - SolverRunner."
+                solverNotificationProxy = proxy.solverNotificationProxy
             }
 
-//        proxy |> SolverRunner
-        proxy.runSolver()
+        SolverRunner(proxy, w.runningProcessData.runQueueId)
 

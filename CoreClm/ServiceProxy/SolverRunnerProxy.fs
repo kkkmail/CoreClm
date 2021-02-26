@@ -18,9 +18,17 @@ module SolverRunner =
         }
 
 
+    type SolverNotificationProxy =
+        {
+            checkNotificationRequest : RunQueueId -> ResultNotificationType option
+            clearNotificationRequest : RunQueueId -> UnitResult
+        }
+
+
     type SolverRunnerProxy =
         {
             solverUpdateProxy : SolverUpdateProxy
+            solverNotificationProxy : SolverNotificationProxy
             saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartGenerationResult -> UnitResult
             logCrit : SolverRunnerCriticalError -> UnitResult

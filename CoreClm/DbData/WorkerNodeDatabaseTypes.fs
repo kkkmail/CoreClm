@@ -416,6 +416,65 @@ module WorkerNodeDatabaseTypes =
         tryDbFun g |> Rop.unwrapResultOption
 
 
+    /// Check for notification only when InProgress
+    [<Literal>]
+    let tryCheckNotificationSql = "
+        select
+            notificationTypeId
+        from dbo.RunQueue
+        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ")"
+
+
+    type CheckNotificationTableData =
+        SqlCommandProvider<tryCheckNotificationSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
+
+
+    let private mapCheckNotification (reader : DynamicSqlDataReader) =
+        match int reader?notificationTypeId with
+        | 0 -> None
+        | 1 -> Some RegularChartGeneration
+        | 2 -> Some ForceChartGeneration
+        | _ -> None
+
+
+    let tryCheckNotification c (RunQueueId q) =
+        let g() =
+            seq
+                {
+                    use conn = getOpenConn c
+                    use data = new CheckNotificationTableData(conn)
+                    use reader = new DynamicSqlDataReader(data.Execute(runQueueId = q))
+                    while (reader.Read()) do yield mapCheckNotification reader
+                        }
+            |> List.ofSeq
+            |> List.tryHead
+            |> Option.bind id
+            |> Ok
+
+        tryDbFun g
+
+
+    /// Clear notification only when InProgress
+    [<Literal>]
+    let tryClearNotificationQueueSql =
+        "
+        update dbo.RunQueue
+        set
+            notificationTypeId = 0,
+            modifiedOn = (getdate())
+        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ")"
+
+
+    let tryClearNotification c (q : RunQueueId) =
+        let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+            use cmd = new SqlCommandProvider<tryClearNotificationQueueSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            cmd.Execute(runQueueId = q.value) |> bindError TryClearNotificationErr q
+
+        tryDbFun g
+
+
     let deleteRunQueue c (q : RunQueueId) =
         let g() =
             use conn = getOpenConn c
