@@ -91,6 +91,7 @@ module SolverRunnerImplementation =
             if completed
             then
                 let r2 = proxy.tryDeleteWorkerNodeRunModelData()
+//                let r2 = Ok()
                 foldUnitResults [ r0; r1; r2 ]
             else foldUnitResults [ r0; r1 ]
 

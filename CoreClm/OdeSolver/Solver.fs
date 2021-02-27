@@ -1,5 +1,6 @@
 ﻿namespace OdeSolver
 
+open System.Threading
 open Microsoft.FSharp.Core
 open System
 open ClmSys.GeneralPrimitives
@@ -82,11 +83,13 @@ module Solver =
         let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
 
         let notifyProgress t r m =
+//            Thread.Sleep(30_000)
             match n.progressCallBack with
             | Some c -> calculateProgress r m |> c
             | None -> Ok()
 
         let notifyChart t x =
+//            Thread.Sleep(30_000)
             match n.chartCallBack with
             | Some c -> c t x
             | None -> ()
