@@ -111,8 +111,8 @@ module SolverRunnerTasks =
                 noOfProgressPoints = pp
                 minUsefulEe = w.minUsefulEe
                 checkCancellation = proxy.checkCancellation
-                checkFreq = TimeSpan.FromMinutes 1.0
-                timeCheckFreq = TimeSpan.FromMinutes 1.0
+                checkFreq = TimeSpan.FromMinutes 60.0
+                timeCheckFreq = TimeSpan.FromMinutes 60.0
             }
 
 

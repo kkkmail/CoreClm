@@ -161,11 +161,13 @@ module Solver =
 
         let shouldNotify() =
             [
-                callCount <= 100L && callCount % 10L = 0L
+                callCount <= 100L && callCount % 5L = 0L
                 callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
                 callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
                 callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
-                callCount > 100_000L && callCount % 50_000L = 0L
+                callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
+                callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
+                callCount > 10_000_000L && callCount % 5_000_000L = 0L
             ]
             |> List.tryFind id
             |> Option.defaultValue false
