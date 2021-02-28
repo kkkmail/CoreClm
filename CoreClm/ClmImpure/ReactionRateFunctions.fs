@@ -837,12 +837,12 @@ module ReactionRateFunctions =
                     acFwdEeDistribution = i.acSimParams.getForwardEeDistr.getDistr cr.forwardRate cre.forwardRate
                 }
                 |> AcForwardRateOnlyParam
-            | AcBackwardRateOnlyParam _ ->
-                {
-                    rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
-                    acBkwEeDistribution = i.acSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
-                }
-                |> AcBackwardRateOnlyParam
+//            | AcBackwardRateOnlyParam _ ->
+//                {
+//                    rateMultiplierDistr = i.acSimParams.getRateMultiplierDistr.getDistr None rateMult
+//                    acBkwEeDistribution = i.acSimParams.getBackwardEeDistr.getDistr cr.backwardRate cre.backwardRate
+//                }
+//                |> AcBackwardRateOnlyParam
         | false -> AcCatRatesEeParam.defaultValue
 
 

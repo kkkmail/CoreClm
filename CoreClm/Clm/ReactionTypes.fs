@@ -188,7 +188,6 @@ module ReactionTypes =
             $"{nameof(SynthesisReaction)}: {Food} -> {a}"
 
 
-
     type SugCatalyst =
         | SugCatalyst of Peptide
 
@@ -352,7 +351,7 @@ module ReactionTypes =
         | AcCatalyticSynthesisReaction of (SynthesisReaction * AcSynthCatalyst)
 
         member r.info =
-            let (AcCatalyticSynthesisReaction (a, (AcSynthCatalyst c))) = r
+            let (AcCatalyticSynthesisReaction (a, AcSynthCatalyst c)) = r
             let pi = c |> ActivatedPeptideChain
             let po = c.peptide |> PeptideChain
 
@@ -489,7 +488,7 @@ module ReactionTypes =
         | AcCatalyticDestructionReaction of (DestructionReaction * AcDestrCatalyst)
 
         member r.info =
-            let (AcCatalyticDestructionReaction (a, (AcDestrCatalyst c))) = r
+            let (AcCatalyticDestructionReaction (a, AcDestrCatalyst c)) = r
             let pi = c |> ActivatedPeptideChain
             let po = c.peptide |> PeptideChain
 
@@ -812,6 +811,7 @@ module ReactionTypes =
         override c.ToString() = let (AcBkwLigCatalyst v) = c in v.ToString()
 
 
+    /// Reaction when activated catalysts splits peptide chain into parts.
     type AcBkwCatalyticLigationReaction =
         | AcBkwCatalyticLigationReaction of (LigationReaction * AcBkwLigCatalyst)
 
@@ -821,8 +821,8 @@ module ReactionTypes =
             let po = c.peptide |> PeptideChain
 
             {
-                input = [ (Substance.fromList a, 1); (Substance.fromList b, 1); (pi, 1) ]
-                output = [ (Substance.fromList (a @ b), 1); (po, 1) ]
+                input = [ (Substance.fromList (a @ b), 1); (pi, 1) ]
+                output = [ (Substance.fromList a, 1); (Substance.fromList b, 1); (po, 1) ]
             }
 
         member r.enantiomer =
@@ -1023,7 +1023,7 @@ module ReactionTypes =
         | AcCatalyticRacemizationReaction of (RacemizationReaction * AcRacemCatalyst)
 
         member r.info =
-            let (AcCatalyticRacemizationReaction (a, (AcRacemCatalyst c))) = r
+            let (AcCatalyticRacemizationReaction (a, AcRacemCatalyst c)) = r
             let pi = c |> ActivatedPeptideChain
             let po = c.peptide |> PeptideChain
 

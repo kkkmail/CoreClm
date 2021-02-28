@@ -530,9 +530,9 @@ module DefaultValuesExt =
                 acBkwCatLigRndEeParams =
                     {
                         rateMultiplierDistr = defaultRateMultiplierDistr threshold mult
-                        acBkwEeDistribution = defaultAcBkwEeDistribution |> Some
+                        acFwdEeDistribution = defaultAcBkwEeDistribution |> Some
                     }
-                    |> AcBackwardRateOnlyParam
+                    |> AcForwardRateOnlyParam
             }
 
         static member defaultAcBkwCatLigRndParam (m, threshold, mult) catRateGenType =

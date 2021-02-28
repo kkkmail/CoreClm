@@ -110,7 +110,7 @@ module Solver =
                 csd
 
         let notifyProgress t r m =
-            Thread.Sleep(30_000)
+//            Thread.Sleep(30_000)
             match n.progressCallBack with
             | Some c -> calculateProgress r m |> c
             | None -> Ok()
