@@ -4,6 +4,7 @@ open Softellect.Sys.Core
 open Clm.Substances
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
+open Clm.CalculationData
 
 module ChartData =
 
@@ -44,7 +45,8 @@ module ChartData =
             sugarEe : double option
         }
 
-        static member create (i : BinaryInfo) t x =
+        static member create (i : BinaryInfo) t xInput =
+            let x = makeNonNegative xInput
             let totals = i.getTotals x
 
             let getCorrectLD li di =
@@ -86,7 +88,7 @@ module ChartData =
 
                     {
                         totalData = i.getTotalSubst x
-                        minData = x |> Array.min
+                        minData = xInput |> Array.min // Here we want to watch for negative values in the input data.
                         foodData = Option.bind (fun i -> x.[i] |> Some) foodIdx
                         wasteData = Option.bind (fun i -> x.[i] |> Some) wasteIdx
                         levelData = [| for level in 1..i.maxPeptideLength.length -> levelData level |]
