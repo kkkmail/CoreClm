@@ -99,12 +99,6 @@ module SolverRunnerImplementation =
         result
 
 
-    /// TODO kk:20210225 - It is not possible to calculate all ee values by a given time slice
-    /// but some are possible. Calculate them here.
-    let onUpdateTime (proxy : OnUpdateProgressProxy) t x =
-        proxy.tryUpdateTime t EeData.defaultValue
-
-
     let private tryLoadWorkerNodeSettings () = tryLoadWorkerNodeSettings None None
     let private name = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
 
@@ -120,7 +114,7 @@ module SolverRunnerImplementation =
                 solverUpdateProxy =
                     {
                         updateProgress = onUpdateProgress proxy
-                        updateTime = onUpdateTime proxy
+                        updateTime = proxy.tryUpdateTime
                         checkCancellation = checkCancellation
                     }
 

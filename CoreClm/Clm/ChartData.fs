@@ -96,6 +96,28 @@ module ChartData =
                 sugarEe = eeZ
             }
 
+        static member defaultValue =
+            {
+                t = 0.0
+                aminoAcidsData = [| 0.0 |]
+                enantiomericExcess = [| 0.0 |]
+                totalSubst =
+                    {
+                        totalData = 0.0
+                        minData = 0.0
+                        foodData = None
+                        wasteData = None
+                        levelData = [| 0.0 |]
+                    }
+                sugarData = None
+                sugarEe = None
+            }
+
+        member csd.maxEe =
+            csd.enantiomericExcess
+            |> Array.map abs
+            |> Array.max
+
 
     type ChartData =
         {
@@ -111,9 +133,7 @@ module ChartData =
 
         member cd.maxEe =
             cd.allChartData
-            |> List.map (fun e -> e.enantiomericExcess |> List.ofArray)
-            |> List.concat
-            |> List.map abs
+            |> List.map (fun e -> e.maxEe)
             |> List.max
 
         member cd.maxAverageEe =
@@ -155,10 +175,7 @@ module ChartData =
         member cd.maxLastEe =
             match cd.allChartData with
             | [] -> 0.0
-            | h :: _ ->
-                h.enantiomericExcess
-                |> Array.map (fun e -> abs e)
-                |> Array.max
+            | h :: _ -> h.maxEe
 
         /// Last calculated value of tEnd.
         member cd.tLast =

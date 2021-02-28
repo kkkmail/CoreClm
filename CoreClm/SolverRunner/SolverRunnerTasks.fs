@@ -54,8 +54,9 @@ module SolverRunnerTasks =
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : (decimal -> UnitResult) option
-            updateChart : double -> double[] -> unit
-            updateTime : double -> double[] -> UnitResult
+            updateChart : ChartSliceData -> unit
+            updateTime : TimeData -> UnitResult
+            getChartSliceData : double -> double[] -> ChartSliceData
             noOfProgressPoints : int option
             minUsefulEe : MinUsefulEe
             checkCancellation : RunQueueId -> CancellationType option
@@ -93,7 +94,7 @@ module SolverRunnerTasks =
                 }
 
             let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
-            let updateChart = fun t x -> ChartSliceData.create binaryInfo t x |> chartDataUpdater.addContent
+            let getChartSliceData t x = ChartSliceData.create binaryInfo t x
 
             {
                 modelDataId = modelDataId
@@ -103,8 +104,9 @@ module SolverRunnerTasks =
                 useAbundant = commandLineParams.useAbundant
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
-                updateChart = updateChart
+                updateChart = chartDataUpdater.addContent
                 updateTime = proxy.updateTime
+                getChartSliceData = getChartSliceData
                 progressCallBack = (fun p -> notify proxy.updateProgress r.runQueueId (TaskProgress.create p)) |> Some
                 noOfProgressPoints = pp
                 minUsefulEe = w.minUsefulEe
@@ -157,7 +159,7 @@ module SolverRunnerTasks =
             progressCallBack = d.progressCallBack
             chartCallBack = Some d.updateChart
             timeCallBack = Some d.updateTime
-            getEeData = (d.chartDataUpdater.getContent().toEeData) |> Some
+            getChartSliceData = d.getChartSliceData
             noOfOutputPoints = None
             noOfProgressPoints = d.noOfProgressPoints
             checkCancellation = checkCancellation

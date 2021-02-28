@@ -3,6 +3,7 @@
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
+open ClmSys.SolverData
 open ClmSys.SolverRunnerPrimitives
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.SolverRunnerErrors
@@ -13,7 +14,7 @@ module SolverRunner =
     type SolverUpdateProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
-            updateTime : double -> double[] -> UnitResult
+            updateTime : TimeData -> UnitResult
             checkCancellation : RunQueueId -> CancellationType option
         }
 

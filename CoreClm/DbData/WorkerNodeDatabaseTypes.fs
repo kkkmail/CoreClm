@@ -493,7 +493,9 @@ module WorkerNodeDatabaseTypes =
     let tryUpdateTimeSql = "
         update dbo.RunQueue
         set
-            tEnd = @tEnd,
+            progressDetailed = @progressDetailed,
+            callCount = @callCount,
+            y = @y,
             maxEe = @maxEe,
             maxAverageEe = @maxAverageEe,
             maxWeightedAverageAbsEe = @maxWeightedAverageAbsEe,
@@ -502,12 +504,13 @@ module WorkerNodeDatabaseTypes =
         where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
-    let tryUpdateTime c (q : RunQueueId) t (ee : EeData) =
+    let tryUpdateTime c (q : RunQueueId) (td : TimeData) =
         let g() =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
             use cmd = new SqlCommandProvider<tryUpdateTimeSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-            cmd.Execute(runQueueId = q.value, tEnd = t, maxEe = ee.maxEe, maxAverageEe = ee.maxAverageEe, maxWeightedAverageAbsEe = ee.maxWeightedAverageAbsEe, maxLastEe = ee.maxLastEe)
+            let ee = td.eeData
+            cmd.Execute(runQueueId = q.value, progressDetailed = td.progressDetailed, callCount = td.callCount, y = td.y, maxEe = ee.maxEe, maxAverageEe = ee.maxAverageEe, maxWeightedAverageAbsEe = ee.maxWeightedAverageAbsEe, maxLastEe = ee.maxLastEe)
             |> bindError TryUpdateProgressRunQueueErr q
 
         tryDbFun g
