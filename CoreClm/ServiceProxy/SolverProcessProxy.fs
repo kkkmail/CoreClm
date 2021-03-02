@@ -41,12 +41,13 @@ module SolverProcessProxy =
                 ProcessStartInfo(
                     RedirectStandardOutput = false,
                     RedirectStandardError = false,
-                    UseShellExecute = false,
+                    UseShellExecute = true,
                     FileName = getExeName fileName,
                     Arguments = args
                 )
 
             procStartInfo.WorkingDirectory <- getAssemblyLocation()
+            procStartInfo.WindowStyle <- ProcessWindowStyle.Hidden
             let p = new Process(StartInfo = procStartInfo)
             let started = p.Start()
 
