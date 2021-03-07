@@ -1,5 +1,6 @@
 ﻿namespace Clm
 
+open Microsoft.FSharp.NativeInterop
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRatesBase
@@ -457,7 +458,7 @@ module CalculationData =
         |> Array.map (fun (l, r) -> calculateTotalSubst l x, calculateTotalSubst r x)
 
 
-    let calculateDerivativeValue (x: double[]) (indices : ModelIndices) =
+    let calculateDerivativeValue (x: double[]) (indices : ModelIndices) : double =
         let mutable sum = 0.0
 
         for coeff in indices.level0 do
@@ -476,6 +477,27 @@ module CalculationData =
             sum <- sum + coeff * x.[j1] * x.[j2] * x.[j3] * x.[j4]
 
         sum
+
+
+    let calculateByRefDerivativeValue (x: nativeptr<double>) (indices : ModelIndices) (dx: nativeptr<double>) : unit =
+        let mutable sum = 0.0
+
+        for coeff in indices.level0 do
+            sum <- sum + coeff
+
+        for coeff, j1 in indices.level1 do
+            sum <- sum + coeff * (NativePtr.get x j1)
+
+        for coeff, j1, j2 in indices.level2 do
+            sum <- sum + coeff * (NativePtr.get x j1) * (NativePtr.get x j2)
+
+        for coeff, j1, j2, j3 in indices.level3 do
+            sum <- sum + coeff * (NativePtr.get x j1) * (NativePtr.get x j2) * (NativePtr.get x j3)
+
+        for coeff, j1, j2, j3, j4 in indices.level4 do
+            sum <- sum + coeff * (NativePtr.get x j1) * (NativePtr.get x j2) * (NativePtr.get x j3) * (NativePtr.get x j4)
+
+        NativePtr.set dx 0 sum
 
 
     let makeNonNegative (x: double[]) = x |> Array.map (max 0.0)
