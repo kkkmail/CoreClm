@@ -350,8 +350,6 @@ module ReactionRatesBase =
             acFwdEeDistribution : EeDistribution option
         }
 
-//        member p.acRateType = AcForwardRateOnly
-
         static member defaultValue =
             {
                 rateMultiplierDistr = NoneRateMult
@@ -375,33 +373,32 @@ module ReactionRatesBase =
                 | _ -> None
 
 
-    type AcCatRatesBkwEeParam =
-        {
-            rateMultiplierDistr : RateMultiplierDistribution
-            acBkwEeDistribution : EeDistribution option
-        }
-
-//        member p.acRateType = AcBackwardRateOnly
-        static member defaultValue =
-            {
-                rateMultiplierDistr = NoneRateMult
-                acBkwEeDistribution = None
-            }
-
-        member p.rateMult gt rnd =
-            match gt with
-            | RandomChoice ->
-                match p.rateMultiplierDistr.nextDouble rnd, p.acBkwEeDistribution with
-                | Some k0, Some d ->
-                    let ee = d.nextDouble rnd
-                    {
-                        kf = 1.0
-                        kfe = 1.0
-                        kb = k0 * (1.0 + ee)
-                        kbe = k0 * (1.0 - ee)
-                    }
-                    |> Some
-                | _ -> None
+//    type AcCatRatesBkwEeParam =
+//        {
+//            rateMultiplierDistr : RateMultiplierDistribution
+//            acBkwEeDistribution : EeDistribution option
+//        }
+//
+//        static member defaultValue =
+//            {
+//                rateMultiplierDistr = NoneRateMult
+//                acBkwEeDistribution = None
+//            }
+//
+//        member p.rateMult gt rnd =
+//            match gt with
+//            | RandomChoice ->
+//                match p.rateMultiplierDistr.nextDouble rnd, p.acBkwEeDistribution with
+//                | Some k0, Some d ->
+//                    let ee = d.nextDouble rnd
+//                    {
+//                        kf = 1.0
+//                        kfe = 1.0
+//                        kb = k0 * (1.0 + ee)
+//                        kbe = k0 * (1.0 - ee)
+//                    }
+//                    |> Some
+//                | _ -> None
 
 // Not implemented yet.
 //    type AcCatRatesBothEeParam =
@@ -440,9 +437,9 @@ module ReactionRatesBase =
     type AcCatRatesEeParam =
         | AcNoneParam of AcCatRatesNoneEeParam
         | AcForwardRateOnlyParam of AcCatRatesFwdEeParam
-        | AcBackwardRateOnlyParam of AcCatRatesBkwEeParam
 
         // Not implemented yet.
+//        | AcBackwardRateOnlyParam of AcCatRatesBkwEeParam
 //        | AcBothRates of AcCatRatesBothEeParam
 //        | AcSameRates of AcCatRatesSameEeParam
 
@@ -464,7 +461,6 @@ module ReactionRatesBase =
                 match a with
                 | AcNoneParam p -> p.rateMult
                 | AcForwardRateOnlyParam p -> p.rateMult
-                | AcBackwardRateOnlyParam p -> p.rateMult
 
 //            match v with
 //            | Some x -> printfn $"AcCatRatesEeParam.rateMult: v = {x}."
@@ -475,7 +471,6 @@ module ReactionRatesBase =
             match a with
             | AcNoneParam p -> p.rateMultiplierDistr
             | AcForwardRateOnlyParam p -> p.rateMultiplierDistr
-            | AcBackwardRateOnlyParam p -> p.rateMultiplierDistr
 
         static member defaultValue = AcNoneParam AcCatRatesNoneEeParam
 

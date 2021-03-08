@@ -63,47 +63,46 @@ module ServiceInfo =
             sprintf "T: %s;%s %A" s estCompl r.progress
 
 
-    type RunnerStateWithCancellation =
-        {
-            runnerState : RunnerState
-            cancellationTypeOpt : CancellationType option
-            notifyOfResults : ResultNotificationType -> UnitResult
-        }
+//    type RunnerStateWithCancellation =
+//        {
+//            runnerState : RunnerState
+//            cancellationTypeOpt : CancellationType option
+//            notifyOfResults : ResultNotificationType -> UnitResult
+//        }
+//
+//        static member defaultValue n =
+//            {
+//                runnerState = RunnerState.defaultValue
+//                cancellationTypeOpt = None
+//                notifyOfResults = n
+//            }
 
-        static member defaultValue n =
-            {
-                runnerState = RunnerState.defaultValue
-                cancellationTypeOpt = None
-                notifyOfResults = n
-            }
 
-
-    type WorkerNodeRunnerMonitorState =
-        {
-            workers : Map<RunQueueId, RunnerState>
-            noOfWorkerCores : int
-        }
+//    type WorkerNodeRunnerMonitorState =
+//        {
+//            workers : Map<RunQueueId, RunnerState>
+//            noOfWorkerCores : int
+//        }
 
 
     type WorkerNodeState =
         | NotStartedWorkerNode
         | StartedWorkerNode
 
+
     type WorkerNodeRunnerState =
         {
-            runningWorkers : Map<RunQueueId, RunnerStateWithCancellation>
-            numberOfWorkerCores : int
             workerNodeState : WorkerNodeState
         }
 
-        member w.toWorkerNodeRunnerMonitorState() =
-            {
-                workers = w.runningWorkers |> Map.map (fun _ e -> e.runnerState)
-                noOfWorkerCores = w.numberOfWorkerCores
-            }
+//        member w.toWorkerNodeRunnerMonitorState() =
+//            {
+//                workers = w.runningWorkers |> Map.map (fun _ e -> e.runnerState)
+//                noOfWorkerCores = w.numberOfWorkerCores
+//            }
 
 
-    type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
+//    type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
 
 
     type WorkerNodeMonitorParam =
@@ -113,25 +112,25 @@ module ServiceInfo =
     type WorkerNodeMonitorResponse =
         | CannotAccessWrkNode
         | ErrorOccurred of ClmError
-        | WrkNodeState of WorkerNodeRunnerMonitorState
+//        | WrkNodeState of WorkerNodeRunnerMonitorState
 
         override this.ToString() =
             match this with
             | CannotAccessWrkNode -> "Cannot access worker node."
-            | WrkNodeState s ->
-                let toString acc ((RunQueueId k), (v : RunnerState)) =
-                    acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
-
-                let x =
-                    match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
-                    | EmptyString -> "[]"
-                    | s -> "\n    [\n" + s + "    ]"
-                sprintf "Running: %s\nCount: %A, cores: %A" x s.workers.Count s.noOfWorkerCores
             | ErrorOccurred e -> "Error occurred: " + e.ToString()
+//            | WrkNodeState s ->
+//                let toString acc ((RunQueueId k), (v : RunnerState)) =
+//                    acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
+//
+//                let x =
+//                    match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
+//                    | EmptyString -> "[]"
+//                    | s -> "\n    [\n" + s + "    ]"
+//                sprintf "Running: %s\nCount: %A, cores: %A" x s.workers.Count s.noOfWorkerCores
 
 
     type IWorkerNodeService =
-        abstract configure : WorkerNodeConfigParam -> UnitResult
+//        abstract configure : WorkerNodeConfigParam -> UnitResult
         abstract monitor : WorkerNodeMonitorParam -> ClmResult<WorkerNodeMonitorResponse>
 
         /// To check if service is working.
@@ -164,8 +163,8 @@ module ServiceInfo =
     [<ServiceContract(ConfigurationName = WorkerNodeWcfServiceName)>]
     type IWorkerNodeWcfService =
 
-        [<OperationContract(Name = "configure")>]
-        abstract configure : q:byte[] -> byte[]
+//        [<OperationContract(Name = "configure")>]
+//        abstract configure : q:byte[] -> byte[]
 
         [<OperationContract(Name = "monitor")>]
         abstract monitor : q:byte[] -> byte[]
@@ -182,12 +181,12 @@ module ServiceInfo =
         let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
         let pingWcfErr e = e |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
 
-        let configureImpl p = tryCommunicate tryGetWcfService (fun service -> service.configure) configureWcfErr p
+//        let configureImpl p = tryCommunicate tryGetWcfService (fun service -> service.configure) configureWcfErr p
         let monitorImpl p = tryCommunicate tryGetWcfService (fun service -> service.monitor) monitorWcfErr p
         let pingImpl() = tryCommunicate tryGetWcfService (fun service -> service.ping) pingWcfErr ()
 
         interface IWorkerNodeService with
-            member _.configure p = configureImpl p
+//            member _.configure p = configureImpl p
             member _.monitor p = monitorImpl p
             member _.ping() = pingImpl()
 
@@ -294,6 +293,8 @@ module ServiceInfo =
         | _ -> None
 
 
+    /// Type parameter 'P is needed because this class is shared by WorkerNodeService and WorkerNodeAdm
+    /// and they do have different type of this 'P.
     type WorkerNodeSettingsProxy<'P> =
         {
             tryGetClientId : 'P -> WorkerNodeId option
@@ -345,7 +346,7 @@ module ServiceInfo =
 
                             noOfCores =
                                 let n = proxy.tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
-                                max 0 (min n Environment.ProcessorCount)
+                                max 0 (min n (2 * Environment.ProcessorCount))
 
                             nodePriority =
                                 match w.workerNodeInfo.nodePriority.value with

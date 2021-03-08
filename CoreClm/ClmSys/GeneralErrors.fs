@@ -97,6 +97,16 @@ module GeneralErrors =
         | LoadWorkerNodeInfoErr of Guid
         | RunQueueTryUpdateRowErr of RunQueueTryUpdateRowError
 
+        | TryStartRunQueueErr of RunQueueId
+        | TryCompleteRunQueueErr of RunQueueId
+        | TryCancelRunQueueErr of RunQueueId
+        | TryFailRunQueueErr of RunQueueId
+        | TryPickRunQueueErr
+        | TryLoadRunQueueErr of RunQueueId
+        | TryRequestCancelRunQueueErr of RunQueueId
+        | TryNotifyRunQueueErr of RunQueueId
+        | TryUpdateProgressRunQueueErr of RunQueueId
+        | TryClearNotificationErr of RunQueueId
 
     type ServiceInstallerError =
         | InstallServiceErr of exn

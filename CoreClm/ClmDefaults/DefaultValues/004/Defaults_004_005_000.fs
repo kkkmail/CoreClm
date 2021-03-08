@@ -125,6 +125,37 @@ module Defaults_004_005_000 =
                 sugarScarcity = 0.001
             }
 
+        /// Use: "ContGenAdm.exe add -i 4005000006 -n 7 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
+        static member codeGenValue_002 =
+            {
+                activationScarcity = 1.0
+                activationMultiplier = 10_000.0
+
+                acCatSynthScarcity = 0.001_000
+                acCatSynthMultiplier = 100_000.0
+                acCatSynthSimilarity = 0.1
+
+                acCatDestrScarcity = 0.001_000
+                acCatDestrMultiplier = 100_000.0
+                acCatDestrSimilarity = 0.1
+
+                ligForward = 0.001
+                ligBackward = 0.010
+
+                acFwdCatLigScarcity = 0.000_001_000
+                acFwdCatLigMultiplier = 100_000.0
+                acFwdCatLigSimilarity = 0.000_000_100
+
+                acBkwCatLigScarcity = 0.000_001_000
+                acBkwCatLigMultiplier = 100_000.0
+                acBkwCatLigSimilarity = 0.000_000_100
+
+                sugarForward = 100.0
+                sugarBackward = 0.001
+                sugarScarcity = 0.001
+            }
+
+
         /// Use: "ContGenAdm.exe add -i 4005000005 -n 20 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member defaultValue =
             {
@@ -169,6 +200,7 @@ module Defaults_004_005_000 =
                 DefaultDataParam.codeGenValue_001   // 4
 
                 DefaultDataParam.defaultValue       // 5
+                DefaultDataParam.codeGenValue_002   // 6
 
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
 //                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }

@@ -1,6 +1,6 @@
 # ClmFSharp
-## F# modelling of chiral symmetry breaking in chemical systems. Version 6.0.1.
-It is a port of https://github.com/kkkmail/ClmFSharp to NET5.
+## F# modelling of chiral symmetry breaking in chemical systems. Version 6.0.3.
+It is a port of https://github.com/kkkmail/ClmFSharp to NET5 with some extensions to support reactions with activated catalysts.
 
 ### Complexity
 The main difficulty in modeling organic chemical systems is a very large number of possible reagents and reactions. For example, the number of peptide chains grows as: `(2 * M) * ((2 * M) ^ (N + 1) – 1) / ((2 * M) - 1)` where `M` is the number of considered amino acids and `N` is the maximum considered peptide length. That value for 20 amino acids and maximum peptide length of 3 gives 65,640 possible peptide chains. If some of the reactions can be catalyzed by some of these peptide chains, then, in theory, we must consider that *all* peptide chains can catalyze *all* such reactions, though most of the coefficients are exact zeros. This requires considering huge sparse matrices of coefficients of various reactions. Subsequently, it is not possible to use such matrices directly and all exact zeros must be removed from all equations. 
@@ -20,16 +20,16 @@ The system uses MS SQL as a database to store various parameters and generates H
 
 
 ## Build order
-The system uses F# type providers, which means that the database must be created first. The compile time connection strings are loaded from `App.config` because type providers have not switched yet to support `appsettings.json`. The run time connection string are loaded from `appsettings.json` files. See `DbData.DatabaseTypes` for details. Because the database is primitive (it contains less than 10 tables), usage of automated up/down database migrations (like `Entity Framework` based one) does not yet seem justified. So, the procedure is as follows:
-1.	Look up the values of `ClmSys.VersionInfo.ClmBaseName` and `ClmSys.VersionInfo.MsgSvcBaseName` (e.g. `clm601`, `msg601`) / adjust it as necessary. They must match the values `from DbData\App.config`.
+The system uses F# type providers, which means that the database must be created first. The compile time connection strings are loaded from `DbData\app.config` because type providers have not switched yet to support `appsettings.json`. The run time connection string are loaded from `appsettings.json` files. See `DbData.DatabaseTypes` for details. Because the databases are primitive (each of them contains less than 10 tables), usage of automated up/down database migrations (like `Entity Framework` based one) does not yet seem justified. So, the procedure is as follows:
+1.	Look up the values of `ClmSys.VersionInfo.ClmBaseName` and `ClmSys.VersionInfo.MsgSvcBaseName` (e.g. `clm603`, `msg603`, `wns603`). They must match the values `from DbData\app.config`.
 2.	Create MSSQL databases with the names from step #1.
-3.	Run `-build.bat` file from `Sql\ContGen` and `Sql\MsgSvc` folders. they will produce files `001_all.sql` and `002_data.sql` in the folders `Sql\ContGen\!All` and `Sql\MsgSvc\!All`. If no changes to tables or data were made, then these files will come out the same as in repository.
-4.	Load file `001_all.sql` and run it in the database created on step #2, then load file `002_data.sql` and run it. Repeat that for both databases. The scripts are fully reentrable, which means that they can be run many times without any side effects.
+3.	Run `-build.bat` file from `Sql\ContGen`, `Sql\MsgSvc`, and `Sql\WrkNode` folders. they will produce files `001_all.sql` and `002_data.sql` in the folders `Sql\ContGen\!All`, `Sql\MsgSvc\!All`, and `Sql\WrkNode\!All`. If no changes to tables or data were made, then these files will come out the same as in the repository.
+4.	Load file `001_all.sql` and run it in the database created on step #2, then load file `002_data.sql` and run it. Repeat that for all three databases. The scripts are fully reentrable, which means that they can be run many times without any side effects.
 5.	Once the databases are built, F# solution `CoreClm.sln` can be loaded and compiled.
 
 
 ## Project and Folder Structure
-Folders `CoreClm` and below contain F# code. There are two solutions: the main solution `CoreClm.sln` and model testing solution `Model.sln`. The fist solution builds the whole system and the second solution is used to perform the primary acceptance test for a generated model. The current code has only a handful of what would be called acceptance tests in C# world. Most of them are currently done as `FSX` files. There are a few more tests that should be added to the system and this will be hopefully covered in future version(s).
+Folders `CoreClm` and below contain F# code. The solution is `CoreClm.sln`. The current code has only a handful of what would be called acceptance tests in C# world. Most of them are currently done as `FSX` files. There are a few more tests that should be added to the system and this will be hopefully covered in future version(s).
 
 Folder `Math` contains various Excel / Wolfram Mathematica helper files and they are not needed for the operation of the system.
 
@@ -44,8 +44,8 @@ The project `ContGenService` is the primary one and it contains all executables 
 The following main executables are used by the system:
 1.	`ClmDefaults.exe` stores / updates current default sets into the database. If any of the default sets are modified or new ones are added in F# code, then this command must be run first. Currently, there are no command line parameters for this command.
 2.	`ContGenService.exe`. This is the primary service. It can be run as a Windows service or as a regular executable. There are some different benefits running it as a Windows service or as a simple executable. 
-3.	When `ContGenService.exe` is running we need the functionality to control and/or monitor it. This is performed by `ContGenAdm.exe`. It can be used in both running modes of `ContGenService.exe` (Windows service / standard executable). It is also used to add tasks / generate mode code for tests / run specific model “by hands”.
-4.	`SolverRunner` is a low-lever F# wrapper around ALGLIB vector ODE solver. It solves a given model with given parameters (`y0` and `tEnd`), It is spawned as a thread by `WorkerNodeService` when a model needs to be run.
+3.	When `ContGenService.exe` is running we need the functionality to control and/or monitor it. This is performed by `ContGenAdm.exe`. It can be used in both running modes of `ContGenService.exe` (Windows service / standard executable). It is also used to add tasks / generate mode code for tests / run specific model "by hands".
+4.	`SolverRunner` is a low-lever F# wrapper around ALGLIB vector ODE solver. It solves a given model with given parameters (`y0` and `tEnd`), It is spawned as external process by `WorkerNodeService` when a model needs to be run.
 
 The system runs models on a distributed computing cluster. The following additional executable are used to do that:
 1.	MessagingService.exe

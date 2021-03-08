@@ -8,27 +8,15 @@ open GeneralPrimitives
 
 module WorkerNodeErrors =
 
-    type OnSaveResultError =
-        | SendResultMessageError of (MessagingClientId * ResultDataId)
-
-
-    type OnSaveChartsError =
-        | SendChartMessageError of (MessagingClientId * ResultDataId)
-
-
-    type OnUpdateProgressError =
-        | UnableToSendProgressMsgErr of RunQueueId
-        | UnableToFindMappingErr of RunQueueId
-
-
     type OnRunModelError =
-        | CannotRunModelErr
+        | CannotRunModelErr of RunQueueId
+        | CannotDeleteRunQueueErr of RunQueueId
 
 
     type OnProcessMessageError =
         | CannotSaveModelDataErr of MessageId * RunQueueId
-        | OnRunModelFailedErr of MessageId * RunQueueId
-        | ModelAlreadyRunningErr of MessageId * RunQueueId
+//        | OnRunModelFailedErr of MessageId * RunQueueId
+//        | ModelAlreadyRunningErr of MessageId * RunQueueId
         | InvalidMessageErr of (MessageId * string)
         | FailedToCancelErr of (MessageId * RunQueueId * exn)
 
@@ -43,9 +31,6 @@ module WorkerNodeErrors =
 
 
     type WorkerNodeError =
-        | OnSaveResultErr of OnSaveResultError
-        | OnSaveChartsErr of OnSaveChartsError
-        | OnUpdateProgressErr of OnUpdateProgressError
         | OnRunModelErr of OnRunModelError
         | OnProcessMessageErr of OnProcessMessageError
         | OnGetMessagesErr of OnGetMessagesError

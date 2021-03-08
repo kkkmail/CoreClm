@@ -15,26 +15,21 @@ open ClmSys.GeneralData
 
 module Configuration =
 
-    /// Note that the base name is used.
-    /// If the base name is changed, then a new database must be generated!
     [<Literal>]
-    let ClmDbName = ClmBaseName
+    let ContGenDbName = ClmBaseName
 
 
     [<Literal>]
-    let ContGenAppConfigFile : string = __SOURCE_DIRECTORY__ + "\..\ContGenService\App.config"
+    let AppConfigFile : string = __SOURCE_DIRECTORY__ + @"\app.config"
 
 
     [<Literal>]
-    let MsgAppConfigFile : string = __SOURCE_DIRECTORY__ + "\..\MessagingService\App.config"
+    let ContGenConnectionStringValue = "Server=localhost;Database=" + ContGenDbName + ";Integrated Security=SSPI"
 
 
-    [<Literal>]
-    let ClmConnectionStringValue = "Server=localhost;Database=" + ClmDbName + ";Integrated Security=SSPI"
-
-
-    let clmConnectioStringKey = ConfigKey "Clm"
-    let msgSvcConnectioStringKey = ConfigKey "MsgSvc"
+    let contGenConnectionStringKey = ConfigKey "ContGenService"
+    let messagingConnectionStringKey = ConfigKey "MessagingService"
+    let workerNodeConnectionStringKey = ConfigKey "WorkerNodeService"
 
 
     let private getConnectionString fileName connKey defaultValue =
@@ -48,11 +43,11 @@ module Configuration =
         |> ConnectionString
 
 
-    let private getClmConnectionStringImpl() = getConnectionString appSettingsFile clmConnectioStringKey ClmConnectionStringValue
+    let private getContGenConnectionStringImpl() = getConnectionString appSettingsFile contGenConnectionStringKey ContGenConnectionStringValue
 
 
-    let private clmConnectionString = Lazy<ConnectionString>(getClmConnectionStringImpl)
-    let getClmConnectionString() = clmConnectionString.Value
+    let private contGenConnectionString = Lazy<ConnectionString>(getContGenConnectionStringImpl)
+    let getContGenConnectionString() = contGenConnectionString.Value
 
 
     [<Literal>]
@@ -60,25 +55,41 @@ module Configuration =
 
 
     [<Literal>]
-    let ClmSqlProviderName : string = "name=Clm"
+    let ContGenSqlProviderName : string = "name=ContGenService"
 
 
     [<Literal>]
-    let MsgSvcDbName = MsgSvcBaseName
+    let MessagingDbName = MsgSvcBaseName
 
 
     [<Literal>]
-    let MsgSvcConnectionStringValue = "Server=localhost;Database=" + MsgSvcDbName + ";Integrated Security=SSPI"
+    let MessagingConnectionStringValue = "Server=localhost;Database=" + MessagingDbName + ";Integrated Security=SSPI"
 
 
-    let private getMsgSvcConnectionStringImpl() = getConnectionString appSettingsFile msgSvcConnectioStringKey MsgSvcConnectionStringValue
+    let private getMessagingConnectionStringImpl() = getConnectionString appSettingsFile messagingConnectionStringKey MessagingConnectionStringValue
+    let private messagingConnectionString = Lazy<ConnectionString>(getMessagingConnectionStringImpl)
+    let getMessagingConnectionString() = messagingConnectionString.Value
 
-
-    let private msgSvcConnectionString = Lazy<ConnectionString>(getMsgSvcConnectionStringImpl)
-    let getMsgSvcConnectionString() = msgSvcConnectionString.Value
 
     [<Literal>]
-    let MsgSvcSqlProviderName : string = "name=MsgSvc"
+    let MessagingSqlProviderName : string = "name=MessagingService"
+
+
+    [<Literal>]
+    let WorkerNodeDbName = WorkerNodeSvcBaseName
+
+
+    [<Literal>]
+    let WorkerNodeConnectionStringValue = "Server=localhost;Database=" + WorkerNodeDbName + ";Integrated Security=SSPI"
+
+
+    let private getWorkerNodeConnectionStringImpl() = getConnectionString appSettingsFile workerNodeConnectionStringKey WorkerNodeConnectionStringValue
+    let private workerNodeConnectionString = Lazy<ConnectionString>(getWorkerNodeConnectionStringImpl)
+    let getWorkerNodeSvcConnectionString() = workerNodeConnectionString.Value
+
+
+    [<Literal>]
+    let WorkerNodeSqlProviderName : string = "name=WorkerNodeService"
 
 
     let buildConnectionString (key : string) : string =

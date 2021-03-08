@@ -3,6 +3,12 @@
 [string] $global:messagingServiceName = "MessagingService"
 [string] $global:workerNodeServiceName = "WorkerNodeService"
 [string] $global:contGenServiceName = "ContGenService"
+[string] $global:solverRunnerName = "SolverRunner"
+
+function PrintToConsole($s)
+{
+    Write-Information -MessageData $s -InformationAction Continue
+}
 
 function CleanAll()
 {
@@ -324,3 +330,20 @@ function StopContGenService([string] $messagingDataVersion = "")
 }
 
 #===================================================================================================
+
+function StopSolvers()
+{
+    PrintToConsole "Terminating ALL $global:solverRunnerName processes..."
+
+    $slv = Get-Process -Name "$global:solverRunnerName" -ea silentlycontinue
+    if ($slv)
+    {
+        Stop-Process -InputObject $slv -force
+    }
+    Get-Process | Where-Object { $_.HasExited }
+
+    if (!$slv)
+    {
+        PrintToConsole "No $global:solverRunnerName processes found!"
+    }
+}

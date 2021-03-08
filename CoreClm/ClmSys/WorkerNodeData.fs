@@ -2,6 +2,7 @@
 
 open System
 
+open ClmSys.GeneralPrimitives
 open Softellect.Sys.Core
 open Softellect.Wcf.Common
 open Softellect.Messaging.ServiceInfo
@@ -11,6 +12,7 @@ open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodeErrors
 open ClmSys.ClmErrors
+open ClmSys.SolverRunnerPrimitives
 
 module WorkerNodeData =
 
@@ -79,3 +81,10 @@ module WorkerNodeData =
             match r with
             | true, _ -> Ok()
             | false, s -> s |> InvalidSettings |> WrkSettingsErr |> WorkerNodeErr |> Error
+
+
+    type SolverRunnerInfo =
+        {
+            runQueueId : RunQueueId
+            processId : ProcessId option
+        }

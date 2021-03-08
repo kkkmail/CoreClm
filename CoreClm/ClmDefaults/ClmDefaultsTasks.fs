@@ -12,7 +12,7 @@ module ClmDefaultsTasks =
 
         let saveDefault (_, (d : ClmDefaultValue)) =
             printfn "    %A" d.clmDefaultValueId
-            upsertClmDefaultValue getClmConnectionString d |> ignore
+            upsertClmDefaultValue getContGenConnectionString d |> ignore
 
         defaultValues
         |> Map.toList

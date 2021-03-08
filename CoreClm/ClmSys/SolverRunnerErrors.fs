@@ -1,49 +1,47 @@
 ﻿namespace ClmSys
 
+open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerPrimitives
 open GeneralErrors
-open ExitErrorCodes
+open Softellect.Sys.MessagingPrimitives
 
 module SolverRunnerErrors =
-
-    type CriticalErrorType =
-        | ErrorCodeBased
-        | ExceptionBased
-        | ErrroMessageBased
-
 
     type SolverRunnerCriticalError =
         {
             errorId : ErrorId
-            errorType : CriticalErrorType
-            result : int
-            errorMessageOpt : string option
-            exceptionOpt : exn option
+            runQueueId : RunQueueId
+            errorMessage : string
         }
 
-        static member fromErrorCode e =
+        static member create q e =
             {
                 errorId = ErrorId.getNewId()
-                errorType = ErrorCodeBased
-                result = e
-                errorMessageOpt = None
-                exceptionOpt = None
+                runQueueId = q
+                errorMessage = $"{e}"
             }
 
-        static member fromExn e =
-            {
-                errorId = ErrorId.getNewId()
-                errorType = ExceptionBased
-                result = UnknownException
-                errorMessageOpt = None
-                exceptionOpt = Some e
-            }
+    type OnSaveResultError =
+        | SendResultMessageErr of (MessagingClientId * ResultDataId)
 
 
-        static member fromErrMessage e =
-            {
-                errorId = ErrorId.getNewId()
-                errorType = ErrroMessageBased
-                result = UnknownException
-                errorMessageOpt = Some e
-                exceptionOpt = None
-            }
+    type OnSaveChartsError =
+        | SendChartMessageErr of (MessagingClientId * ResultDataId)
+
+
+    type OnUpdateProgressError =
+        | UnableToSendProgressMsgErr of RunQueueId
+        | UnableToFindMappingErr of RunQueueId
+
+
+    type CheckRunningResult =
+        | CanRun
+        | AlreadyRunning of ProcessId
+        | TooManyRunning of int
+        | GetProcessesByNameExn of exn
+
+
+    type SolverRunnerError =
+        | OnSaveResultErr of OnSaveResultError
+        | OnSaveChartsErr of OnSaveChartsError
+        | OnUpdateProgressErr of OnUpdateProgressError

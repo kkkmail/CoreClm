@@ -10,7 +10,21 @@ module SolverRunnerPrimitives =
         | RegularChartGeneration
         | ForceChartGeneration
 
+        member n.value =
+            match n with
+            | RegularChartGeneration -> 1
+            | ForceChartGeneration -> 2
+
 
     type CancellationType =
         | CancelWithResults of string option
         | AbortCalculation of string option
+
+        member n.value =
+            match n with
+            | AbortCalculation _ -> 0
+            | CancelWithResults _ -> 2
+
+
+    type ProcessId =
+        | ProcessId of int

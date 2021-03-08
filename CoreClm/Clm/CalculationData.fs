@@ -1,5 +1,6 @@
 ﻿namespace Clm
 
+open Microsoft.FSharp.NativeInterop
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRatesBase
@@ -446,7 +447,7 @@ module CalculationData =
     let calculateTotalSubst (totalSubst : array<LevelOne>) (x: double[]) =
         let mutable sum = 0.0
 
-        for (coeff, j1) in totalSubst do
+        for coeff, j1 in totalSubst do
             sum <- sum + coeff * x.[j1]
 
         sum
@@ -457,25 +458,49 @@ module CalculationData =
         |> Array.map (fun (l, r) -> calculateTotalSubst l x, calculateTotalSubst r x)
 
 
-    let calculateDerivativeValue (indices : ModelIndices) (x: double[]) =
+    let calculateDerivativeValue (x: double[]) (indices : ModelIndices) : double =
         let mutable sum = 0.0
 
         for coeff in indices.level0 do
             sum <- sum + coeff
 
-        for (coeff, j1) in indices.level1 do
+        for coeff, j1 in indices.level1 do
             sum <- sum + coeff * x.[j1]
 
-        for (coeff, j1, j2) in indices.level2 do
+        for coeff, j1, j2 in indices.level2 do
             sum <- sum + coeff * x.[j1] * x.[j2]
 
-        for (coeff, j1, j2, j3) in indices.level3 do
+        for coeff, j1, j2, j3 in indices.level3 do
             sum <- sum + coeff * x.[j1] * x.[j2] * x.[j3]
 
-        for (coeff, j1, j2, j3, j4) in indices.level4 do
+        for coeff, j1, j2, j3, j4 in indices.level4 do
             sum <- sum + coeff * x.[j1] * x.[j2] * x.[j3] * x.[j4]
 
         sum
+
+
+    let calculateByRefDerivativeValue (x: nativeptr<double>) (indices : ModelIndices) (dx: nativeptr<double>) : unit =
+        let mutable sum = 0.0
+
+        for coeff in indices.level0 do
+            sum <- sum + coeff
+
+        for coeff, j1 in indices.level1 do
+            sum <- sum + coeff * (NativePtr.get x j1)
+
+        for coeff, j1, j2 in indices.level2 do
+            sum <- sum + coeff * (NativePtr.get x j1) * (NativePtr.get x j2)
+
+        for coeff, j1, j2, j3 in indices.level3 do
+            sum <- sum + coeff * (NativePtr.get x j1) * (NativePtr.get x j2) * (NativePtr.get x j3)
+
+        for coeff, j1, j2, j3, j4 in indices.level4 do
+            sum <- sum + coeff * (NativePtr.get x j1) * (NativePtr.get x j2) * (NativePtr.get x j3) * (NativePtr.get x j4)
+
+        NativePtr.set dx 0 sum
+
+
+    let makeNonNegative (x: double[]) = x |> Array.map (max 0.0)
 
 
     type ModelCalculationData =
@@ -492,9 +517,12 @@ module CalculationData =
                 derivative = [||]
             }
 
-        member md.getDerivative x = md.derivative |> Array.map (fun i -> calculateDerivativeValue i x)
-        member md.getTotalSubst x = calculateTotalSubst md.totalSubst x
-        member md.getTotals x = calculateTotals md.totals x
+        member md.getDerivative x =
+            let y = makeNonNegative x
+            md.derivative |> Array.map (calculateDerivativeValue y)
+
+        member md.getTotalSubst x = x |> makeNonNegative |> calculateTotalSubst md.totalSubst
+        member md.getTotals x = x |> makeNonNegative |> calculateTotals md.totals
 
         static member createTotalSubst (si : SubstInfo) =
             si.allSubst
@@ -524,8 +552,8 @@ module CalculationData =
                 (i |> List.map(fun e -> e, -1))
                 @
                 (o |> List.map(fun e -> e, 1))
-                |> List.groupBy (fun (s, _) -> s)
-                |> List.map (fun (s, e) -> s, e |> List.map (fun (_, i) -> i) |> List.sum)
+                |> List.groupBy fst
+                |> List.map (fun (s, e) -> s, e |> List.map snd |> List.sum)
                 |> List.filter (fun (_, e) -> e <> 0)
                 |> List.map (fun (s, m) -> s, ((double m) * v, r))
 

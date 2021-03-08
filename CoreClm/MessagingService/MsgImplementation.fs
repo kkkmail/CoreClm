@@ -28,7 +28,7 @@ module ServiceImplementation =
                         messagingDataVersion = messagingDataVersion
                     }
 
-                messagingServiceProxy = createMessagingServiceProxy getMsgSvcConnectionString
+                messagingServiceProxy = createMessagingServiceProxy getMessagingConnectionString
                 communicationType = i.communicationType
             }
 

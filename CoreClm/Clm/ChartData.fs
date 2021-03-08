@@ -4,6 +4,7 @@ open Softellect.Sys.Core
 open Clm.Substances
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
+open Clm.CalculationData
 
 module ChartData =
 
@@ -44,7 +45,8 @@ module ChartData =
             sugarEe : double option
         }
 
-        static member create (i : BinaryInfo) t x =
+        static member create (i : BinaryInfo) t xInput =
+            let x = makeNonNegative xInput
             let totals = i.getTotals x
 
             let getCorrectLD li di =
@@ -86,7 +88,7 @@ module ChartData =
 
                     {
                         totalData = i.getTotalSubst x
-                        minData = x |> Array.min
+                        minData = xInput |> Array.min // Here we want to watch for negative values in the input data.
                         foodData = Option.bind (fun i -> x.[i] |> Some) foodIdx
                         wasteData = Option.bind (fun i -> x.[i] |> Some) wasteIdx
                         levelData = [| for level in 1..i.maxPeptideLength.length -> levelData level |]
@@ -95,6 +97,28 @@ module ChartData =
                 sugarData = z
                 sugarEe = eeZ
             }
+
+        static member defaultValue =
+            {
+                t = 0.0
+                aminoAcidsData = [| 0.0 |]
+                enantiomericExcess = [| 0.0 |]
+                totalSubst =
+                    {
+                        totalData = 0.0
+                        minData = 0.0
+                        foodData = None
+                        wasteData = None
+                        levelData = [| 0.0 |]
+                    }
+                sugarData = None
+                sugarEe = None
+            }
+
+        member csd.maxEe =
+            csd.enantiomericExcess
+            |> Array.map abs
+            |> Array.max
 
 
     type ChartData =
@@ -111,9 +135,7 @@ module ChartData =
 
         member cd.maxEe =
             cd.allChartData
-            |> List.map (fun e -> e.enantiomericExcess |> List.ofArray)
-            |> List.concat
-            |> List.map (fun e -> abs e)
+            |> List.map (fun e -> e.maxEe)
             |> List.max
 
         member cd.maxAverageEe =
@@ -155,10 +177,7 @@ module ChartData =
         member cd.maxLastEe =
             match cd.allChartData with
             | [] -> 0.0
-            | h :: _ ->
-                h.enantiomericExcess
-                |> Array.map (fun e -> abs e)
-                |> Array.max
+            | h :: _ -> h.maxEe
 
         /// Last calculated value of tEnd.
         member cd.tLast =

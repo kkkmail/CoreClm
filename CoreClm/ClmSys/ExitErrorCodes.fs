@@ -6,7 +6,7 @@ module ExitErrorCodes =
     let CompletedSuccessfully = 0
 
     [<Literal>]
-    let NotImplemented = -1
+    let CriticalError = -1
 
     [<Literal>]
     let InvalidCommandLineArgs = -2
