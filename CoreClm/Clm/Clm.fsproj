@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\OdePackInterop\OdePackInterop\OdePackInterop.csproj" />
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
   </ItemGroup>
 
