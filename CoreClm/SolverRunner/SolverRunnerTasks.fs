@@ -150,11 +150,12 @@ module SolverRunnerTasks =
                 check
 
         {
+            solverType = AdamsFunctional
             modelDataId = d.modelDataId.value
             runQueueId = w.runningProcessData.runQueueId
             tStart = 0.0
             tEnd = (double w.runningProcessData.commandLineParams.tEnd)
-            derivative = d.modelData.modelData.modelBinaryData.calculationData.getDerivative
+            calculationData = d.modelData.modelData.modelBinaryData.calculationData
             initialValues = d.getInitValues d.y0
             progressCallBack = d.progressCallBack
             chartCallBack = Some d.updateChart

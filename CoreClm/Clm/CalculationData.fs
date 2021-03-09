@@ -480,7 +480,7 @@ module CalculationData =
         sum
 
 
-    let calculateByRefDerivativeValue (x: nativeptr<double>) (indices : ModelIndices) (dx: nativeptr<double>) (idx : int) : unit =
+    let calculateByRefDerivativeValue (x : nativeptr<double>) (indices : ModelIndices) (dx : nativeptr<double>) (idx : int) : unit =
         let mutable sum = 0.0
 
         for coeff in indices.level0 do
@@ -501,15 +501,25 @@ module CalculationData =
         NativePtr.set dx idx sum
 
 
+
     let makeNonNegative (x: double[]) = x |> Array.map (max 0.0)
+    let makeNonNegativeByRef (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0.. neq - 1 -> max 0.0 (NativePtr.get x i) |]
 
-    let takeF (f : Interop.F) =
-        ()
-
-
-    let f1 ((derivative : array<ModelIndices>), (neq : byref<int>), (t : byref<double>), (x : nativeptr<double>), (dx : nativeptr<double>)) : unit =
+    let makeNonNegativeByRefInPlace (neq : int) (x : nativeptr<double>) =
         for i in 0 .. (neq - 1) do
-            calculateByRefDerivativeValue x derivative.[i] dx i
+            NativePtr.set x i (max 0.0 (NativePtr.get x i))
+
+
+    let private f (callaBack: double -> double[] -> unit, indices : array<ModelIndices>, neq : byref<int>, t : byref<double>, x : nativeptr<double>, dx : nativeptr<double>) : unit =
+        let x1 = makeNonNegativeByRef neq x
+        callaBack t x1
+
+        for i in 0 .. (neq - 1) do
+            NativePtr.set dx i (calculateDerivativeValue x1 indices.[i])
+
+
+    let createInterop (callaBack: double -> double[] -> unit) (indices : array<ModelIndices>) =
+        Interop.F(fun n t y dy -> f(callaBack, indices, &n, &t, y, dy))
 
 
     type ModelCalculationData =
@@ -520,7 +530,7 @@ module CalculationData =
         }
 
 
-        member md.f : Interop.F = Interop.F(fun n t y dy -> f1(md.derivative, &n, &t, y, dy))
+        member md.createInterop c : Interop.F = createInterop c md.derivative
 
         static member defaultValue =
             {
