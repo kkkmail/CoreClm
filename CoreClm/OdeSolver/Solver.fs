@@ -1,5 +1,6 @@
 ﻿namespace OdeSolver
 
+open System
 open System.Threading
 open Microsoft.FSharp.NativeInterop
 open OdePackInterop
@@ -52,6 +53,12 @@ module Solver =
         | AdamsFunctional
         | BdfFunctional
 
+        member t.value =
+            match t with
+            | CashCarpAlglib -> 0
+            | AdamsFunctional -> 1
+            | BdfFunctional -> 2
+
 
     type NSolveParam =
         {
@@ -85,15 +92,10 @@ module Solver =
         | None -> EmptyString
 
 
-    let runDLSODE n m f i ts te =
-        let solverParams = SolverParams(FunctionalSolver(n, m), i)
-        solverParams.StartTime <- ts
-        solverParams.EndTime <- te
-        let solverResult = OdeSolver.Run (solverParams, f)
-
+    let mapResults (solverResult : SolverResult) =
         {
-            startTime = ts
-            endTime = te
+            startTime = solverResult.StartTime
+            endTime = solverResult.EndTime
             xEnd = solverResult.X
         }
 
@@ -227,13 +229,15 @@ module Solver =
                 else tryNotifyChartEarly()
             | _ -> ()
 
+        let f (x : double[]) (t : double) : double[] =
+            callBack t x
+            n.calculationData.getDerivative x
+
+        let f1() = createInterop(callBack, n.calculationData.derivative)
+
         match n.solverType with
         | CashCarpAlglib ->
             printfn "nSolve: Using Cash - Carp Alglib solver."
-
-            let f (x : double[]) (t : double) : double[] =
-                callBack t x
-                n.calculationData.getDerivative x
 
             let nt = 2
             let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
@@ -249,9 +253,7 @@ module Solver =
             }
         | AdamsFunctional ->
             printfn "nSolve: Using Adams / Functional DLSODE solver."
-            let f = n.calculationData.createInterop callBack
-            runDLSODE n.initialValues.Length SolutionMethod.Adams f n.initialValues p.startTime p.endTime
+            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, p.startTime, p.endTime, n.initialValues, (fun r -> mapResults r))
         | BdfFunctional ->
             printfn "nSolve: Using BDF / Functional DLSODE solver."
-            let f = n.calculationData.createInterop callBack
-            runDLSODE n.initialValues.Length SolutionMethod.Bdf f n.initialValues p.startTime p.endTime
+            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, p.startTime, p.endTime, n.initialValues, (fun r -> mapResults r))

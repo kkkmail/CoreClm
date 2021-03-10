@@ -1,5 +1,7 @@
 ﻿namespace Clm
 
+#nowarn "9"
+
 open Microsoft.FSharp.NativeInterop
 open OdePackInterop
 open Clm.Substances
@@ -501,7 +503,6 @@ module CalculationData =
         NativePtr.set dx idx sum
 
 
-
     let makeNonNegative (x: double[]) = x |> Array.map (max 0.0)
     let makeNonNegativeByRef (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0.. neq - 1 -> max 0.0 (NativePtr.get x i) |]
 
@@ -518,7 +519,7 @@ module CalculationData =
             NativePtr.set dx i (calculateDerivativeValue x1 indices.[i])
 
 
-    let createInterop (callaBack: double -> double[] -> unit) (indices : array<ModelIndices>) =
+    let createInterop (callaBack: double -> double[] -> unit, indices : array<ModelIndices>) =
         Interop.F(fun n t y dy -> f(callaBack, indices, &n, &t, y, dy))
 
 
@@ -528,9 +529,6 @@ module CalculationData =
             totals : array<array<LevelOne> * array<LevelOne>>
             derivative : array<ModelIndices>
         }
-
-
-        member md.createInterop c : Interop.F = createInterop c md.derivative
 
         static member defaultValue =
             {
