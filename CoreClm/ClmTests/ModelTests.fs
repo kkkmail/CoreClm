@@ -1,5 +1,7 @@
 ﻿namespace ClmTests
 
+#nowarn "9"
+
 open System
 open Microsoft.FSharp.NativeInterop
 open OdePackInterop
@@ -11,6 +13,12 @@ open DbData.Configuration
 open Clm.Model.ModelData
 open Clm.CalculationData
 
+/// Use
+///     "ContGenAdm.exe add -i 4005000004 -n 9 -m 3 -y 10 -t 250000 -r 1 -g"
+/// or
+///     "ContGenAdm.exe add -i 4005000004 -n 10 -m 3 -y 10 -t 250000 -r 1 -g"
+/// to generate ModelCode.fs. The value "-n 10" produces the file on the boundary
+/// of what can be compiled (around 17 - 18 MB) without OutOfMemoryException.
 type ModelTests(output : ITestOutputHelper) =
 
     let writeLine s = output.WriteLine s
@@ -107,12 +115,10 @@ type ModelTests(output : ITestOutputHelper) =
             let t = 0.0
             let callaBack _ _ = ()
             let (dx : double[]) = Array.zeroCreate x.Length
-//            let p0 = NativePtr.
-//            let p = NativePtr.ofNativeInt<double> (& x.[0])
-
+            use px = fixed &x.[0]
+            use pdx = fixed &dx.[0]
             let interop = createInterop (callaBack, indices)
-
-//            do interop.Invoke(ref neq, ref t, x, dx)
+            do interop.Invoke(ref neq, ref t, px, pdx)
             dx
 
         ModelDataShouldMatchGeneratedCodeImpl mdUpdate
