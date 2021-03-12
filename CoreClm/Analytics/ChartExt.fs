@@ -29,7 +29,7 @@ module ChartExt =
             let description = toDescription "" d
             let html = GenericChart.toEmbeddedHtmlWithDescription description ch
             let tempPath = Path.GetTempPath()
-            let file = sprintf "%s.html" guid
+            let file = $"%s{guid}.html"
             let path = Path.Combine(tempPath, file)
             File.WriteAllText(path, html)
             if show then System.Diagnostics.Process.Start(path) |> ignore
@@ -78,7 +78,7 @@ module ChartExt =
                 ]
                 |> String.concat i.resultInfo.separator
 
-            printfn "ChartType.getFileNameImpl: Creating folder: %A" i.resultInfo.resultLocation
+            printfn $"ChartType.getFileNameImpl: Creating folder: %A{i.resultInfo.resultLocation}"
             Directory.CreateDirectory(i.resultInfo.resultLocation) |> ignore
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 

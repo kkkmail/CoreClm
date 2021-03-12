@@ -232,7 +232,7 @@ module SolverRunnerTasks =
 
         while cancel = None do
             cancel <- proxy.solverUpdateProxy.checkCancellation w.runningProcessData.runQueueId
-            printfn "runSolver: runQueueId = %A, counter = %A, cancel = %A" w.runningProcessData.runQueueId counter cancel
+            printfn $"runSolver: runQueueId = %A{w.runningProcessData.runQueueId}, counter = %A{counter}, cancel = %A{cancel}"
             Thread.Sleep 10000
             counter <- counter + 1
 
@@ -242,7 +242,7 @@ module SolverRunnerTasks =
         //
         // Note that we mimic the exception raised by the real solver when cancellation is requested.
         // See comments to the exception type below for reasoning.
-        let m = sprintf "testCancellation - Aborted at counter = %i." counter |> Some
+        let m = $"testCancellation - Aborted at counter = %i{counter}." |> Some
         raise(ComputationAbortedException (w.runningProcessData.runQueueId, cancel |> Option.defaultValue (AbortCalculation m)))
 
 
@@ -302,7 +302,7 @@ module SolverRunnerTasks =
         let getResultAndChartData() = getResultAndChartData (w.runningProcessData.runQueueId.toResultDataId()) w.runningProcessData.workerNodeId runSolverData
 
         let notifyOfResults t =
-            printfn "notifyOfResults: t = %A" t
+            printfn $"notifyOfResults: t = %A{t}"
             let (r, chartData) = getResultAndChartData()
             let result = proxy.saveResult r
 
@@ -316,7 +316,7 @@ module SolverRunnerTasks =
                 |> proxy.saveCharts
 
             let r = combineUnitResults result chartResult
-            printfn "notifyOfResults completed with result: %A" r
+            printfn $"notifyOfResults completed with result: %A{r}"
             r
 
         let getProgress p =
@@ -330,21 +330,21 @@ module SolverRunnerTasks =
                 // Uncomment temporarily when you need to test cancellations.
                 //testCancellation proxy w
 
-                printfn "runSolver: Calling nSolve for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+                printfn $"runSolver: Calling nSolve for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
                 nSolve data |> ignore
-                printfn "runSolver: ...call to nSolve for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+                printfn $"runSolver: ...call to nSolve for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
                 let result = notifyOfResults RegularChartGeneration
 
-                printfn "runSolver: Notifying of completion for runQueueId = %A, modelDataId = %A..." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+                printfn $"runSolver: Notifying of completion for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
                 let completedResult = (None, None) |> Completed |> getProgress |> proxy.solverUpdateProxy.updateProgress
                 combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
-                printfn "runSolver: All completed for runQueueId = %A, modelDataId = %A is completed." w.runningProcessData.runQueueId w.runningProcessData.modelDataId
+                printfn $"runSolver: All completed for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
             with
             // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
             // There seems to be no other easy and clean way. Revisit if that changes.
             // Follow the trail of that date stamp to find other related places.
             | ComputationAbortedException (_, r) ->
-                printfn "getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A" w.runningProcessData.runQueueId
+                printfn $"getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A{w.runningProcessData.runQueueId}"
 
                 match r with
                 | CancelWithResults s ->

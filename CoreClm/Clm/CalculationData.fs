@@ -391,7 +391,7 @@ module CalculationData =
                         | h4 :: t4 ->
                             match t4 with
                             | [] -> (h1, h2, h3, h4) |> FourSubst
-                            | _ -> failwith (sprintf "SubstUpdateInfo: invalid input: %A" i)
+                            | _ -> failwith $"SubstUpdateInfo: invalid input: %A{i}"
 
 
     type ModelIndices =

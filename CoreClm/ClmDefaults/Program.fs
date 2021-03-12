@@ -9,7 +9,7 @@ let main argv =
         CompletedSuccessfully
     with
         | exn ->
-            printfn "%s" exn.Message
+            printfn $"%s{exn.Message}"
             UnknownException
 
     //try

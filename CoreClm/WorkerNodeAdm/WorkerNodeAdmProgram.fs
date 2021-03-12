@@ -12,10 +12,10 @@ let main argv =
         match results |> WrkAdmTask.tryCreate with
         | Some task -> task.run()
         | None ->
-            printfn "%s" (parser.PrintUsage())
+            printfn $"%s{parser.PrintUsage()}"
             InvalidCommandLineArgs
 
     with
     | e ->
-        printfn "%s" e.Message
+        printfn $"%s{e.Message}"
         UnknownException

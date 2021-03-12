@@ -17,7 +17,7 @@ open ClmImpure
 module ContGenAdmTasks =
 
     let logError e =
-        printfn "Error occurred: %A" e
+        printfn $"Error occurred: %A{e}"
         Ok()
 
 
@@ -85,7 +85,7 @@ module ContGenAdmTasks =
                     | false -> Ok()
                 | Error e -> logError e
             | Error e ->
-                printfn "addClmTask: Cannot find data for default set index %A, Error: %A" i e
+                printfn $"addClmTask: Cannot find data for default set index %A{i}, Error: %A{e}"
                 Ok()
         | _ ->
             printfn "addClmTask: Incorrect number of amino acids and/or max peptide length and/or index of default specified."
@@ -104,7 +104,7 @@ module ContGenAdmTasks =
             try
                 getServiceState modelMonitor.getRunState |> ignore
             with
-            | e -> printfn "Exception: %A\n" e.Message
+            | e -> printfn $"Exception: %A{e.Message}\n"
 
             Thread.Sleep(i)
         Ok()

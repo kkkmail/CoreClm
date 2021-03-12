@@ -1,20 +1,22 @@
 ﻿namespace ClmTests
 
 open System
+open Microsoft.FSharp.NativeInterop
+open OdePackInterop
 open Xunit
 open Xunit.Abstractions
 open FluentAssertions
 open DbData.DatabaseTypes
 open DbData.Configuration
 open Clm.Model.ModelData
+open Clm.CalculationData
 
 type ModelTests(output : ITestOutputHelper) =
 
     let writeLine s = output.WriteLine s
 
 
-    [<Fact>]
-    member _.ModelDataShouldMatchGeneratedCode () : unit =
+    let ModelDataShouldMatchGeneratedCodeImpl (mdUpdate : ModelData -> double[] -> double[]) =
         let eps = 0.000001
         let cgModelDataParamsWithExtraData = modelDataParamsWithExtraData
         let cgGetTotalSubst = getTotalSubst
@@ -31,19 +33,18 @@ type ModelTests(output : ITestOutputHelper) =
             match mdo with
             | Ok md ->
                 let paramEq = (md.modelData.modelDataParams = cgModelDataParamsWithExtraData.regularParams.modelDataParams)
-                writeLine (sprintf "(md.modelData.modelDataParams = cgModelDataParamsWithExtraData.modelDataParams) =\n    %A\n" paramEq)
+                writeLine $"(md.modelData.modelDataParams = cgModelDataParamsWithExtraData.modelDataParams) =\n    %A{paramEq}\n"
 
                 let mdModelDataParamsWithExtraData = md.modelData.getModelDataParamsWithExtraData()
                 let allParamEq = (mdModelDataParamsWithExtraData.regularParams = cgModelDataParamsWithExtraData.regularParams)
-                writeLine (sprintf "(mdAllParam.regularParams = cgModelDataParamsWithExtraData.regularParams) =\n    %A\n" allParamEq)
+                writeLine $"(mdAllParam.regularParams = cgModelDataParamsWithExtraData.regularParams) =\n    %A{allParamEq}\n"
 
                 let mdGetTotalSubst = md.modelData.modelBinaryData.calculationData.getTotalSubst
                 let mdGetTotals = md.modelData.modelBinaryData.calculationData.getTotals
-                let mdUpdate = md.modelData.modelBinaryData.calculationData.getDerivative
 
                 let cgTotalSubst = cgGetTotalSubst x
                 let mdTotalSubst = mdGetTotalSubst x
-                writeLine (sprintf "diff (must be close to 0.0) = %A" (cgTotalSubst - mdTotalSubst))
+                writeLine $"diff (must be close to 0.0) = %A{cgTotalSubst - mdTotalSubst}"
 
                 let cgGetTotals = cgGetTotals x
                 let mdGetTotals = mdGetTotals x
@@ -52,17 +53,17 @@ type ModelTests(output : ITestOutputHelper) =
                     |> Array.map(fun ((a1, b1), (a2, b2)) -> (a1 - a2) * (a1 - a2) + (b1 - b2) * (b1 - b2))
                     |> Array.sum
 
-                writeLine (sprintf "diffTotals (must be close to 0.0) = %A" diffTotals)
+                writeLine $"diffTotals (must be close to 0.0) = %A{diffTotals}"
 
                 let cgUpdate = cgUpdate x |> Array.toList
-                let mdUpdate = mdUpdate x |> Array.toList
+                let mdUpdate = mdUpdate md x |> Array.toList
 
                 let diffUpdate =
                     List.zip cgUpdate mdUpdate
                     |> List.map(fun (a, b) -> (a - b) * (a - b))
                     |> List.sum
 
-                writeLine ( sprintf "diffUpdate (must be close to 0.0) = %A" diffUpdate)
+                writeLine $"diffUpdate (must be close to 0.0) = %A{diffUpdate}"
 
                 if diffUpdate > eps
                 then
@@ -70,13 +71,13 @@ type ModelTests(output : ITestOutputHelper) =
                     |> List.mapi(fun i (a, b) -> i, (a, b, abs (a - b)))
                     |> List.filter (fun (i, (a, b, c)) -> c > eps)
                     |> List.sortByDescending (fun (i, (a, b, c)) -> c, i)
-                    |> List.map (fun (i, (a, b, c)) -> writeLine (sprintf "i = %A, s = %A, cg = %A, md = %A, diff = %A" i (allSubst.[i]) a b c))
+                    |> List.map (fun (i, (a, b, c)) -> writeLine $"i = %A{i}, s = %A{allSubst.[i]}, cg = %A{a}, md = %A{b}, diff = %A{c}")
                     |> ignore
 
                 diffUpdate.Should().BeLessThan(eps, "") |> ignore
                 md
             | Error e ->
-                writeLine (sprintf "Failed to load model data with error: %A." e)
+                writeLine $"Failed to load model data with error: %A{e}."
                 failwith "! Error occurred !"
 
         let mdUpdate = md.modelData.modelBinaryData.calculationData.getDerivative
@@ -92,3 +93,26 @@ type ModelTests(output : ITestOutputHelper) =
 //        printfn "... completed."
 
         ()
+
+    [<Fact>]
+    member _.ModelDataShouldMatchGeneratedCode () : unit =
+        let mdUpdate (md : ModelData) = md.modelData.modelBinaryData.calculationData.getDerivative
+        ModelDataShouldMatchGeneratedCodeImpl mdUpdate
+
+    [<Fact>]
+    member _.ModelDataShouldMatchGeneratedCodeForPointerDerivative () : unit =
+        let mdUpdate (md : ModelData) (x : double[]) : double[] =
+            let indices = md.modelData.modelBinaryData.calculationData.derivative
+            let neq = x.Length
+            let t = 0.0
+            let callaBack _ _ = ()
+            let (dx : double[]) = Array.zeroCreate x.Length
+//            let p0 = NativePtr.
+//            let p = NativePtr.ofNativeInt<double> (& x.[0])
+
+            let interop = createInterop (callaBack, indices)
+
+//            do interop.Invoke(ref neq, ref t, x, dx)
+            dx
+
+        ModelDataShouldMatchGeneratedCodeImpl mdUpdate

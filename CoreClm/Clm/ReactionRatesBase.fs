@@ -47,7 +47,7 @@ module ReactionRatesBase =
             backwardRate : ReactionRate option
         }
 
-        override r.ToString() = sprintf "{ f: %A; b: %A }" r.forwardRate r.backwardRate
+        override r.ToString() = $"{{ f: %A{r.forwardRate}; b: %A{r.backwardRate} }}"
 
         static member defaultValue =
             {

@@ -168,7 +168,7 @@ module SvcCommandLine =
 
     let tryGetContGenServiceData (logger : Logger) p : Result<ContGenServiceData, ClmError> =
         let w = loadSettings p
-        printfn "getContGenServiceData: w = %A" w
+        printfn $"getContGenServiceData: w = %A{w}"
 
         let i =
             {

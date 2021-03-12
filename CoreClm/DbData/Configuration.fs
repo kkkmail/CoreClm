@@ -94,7 +94,7 @@ module Configuration =
 
     let buildConnectionString (key : string) : string =
         [
-            Some (sprintf "Server=localhost;Database=%s;Integrated Security=SSPI" key)
+            Some $"Server=localhost;Database=%s{key};Integrated Security=SSPI"
         ]
         |> List.pick (fun x -> x)
 

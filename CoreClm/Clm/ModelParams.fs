@@ -239,7 +239,7 @@ module ModelParams =
                 | InProgressRunQueue, Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | _ -> EmptyString
 
-            sprintf "{ T: %s;%s DF: %A; MDID: %A; PID: %A; %A }" s estCompl defaultValueId modelDataId runQueueId r.progress
+            $"{{ T: %s{s};%s{estCompl} DF: %A{defaultValueId}; MDID: %A{modelDataId}; PID: %A{runQueueId}; %A{r.progress} }}"
 
 
     type ResultInfo =

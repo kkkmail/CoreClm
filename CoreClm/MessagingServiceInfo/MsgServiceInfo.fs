@@ -70,11 +70,11 @@ module ServiceInfo =
 
         member r.isValid (d : EarlyExitData) =
             match r with
-            | ProgressExceeds p -> d.progress > p |> bindBool (sprintf "progress: %A > %A" d.progress p)
+            | ProgressExceeds p -> d.progress > p |> bindBool $"progress: %A{d.progress} > %A{p}"
             | MaxWeightedAverageAbsEeExceeds e ->
-                d.maxWeightedAverageAbsEe > e |> bindBool (sprintf "maxWeightedAverageAbsEe: %A > %A" d.maxWeightedAverageAbsEe e)
-            | MaxLastEeExceeds e -> d.maxLastEe > e |> bindBool (sprintf "maxLastEe: %A > %A" d.maxLastEe e)
-            | MaxAverageEeExceeds e -> d.maxAverageEe > e |> bindBool (sprintf "maxAverageEe: %A > %A" d.maxAverageEe e)
+                d.maxWeightedAverageAbsEe > e |> bindBool $"maxWeightedAverageAbsEe: %A{d.maxWeightedAverageAbsEe} > %A{e}"
+            | MaxLastEeExceeds e -> d.maxLastEe > e |> bindBool $"maxLastEe: %A{d.maxLastEe} > %A{e}"
+            | MaxAverageEeExceeds e -> d.maxAverageEe > e |> bindBool $"maxAverageEe: %A{d.maxAverageEe} > %A{e}"
 
 
     type EarlyExitCheckFrequency =
@@ -370,7 +370,7 @@ module ServiceInfo =
 
     let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =
         let (w : MsgSettings) = loadSettings()
-        printfn "getServiceAccessInfoImpl: w = %A" w
+        printfn $"getServiceAccessInfoImpl: w = %A{w}"
 
         let r =
             match tryGetSaveSettings(), b with
@@ -380,6 +380,6 @@ module ServiceInfo =
 
         match r with
         | Ok() -> printfn "Successfully saved settings."
-        | Error e -> printfn "Error occurred trying to save settings: %A." e
+        | Error e -> printfn $"Error occurred trying to save settings: %A{e}."
 
         w

@@ -60,7 +60,7 @@ module ServiceInfo =
                 | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
-            sprintf "T: %s;%s %A" s estCompl r.progress
+            $"T: %s{s};%s{estCompl} %A{r.progress}"
 
 
 //    type RunnerStateWithCancellation =
@@ -151,9 +151,9 @@ module ServiceInfo =
                 | Ok r -> printfn "...state at %s =\n%s\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) (r.ToString())
                 | Error e -> printfn "...state at %s =\n%A\n\n" (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) e
             with
-            | e -> printfn "Exception occurred: %A" e
+            | e -> printfn $"Exception occurred: %A{e}"
         else
-            printfn "Not getting state at %A because callCount = %A." DateTime.Now callCount
+            printfn $"Not getting state at %A{DateTime.Now} because callCount = %A{callCount}."
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
@@ -430,7 +430,7 @@ module ServiceInfo =
 
     let getWorkerNodeServiceAccessInfo (loadSettings, tryGetSaveSettings) b =
         let w = loadSettings()
-        printfn "getServiceAccessInfoImpl: w1 = %A" w
+        printfn $"getServiceAccessInfoImpl: w1 = %A{w}"
 
         let g() =
             {
@@ -445,7 +445,7 @@ module ServiceInfo =
             | _, true -> w.trySaveSettings()
             | _ -> w.isValid()
 
-        printfn "getServiceAccessInfoImpl: r = %A" r
+        printfn $"getServiceAccessInfoImpl: r = %A{r}"
 
         match r with
         | Ok() -> g() |> Ok

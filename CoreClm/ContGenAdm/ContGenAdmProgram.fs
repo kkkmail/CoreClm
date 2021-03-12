@@ -15,9 +15,9 @@ let main argv =
             task.run Logger.defaultValue |> ignore
             CompletedSuccessfully
         | None ->
-            printfn "%s" (parser.PrintUsage())
+            printfn $"%s{parser.PrintUsage()}"
             InvalidCommandLineArgs
     with
     | exn ->
-        printfn "%s" exn.Message
+        printfn $"%s{exn.Message}"
         UnknownException

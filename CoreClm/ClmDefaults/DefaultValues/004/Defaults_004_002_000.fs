@@ -44,7 +44,7 @@ module Defaults_004_002_000 =
 
     let getDefaultValue ((n, similarity), (m, (scarcity, multiplier))) =
         let clmDefaultValueId = (4_002_000_000L + 20L * m + n) |> ClmDefaultValueId
-        printfn "clmDefaultValueId = %A, similarity = %A, scarcity = %A, multiplier = %A" clmDefaultValueId similarity scarcity multiplier
+        printfn $"clmDefaultValueId = %A{clmDefaultValueId}, similarity = %A{similarity}, scarcity = %A{scarcity}, multiplier = %A{multiplier}"
 
         let description = None
         let catRateGenType = ByEnantiomerPairs FixedVal

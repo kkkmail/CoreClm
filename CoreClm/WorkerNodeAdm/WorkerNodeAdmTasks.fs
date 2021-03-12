@@ -20,10 +20,10 @@ module WorkerNodeAdmTasks =
                 try
                     getServiceState service DummyWrkMonitorParam
                 with
-                | e -> printfn "Exception: %A\n" e.Message
+                | e -> printfn $"Exception: %A{e.Message}\n"
 
                 Thread.Sleep(d)
-        | Error e -> printfn "Error occurred: %A" e
+        | Error e -> printfn $"Error occurred: %A{e}"
 
         CompletedSuccessfully
 

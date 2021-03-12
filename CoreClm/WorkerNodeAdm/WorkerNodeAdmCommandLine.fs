@@ -76,7 +76,7 @@ module AdmCommandLine =
     let loadSettings p =
         match tryLoadSettings proxy p with
         | Some w ->
-            printfn "loadSettings: w = %A" w
+            printfn $"loadSettings: w = %A{w}"
             w
         | None -> invalidOp "Unable to load settings."
 

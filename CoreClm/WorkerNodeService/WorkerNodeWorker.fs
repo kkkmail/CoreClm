@@ -37,7 +37,7 @@ type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
 
             match hostRes.Value with
             | Ok host -> do! host.runAsync()
-            | Error e -> logger.LogCritical(sprintf "Error: %A" e)
+            | Error e -> logger.LogCritical$"Error: %A{e}"
         }
         |> Async.StartAsTask
         :> Task
@@ -48,7 +48,7 @@ type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
 
             match hostRes.Value with
             | Ok host -> do! host.stopAsync()
-            | Error e -> logger.LogCritical(sprintf "Error: %A" e)
+            | Error e -> logger.LogCritical$"Error: %A{e}"
         }
         |> Async.StartAsTask
         :> Task

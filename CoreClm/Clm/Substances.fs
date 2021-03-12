@@ -328,7 +328,7 @@ module Substances =
         static member toString (i : int) =
             match AminoAcid.all |> List.tryFind(fun a -> a.number = i) with
             | Some a -> AminoAcid.toString a
-            | None -> sprintf "Invalid amino acid index %A" i
+            | None -> $"Invalid amino acid index %A{i}"
 
         static member names = AminoAcid.all |> List.map (fun e -> e, e.name) |> Map.ofList
 
