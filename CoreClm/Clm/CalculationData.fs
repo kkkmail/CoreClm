@@ -3,7 +3,7 @@
 #nowarn "9"
 
 open Microsoft.FSharp.NativeInterop
-open OdePackInterop
+open Softellect.OdePackInterop
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRatesBase

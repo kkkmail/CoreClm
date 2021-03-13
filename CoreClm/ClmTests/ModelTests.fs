@@ -4,7 +4,7 @@
 
 open System
 open Microsoft.FSharp.NativeInterop
-open OdePackInterop
+open Softellect.OdePackInterop
 open Xunit
 open Xunit.Abstractions
 open FluentAssertions

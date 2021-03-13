@@ -3,7 +3,9 @@
 open System
 open System.Threading
 open Microsoft.FSharp.NativeInterop
-open OdePackInterop
+open Softellect.OdePackInterop
+open Softellect.OdePackInterop.Sets
+open Softellect.OdePackInterop.SolverDescriptors
 open Microsoft.FSharp.Core
 open Clm.ChartData
 open System
@@ -13,8 +15,6 @@ open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.SolverData
 open Clm.CalculationData
-open OdePackInterop.Sets
-open OdePackInterop.SolverDescriptors
 
 module Solver =
 
