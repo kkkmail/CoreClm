@@ -110,6 +110,20 @@ module Solver =
         }
 
 
+    let shouldNotify callCount =
+        [
+            callCount <= 100L && callCount % 5L = 0L
+            callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
+            callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
+            callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
+            callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
+            callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
+            callCount > 10_000_000L && callCount % 5_000_000L = 0L
+        ]
+        |> List.tryFind id
+        |> Option.defaultValue false
+
+
     /// F# wrapper around Alglib ODE solver.
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
@@ -124,6 +138,7 @@ module Solver =
         let mutable eeCount = 0
         let mutable calculated = false
         let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
+        let shouldNotify() = shouldNotify callCount
 
         let calculateChartSliceData t x =
             if calculated then lastChartSliceData
@@ -145,11 +160,14 @@ module Solver =
                 calculated <- true
                 csd
 
+        let notifyProgressDetailed p =
+            match n.progressCallBack with
+            | Some c -> c p
+            | None -> Ok()
+
         let notifyProgress t r m =
 //            Thread.Sleep(30_000)
-            match n.progressCallBack with
-            | Some c -> calculateProgress r m |> c
-            | None -> Ok()
+            calculateProgress r m |> notifyProgressDetailed
 
         let notifyChart t x =
 //            Thread.Sleep(30_000)
@@ -175,6 +193,7 @@ module Solver =
                             y = csd.totalSubst.totalData
                         }
 
+                    notifyProgressDetailed (decimal td.progressDetailed) |> ignore
                     c td |> ignore
                 else ()
             | None -> ()
@@ -195,24 +214,11 @@ module Solver =
                 | Some c -> raise(ComputationAbortedException (n.runQueueId, c))
                 | None -> ()
 
-        let shouldNotify() =
-            [
-                callCount <= 100L && callCount % 5L = 0L
-                callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
-                callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
-                callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
-                callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
-                callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
-                callCount > 10_000_000L && callCount % 5_000_000L = 0L
-            ]
-            |> List.tryFind id
-            |> Option.defaultValue false
-
         let callBack (t : double) (x : double[]) =
             callCount <- callCount + 1L
             calculated <- false
             checkCancellation()
-            notifyTime t x false
+            notifyTime t x (shouldNotify())
 
             match p.noOfProgressPoints with
             | Some k when k > 0 && n.tEnd > 0.0 ->
