@@ -40,6 +40,6 @@ module Program =
 
         with
         | exn ->
-            printfn "%s" exn.Message
+            printfn $"%s{exn.Message}"
             UnknownException
 

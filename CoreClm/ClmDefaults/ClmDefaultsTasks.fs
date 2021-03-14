@@ -11,7 +11,7 @@ module ClmDefaultsTasks =
         printfn "Saving all defaults."
 
         let saveDefault (_, (d : ClmDefaultValue)) =
-            printfn "    %A" d.clmDefaultValueId
+            printfn $"    %A{d.clmDefaultValueId}"
             upsertClmDefaultValue getContGenConnectionString d |> ignore
 
         defaultValues

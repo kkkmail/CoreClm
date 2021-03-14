@@ -218,7 +218,7 @@ module Defaults_004_005_000 =
 
     let getDefaultValue (n, e) =
         let clmDefaultValueId = (4_005_000_000L + n) |> ClmDefaultValueId
-        printfn "clmDefaultValueId = %A, e = %A" clmDefaultValueId e
+        printfn $"clmDefaultValueId = %A{clmDefaultValueId}, e = %A{e}"
 
         let description = e.ToString()
         let catRateGenType = ByEnantiomerPairs FixedVal

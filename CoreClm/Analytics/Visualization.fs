@@ -29,11 +29,11 @@ module Visualization =
         let description h =
             [
                 "model name", p.initData.modelDataId.value |> toModelName
-                "default id", sprintf "%A" p.initData.defaultValueId.value
-                "y0", sprintf "%A" p.initData.y0
-                "number of amino acids", sprintf "%A" p.initData.binaryInfo.aminoAcids.Length
-                "max peptide length", sprintf "%A" p.initData.binaryInfo.maxPeptideLength.length
-                "number of substances", sprintf "%A" p.initData.binaryInfo.allSubstData.allSubst.Length
+                "default id", $"%A{p.initData.defaultValueId.value}"
+                "y0", $"%A{p.initData.y0}"
+                "number of amino acids", $"%A{p.initData.binaryInfo.aminoAcids.Length}"
+                "max peptide length", $"%A{p.initData.binaryInfo.maxPeptideLength.length}"
+                "number of substances", $"%A{p.initData.binaryInfo.allSubstData.allSubst.Length}"
             ]
             @
             (p.initData.binaryInfo.allSubstData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))

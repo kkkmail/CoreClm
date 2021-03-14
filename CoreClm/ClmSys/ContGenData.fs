@@ -63,8 +63,8 @@ module ContGenData =
                     //w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
                     //w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
 
-                    w.contGenInfo.partitionerId.value.value <> Guid.Empty, sprintf "%A is invalid" w.contGenInfo.partitionerId
-                    w.contGenInfo.lastAllowedNodeErr.value > 0<minute>, sprintf "%A is invalid" w.contGenInfo.lastAllowedNodeErr
+                    w.contGenInfo.partitionerId.value.value <> Guid.Empty, $"%A{w.contGenInfo.partitionerId} is invalid"
+                    w.contGenInfo.lastAllowedNodeErr.value > 0<minute>, $"%A{w.contGenInfo.lastAllowedNodeErr} is invalid"
                 ]
                 |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
 

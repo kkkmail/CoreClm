@@ -83,9 +83,9 @@ module ServiceInfo =
                 let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
                 printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
             with
-            | e -> printfn "Exception occurred: %A" e
+            | e -> printfn $"Exception occurred: %A{e}"
         else
-            printfn "Not getting state at %A because callCount = %A." DateTime.Now callCount
+            printfn $"Not getting state at %A{DateTime.Now} because callCount = %A{callCount}."
             ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
@@ -395,4 +395,4 @@ module ServiceInfo =
 
         match r with
         | Ok() -> printfn "Successfully saved settings."
-        | Error e -> printfn "Error occurred trying to save settings: %A." e
+        | Error e -> printfn $"Error occurred trying to save settings: %A{e}."

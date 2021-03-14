@@ -39,7 +39,7 @@ module Logging =
     let logAgent = MailboxProcessor.Start <| fun inbox ->
         let rec logLoop () = async {
             let! (message : LogMessage) = inbox.Receive()
-            printfn "logAgent - logging message: %A" message
+            printfn $"logAgent - logging message: %A{message}"
             let logData = LoggingEventData(Domain = AppDomain.CurrentDomain.FriendlyName, Level = message.level, Message = message.message, TimeStampUtc = DateTime.UtcNow, LoggerName = logName)
             let logEvent = LoggingEvent(logData)
             log4netLogger.Logger.Log logEvent

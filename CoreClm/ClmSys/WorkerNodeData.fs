@@ -65,10 +65,10 @@ module WorkerNodeData =
         member w.isValid() =
             let r =
                 [
-                    w.workerNodeInfo.workerNodeName.value <> EmptyString, sprintf "%A is invalid" w.workerNodeInfo.workerNodeName
-                    w.workerNodeInfo.workerNodeId.value.value <> Guid.Empty, sprintf "%A is invalid" w.workerNodeInfo.workerNodeId
-                    w.workerNodeInfo.noOfCores >= 0, sprintf "noOfCores: %A is invalid" w.workerNodeInfo.noOfCores
-                    w.workerNodeInfo.partitionerId.value.value <> Guid.Empty, sprintf "%A is invalid" w.workerNodeInfo.partitionerId
+                    w.workerNodeInfo.workerNodeName.value <> EmptyString, $"%A{w.workerNodeInfo.workerNodeName} is invalid"
+                    w.workerNodeInfo.workerNodeId.value.value <> Guid.Empty, $"%A{w.workerNodeInfo.workerNodeId} is invalid"
+                    w.workerNodeInfo.noOfCores >= 0, $"noOfCores: %A{w.workerNodeInfo.noOfCores} is invalid"
+                    w.workerNodeInfo.partitionerId.value.value <> Guid.Empty, $"%A{w.workerNodeInfo.partitionerId} is invalid"
 
 //                    w.workerNodeSvcInfo.workerNodeServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.workerNodeSvcInfo.workerNodeServiceAddress
 //                    w.workerNodeSvcInfo.workerNodeServicePort.value.value > 0, sprintf "%A is invalid" w.workerNodeSvcInfo.workerNodeServicePort

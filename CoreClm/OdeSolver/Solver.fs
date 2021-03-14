@@ -1,15 +1,20 @@
 ﻿namespace OdeSolver
 
+open System
 open System.Threading
-open Clm.ChartData
+open Microsoft.FSharp.NativeInterop
+open Softellect.OdePackInterop
+open Softellect.OdePackInterop.Sets
+open Softellect.OdePackInterop.SolverDescriptors
 open Microsoft.FSharp.Core
+open Clm.ChartData
 open System
 open ClmSys.GeneralPrimitives
 open ClmSys.GeneralData
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.SolverData
-
+open Clm.CalculationData
 
 module Solver =
 
@@ -43,13 +48,26 @@ module Solver =
         }
 
 
+    type SolverType =
+        | CashCarpAlglib
+        | AdamsFunctional
+        | BdfFunctional
+
+        member t.value =
+            match t with
+            | CashCarpAlglib -> 0
+            | AdamsFunctional -> 1
+            | BdfFunctional -> 2
+
+
     type NSolveParam =
         {
+            solverType : SolverType
             modelDataId : Guid
             runQueueId : RunQueueId
             tStart : double
             tEnd : double
-            derivative : double[] -> double[]
+            calculationData : ModelCalculationData
             initialValues : double[]
             progressCallBack : (decimal -> UnitResult) option
             chartCallBack : (ChartSliceData -> unit) option
@@ -72,6 +90,14 @@ module Solver =
         match estimateEndTime (calculateProgress r m) s with
         | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
         | None -> EmptyString
+
+
+    let mapResults (solverResult : SolverResult) =
+        {
+            startTime = solverResult.StartTime
+            endTime = solverResult.EndTime
+            xEnd = solverResult.X
+        }
 
 
     /// F# wrapper around Alglib ODE solver.
@@ -172,7 +198,7 @@ module Solver =
             |> List.tryFind id
             |> Option.defaultValue false
 
-        let f (x : double[]) (t : double) : double[] =
+        let callBack (t : double) (x : double[]) =
             callCount <- callCount + 1L
             calculated <- false
             checkCancellation()
@@ -203,150 +229,33 @@ module Solver =
                 else tryNotifyChartEarly()
             | _ -> ()
 
-            n.derivative x
+        let f (x : double[]) (t : double) : double[] =
+            callBack t x
+            n.calculationData.getDerivative x
 
-        let nt = 2
-        let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
-        let d = alglib.ndimensional_ode_rp (fun x t y _ -> f x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
-        let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
-        do alglib.odesolversolve(s, d, null)
-        let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)
+        let f1() = createInterop(callBack, n.calculationData.derivative)
 
-        {
-            startTime = p.startTime
-            endTime = p.endTime
-            xEnd = yTbl.[nt - 1, *]
-        }
+        notifyProgress 0.0 progressCount (p.noOfProgressPoints |> Option.defaultValue defaultNoOfProgressPoints) |> ignore
 
+        match n.solverType with
+        | CashCarpAlglib ->
+            printfn "nSolve: Using Cash - Carp Alglib solver."
 
-//    type PartitionType =
-//        | InsideInterval
-//        | EndOfInterval
-//        | OutsideInterval
-//
-//
-//    type PartitionInfo =
-//        {
-//            partitionType : PartitionType
-//            getNSolveParam : double[] -> NSolveParam
-//        }
-//
-//
-//    let defaultPartition (n : NSolveParam) : List<PartitionInfo> =
-//        let p =
-//            [
-//                (30.0, InsideInterval)
-//                (75.0, InsideInterval)
-//                (150.0, InsideInterval)
-//                (250.0, EndOfInterval)
-//                (400.0, OutsideInterval)
-//                (600.0, OutsideInterval)
-//                (1000.0, OutsideInterval)
-//            ]
-//
-//        let s =
-//            match p |> List.tryPick (fun (a, b) -> match b with | EndOfInterval -> Some a | _ -> None) with
-//            | Some a -> a
-//            | None -> 250.0
-//
-//        p
-//        |> List.mapi (fun i (a, b) ->
-//                    {
-//                        partitionType = b
-//                        getNSolveParam =
-//                            if i = 0
-//                            then fun x -> { n with initialValues = x; tStart = n.tStart; tEnd = n.tEnd * a / s }
-//                            else n.next (n.tEnd * a / s)
-//                    })
-//
-//
-//    type ContinueRunParam =
-//        {
-//            maxWeightedAverageAbsEeMaxThreshold : double
-//            maxLastEeMaxThreshold : double
-//            maxWeightedAverageAbsEeMniThreshold : double
-//            maxLastEeMinThreshold : double
-//        }
-//
-//        static member defaultValue =
-//            {
-//                maxWeightedAverageAbsEeMaxThreshold = 0.500
-//                maxLastEeMaxThreshold = 0.500
-//                maxWeightedAverageAbsEeMniThreshold = 0.000_100
-//                maxLastEeMinThreshold = 0.000_100
-//            }
-//
-//
-//    /// The following rules are used:
-//    ///     1. FOR (any interval):
-//    ///        IF (maxWeightedAverageAbsEe >= maxWeightedAverageAbsEeMaxThreshold OR maxLastEe >= maxLastEeMaxThreshold)
-//    ///        THEN STOP.
-//    ///
-//    ///     2. IF EndOfInterval
-//    ///        AND (maxWeightedAverageAbsEe < maxWeightedAverageAbsEeMniThreshold AND maxLastEe < maxLastEeMinThreshold)
-//    ///        THEN STOP.
-//    let continueRun c n p =
-//        match n.getEeData |> Option.bind(fun x -> x() |> Some) with
-//        | Some d ->
-//            let isEndOfInterval() =
-//                match p.partitionType with
-//                | EndOfInterval -> true
-//                | _ -> false
-//
-//            let rules (e : EeData) =
-//                [
-//                    e.maxWeightedAverageAbsEe >= c.maxWeightedAverageAbsEeMaxThreshold || e.maxLastEe >= c.maxLastEeMaxThreshold
-//                    isEndOfInterval() && (e.maxWeightedAverageAbsEe < c.maxWeightedAverageAbsEeMniThreshold || e.maxLastEe < c.maxLastEeMinThreshold)
-//                ]
-//
-//            let stop = rules d |> List.fold (fun acc r -> r || acc) false
-//            not stop
-//        | None ->
-//            match p.partitionType with
-//            | InsideInterval -> true
-//            | EndOfInterval -> false
-//            | OutsideInterval -> false
-//
-//
-//    let defaultContinueRun = continueRun ContinueRunParam.defaultValue
-//
-//
-//    type OdeController =
-//        {
-//            partition : NSolveParam -> List<PartitionInfo>
-//            continueRun : NSolveParam -> PartitionInfo -> bool // This function is NOT pure because there is a MailboxProcessor behind it.
-//        }
-//
-//        static member defaultValue =
-//            {
-//                partition = defaultPartition
-//                continueRun = defaultContinueRun
-//            }
-//
-//
-//    type NSolvePartitionParam =
-//        {
-//            nSolveParam : NSolveParam
-//            controller : OdeController
-//        }
-//
-//        static member defaultValue n =
-//            {
-//                nSolveParam = n
-//                controller = OdeController.defaultValue
-//            }
-//
-//
-//    let nSolvePartitioned (p : NSolvePartitionParam) : unit =
-//        let d = p.controller.partition p.nSolveParam
-//
-//        let x =
-//            d
-//            |> List.fold(fun (a, b) e ->
-//                            if b
-//                            then
-//                                let r = e.getNSolveParam a |> nSolve
-//                                (r.xEnd, p.controller.continueRun p.nSolveParam e)
-//                            else (a, b)) (p.nSolveParam.initialValues, true)
-//
-//        ()
+            let nt = 2
+            let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
+            let d = alglib.ndimensional_ode_rp (fun x t y _ -> f x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
+            let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
+            do alglib.odesolversolve(s, d, null)
+            let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)
+
+            {
+                startTime = p.startTime
+                endTime = p.endTime
+                xEnd = yTbl.[nt - 1, *]
+            }
+        | AdamsFunctional ->
+            printfn "nSolve: Using Adams / Functional DLSODE solver."
+            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, p.startTime, p.endTime, n.initialValues, (fun r -> mapResults r))
+        | BdfFunctional ->
+            printfn "nSolve: Using BDF / Functional DLSODE solver."
+            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, p.startTime, p.endTime, n.initialValues, (fun r -> mapResults r))

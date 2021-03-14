@@ -247,7 +247,7 @@ module AdmCommandLine =
                     contGenSvcInfo = contGenSvcInfo
             }
 
-        printfn "loadSettings: w1 = %A" w1
+        printfn $"loadSettings: w1 = %A{w1}"
         w1
 
 
@@ -262,10 +262,10 @@ module AdmCommandLine =
     let private reportResult (logger : Logger) name r =
         match r with
         | Ok() ->
-            printfn "%s: Successfully scheduled." name
+            printfn $"%s{name}: Successfully scheduled."
             Ok()
         | Error e ->
-            printfn "%s: Error %A" name e
+            printfn $"%s{name}: Error %A{e}"
             e |> ErrLogData |> logger.logError
             Error e
 

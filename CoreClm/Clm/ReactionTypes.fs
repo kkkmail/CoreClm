@@ -692,7 +692,7 @@ module ReactionTypes =
             let sa = toSubstName a
             let sb = toSubstName b
             let sc = toSubstName c
-            sprintf "CatalyticLigationReaction: %s + %s + %s <-> %s + %s" sa sb sc (sa + sb) sc
+            $"CatalyticLigationReaction: %s{sa} + %s{sb} + %s{sc} <-> %s{sa + sb} + %s{sc}"
 
 
     /// Catalyst, which works in ligation reaction with energy consumption.

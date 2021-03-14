@@ -35,7 +35,7 @@ module SolverRunnerImplementation =
 
 
     let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
-        printfn "onSaveResult: Sending results with resultDataId = %A." r.resultDataId
+        printfn $"onSaveResult: Sending results with resultDataId = %A{r.resultDataId}."
 
         {
             partitionerRecipient = proxy.partitionerId
@@ -49,7 +49,7 @@ module SolverRunnerImplementation =
     let onSaveCharts (proxy : SendMessageProxy) (r : ChartGenerationResult) =
         match r with
         | GeneratedCharts c ->
-            printfn "onSaveCharts: Sending charts with resultDataId = %A." c.resultDataId
+            printfn $"onSaveCharts: Sending charts with resultDataId = %A{c.resultDataId}."
 
             {
                 partitionerRecipient = proxy.partitionerId
@@ -74,7 +74,7 @@ module SolverRunnerImplementation =
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) (p : ProgressUpdateInfo) =
-        printfn "onUpdateProgress: runQueueId = %A, progress = %A." p.runQueueId p.progress
+        printfn $"onUpdateProgress: runQueueId = %A{p.runQueueId}, progress = %A{p.progress}."
         let t, completed = toDeliveryType p.progress
         let r0 = proxy.tryUpdateProgress p.progress
 
@@ -95,7 +95,7 @@ module SolverRunnerImplementation =
                 foldUnitResults [ r0; r1; r2 ]
             else foldUnitResults [ r0; r1 ]
 
-        printfn "    onUpdateProgress: runQueueId = %A, result = %A." p.runQueueId result
+        printfn $"    onUpdateProgress: runQueueId = %A{p.runQueueId}, result = %A{result}."
         result
 
 

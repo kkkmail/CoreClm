@@ -422,7 +422,7 @@ module ClmModel =
                 Ok s
             with
             | e ->
-                printfn "generateAndSave: Exception occurred: %A" e
+                printfn $"generateAndSave: Exception occurred: %A{e}"
                 e |> WriteFileExn |> FileErr |> Error
 
 

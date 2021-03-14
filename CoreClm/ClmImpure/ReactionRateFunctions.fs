@@ -96,7 +96,7 @@ module ReactionRateFunctions =
         (primary : RateData)
         (r : 'R) =
         if d.rateDictionary.Count > 0 && (d.rateDictionary.Count % 1_000_000) = 0
-        then printfn "updatePrimaryReactions::d.Count = %A for type: %A. Something is not right." d.rateDictionary.Count (typedefof<'R>)
+        then printfn $"updatePrimaryReactions::d.Count = %A{d.rateDictionary.Count} for type: %A{typedefof<'R>}. Something is not right."
 
         let enantiomer = getEnantiomer r
         updateDictionary d primary r

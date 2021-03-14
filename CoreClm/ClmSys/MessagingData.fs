@@ -26,8 +26,8 @@ module MessagingData =
 
             let r =
                 [
-                    h.httpServiceAddress.value <> EmptyString, sprintf "%A is invalid" h.httpServiceAddress
-                    h.httpServicePort.value > 0, sprintf "%A is invalid" h.httpServicePort.value
+                    h.httpServiceAddress.value <> EmptyString, $"%A{h.httpServiceAddress} is invalid"
+                    h.httpServicePort.value > 0, $"%A{h.httpServicePort.value} is invalid"
                 ]
                 |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
 
