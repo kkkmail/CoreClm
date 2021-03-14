@@ -152,7 +152,7 @@ module ModelRunner =
 
             match i.progress with
             | NotStarted -> { q1 with runQueueStatus = NotStartedRunQueue; errorMessageOpt = None }, Ok()
-            | InProgress _ ->{ q1 with runQueueStatus = InProgressRunQueue; errorMessageOpt = None }, Ok()
+            | InProgress _ -> { q1 with runQueueStatus = InProgressRunQueue; errorMessageOpt = None }, Ok()
             | Completed v ->
                 match v with
                 | None, None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()

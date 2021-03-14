@@ -235,6 +235,8 @@ module Solver =
 
         let f1() = createInterop(callBack, n.calculationData.derivative)
 
+        notifyProgress 0.0 progressCount (p.noOfProgressPoints |> Option.defaultValue defaultNoOfProgressPoints) |> ignore
+
         match n.solverType with
         | CashCarpAlglib ->
             printfn "nSolve: Using Cash - Carp Alglib solver."
