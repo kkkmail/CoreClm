@@ -60,6 +60,16 @@ module Solver =
             | BdfFunctional -> 2
 
 
+    type CorrectorIteratorType =
+        | Functional
+        | ChordWithDiagonalJacobian
+
+        member t.value =
+            match t with
+            | Functional -> 0
+            | ChordWithDiagonalJacobian -> 3
+
+
     type NSolveParam =
         {
             solverType : SolverType
@@ -92,7 +102,7 @@ module Solver =
         | None -> EmptyString
 
 
-    let mapResults (solverResult : SolverResult) =
+    let mapResults (solverResult : SolverResult) (elapsed : TimeSpan) =
         {
             startTime = solverResult.StartTime
             endTime = solverResult.EndTime
@@ -255,7 +265,7 @@ module Solver =
             }
         | AdamsFunctional ->
             printfn "nSolve: Using Adams / Functional DLSODE solver."
-            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, p.startTime, p.endTime, n.initialValues, (fun r -> mapResults r))
+            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, CorrectorIteratorType.Functional.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))
         | BdfFunctional ->
             printfn "nSolve: Using BDF / Functional DLSODE solver."
-            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, p.startTime, p.endTime, n.initialValues, (fun r -> mapResults r))
+            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, CorrectorIteratorType.Functional.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))
