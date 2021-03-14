@@ -195,8 +195,9 @@ module Solver =
 
                     notifyProgressDetailed (decimal td.progressDetailed) |> ignore
                     c td |> ignore
-                else ()
-            | None -> ()
+                    true
+                else false
+            | None -> false
 
         /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
         /// There seems to be no other easy and clean way. Revisit if that changes.
@@ -218,17 +219,19 @@ module Solver =
             callCount <- callCount + 1L
             calculated <- false
             checkCancellation()
-            notifyTime t x (shouldNotify())
 
-            match p.noOfProgressPoints with
-            | Some k when k > 0 && n.tEnd > 0.0 ->
-                if t > (double progressCount) * (n.tEnd / (double k))
-                then
-                    progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
-                    //printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
-                    notifyProgress t progressCount k |> ignore
-                    notifyTime t x true
-            | _ -> ()
+            match notifyTime t x (shouldNotify()) with
+            | true -> ()
+            | false ->
+                match p.noOfProgressPoints with
+                | Some k when k > 0 && n.tEnd > 0.0 ->
+                    if t > (double progressCount) * (n.tEnd / (double k))
+                    then
+                        progressCount <- ((double k) * (t / n.tEnd) |> int) + 1
+                        //printfn "Step: %A, time: %A,%s t: %A of %A, modelDataId: %A." progressCount (DateTime.Now) (estCompl start progressCount k) t n.tEnd n.modelDataId
+                        notifyProgress t progressCount k |> ignore
+                        notifyTime t x true |> ignore
+                | _ -> ()
 
             // Tries to capture some chart data at the start of the run.
             // This is used when we have a super slow model and want to know what's going on.
