@@ -482,7 +482,7 @@ module CalculationData =
         sum
 
 
-    let calculateByRefDerivativeValue (x : nativeptr<double>) (indices : ModelIndices) (dx : nativeptr<double>) (idx : int) : unit =
+    let calculateByRefDerivativeValue (x : nativeptr<double>) (indices : ModelIndices)  : double =
         let mutable sum = 0.0
 
         for coeff in indices.level0 do
@@ -500,7 +500,7 @@ module CalculationData =
         for coeff, j1, j2, j3, j4 in indices.level4 do
             sum <- sum + coeff * (NativePtr.get x j1) * (NativePtr.get x j2) * (NativePtr.get x j3) * (NativePtr.get x j4)
 
-        NativePtr.set dx idx sum
+        sum
 
 
     let makeNonNegative (x: double[]) = x |> Array.map (max 0.0)
@@ -511,12 +511,36 @@ module CalculationData =
             NativePtr.set x i (max 0.0 (NativePtr.get x i))
 
 
-    let private f (callaBack: double -> double[] -> unit, indices : array<ModelIndices>, neq : byref<int>, t : byref<double>, x : nativeptr<double>, dx : nativeptr<double>) : unit =
+    let private f (
+                    callaBack: double -> double[] -> unit,
+                    indices : array<ModelIndices>,
+                    neq : byref<int>,
+                    t : byref<double>,
+                    x : nativeptr<double>,
+                    dx : nativeptr<double>) : unit =
+
         let x1 = makeNonNegativeByRef neq x
         callaBack t x1
 
         for i in 0 .. (neq - 1) do
             NativePtr.set dx i (calculateDerivativeValue x1 indices.[i])
+
+
+    let private f1 (
+                    needsCallBack: double -> bool,
+                    callaBack: double -> double[] -> unit,
+                    indices : array<ModelIndices>,
+                    neq : byref<int>, t : byref<double>,
+                    x : nativeptr<double>,
+                    dx : nativeptr<double>) : unit =
+
+        if needsCallBack t
+        then
+            let x1 = makeNonNegativeByRef neq x
+            callaBack t x1
+
+        for i in 0 .. (neq - 1) do
+            NativePtr.set dx i (calculateByRefDerivativeValue x indices.[i])
 
 
     let createInterop (callaBack: double -> double[] -> unit, indices : array<ModelIndices>) =
@@ -537,6 +561,7 @@ module CalculationData =
                 derivative = [||]
             }
 
+        ///
         member md.getDerivative x =
             let y = makeNonNegative x
             md.derivative |> Array.map (calculateDerivativeValue y)
