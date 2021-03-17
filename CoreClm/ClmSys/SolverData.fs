@@ -19,7 +19,7 @@ module SolverData =
             }
 
 
-    type TimeData =
+    type ProgressData =
         {
             progressDetailed : double
             callCount : int64

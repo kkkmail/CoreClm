@@ -14,7 +14,7 @@ module SolverRunner =
     type SolverUpdateProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
-            updateTime : TimeData -> UnitResult
+            updateTime : ProgressData -> UnitResult
             checkCancellation : RunQueueId -> CancellationType option
         }
 

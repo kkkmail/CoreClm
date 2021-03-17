@@ -504,7 +504,7 @@ module WorkerNodeDatabaseTypes =
         where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
-    let tryUpdateTime c (q : RunQueueId) (td : TimeData) =
+    let tryUpdateTime c (q : RunQueueId) (td : ProgressData) =
         let g() =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
