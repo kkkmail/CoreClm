@@ -530,7 +530,8 @@ module CalculationData =
                     needsCallBack: double -> bool,
                     callaBack: double -> double[] -> unit,
                     indices : array<ModelIndices>,
-                    neq : byref<int>, t : byref<double>,
+                    neq : byref<int>,
+                    t : byref<double>,
                     x : nativeptr<double>,
                     dx : nativeptr<double>) : unit =
 
@@ -547,24 +548,27 @@ module CalculationData =
         Interop.F(fun n t y dy -> f(callaBack, indices, &n, &t, y, dy))
 
 
+    let createInterop1 (needsCallBack: double -> bool, callaBack: double -> double[] -> unit, indices : array<ModelIndices>) =
+        Interop.F(fun n t y dy -> f1(needsCallBack, callaBack, indices, &n, &t, y, dy))
+
+
     type ModelCalculationData =
         {
             totalSubst : array<LevelOne>
             totals : array<array<LevelOne> * array<LevelOne>>
-            derivative : array<ModelIndices>
+            modelIndices : array<ModelIndices>
         }
 
         static member defaultValue =
             {
                 totalSubst = [||]
                 totals = [||]
-                derivative = [||]
+                modelIndices = [||]
             }
 
-        ///
         member md.getDerivative x =
             let y = makeNonNegative x
-            md.derivative |> Array.map (calculateDerivativeValue y)
+            md.modelIndices |> Array.map (calculateDerivativeValue y)
 
         member md.getTotalSubst x = x |> makeNonNegative |> calculateTotalSubst md.totalSubst
         member md.getTotals x = x |> makeNonNegative |> calculateTotals md.totals
@@ -588,7 +592,7 @@ module CalculationData =
 
             y
 
-        static member createDerivative (si : SubstInfo) (allReac : list<AnyReaction>) =
+        static member createModelIndices (si : SubstInfo) (allReac : list<AnyReaction>) =
             let normalized = allReac |> List.map (fun e -> e.reaction.info.normalized(), e.forwardRate, e.backwardRate)
 
             let processReaction i o (ReactionRate v) =
@@ -623,7 +627,7 @@ module CalculationData =
             {
                 totalSubst = ModelCalculationData.createTotalSubst si
                 totals = ModelCalculationData.createTotals si
-                derivative = ModelCalculationData.createDerivative si allReac
+                modelIndices = ModelCalculationData.createModelIndices si allReac
             }
 
 

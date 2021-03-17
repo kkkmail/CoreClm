@@ -110,7 +110,7 @@ type ModelTests(output : ITestOutputHelper) =
     [<Fact>]
     member _.ModelDataShouldMatchGeneratedCodeForPointerDerivative () : unit =
         let mdUpdate (md : ModelData) (x : double[]) : double[] =
-            let indices = md.modelData.modelBinaryData.calculationData.derivative
+            let indices = md.modelData.modelBinaryData.calculationData.modelIndices
             let neq = x.Length
             let t = 0.0
             let callaBack _ _ = ()

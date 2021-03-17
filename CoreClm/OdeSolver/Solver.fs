@@ -48,16 +48,18 @@ module Solver =
         }
 
 
-    type SolverType =
-        | CashCarpAlglib
-        | AdamsFunctional
-        | BdfFunctional
+    type AlgLibMethod =
+        | CashCarp
+
+
+    type OdePackMethod =
+        | Adams
+        | Bdf
 
         member t.value =
             match t with
-            | CashCarpAlglib -> 0
-            | AdamsFunctional -> 1
-            | BdfFunctional -> 2
+            | Adams -> 1
+            | Bdf -> 2
 
 
     type CorrectorIteratorType =
@@ -68,6 +70,16 @@ module Solver =
             match t with
             | Functional -> 0
             | ChordWithDiagonalJacobian -> 3
+
+
+    type NegativeValuesCorrectorType =
+        | UseNonNegative
+        | DoNotCorrect
+
+
+    type SolverType =
+        | AlgLib of AlgLibMethod
+        | OdePack of OdePackMethod * CorrectorIteratorType * NegativeValuesCorrectorType
 
 
     type NSolveParam =
@@ -215,6 +227,9 @@ module Solver =
                 | Some c -> raise(ComputationAbortedException (n.runQueueId, c))
                 | None -> ()
 
+        let needsCallBack (t : double) : bool =
+            true
+
         let callBack (t : double) (x : double[]) =
             callCount <- callCount + 1L
             calculated <- false
@@ -248,21 +263,22 @@ module Solver =
                 else tryNotifyChartEarly()
             | _ -> ()
 
-        let f (x : double[]) (t : double) : double[] =
+        let cashCarpDerivative (x : double[]) (t : double) : double[] =
             callBack t x
             n.calculationData.getDerivative x
 
-        let f1() = createInterop(callBack, n.calculationData.derivative)
+        let functionalInterop() = createInterop(callBack, n.calculationData.modelIndices)
+        let chordWithDiagonalJacobianInterop() = createInterop1(needsCallBack, callBack, n.calculationData.modelIndices)
 
         notifyProgress 0.0 progressCount (p.noOfProgressPoints |> Option.defaultValue defaultNoOfProgressPoints) |> ignore
 
         match n.solverType with
-        | CashCarpAlglib ->
+        | AlgLib CashCarp ->
             printfn "nSolve: Using Cash - Carp Alglib solver."
 
             let nt = 2
             let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
-            let d = alglib.ndimensional_ode_rp (fun x t y _ -> f x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
+            let d = alglib.ndimensional_ode_rp (fun x t y _ -> cashCarpDerivative x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
             let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
             do alglib.odesolversolve(s, d, null)
             let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)
@@ -272,9 +288,12 @@ module Solver =
                 endTime = p.endTime
                 xEnd = yTbl.[nt - 1, *]
             }
-        | AdamsFunctional ->
-            printfn "nSolve: Using Adams / Functional DLSODE solver."
-            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, CorrectorIteratorType.Functional.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))
-        | BdfFunctional ->
-            printfn "nSolve: Using BDF / Functional DLSODE solver."
-            OdeSolver.RunFSharp((fun() -> f1()), n.solverType.value, CorrectorIteratorType.Functional.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))
+        | OdePack (m, i, nc) ->
+            printfn $"nSolve: Using {m} / {i} DLSODE solver."
+            match i with
+            | Functional ->
+                // TODO kk:20210316 - UseNonNegative is hardcoded below.
+                OdeSolver.RunFSharp((fun() -> functionalInterop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))
+            | ChordWithDiagonalJacobian ->
+                // TODO kk:20210316 - DoNotCorrect is hardcoded below.
+                OdeSolver.RunFSharp((fun() -> chordWithDiagonalJacobianInterop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))

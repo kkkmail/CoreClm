@@ -150,7 +150,7 @@ module SolverRunnerTasks =
                 check
 
         {
-            solverType = AdamsFunctional
+            solverType = OdePack (Bdf, ChordWithDiagonalJacobian, DoNotCorrect)
             modelDataId = d.modelDataId.value
             runQueueId = w.runningProcessData.runQueueId
             tStart = 0.0
