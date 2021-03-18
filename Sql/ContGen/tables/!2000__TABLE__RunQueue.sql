@@ -6,11 +6,17 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[runQueueOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[runQueueStatusId] [int] NOT NULL,
-		[errorMessage] nvarchar(max) NULL,
-		[progress] [money] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL,
+		[errorMessage] nvarchar(max) NULL,
+		[progress] [float] NOT NULL,
+		[callCount] [bigint] NOT NULL,
+		[yRelative] [float] NOT NULL,
+		[maxEe] [float] NOT NULL,
+		[maxAverageEe] [float] NOT NULL,
+		[maxWeightedAverageAbsEe] [float] NOT NULL,
+		[maxLastEe] [float] NOT NULL,
 		[workerNodeId] [uniqueidentifier] NULL,
 		[createdOn] [datetime] NOT NULL,
 		[startedOn] [datetime] NULL,
@@ -23,9 +29,14 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 
 	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [useAbundant]
 	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [runQueueStatusId]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [progress]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((1)) FOR [yRelative]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [maxEe]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [maxAverageEe]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
+	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [maxLastEe]
 	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT (getdate()) FOR [createdOn]
 	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT (getdate()) FOR [modifiedOn]
-	ALTER TABLE [dbo].[RunQueue] ADD  DEFAULT ((0)) FOR [progress]
 
 	ALTER TABLE [dbo].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_RunQueue_RunQueueStatus] FOREIGN KEY([runQueueStatusId])
 	REFERENCES [dbo].[RunQueueStatus] ([runQueueStatusId])

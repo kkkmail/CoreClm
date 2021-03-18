@@ -86,34 +86,42 @@ module ContGenPrimitives =
         | NotGeneratedCharts
 
 
-    type TaskProgress =
-        | NotStarted
-        | InProgress of decimal
-        | Completed of (decimal option * string option)
-        | Failed of ErrorMessage
-        | Cancelled of string option
-        | AllCoresBusy of WorkerNodeId
+//    type TaskProgress =
+////        | NotStarted
+////        | InProgress of double
+////        | Completed of (double option * string option)
+////        | Failed of ErrorMessage
+////        | Cancelled of string option
+////        | AllCoresBusy of WorkerNodeId
+//
+//        | NotStarted
+//        | InProgress
+//        | Completed
+//        | Failed
+//        | Cancelled
+//        | AllCoresBusy
 
-        static member notStartedValue = 0m
-        static member failedValue = -1000m
 
-        static member create d =
-            match d with
-            | _ when d <= 0.0m -> NotStarted
-            | _ when d < 1.0m -> InProgress d
-            | _ -> InProgress 1.0m
-
-        member progress.value =
-            match progress with
-            | NotStarted -> 0m
-            | InProgress d -> max 0m (min d 1m)
-            | Completed (v, _) ->
-                match v with
-                | None -> 1.0m
-                | Some d -> max 0m (min d 1m)
-            | Failed _ -> TaskProgress.failedValue
-            | Cancelled _ -> TaskProgress.failedValue
-            | AllCoresBusy _ -> TaskProgress.notStartedValue
+//        static member notStartedValue = 0.0
+//        static member failedValue = -1000.0
+//
+//        static member create p =
+//            match p with
+//            | d when d <= 0.0 -> NotStarted
+//            | d when d < 1.0 -> InProgress p
+//            | _ -> InProgress 1.0
+//
+//        member progress.value =
+//            match progress with
+//            | NotStarted -> 0.0
+//            | InProgress d -> max 0.0 (min d 1.0)
+//            | Completed (v, _) ->
+//                match v with
+//                | None -> 1.0
+//                | Some d -> max 0.0 (min d 1.0)
+//            | Failed _ -> TaskProgress.failedValue
+//            | Cancelled _ -> TaskProgress.failedValue
+//            | AllCoresBusy _ -> TaskProgress.notStartedValue
 
 
     type ContGenAdmId =

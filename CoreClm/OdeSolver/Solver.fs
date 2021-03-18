@@ -9,6 +9,7 @@ open Softellect.OdePackInterop.SolverDescriptors
 open Microsoft.FSharp.Core
 open Clm.ChartData
 open System
+open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.GeneralData
 open ClmSys.SolverRunnerPrimitives
@@ -91,15 +92,14 @@ module Solver =
             tEnd : double
             calculationData : ModelCalculationData
             initialValues : double[]
-            chartCallBack : (ChartSliceData -> unit) option
             progressCallBack : (ProgressData -> unit) option
+            chartCallBack : (ChartSliceData -> unit) option
             getChartSliceData : double -> double[] -> ChartSliceData
             noOfOutputPoints : int option
             noOfProgressPoints : int option
             noOfChartDetailedPoints : int option
             checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
-            timeCheckFreq : TimeSpan
         }
 
         member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
@@ -109,7 +109,7 @@ module Solver =
 
 
     let estCompl n t s =
-        match estimateEndTime (calculateProgress n t |> decimal) s with
+        match estimateEndTime (calculateProgress n t) s with
         | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
         | None -> EmptyString
 
@@ -128,6 +128,7 @@ module Solver =
     let mutable private callCount = 0L
     let mutable private lastCheck = DateTime.Now
     let mutable private lastTimeCheck = lastCheck
+    let mutable private firstChartSliceData = ChartSliceData.defaultValue
     let mutable private lastChartSliceData = ChartSliceData.defaultValue
     let mutable private lastEeData = EeData.defaultValue
     let mutable private tSum = 0.0
@@ -182,11 +183,12 @@ module Solver =
         else
             let csd = n.getChartSliceData t x
 
+            // TODO kk:20210317 - This is not completely correct - figure out what's wrong and fix.
             let eeData =
                 {
                     maxEe = max lastEeData.maxEe csd.maxEe
                     maxAverageEe = (lastEeData.maxAverageEe * (double eeCount) + csd.maxEe) / ((double eeCount) + 1.0)
-                    maxWeightedAverageAbsEe = if t > 0.0 then (lastEeData.maxWeightedAverageAbsEe * tSum + csd.maxEe * t) / (tSum + t) else 0.0
+                    maxWeightedAverageAbsEe = if t > n.tStart then (lastEeData.maxWeightedAverageAbsEe * tSum + csd.maxEe * t) / (tSum + t) else 0.0
                     maxLastEe = csd.maxEe
                 }
 
@@ -208,10 +210,11 @@ module Solver =
         let csd = calculateChartSliceData n t x
 
         {
-            progressDetailed = calculateProgress n t
+            progress = calculateProgress n t
             callCount = callCount
             eeData = lastEeData
-            y = csd.totalSubst.totalData
+            yRelative = csd.totalSubst.totalData / firstChartSliceData.totalSubst.totalData
+            errorMessageOpt = None
         }
 
 
@@ -270,6 +273,7 @@ module Solver =
         printfn "nSolve::Starting."
         let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
         let callBackFunctional t x = callBackFunctional n t x
+        firstChartSliceData <- calculateChartSliceData n 0.0 n.initialValues
 
         calculateProgressData n n.tStart n.initialValues |> notifyProgress n
 

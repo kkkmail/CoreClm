@@ -913,7 +913,6 @@ module FSharpCodeExt =
                 | None -> "None"
 
             shift + "{" + Nl +
-            shift + "    fileStructureVersion = " + p.fileStructureVersion.toFSharpCode + Nl +
             shift + "    versionNumber = " + "\"" + p.versionNumber + "\"" + Nl +
             shift + "    modelDataId = " + p.modelDataId.toFSharpCode + Nl +
             shift + "    numberOfSubstances = " + p.numberOfSubstances.toFSharpCode + Nl +

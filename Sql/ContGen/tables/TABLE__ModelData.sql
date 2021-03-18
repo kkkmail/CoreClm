@@ -5,7 +5,6 @@ IF OBJECT_ID('[dbo].[ModelData]') IS NULL begin
 		[modelDataId] [uniqueidentifier] NOT NULL,
 		[modelDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[clmTaskId] [uniqueidentifier] NOT NULL,
-		[fileStructureVersion] [money] NOT NULL,
 		[seedValue] [int] NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,
 		[modelBinaryData] [varbinary](max) NOT NULL,

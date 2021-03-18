@@ -122,7 +122,6 @@ module SolverProcessProxy =
     type OnUpdateProgressProxy =
         {
             tryDeleteWorkerNodeRunModelData : unit -> UnitResult
-            tryUpdateProgress : TaskProgress -> UnitResult
-            tryUpdateTime : TimeData -> UnitResult
+            tryUpdateProgressData : ProgressData -> UnitResult
             sendMessageProxy : SendMessageProxy
         }

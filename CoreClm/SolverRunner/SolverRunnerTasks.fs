@@ -28,12 +28,12 @@ open Softellect.Sys.Logging
 
 module SolverRunnerTasks =
 
-    let notify progressNotifier r t =
-        progressNotifier
-            {
-                runQueueId = r
-                progress = t
-            }
+//    let notify progressNotifier r t =
+//        progressNotifier
+//            {
+//                runQueueId = r
+//                progress = t
+//            }
 
 
     let getPlotDataInfo (df : ClmDefaultValueId) =
@@ -53,15 +53,13 @@ module SolverRunnerTasks =
             useAbundant : bool
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
-            progressCallBack : (decimal -> UnitResult) option
+            progressCallBack : ProgressData -> unit
             updateChart : ChartSliceData -> unit
-            updateTime : TimeData -> UnitResult
             getChartSliceData : double -> double[] -> ChartSliceData
             noOfProgressPoints : int option
             minUsefulEe : MinUsefulEe
             checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
-            timeCheckFreq : TimeSpan
         }
 
 
@@ -105,14 +103,13 @@ module SolverRunnerTasks =
                 chartInitData = chartInitData
                 chartDataUpdater = chartDataUpdater
                 updateChart = chartDataUpdater.addContent
-                updateTime = proxy.updateTime
+//                updateTime = proxy.updateTime
                 getChartSliceData = getChartSliceData
                 progressCallBack = (fun p -> notify proxy.updateProgress r.runQueueId (TaskProgress.create p)) |> Some
                 noOfProgressPoints = pp
                 minUsefulEe = w.minUsefulEe
                 checkCancellation = proxy.checkCancellation
                 checkFreq = TimeSpan.FromMinutes 60.0
-                timeCheckFreq = TimeSpan.FromMinutes 120.0
             }
 
 
@@ -127,7 +124,7 @@ module SolverRunnerTasks =
             }
 
 
-    let getNSolveParam (d : RunSolverData) (w : WorkerNodeRunModelData) =
+    let getNSolveParam (d : RunSolverData) (w : WorkerNodeRunModelData) : NSolveParam =
         let mutable lastCheck = DateTime.Now
 
         let checkCancellation =
@@ -159,45 +156,44 @@ module SolverRunnerTasks =
             initialValues = d.getInitValues d.y0
             progressCallBack = d.progressCallBack
             chartCallBack = Some d.updateChart
-            timeCallBack = Some d.updateTime
             getChartSliceData = d.getChartSliceData
             noOfOutputPoints = None
             noOfProgressPoints = d.noOfProgressPoints
+            noOfChartDetailedPoints = Some 10
             checkCancellation = checkCancellation
             checkFreq = d.checkFreq
-            timeCheckFreq = d.timeCheckFreq
         }
 
 
-    let getResultAndChartData rdi w (d : RunSolverData) =
-        let chartData = d.chartDataUpdater.getContent()
-
-        let r =
-            {
-                resultDataId = rdi
-                workerNodeId = w
-                resultData =
-                    {
-                        modelDataId = d.modelDataId
-
-                        y0 = decimal d.y0
-                        tEnd = decimal chartData.tLast
-                        useAbundant = d.useAbundant
-
-                        maxEe = chartData.maxEe
-                        maxAverageEe = chartData.maxAverageEe
-                        maxWeightedAverageAbsEe = chartData.maxWeightedAverageAbsEe
-                        maxLastEe = chartData.maxLastEe
-                    }
-            }
-
-        (r, chartData)
+    let getChartData rdi w (d : RunSolverData) = d.chartDataUpdater.getContent()
+//        let chartData = d.chartDataUpdater.getContent()
+//
+//        let r =
+//            {
+//                resultDataId = rdi
+//                workerNodeId = w
+//                resultData =
+//                    {
+//                        modelDataId = d.modelDataId
+//
+//                        y0 = decimal d.y0
+//                        tEnd = decimal chartData.tLast
+//                        useAbundant = d.useAbundant
+//
+//                        maxEe = chartData.maxEe
+//                        maxAverageEe = chartData.maxAverageEe
+//                        maxWeightedAverageAbsEe = chartData.maxWeightedAverageAbsEe
+//                        maxLastEe = chartData.maxLastEe
+//                    }
+//            }
+//
+//        (r, chartData)
 
 
     type PlotResultsInfo =
         {
             runSolverData : RunSolverData
-            resultDataWithId : ResultDataWithId
+//            resultDataWithId : ResultDataWithId
             chartData : ChartData
         }
 
@@ -319,11 +315,11 @@ module SolverRunnerTasks =
             printfn $"notifyOfResults completed with result: %A{r}"
             r
 
-        let getProgress p =
-            {
-                runQueueId = w.runningProcessData.runQueueId
-                progress = p
-            }
+//        let getProgress p =
+//            {
+//                runQueueId = w.runningProcessData.runQueueId
+//                progress = p
+//            }
 
         let runSolverImpl() =
             try

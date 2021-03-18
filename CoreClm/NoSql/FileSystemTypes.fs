@@ -198,11 +198,11 @@ module FileSystemTypes =
     let getWorkerNodeRunModelDataIdsFs serviceName () = getObjectIds<RunQueueId> serviceName workerNodeRunModelDataTblName (fun e -> e |> Guid.Parse |> RunQueueId)
     let loadWorkerNodeRunModelDataAllFs serviceName () = loadObjects<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName Guid.Parse
 
-    let saveResultDataFs serviceName (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> serviceName resultDataTblName r.resultDataId.value r
-    let loadResultDataFs serviceName (ResultDataId resultDataId) = loadData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
-    let tryDeleteResultDataFs serviceName (ResultDataId resultDataId) = tryDeleteData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
-    let getResultDataIdsFs serviceName () = getObjectIds<ResultDataId> serviceName resultDataTblName (fun e -> e |> Guid.Parse |> ResultDataId)
-    let loadResultDataAllFs serviceName () = loadObjects<ResultDataWithId, Guid> serviceName resultDataTblName Guid.Parse
+//    let saveResultDataFs serviceName (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> serviceName resultDataTblName r.resultDataId.value r
+//    let loadResultDataFs serviceName (ResultDataId resultDataId) = loadData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
+//    let tryDeleteResultDataFs serviceName (ResultDataId resultDataId) = tryDeleteData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
+//    let getResultDataIdsFs serviceName () = getObjectIds<ResultDataId> serviceName resultDataTblName (fun e -> e |> Guid.Parse |> ResultDataId)
+//    let loadResultDataAllFs serviceName () = loadObjects<ResultDataWithId, Guid> serviceName resultDataTblName Guid.Parse
 
     let saveChartInfoFs serviceName (c : ChartInfo) = saveData<ChartInfo, Guid> serviceName chartInfoTblName c.resultDataId.value c
     let loadChartInfoFs serviceName (ResultDataId resultDataId) = loadData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId

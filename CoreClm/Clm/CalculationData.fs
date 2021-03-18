@@ -679,7 +679,6 @@ module CalculationData =
     type ModelDataRaw =
         {
             seedValue : int option
-            fileStructureVersion : decimal
             modelData : ModelAllData
         }
 
@@ -692,5 +691,4 @@ module CalculationData =
         }
 
         member this.seedValue = this.data.seedValue
-        member this.fileStructureVersion = this.data.fileStructureVersion
         member this.modelData = this.data.modelData

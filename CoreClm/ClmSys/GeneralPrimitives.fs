@@ -89,9 +89,6 @@ module GeneralPrimitives =
     [<Literal>]
     let RunQueueStatus_Cancelled = "6"
 
-    [<Literal>]
-    let RunQueueStatus_Invalid = "-1000"
-
 
     type RunQueueStatus =
         | NotStartedRunQueue
@@ -102,7 +99,6 @@ module GeneralPrimitives =
         | FailedRunQueue
         | CancelRequestedRunQueue
         | CancelledRunQueue
-        | InvalidRunQueue // It does not exist in DB, so it it not possible to insert it due to FK constraint.
 
         member r.value =
             match r with
@@ -114,7 +110,6 @@ module GeneralPrimitives =
             | FailedRunQueue -> 4
             | CancelRequestedRunQueue -> 5
             | CancelledRunQueue -> 6
-            | InvalidRunQueue -> -1000
 
         static member tryCreate i =
             match i with
@@ -127,3 +122,34 @@ module GeneralPrimitives =
             | 5 -> Some CancelRequestedRunQueue
             | 6 -> Some CancelledRunQueue
             | _ -> None
+
+
+//    type WrkRunQueueStatus =
+//        | NotStartedWrkRunQueue
+//        | InactiveWrkRunQueue
+//        | InProgressWrkRunQueue
+//        | CompletedWrkRunQueue
+//        | FailedWrkRunQueue
+//        | CancelRequestedWrkRunQueue
+//        | CancelledWrkRunQueue
+//
+//        member r.value =
+//            match r with
+//            | NotStartedWrkRunQueue -> 0
+//            | InactiveWrkRunQueue -> 1
+//            | InProgressWrkRunQueue -> 2
+//            | CompletedWrkRunQueue -> 3
+//            | FailedWrkRunQueue -> 4
+//            | CancelRequestedWrkRunQueue -> 5
+//            | CancelledWrkRunQueue -> 6
+//
+//        static member tryCreate i =
+//            match i with
+//            | 0 -> Some NotStartedWrkRunQueue
+//            | 1 -> Some InactiveWrkRunQueue
+//            | 2 -> Some InProgressWrkRunQueue
+//            | 3 -> Some CompletedWrkRunQueue
+//            | 4 -> Some FailedWrkRunQueue
+//            | 5 -> Some CancelRequestedWrkRunQueue
+//            | 6 -> Some CancelledWrkRunQueue
+//            | _ -> None

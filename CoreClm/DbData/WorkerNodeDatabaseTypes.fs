@@ -361,24 +361,24 @@ module WorkerNodeDatabaseTypes =
         tryDbFun g
 
 
-    /// Can modify progress when state is InProgress or CancelRequested.
-    [<Literal>]
-    let tryUpdateProgressSql = "
-        update dbo.RunQueue
-        set
-            progress = @progress,
-            modifiedOn = (getdate())
-        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
-
-
-    let tryUpdateProgressRunQueue c (q : RunQueueId) (p : TaskProgress) =
-        let g() =
-            use conn = getOpenConn c
-            let connectionString = conn.ConnectionString
-            use cmd = new SqlCommandProvider<tryUpdateProgressSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-            cmd.Execute(runQueueId = q.value, progress = p.value) |> bindError TryUpdateProgressRunQueueErr q
-
-        tryDbFun g
+//    /// Can modify progress when state is InProgress or CancelRequested.
+//    [<Literal>]
+//    let tryUpdateProgressSql = "
+//        update dbo.RunQueue
+//        set
+//            progress = @progress,
+//            modifiedOn = (getdate())
+//        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+//
+//
+//    let tryUpdateProgressRunQueue c (q : RunQueueId) (p : TaskProgress) =
+//        let g() =
+//            use conn = getOpenConn c
+//            let connectionString = conn.ConnectionString
+//            use cmd = new SqlCommandProvider<tryUpdateProgressSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+//            cmd.Execute(runQueueId = q.value, progress = p.value) |> bindError TryUpdateProgressRunQueueErr q
+//
+//        tryDbFun g
 
 
     [<Literal>]
@@ -488,14 +488,14 @@ module WorkerNodeDatabaseTypes =
         tryDbFun g
 
 
-    /// Can modify time related information when state is InProgress or CancelRequested.
+    /// Can modify progress related information when state is InProgress or CancelRequested.
     [<Literal>]
-    let tryUpdateTimeSql = "
+    let tryUpdateProgressSql = "
         update dbo.RunQueue
         set
-            progressDetailed = @progressDetailed,
+            progress = @progress,
             callCount = @callCount,
-            y = @y,
+            yRelative = @yRelative,
             maxEe = @maxEe,
             maxAverageEe = @maxAverageEe,
             maxWeightedAverageAbsEe = @maxWeightedAverageAbsEe,
@@ -504,13 +504,23 @@ module WorkerNodeDatabaseTypes =
         where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
-    let tryUpdateTime c (q : RunQueueId) (td : ProgressData) =
+    let tryUpdateProgress c (q : RunQueueId) (td : ProgressData) =
         let g() =
             use conn = getOpenConn c
             let connectionString = conn.ConnectionString
-            use cmd = new SqlCommandProvider<tryUpdateTimeSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            use cmd = new SqlCommandProvider<tryUpdateProgressSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
             let ee = td.eeData
-            cmd.Execute(runQueueId = q.value, progressDetailed = td.progressDetailed, callCount = td.callCount, y = td.y, maxEe = ee.maxEe, maxAverageEe = ee.maxAverageEe, maxWeightedAverageAbsEe = ee.maxWeightedAverageAbsEe, maxLastEe = ee.maxLastEe)
+
+            cmd.Execute(
+                    runQueueId = q.value,
+                    progress = td.progress,
+                    callCount = td.callCount,
+                    yRelative = td.yRelative,
+                    maxEe = ee.maxEe,
+                    maxAverageEe = ee.maxAverageEe,
+                    maxWeightedAverageAbsEe = ee.maxWeightedAverageAbsEe,
+                    maxLastEe = ee.maxLastEe)
+
             |> bindError TryUpdateProgressRunQueueErr q
 
         tryDbFun g

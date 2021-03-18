@@ -3,6 +3,7 @@
 open System
 open System.Threading
 
+open ClmSys.SolverData
 open Softellect.Sys
 open Softellect.Sys.Primitives
 open Softellect.Sys.MessagingPrimitives
@@ -15,8 +16,6 @@ open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
-open ClmSys.ContGenPrimitives
-open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodeData
 open System.ServiceModel
 open ClmSys.WorkerNodeErrors
@@ -40,14 +39,14 @@ module ServiceInfo =
 
     type RunnerState =
         {
-            progress : TaskProgress
+            progressData : ProgressData
             started : DateTime
             lastUpdated : DateTime
         }
 
         static member defaultValue =
             {
-                progress = NotStarted
+                progressData = ProgressData.defaultValue
                 started = DateTime.Now
                 lastUpdated = DateTime.Now
             }
@@ -56,33 +55,11 @@ module ServiceInfo =
             let s = (DateTime.Now - r.started).ToString("d\.hh\:mm")
 
             let estCompl =
-                match r.progress.estimateEndTime r.started with
+                match r.progressData.estimateEndTime r.started with
                 | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
-            $"T: %s{s};%s{estCompl} %A{r.progress}"
-
-
-//    type RunnerStateWithCancellation =
-//        {
-//            runnerState : RunnerState
-//            cancellationTypeOpt : CancellationType option
-//            notifyOfResults : ResultNotificationType -> UnitResult
-//        }
-//
-//        static member defaultValue n =
-//            {
-//                runnerState = RunnerState.defaultValue
-//                cancellationTypeOpt = None
-//                notifyOfResults = n
-//            }
-
-
-//    type WorkerNodeRunnerMonitorState =
-//        {
-//            workers : Map<RunQueueId, RunnerState>
-//            noOfWorkerCores : int
-//        }
+            $"T: %s{s};%s{estCompl} %A{r.progressData.progress}"
 
 
     type WorkerNodeState =
@@ -95,16 +72,6 @@ module ServiceInfo =
             workerNodeState : WorkerNodeState
         }
 
-//        member w.toWorkerNodeRunnerMonitorState() =
-//            {
-//                workers = w.runningWorkers |> Map.map (fun _ e -> e.runnerState)
-//                noOfWorkerCores = w.numberOfWorkerCores
-//            }
-
-
-//    type WorkerNodeRunnerResult = StateWithResult<WorkerNodeRunnerState>
-
-
     type WorkerNodeMonitorParam =
         | DummyWrkMonitorParam
 
@@ -112,25 +79,14 @@ module ServiceInfo =
     type WorkerNodeMonitorResponse =
         | CannotAccessWrkNode
         | ErrorOccurred of ClmError
-//        | WrkNodeState of WorkerNodeRunnerMonitorState
 
         override this.ToString() =
             match this with
             | CannotAccessWrkNode -> "Cannot access worker node."
             | ErrorOccurred e -> "Error occurred: " + e.ToString()
-//            | WrkNodeState s ->
-//                let toString acc ((RunQueueId k), (v : RunnerState)) =
-//                    acc + (sprintf "        Q: %A; %s; L: %s\n" k (v.ToString()) (v.lastUpdated.ToString("yyyy-MM-dd.HH:mm")))
-//
-//                let x =
-//                    match s.workers |> Map.toList |> List.sortBy (fun (_, r) -> r.progress) |> List.fold toString EmptyString with
-//                    | EmptyString -> "[]"
-//                    | s -> "\n    [\n" + s + "    ]"
-//                sprintf "Running: %s\nCount: %A, cores: %A" x s.workers.Count s.noOfWorkerCores
 
 
     type IWorkerNodeService =
-//        abstract configure : WorkerNodeConfigParam -> UnitResult
         abstract monitor : WorkerNodeMonitorParam -> ClmResult<WorkerNodeMonitorResponse>
 
         /// To check if service is working.
@@ -154,7 +110,6 @@ module ServiceInfo =
             | e -> printfn $"Exception occurred: %A{e}"
         else
             printfn $"Not getting state at %A{DateTime.Now} because callCount = %A{callCount}."
-            ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
 
@@ -181,12 +136,10 @@ module ServiceInfo =
         let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
         let pingWcfErr e = e |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
 
-//        let configureImpl p = tryCommunicate tryGetWcfService (fun service -> service.configure) configureWcfErr p
         let monitorImpl p = tryCommunicate tryGetWcfService (fun service -> service.monitor) monitorWcfErr p
         let pingImpl() = tryCommunicate tryGetWcfService (fun service -> service.ping) pingWcfErr ()
 
         interface IWorkerNodeService with
-//            member _.configure p = configureImpl p
             member _.monitor p = monitorImpl p
             member _.ping() = pingImpl()
 
@@ -311,8 +264,8 @@ module ServiceInfo =
 
     let tryLoadWorkerNodeSettings nodeIdOpt nameOpt =
         let providerRes = AppSettingsProvider.tryCreate appSettingsFile
-        let (workerNodeSvcInfo, workerNodeServiceCommunicationType) = loadWorkerNodeServiceSettings providerRes
-        let (messagingSvcInfo, messagingServiceCommunicationType) = loadMessagingSettings providerRes
+        let workerNodeSvcInfo, workerNodeServiceCommunicationType = loadWorkerNodeServiceSettings providerRes
+        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
 
         match tryLoadWorkerNodeInfo providerRes nodeIdOpt nameOpt with
         | Some info ->

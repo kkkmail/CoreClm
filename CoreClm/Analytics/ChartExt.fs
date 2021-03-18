@@ -82,7 +82,7 @@ module ChartExt =
             Directory.CreateDirectory(i.resultInfo.resultLocation) |> ignore
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 
-        member ct.getFileName (i : PlotDataInfo, r : FullResultData) = ct.getFileNameImpl i r.resultData.modelDataId r.resultData.y0 r.resultData.tEnd
+//        member ct.getFileName (i : PlotDataInfo, r : FullResultData) = ct.getFileNameImpl i r.resultData.modelDataId r.resultData.y0 r.resultData.tEnd
         member ct.getFileName (i : PlotDataInfo, d : ChartData) = ct.getFileNameImpl i d.initData.modelDataId d.initData.y0 d.initData.tEnd
 
 

@@ -47,7 +47,6 @@ module ClmModel =
 
         let modelInfo =
             {
-                fileStructureVersion = modelParams.fileStructureVersion
                 versionNumber = modelParams.versionNumber
                 modelDataId = modelDataId
                 numberOfSubstances = si.allSubst.Length
@@ -439,7 +438,6 @@ module ClmModel =
                 data =
                 {
                     seedValue = Some seedValue
-                    fileStructureVersion = modelParams.fileStructureVersion
 
                     modelData =
                         {

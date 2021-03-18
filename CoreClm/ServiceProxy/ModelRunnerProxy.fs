@@ -1,6 +1,5 @@
 ﻿namespace ServiceProxy
 
-open Clm.ReactionRateParams
 open Softellect.Messaging.ServiceInfo
 
 open Clm.ModelParams
@@ -103,15 +102,15 @@ module ModelRunnerProxy =
             }
 
 
-    type SaveResultProxy =
-        {
-            saveResultData : ResultDataWithId -> UnitResult
-        }
-
-        static member create c =
-            {
-                saveResultData = saveResultData c
-            }
+//    type SaveResultProxy =
+//        {
+//            saveResultData : ResultDataWithId -> UnitResult
+//        }
+//
+//        static member create c =
+//            {
+//                saveResultData = saveResultData c
+//            }
 
 
     type SaveChartsProxy =
@@ -128,7 +127,7 @@ module ModelRunnerProxy =
     type ProcessMessageProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
-            saveResult : ResultDataWithId -> UnitResult
+//            saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartInfo -> UnitResult
             register : WorkerNodeInfo -> UnitResult
             unregister : WorkerNodeId -> UnitResult

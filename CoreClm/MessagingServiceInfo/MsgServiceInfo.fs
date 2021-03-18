@@ -39,7 +39,7 @@ module ServiceInfo =
 
     type PartitionerMessage =
         | UpdateProgressPrtMsg of ProgressUpdateInfo
-        | SaveResultPrtMsg of ResultDataWithId
+//        | SaveResultPrtMsg of ResultDataWithId
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
         | UnregisterWorkerNodePrtMsg of WorkerNodeId
@@ -47,7 +47,7 @@ module ServiceInfo =
         member this.messageSize =
             match this with
             | UpdateProgressPrtMsg _ -> SmallSize
-            | SaveResultPrtMsg _ -> SmallSize
+//            | SaveResultPrtMsg _ -> SmallSize
             | SaveChartsPrtMsg _ -> MediumSize
             | RegisterWorkerNodePrtMsg _ -> SmallSize
             | UnregisterWorkerNodePrtMsg _ -> SmallSize

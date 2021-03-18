@@ -39,11 +39,6 @@ module VersionInfo =
     let defaultServicePort = 5000 + messagingDataVersion.value
 
 
-    /// Increment fractional part by 0.0001, e.g. 1.000 -> 1.001 if an updated version can read the previous version format.
-    /// Increment integer part and reset fractional part, e.g. 1.023 -> 2.000, when the changes are completely incompatible with previous version.
-    let FileStructureVersion = 6.000m
-
-
     [<Literal>]
     let CopyrightInfo = "MIT License - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2021."
 

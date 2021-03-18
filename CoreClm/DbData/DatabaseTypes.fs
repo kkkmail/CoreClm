@@ -21,6 +21,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.WorkerNodeData
 open ClmSys.PartitionerData
+open ClmSys.SolverData
 
 // ! Must be the last to open !
 open Configuration
@@ -83,7 +84,6 @@ module DatabaseTypes =
         select
             modelDataId,
             clmTaskId,
-            fileStructureVersion,
             seedValue,
             modelDataParams,
             modelBinaryData,
@@ -92,14 +92,14 @@ module DatabaseTypes =
         where modelDataId = @modelDataId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
-    type ResultDataTable = ClmDB.dbo.Tables.ResultData
-    type ResultDataTableRow = ResultDataTable.Row
-
-
-    type ResultDataTableData = SqlCommandProvider<"
-        select *
-        from dbo.ResultData
-        where resultDataId = @resultDataId", ContGenConnectionStringValue, ResultType.DataReader>
+//    type ResultDataTable = ClmDB.dbo.Tables.ResultData
+//    type ResultDataTableRow = ResultDataTable.Row
+//
+//
+//    type ResultDataTableData = SqlCommandProvider<"
+//        select *
+//        from dbo.ResultData
+//        where resultDataId = @resultDataId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
@@ -258,7 +258,6 @@ module DatabaseTypes =
                 let rawData =
                     {
                         seedValue = r.seedValue
-                        fileStructureVersion = r.fileStructureVersion
                         modelData =
                             {
                                 modelDataParams = r.modelDataParams |> JsonConvert.DeserializeObject<ModelDataParams>
@@ -275,49 +274,49 @@ module DatabaseTypes =
             | Error e ->  addError ModelDataTryCreateErr r.modelDataId e
 
 
-    type ResultDataWithId
-        with
-
-        static member create (r : ResultDataTableRow) =
-            {
-                    resultDataId = r.resultDataId |> ResultDataId
-                    workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
-
-                    resultData =
-                    {
-                        modelDataId = r.modelDataId |> ModelDataId
-
-                        y0 = r.y0
-                        tEnd = r.tEnd
-                        useAbundant = r.useAbundant
-
-                        maxEe = r.maxEe
-                        maxAverageEe = r.maxAverageEe
-                        maxWeightedAverageAbsEe = r.maxWeightedAverageAbsEe
-                        maxLastEe = r.maxLastEe
-                    }
-            }
-
-        member r.addRow (t : ResultDataTable) =
-            let newRow =
-                t.NewRow(
-                        resultDataId = r.resultDataId.value,
-                        workerNodeId = r.workerNodeId .value.value,
-                        y0 = r.resultData.y0,
-                        tEnd = r.resultData.tEnd,
-                        useAbundant = r.resultData.useAbundant,
-
-                        maxEe = r.resultData.maxEe,
-                        maxAverageEe = r.resultData.maxAverageEe,
-                        maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe,
-                        maxLastEe = r.resultData.maxLastEe
-                        )
-
-            newRow.modelDataId <- r.resultData.modelDataId.value
-
-            t.Rows.Add newRow
-            newRow
-
+//    type ResultDataWithId
+//        with
+//
+//        static member create (r : ResultDataTableRow) =
+//            {
+//                    resultDataId = r.resultDataId |> ResultDataId
+//                    workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
+//
+//                    resultData =
+//                    {
+//                        modelDataId = r.modelDataId |> ModelDataId
+//
+//                        y0 = r.y0
+//                        tEnd = r.tEnd
+//                        useAbundant = r.useAbundant
+//
+//                        maxEe = r.maxEe
+//                        maxAverageEe = r.maxAverageEe
+//                        maxWeightedAverageAbsEe = r.maxWeightedAverageAbsEe
+//                        maxLastEe = r.maxLastEe
+//                    }
+//            }
+//
+//        member r.addRow (t : ResultDataTable) =
+//            let newRow =
+//                t.NewRow(
+//                        resultDataId = r.resultDataId.value,
+//                        workerNodeId = r.workerNodeId .value.value,
+//                        y0 = r.resultData.y0,
+//                        tEnd = r.resultData.tEnd,
+//                        useAbundant = r.resultData.useAbundant,
+//
+//                        maxEe = r.resultData.maxEe,
+//                        maxAverageEe = r.resultData.maxAverageEe,
+//                        maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe,
+//                        maxLastEe = r.resultData.maxLastEe
+//                        )
+//
+//            newRow.modelDataId <- r.resultData.modelDataId.value
+//
+//            t.Rows.Add newRow
+//            newRow
+//
 
     type RunQueue
         with
@@ -340,9 +339,25 @@ module DatabaseTypes =
                                 }
                         }
                     runQueueStatus = s
-                    errorMessageOpt = r.errorMessage |> Option.map ErrorMessage
                     workerNodeIdOpt = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
-                    progress = TaskProgress.create r.progress
+
+                    progressData =
+                        {
+                            progress = r.progress
+                            callCount = r.callCount
+                            yRelative = r.yRelative
+
+                            eeData =
+                                {
+                                    maxEe = r.maxEe
+                                    maxAverageEe = r.maxAverageEe
+                                    maxWeightedAverageAbsEe = r.maxWeightedAverageAbsEe
+                                    maxLastEe = r.maxLastEe
+                                }
+
+                            errorMessageOpt = r.errorMessage |> Option.map ErrorMessage
+                        }
+
                     createdOn = r.createdOn
                 }
                 |> Some
@@ -353,16 +368,22 @@ module DatabaseTypes =
                 t.NewRow(
                         runQueueId = r.runQueueId.value,
                         modelDataId = r.info.modelDataId.value,
+                        runQueueStatusId = r.runQueueStatus.value,
                         y0 = r.modelCommandLineParam.y0,
                         tEnd = r.modelCommandLineParam.tEnd,
-                        runQueueStatusId = r.runQueueStatus.value,
                         useAbundant = r.modelCommandLineParam.useAbundant,
+                        progress = r.progressData.progress,
+                        callCount = r.progressData.callCount,
+                        yRelative = r.progressData.yRelative,
+                        maxEe = r.progressData.eeData.maxEe,
+                        maxAverageEe = r.progressData.eeData.maxAverageEe,
+                        maxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
+                        maxLastEe = r.progressData.eeData.maxLastEe,
                         workerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
-                        progress = r.progress.value,
                         modifiedOn = DateTime.Now
                         )
 
-            newRow.errorMessage <- r.errorMessageOpt |> Option.bind (fun e -> Some e.value)
+            newRow.errorMessage <- r.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
             t.Rows.Add newRow
             newRow
 
@@ -381,23 +402,30 @@ module DatabaseTypes =
         ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to Completed _) - completed work.
         ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId - failed work.
         ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - request for cancellation of actively running work.
-
+        ///
         ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - repeated cancel request.
         ///     CancelRequestedRunQueue -> InProgressRunQueue + the same Some workerNodeId -
         ///         roll back to cancel requested - in progress message came while our cancel request propagates through the system.
         ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId - the work has been successfully cancelled.
         ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propagated through the system.
         ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propagated through the system.
-
+        ///
         /// All others are not allowed and / or out of scope of this function.
         member q.tryUpdateRow (r : RunQueueTableRow) =
             let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
-            let g p s u =
+            let g s u =
                 r.runQueueId <- q.runQueueId.value
                 r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
-                r.progress <- p
-                r.errorMessage <- q.errorMessageOpt |> Option.bind (fun e -> Some e.value)
+                r.progress <- q.progressData.progress
+                r.callCount <- q.progressData.callCount
+                r.yRelative <- q.progressData.yRelative
+                r.maxEe <- q.progressData.eeData.maxEe
+                r.maxAverageEe <- q.progressData.eeData.maxAverageEe
+                r.maxAverageEe <- q.progressData.eeData.maxAverageEe
+                r.maxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
+                r.maxLastEe <- q.progressData.eeData.maxLastEe
+                r.errorMessage <- q.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
 
                 match s with
                 | Some (Some v) -> r.startedOn <- Some v
@@ -419,8 +447,6 @@ module DatabaseTypes =
                     runQueueStatusTo = q.runQueueStatus
                     workerNodeIdOptFrom = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
                     workerNodeIdOptTo = q.workerNodeIdOpt
-                    progressFrom = r.progress |> TaskProgress.create
-                    progressTo = q.progress
                 }
 
             let f1 e = e |> InvalidStatusTransitionErr |> toError
@@ -429,27 +455,27 @@ module DatabaseTypes =
             match RunQueueStatus.tryCreate r.runQueueStatusId with
             | Some s ->
                 match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-                | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g NotStarted.value (Some (Some DateTime.Now)) true
-                | NotStartedRunQueue,       None,    CancelledRunQueue,      None -> g TaskProgress.failedValue None true
+                | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g (Some (Some DateTime.Now)) true
+                | NotStartedRunQueue,       None,    CancelledRunQueue,      None -> g None true
 
-                | RunRequestedRunQueue,   Some __, NotStartedRunQueue,       None -> g q.progress.value (Some None) true
-                | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
+                | RunRequestedRunQueue,   Some __, NotStartedRunQueue,       None -> g (Some None) true
+                | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g None true
+                | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g None true
+                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g None true
+                | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g None true
 
-                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
-                | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
+                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g None true
+                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g None true
+                | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g None true
+                | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g None true
 
-                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g q.progress.value None false // !!! Roll back the status change !!!
-                | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g q.progress.value None true
-                | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g TaskProgress.failedValue None true
-                | _ -> s |> f |> f1
-            | None -> InvalidRunQueue |> f |> f2
+                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g None true
+                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g None false // !!! Roll back the status change !!!
+                | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g None true
+                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g None true
+                | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g None true
+                | _ -> s |> Some |> f |> f1
+            | None -> None |> f |> f2
 
 
     type WorkerNodeInfo
@@ -511,19 +537,18 @@ module DatabaseTypes =
 
             use cmd = new SqlCommandProvider<"
                 merge ClmDefaultValue as target
-                using (select @clmDefaultValueId, @defaultRateParams, @description, @fileStructureVersion) as source (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
+                using (select @clmDefaultValueId, @defaultRateParams, @description) as source (clmDefaultValueId, defaultRateParams, description)
                 on (target.clmDefaultValueId = source.clmDefaultValueId)
                 when not matched then
-                    insert (clmDefaultValueId, defaultRateParams, description, fileStructureVersion)
-                    values (source.clmDefaultValueId, source.defaultRateParams, source.description, source.fileStructureVersion)
+                    insert (clmDefaultValueId, defaultRateParams, description)
+                    values (source.clmDefaultValueId, source.defaultRateParams, source.description)
                 when matched then
-                    update set defaultRateParams = source.defaultRateParams, description = source.description, fileStructureVersion = source.fileStructureVersion;
+                    update set defaultRateParams = source.defaultRateParams, description = source.description;
             ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let result = cmd.Execute(clmDefaultValueId = p.clmDefaultValueId.value
                                     , defaultRateParams = (p.defaultRateParams |> JsonConvert.SerializeObject)
-                                    , description = match p.description with | Some d -> d | None -> null
-                                    , fileStructureVersion = FileStructureVersion)
+                                    , description = match p.description with | Some d -> d | None -> null)
 
             match result = 1 with
             | true -> Ok ()
@@ -663,20 +688,19 @@ module DatabaseTypes =
             let recordsUpdated =
                 use cmdWithBinaryData = new SqlCommandProvider<"
                     merge ModelData as target
-                    using (select @modelDataId, @clmTaskId, @fileStructureVersion, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
-                    as source (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
+                    using (select @modelDataId, @clmTaskId, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
+                    as source (modelDataId, clmTaskId, seedValue, modelDataParams, modelBinaryData, createdOn)
                     on (target.modelDataId = source.modelDataId)
                     when not matched then
-                        insert (modelDataId, clmTaskId, fileStructureVersion, seedValue, modelDataParams, modelBinaryData, createdOn)
-                        values (source.modelDataId, source.clmTaskId, source.fileStructureVersion, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
+                        insert (modelDataId, clmTaskId, seedValue, modelDataParams, modelBinaryData, createdOn)
+                        values (source.modelDataId, source.clmTaskId, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
                     when matched then
-                        update set clmTaskId = source.clmTaskId, fileStructureVersion = source.fileStructureVersion, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
+                        update set clmTaskId = source.clmTaskId, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
                     ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
                 cmdWithBinaryData.Execute(
                     modelDataId = m.modelDataId.value,
                     clmTaskId = m.clmTaskInfo.clmTaskId.value,
-                    fileStructureVersion = m.data.fileStructureVersion,
                     seedValue = (match m.data.seedValue with | Some s -> s | None -> -1),
                     modelDataParams = (m.data.modelData.modelDataParams |> JsonConvert.SerializeObject),
                     modelBinaryData = (m.data.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
@@ -689,169 +713,168 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    /// Do not delete. It shows how to use OUTPUT clause.
-    let saveResultDataOld c (r : ResultDataWithId) =
-        let g() =
-            use conn = getOpenConn c
-            let connectionString = conn.ConnectionString
+//    /// Do not delete. It shows how to use OUTPUT clause.
+//    let saveResultDataOld c (r : ResultDataWithId) =
+//        let g() =
+//            use conn = getOpenConn c
+//            let connectionString = conn.ConnectionString
+//
+//            use cmd = new SqlCommandProvider<"
+//                INSERT INTO dbo.ResultData
+//                            (resultDataId
+//                            ,modelDataId
+//                            ,workerNodeId
+//                            ,y0
+//                            ,tEnd
+//                            ,useAbundant
+//                            ,maxEe
+//                            ,maxAverageEe
+//                            ,maxWeightedAverageAbsEe
+//                            ,maxLastEe
+//                            ,createdOn)
+//                        OUTPUT Inserted.resultDataId
+//                        VALUES
+//                            (@resultDataId
+//                            ,@modelDataId
+//                            ,@workerNodeId
+//                            ,@y0
+//                            ,@tEnd
+//                            ,@useAbundant
+//                            ,@maxEe
+//                            ,@maxAverageEe
+//                            ,@maxWeightedAverageAbsEe
+//                            ,@maxLastEe
+//                            ,@createdOn)
+//            ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+//
+//            let result =
+//                cmd.Execute(
+//                        resultDataId = r.resultDataId.value
+//                        ,modelDataId = r.resultData.modelDataId.value
+//                        ,workerNodeId = r.workerNodeId.messagingClientId.value
+//                        ,y0 = r.resultData.y0
+//                        ,tEnd = r.resultData.tEnd
+//                        ,useAbundant = r.resultData.useAbundant
+//                        ,maxEe = r.resultData.maxEe
+//                        ,maxAverageEe = r.resultData.maxAverageEe
+//                        ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
+//                        ,maxLastEe = r.resultData.maxLastEe
+//                        ,createdOn = DateTime.Now)
+//                |> Seq.toList
+//
+//            match result.Length = 1 with
+//            | true -> Ok ()
+//            | false -> toError SaveResultDataErr r.resultDataId.value
+//
+//        tryDbFun g
 
-            use cmd = new SqlCommandProvider<"
-                INSERT INTO dbo.ResultData
-                            (resultDataId
-                            ,modelDataId
-                            ,workerNodeId
-                            ,y0
-                            ,tEnd
-                            ,useAbundant
-                            ,maxEe
-                            ,maxAverageEe
-                            ,maxWeightedAverageAbsEe
-                            ,maxLastEe
-                            ,createdOn)
-                        OUTPUT Inserted.resultDataId
-                        VALUES
-                            (@resultDataId
-                            ,@modelDataId
-                            ,@workerNodeId
-                            ,@y0
-                            ,@tEnd
-                            ,@useAbundant
-                            ,@maxEe
-                            ,@maxAverageEe
-                            ,@maxWeightedAverageAbsEe
-                            ,@maxLastEe
-                            ,@createdOn)
-            ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-            let result =
-                cmd.Execute(
-                        resultDataId = r.resultDataId.value
-                        ,modelDataId = r.resultData.modelDataId.value
-                        ,workerNodeId = r.workerNodeId.messagingClientId.value
-                        ,y0 = r.resultData.y0
-                        ,tEnd = r.resultData.tEnd
-                        ,useAbundant = r.resultData.useAbundant
-                        ,maxEe = r.resultData.maxEe
-                        ,maxAverageEe = r.resultData.maxAverageEe
-                        ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
-                        ,maxLastEe = r.resultData.maxLastEe
-                        ,createdOn = DateTime.Now)
-                |> Seq.toList
-
-            match result.Length = 1 with
-            | true -> Ok ()
-            | false -> toError SaveResultDataErr r.resultDataId.value
-
-        tryDbFun g
-
-    let saveResultData c (r : ResultDataWithId) =
-        let g() =
-            use conn = getOpenConn c
-            let connectionString = conn.ConnectionString
-
-            use cmd = new SqlCommandProvider<"
-                merge ResultData as target
-                using (
-                    select
-                        @resultDataId
-                        ,@modelDataId
-                        ,@workerNodeId
-                        ,@y0
-                        ,@tEnd
-                        ,@useAbundant
-                        ,@maxEe
-                        ,@maxAverageEe
-                        ,@maxWeightedAverageAbsEe
-                        ,@maxLastEe
-                        ,@createdOn)
-                    as source
-                        (resultDataId
-                        ,modelDataId
-                        ,workerNodeId
-                        ,y0
-                        ,tEnd
-                        ,useAbundant
-                        ,maxEe
-                        ,maxAverageEe
-                        ,maxWeightedAverageAbsEe
-                        ,maxLastEe
-                        ,createdOn)
-                on (target.resultDataId = source.resultDataId)
-                when not matched then
-                    insert
-                        (resultDataId
-                        ,modelDataId
-                        ,workerNodeId
-                        ,y0
-                        ,tEnd
-                        ,useAbundant
-                        ,maxEe
-                        ,maxAverageEe
-                        ,maxWeightedAverageAbsEe
-                        ,maxLastEe
-                        ,createdOn)
-                    values
-                        (source.resultDataId
-                        ,source.modelDataId
-                        ,source.workerNodeId
-                        ,source.y0
-                        ,source.tEnd
-                        ,source.useAbundant
-                        ,source.maxEe
-                        ,source.maxAverageEe
-                        ,source.maxWeightedAverageAbsEe
-                        ,source.maxLastEe
-                        ,source.createdOn)
-                when matched then
-                    update
-                    set
-                        modelDataId = source.modelDataId
-                        ,workerNodeId = source.workerNodeId
-                        ,y0 = source.y0
-                        ,tEnd = source.tEnd
-                        ,useAbundant = source.useAbundant
-                        ,maxEe = source.maxEe
-                        ,maxAverageEe = source.maxAverageEe
-                        ,maxWeightedAverageAbsEe = source.maxWeightedAverageAbsEe
-                        ,maxLastEe = source.maxLastEe
-                        ,createdOn = source.createdOn;
-            ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-            let result =
-                cmd.Execute(
-                        resultDataId = r.resultDataId.value
-                        ,modelDataId = r.resultData.modelDataId.value
-                        ,workerNodeId = r.workerNodeId.messagingClientId.value
-                        ,y0 = r.resultData.y0
-                        ,tEnd = r.resultData.tEnd
-                        ,useAbundant = r.resultData.useAbundant
-                        ,maxEe = r.resultData.maxEe
-                        ,maxAverageEe = r.resultData.maxAverageEe
-                        ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
-                        ,maxLastEe = r.resultData.maxLastEe
-                        ,createdOn = DateTime.Now)
-
-            match result = 1 with
-            | true -> Ok ()
-            | false -> toError SaveResultDataErr r.resultDataId.value
-
-        tryDbFun g
+//    let saveResultData c (r : ResultDataWithId) =
+//        let g() =
+//            use conn = getOpenConn c
+//            let connectionString = conn.ConnectionString
+//
+//            use cmd = new SqlCommandProvider<"
+//                merge ResultData as target
+//                using (
+//                    select
+//                        @resultDataId
+//                        ,@modelDataId
+//                        ,@workerNodeId
+//                        ,@y0
+//                        ,@tEnd
+//                        ,@useAbundant
+//                        ,@maxEe
+//                        ,@maxAverageEe
+//                        ,@maxWeightedAverageAbsEe
+//                        ,@maxLastEe
+//                        ,@createdOn)
+//                    as source
+//                        (resultDataId
+//                        ,modelDataId
+//                        ,workerNodeId
+//                        ,y0
+//                        ,tEnd
+//                        ,useAbundant
+//                        ,maxEe
+//                        ,maxAverageEe
+//                        ,maxWeightedAverageAbsEe
+//                        ,maxLastEe
+//                        ,createdOn)
+//                on (target.resultDataId = source.resultDataId)
+//                when not matched then
+//                    insert
+//                        (resultDataId
+//                        ,modelDataId
+//                        ,workerNodeId
+//                        ,y0
+//                        ,tEnd
+//                        ,useAbundant
+//                        ,maxEe
+//                        ,maxAverageEe
+//                        ,maxWeightedAverageAbsEe
+//                        ,maxLastEe
+//                        ,createdOn)
+//                    values
+//                        (source.resultDataId
+//                        ,source.modelDataId
+//                        ,source.workerNodeId
+//                        ,source.y0
+//                        ,source.tEnd
+//                        ,source.useAbundant
+//                        ,source.maxEe
+//                        ,source.maxAverageEe
+//                        ,source.maxWeightedAverageAbsEe
+//                        ,source.maxLastEe
+//                        ,source.createdOn)
+//                when matched then
+//                    update
+//                    set
+//                        modelDataId = source.modelDataId
+//                        ,workerNodeId = source.workerNodeId
+//                        ,y0 = source.y0
+//                        ,tEnd = source.tEnd
+//                        ,useAbundant = source.useAbundant
+//                        ,maxEe = source.maxEe
+//                        ,maxAverageEe = source.maxAverageEe
+//                        ,maxWeightedAverageAbsEe = source.maxWeightedAverageAbsEe
+//                        ,maxLastEe = source.maxLastEe
+//                        ,createdOn = source.createdOn;
+//            ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+//
+//            let result =
+//                cmd.Execute(
+//                        resultDataId = r.resultDataId.value
+//                        ,modelDataId = r.resultData.modelDataId.value
+//                        ,workerNodeId = r.workerNodeId.messagingClientId.value
+//                        ,y0 = r.resultData.y0
+//                        ,tEnd = r.resultData.tEnd
+//                        ,useAbundant = r.resultData.useAbundant
+//                        ,maxEe = r.resultData.maxEe
+//                        ,maxAverageEe = r.resultData.maxAverageEe
+//                        ,maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe
+//                        ,maxLastEe = r.resultData.maxLastEe
+//                        ,createdOn = DateTime.Now)
+//
+//            match result = 1 with
+//            | true -> Ok ()
+//            | false -> toError SaveResultDataErr r.resultDataId.value
+//
+//        tryDbFun g
 
 
-
-    let tryLoadResultData c (ResultDataId resultDataId) =
-        let g() =
-            use conn = getOpenConn c
-            use d = new ResultDataTableData(conn)
-            let t = new ResultDataTable()
-            d.Execute(resultDataId = resultDataId) |> t.Load
-
-            t.Rows
-            |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
-            |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
-            |> Ok
-
-        tryDbFun g
+//    let tryLoadResultData c (ResultDataId resultDataId) =
+//        let g() =
+//            use conn = getOpenConn c
+//            use d = new ResultDataTableData(conn)
+//            let t = new ResultDataTable()
+//            d.Execute(resultDataId = resultDataId) |> t.Load
+//
+//            t.Rows
+//            |> Seq.tryFind (fun e -> e.resultDataId = resultDataId)
+//            |> Option.bind (fun v -> ResultDataWithId.create v |> Some)
+//            |> Ok
+//
+//        tryDbFun g
 
 
     let private mapRunQueue (reader : DynamicSqlDataReader) =
@@ -859,6 +882,7 @@ module DatabaseTypes =
         | Some s ->
             {
                 runQueueId = RunQueueId reader?runQueueId
+
                 info =
                     {
                         modelDataId = ModelDataId reader?modelDataId
@@ -871,10 +895,27 @@ module DatabaseTypes =
                                 useAbundant = reader?useAbundant
                             }
                     }
+
                 runQueueStatus = s
-                errorMessageOpt = reader?errorMessage |> Option.map ErrorMessage
                 workerNodeIdOpt = reader?workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
-                progress = TaskProgress.create reader?progress
+
+                progressData =
+                    {
+                        progress = reader?progress
+                        callCount = reader?callCount
+                        yRelative = reader?yRelative
+
+                        eeData =
+                            {
+                                maxEe = reader?maxEe
+                                maxAverageEe = reader?maxAverageEe
+                                maxWeightedAverageAbsEe = reader?maxWeightedAverageAbsEe
+                                maxLastEe = reader?maxLastEe
+                            }
+
+                        errorMessageOpt = reader?errorMessage |> Option.map ErrorMessage
+                    }
+
                 createdOn = reader?createdOn
             }
             |> Ok

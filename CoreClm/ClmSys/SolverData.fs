@@ -1,6 +1,17 @@
 namespace ClmSys
 
+open System
+open ClmSys.GeneralPrimitives
+
 module SolverData =
+
+    let estimateEndTime progress (started : DateTime) =
+        if progress >= 0.0 && progress <= 1.0
+        then
+            let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / (decimal progress) |> int64 |> TimeSpan.FromTicks
+            started.Add estRunTime |> Some
+        else None
+
 
     type EeData =
         {
@@ -21,16 +32,20 @@ module SolverData =
 
     type ProgressData =
         {
-            progressDetailed : double
+            progress : double
             callCount : int64
+            yRelative : double
             eeData : EeData
-            y : double
+            errorMessageOpt : ErrorMessage option
         }
 
-        static member defaultValue y0 =
+        static member defaultValue =
             {
-                progressDetailed = 0.0
+                progress = 0.0
                 callCount = 0L
+                yRelative = 1.0
                 eeData = EeData.defaultValue
-                y = y0
+                errorMessageOpt = None
             }
+
+        member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started
