@@ -92,8 +92,8 @@ module Solver =
             tEnd : double
             calculationData : ModelCalculationData
             initialValues : double[]
-            progressCallBack : (ProgressData -> unit) option
-            chartCallBack : (ChartSliceData -> unit) option
+            progressCallBack : RunQueueStatus option -> ProgressData -> unit
+            chartCallBack : ChartSliceData -> unit
             getChartSliceData : double -> double[] -> ChartSliceData
             noOfOutputPoints : int option
             noOfProgressPoints : int option
@@ -162,18 +162,13 @@ module Solver =
 
 
     let shouldNotifyChart n t =
-        match n.chartCallBack, n.noOfOutputPoints, n.noOfChartDetailedPoints with
-        | Some _, Some np, Some cp ->
+        match n.noOfOutputPoints, n.noOfChartDetailedPoints with
+        | Some np, Some cp ->
             ((double np) * nextProgress <= double cp && shouldNotifyByCallCount()) || shouldNotifyByNextProgress n t
         | _ -> false
 
 
-    let shouldNotifyProgress n t =
-        match n.progressCallBack with
-        | Some _ -> shouldNotifyByCallCount() || shouldNotifyByNextProgress n t
-        | None -> false
-
-
+    let shouldNotifyProgress n t = shouldNotifyByCallCount() || shouldNotifyByNextProgress n t
     let shouldNotify n t = shouldNotifyProgress n t || shouldNotifyChart n t
 
 
@@ -201,9 +196,7 @@ module Solver =
 
     let notifyChart n t x =
 //        Thread.Sleep(30_000)
-        match n.chartCallBack with
-        | Some c -> calculateChartSliceData n t x |> c
-        | None -> ()
+        calculateChartSliceData n t x |> n.chartCallBack
 
 
     let calculateProgressData n t x =
@@ -220,9 +213,7 @@ module Solver =
 
     let notifyProgress n p =
 //        Thread.Sleep(30_000)
-        match n.progressCallBack with
-        | Some c -> c p
-        | None -> ()
+        n.progressCallBack None p
 
 
     /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.

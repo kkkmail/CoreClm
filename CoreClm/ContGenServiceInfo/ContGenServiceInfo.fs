@@ -52,7 +52,7 @@ module ServiceInfo =
     type ProgressUpdateInfo =
         {
             runQueueId : RunQueueId
-            updatedRunQueueStatus : RunQueueStatus
+            updatedRunQueueStatus : RunQueueStatus option
             progressData : ProgressData
         }
 
