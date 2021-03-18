@@ -45,17 +45,17 @@ module GeneralPrimitives =
         member this.value = let (SqliteConnectionString v) = this in v
 
 
-    type ResultDataId =
-        | ResultDataId of Guid
-
-        member this.value = let (ResultDataId v) = this in v
+//    type ResultDataId =
+//        | ResultDataId of Guid
+//
+//        member this.value = let (ResultDataId v) = this in v
 
 
     type RunQueueId =
         | RunQueueId of Guid
 
         member this.value = let (RunQueueId v) = this in v
-        member this.toResultDataId() = this.value |> ResultDataId
+//        member this.toResultDataId() = this.value |> ResultDataId
         static member getNewId() = Guid.NewGuid() |> RunQueueId
 
 

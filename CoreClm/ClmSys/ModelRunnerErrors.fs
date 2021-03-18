@@ -38,7 +38,7 @@ module ModelRunnerErrors =
         | UnableToLoadRunQueueErr of RunQueueId
         | UnableToFindLoadRunQueueErr of RunQueueId
         | InvalidRunQueueStatusErr of RunQueueId
-        | CompleteyInvalidRunQueueStatusErr of RunQueueId // This should never happen but we still have to account for it. It if does, then we are in a BIG trouble.
+        | CompletelyInvalidRunQueueStatusErr of RunQueueId // This should never happen but we still have to account for it. It if does, then we are in a BIG trouble.
 
 
     type RegisterError =
@@ -51,11 +51,11 @@ module ModelRunnerErrors =
 
 
     type SaveResultError =
-        | UnableToSaveResultDataErr of ResultDataId
+        | UnableToSaveResultDataErr of RunQueueId
 
 
     type SaveChartsError =
-        | UnableToSaveCharts of ResultDataId
+        | UnableToSaveCharts of RunQueueId
 
 
     type ProcessMessageError =

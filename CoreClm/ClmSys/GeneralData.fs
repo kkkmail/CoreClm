@@ -38,9 +38,9 @@ module GeneralData =
         serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
 
 
-    type ResultDataId
-        with
-        member this.toRunQueueId() = this.value |> RunQueueId
+//    type ResultDataId
+//        with
+//        member this.toRunQueueId() = this.value |> RunQueueId
 
 
 //    type TaskProgress

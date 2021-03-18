@@ -204,10 +204,10 @@ module FileSystemTypes =
 //    let getResultDataIdsFs serviceName () = getObjectIds<ResultDataId> serviceName resultDataTblName (fun e -> e |> Guid.Parse |> ResultDataId)
 //    let loadResultDataAllFs serviceName () = loadObjects<ResultDataWithId, Guid> serviceName resultDataTblName Guid.Parse
 
-    let saveChartInfoFs serviceName (c : ChartInfo) = saveData<ChartInfo, Guid> serviceName chartInfoTblName c.resultDataId.value c
-    let loadChartInfoFs serviceName (ResultDataId resultDataId) = loadData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId
-    let tryDeleteChartInfoFs serviceName (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId
-    let getChartInfoIdsFs serviceName () = getObjectIds<ResultDataId> serviceName chartInfoTblName (fun e -> e |> Guid.Parse |> ResultDataId)
+    let saveChartInfoFs serviceName (c : ChartInfo) = saveData<ChartInfo, Guid> serviceName chartInfoTblName c.runQueueId.value c
+    let loadChartInfoFs serviceName (RunQueueId runQueueId) = loadData<ChartInfo, Guid> serviceName chartInfoTblName runQueueId
+    let tryDeleteChartInfoFs serviceName (RunQueueId runQueueId) = tryDeleteData<ChartInfo, Guid> serviceName chartInfoTblName runQueueId
+    let getChartInfoIdsFs serviceName () = getObjectIds<RunQueueId> serviceName chartInfoTblName (fun e -> e |> Guid.Parse |> RunQueueId)
     let loadChartInfoAllFs serviceName () = loadObjects<ChartInfo, Guid> serviceName chartInfoTblName Guid.Parse
 
 

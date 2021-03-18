@@ -75,7 +75,7 @@ module ContGenPrimitives =
 
     type ChartInfo =
         {
-            resultDataId : ResultDataId
+            runQueueId : RunQueueId
             defaultValueId : ClmDefaultValueId
             charts : list<HtmlChart>
         }

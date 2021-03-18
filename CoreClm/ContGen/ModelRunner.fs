@@ -204,8 +204,8 @@ module ModelRunner =
 
 
     let saveCharts (proxy : SaveChartsProxy) (c : ChartInfo) =
-        printfn $"saveCharts: c.resultDataId = %A{c.resultDataId}"
-        proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.resultDataId))
+        printfn $"saveCharts: c.runQueueId = %A{c.runQueueId}"
+        proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.runQueueId))
 
 
     let processMessage (proxy : ProcessMessageProxy) (m : Message) =

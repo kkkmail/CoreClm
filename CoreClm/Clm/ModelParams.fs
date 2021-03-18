@@ -172,7 +172,7 @@ module ModelParams =
     type ModelCommandLineData =
         {
             modelDataId : ModelDataId
-            resultDataId : ResultDataId
+//            resultDataId : ResultDataId
             workerNodeId : WorkerNodeId
             minUsefulEe : MinUsefulEe
             remote : bool

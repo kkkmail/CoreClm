@@ -34,22 +34,22 @@ module SolverRunnerImplementation =
     let private addError g f e = ((f |> g |> SolverRunnerErr) + e) |> Error
 
 
-    let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
-        printfn $"onSaveResult: Sending results with resultDataId = %A{r.resultDataId}."
-
-        {
-            partitionerRecipient = proxy.partitionerId
-            deliveryType = GuaranteedDelivery
-            messageData = r |> SaveResultPrtMsg
-        }.getMessageInfo()
-        |> proxy.sendMessage
-        |> Rop.bindError (addError OnSaveResultErr (SendResultMessageErr (proxy.partitionerId.messagingClientId, r.resultDataId)))
+//    let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
+//        printfn $"onSaveResult: Sending results with resultDataId = %A{r.resultDataId}."
+//
+//        {
+//            partitionerRecipient = proxy.partitionerId
+//            deliveryType = GuaranteedDelivery
+//            messageData = r |> SaveResultPrtMsg
+//        }.getMessageInfo()
+//        |> proxy.sendMessage
+//        |> Rop.bindError (addError OnSaveResultErr (SendResultMessageErr (proxy.partitionerId.messagingClientId, r.resultDataId)))
 
 
     let onSaveCharts (proxy : SendMessageProxy) (r : ChartGenerationResult) =
         match r with
         | GeneratedCharts c ->
-            printfn $"onSaveCharts: Sending charts with resultDataId = %A{c.resultDataId}."
+            printfn $"onSaveCharts: Sending charts with runQueueId = %A{c.runQueueId}."
 
             {
                 partitionerRecipient = proxy.partitionerId
@@ -57,7 +57,7 @@ module SolverRunnerImplementation =
                 messageData = c |> SaveChartsPrtMsg
             }.getMessageInfo()
             |> proxy.sendMessage
-            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.resultDataId)))
+            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.runQueueId)))
         | NotGeneratedCharts ->
             printfn "onSaveCharts: No charts."
             Ok()
@@ -76,7 +76,7 @@ module SolverRunnerImplementation =
     let onUpdateProgress (proxy : OnUpdateProgressProxy) (p : ProgressUpdateInfo) =
         printfn $"onUpdateProgress: runQueueId = %A{p.runQueueId}, progress = %A{p.progress}."
         let t, completed = toDeliveryType p.progress
-        let r0 = proxy.tryUpdateProgress p.progress
+        let r0 = proxy.tryUpdateProgressData p.progress
 
         let r1 =
             {
@@ -114,7 +114,7 @@ module SolverRunnerImplementation =
                 solverUpdateProxy =
                     {
                         updateProgress = onUpdateProgress proxy
-                        updateTime = proxy.tryUpdateTime
+//                        updateTime = proxy.tryUpdateTime
                         checkCancellation = checkCancellation
                     }
 
@@ -124,7 +124,7 @@ module SolverRunnerImplementation =
                         clearNotificationRequest = clearNotification
                     }
 
-                saveResult = onSaveResult proxy.sendMessageProxy
+//                saveResult = onSaveResult proxy.sendMessageProxy
                 saveCharts = onSaveCharts proxy.sendMessageProxy
                 logCrit = logCrit
             }
@@ -161,8 +161,7 @@ module SolverRunnerImplementation =
                         let proxy =
                             {
                                 tryDeleteWorkerNodeRunModelData = fun () -> deleteRunQueue c q
-                                tryUpdateProgress = tryUpdateProgressRunQueue c q
-                                tryUpdateTime = tryUpdateTime c q
+                                tryUpdateProgressData = tryUpdateProgressRunQueue c q
 
                                 sendMessageProxy =
                                     {
