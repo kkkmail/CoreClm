@@ -70,8 +70,13 @@ module Solver =
 
 
     type NegativeValuesCorrectorType =
-        | UseNonNegative
         | DoNotCorrect
+        | UseNonNegative
+
+        member nc.value =
+            match nc with
+            | DoNotCorrect -> 0
+            | UseNonNegative -> 1
 
 
     type SolverType =
@@ -184,6 +189,7 @@ module Solver =
 
     let notifyChart n t x =
 //        Thread.Sleep(30_000)
+        printfn "notifyChart: Calling chartCallBack."
         calculateChartSliceData n t x |> n.chartCallBack
 
 

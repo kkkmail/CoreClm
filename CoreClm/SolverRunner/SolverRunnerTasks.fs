@@ -151,7 +151,7 @@ module SolverRunnerTasks =
                 check
 
         {
-            solverType = OdePack (Bdf, ChordWithDiagonalJacobian, DoNotCorrect)
+            solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
             modelDataId = d.modelDataId.value
             runQueueId = w.runningProcessData.runQueueId
             tStart = 0.0
@@ -194,6 +194,7 @@ module SolverRunnerTasks =
             }
             |> GeneratedCharts
 
+        printfn $"plotAllResults: i.chartData.maxEe = {i.chartData.maxEe}, i.runSolverData.minUsefulEe.value = {i.runSolverData.minUsefulEe.value}"
         match i.chartData.maxEe >= i.runSolverData.minUsefulEe.value, t with
         | true, _ -> plotAll ()
         | _, ForceChartGeneration -> plotAll ()
@@ -270,7 +271,7 @@ module SolverRunnerTasks =
         let getChartData() = runSolverData.chartDataUpdater.getContent()
 
         let notifyOfCharts t =
-            printfn $"notifyOfResults: t = %A{t}"
+            printfn $"notifyOfCharts: t = %A{t}"
             let chartData = getChartData()
 
             let chartResult =
@@ -298,13 +299,12 @@ module SolverRunnerTasks =
                 //testCancellation proxy w
 
                 printfn $"runSolver: Calling nSolve for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
-                nSolve data |> ignore
+                let nSolveResult = nSolve data
                 printfn $"runSolver: ...call to nSolve for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
                 let result = notifyOfCharts RegularChartGeneration
 
                 printfn $"runSolver: Notifying of completion for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
-                let pd : ProgressData = failwith ""
-                let completedResult = (Some RunQueueStatus.CompletedRunQueue, pd) ||> getProgress |> proxy.solverUpdateProxy.updateProgress
+                let completedResult = (Some RunQueueStatus.CompletedRunQueue, nSolveResult.progressData) ||> getProgress |> proxy.solverUpdateProxy.updateProgress
                 combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn $"runSolver: All completed for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
             with

@@ -183,7 +183,7 @@ module SvcCommandLine =
                         runnerData =
                             {
                                 getConnectionString = getContGenConnectionString
-                                minUsefulEe = MinUsefulEe.defaultValue
+                                minUsefulEe = w.contGenInfo.minUsefulEe
                                 resultLocation = DefaultResultLocationFolder
 
                                 earlyExitInfoOpt =

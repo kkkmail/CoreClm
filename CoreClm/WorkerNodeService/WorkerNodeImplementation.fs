@@ -67,7 +67,6 @@ module ServiceImplementation =
             workerNodeServiceInfo : WorkerNodeServiceInfo
             workerNodeProxy : WorkerNodeProxy
             messageProcessorProxy : MessageProcessorProxy
-            minUsefulEe : MinUsefulEe
         }
 
 
@@ -290,7 +289,6 @@ module ServiceImplementation =
                                 workerNodeServiceInfo = i
                                 workerNodeProxy = WorkerNodeProxy.create c sr
                                 messageProcessorProxy = messagingClient.messageProcessorProxy
-                                minUsefulEe = MinUsefulEe.defaultValue
                             }
                             |> createServiceImpl logger
 

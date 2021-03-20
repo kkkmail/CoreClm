@@ -24,19 +24,6 @@ module WorkerNodeProxy =
         | RemoteStorage
 
 
-    type WorkerNodeProxyData =
-        {
-            minUsefulEe : MinUsefulEe
-            noOfProgressPoints : int option
-        }
-
-        static member defaultValue =
-            {
-                minUsefulEe = MinUsefulEe.defaultValue
-                noOfProgressPoints = None
-            }
-
-
     type OnProcessMessageProxy =
         {
             saveWorkerNodeRunModelData : WorkerNodeRunModelData -> UnitResult

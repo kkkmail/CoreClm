@@ -169,6 +169,7 @@ module SolverRunnerImplementation =
                         let solver = runSolver solverProxy w
                         // The call below does not return until the run is completed OR cancelled in some way.
                         solver.run()
+                        printfn "runSolver: Call to solver.run() completed."
                         CompletedSuccessfully
                     | Error e -> exitWithLogCrit e UnknownException
                 | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) UnknownException
