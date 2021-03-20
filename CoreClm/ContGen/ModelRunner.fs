@@ -153,15 +153,6 @@ module ModelRunner =
 
             match i.updatedRunQueueStatus with
             | Some s -> { q1 with runQueueStatus = s }
-//                match s with
-//                | NotStartedRunQueue -> failwith ""
-//                | InactiveRunQueue -> failwith ""
-//                | RunRequestedRunQueue -> failwith ""
-//                | InProgressRunQueue -> failwith ""
-//                | CompletedRunQueue -> failwith ""
-//                | FailedRunQueue -> failwith ""
-//                | CancelRequestedRunQueue -> failwith ""
-//                | CancelledRunQueue -> failwith ""
             | None -> q1
 
 //            | NotStartedRunQueue -> { q1 with runQueueStatus = NotStartedRunQueue; errorMessageOpt = None }, Ok()

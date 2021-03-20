@@ -75,7 +75,7 @@ module SolverRunnerTasks =
             let logIfError v =
                 match v with
                 | Ok _ -> ()
-                | Error e -> proxy.logError e
+                | Error e -> SolverRunnerCriticalError.create w.runningProcessData.runQueueId e |> proxy.logCrit |> ignore
 
             let updateProgress = proxy.updateProgress >> logIfError
 
@@ -371,11 +371,11 @@ module SolverRunnerTasks =
                     getProgress (Some CompletedRunQueue) p
                 | AbortCalculation e ->
 //                    getProgress (Cancelled s)
-                    getProgress (Some RunQueueStatus.CancelledRunQueue) p
+                    getProgress (Some CancelledRunQueue) p
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
             | e ->
-//                e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred.")
-                failwith ""
+                let p = { ProgressData.defaultValue with errorMessageOpt = $"{e}" |> ErrorMessage |> Some }
+                getProgress (Some FailedRunQueue) p |> (updateFinalProgress "getSolverRunner - Exception occurred.")
 
         let proxy =
             {

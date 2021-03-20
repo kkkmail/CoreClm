@@ -16,7 +16,7 @@ module SolverRunner =
             updateProgress : ProgressUpdateInfo -> UnitResult
 //            updateTime : ProgressData -> UnitResult
             checkCancellation : RunQueueId -> CancellationType option
-            logError : ClmError -> unit
+            logCrit : SolverRunnerCriticalError -> UnitResult
         }
 
 

@@ -395,8 +395,8 @@ module WorkerNodeDatabaseTypes =
 
     let private mapCheckCancellation (reader : DynamicSqlDataReader) =
         match int reader?notificationTypeId with
-        | 0 -> AbortCalculation
-        | _ -> CancelWithResults
+        | 0 -> AbortCalculation None
+        | _ -> CancelWithResults None
         |> Ok
 
 

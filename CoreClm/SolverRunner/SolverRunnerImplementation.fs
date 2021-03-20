@@ -122,7 +122,7 @@ module SolverRunnerImplementation =
                         updateProgress = onUpdateProgress proxy
 //                        updateTime = proxy.tryUpdateTime
                         checkCancellation = checkCancellation
-                        logError = failwith ""
+                        logCrit = logCrit
                     }
 
                 solverNotificationProxy =
