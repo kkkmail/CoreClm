@@ -227,10 +227,12 @@ module Solver =
         then
             lastCheck <- DateTime.Now
             let cancel = n.checkCancellation n.runQueueId
-
-            match cancel with
-            | Some c -> raise(ComputationAbortedException (n.runQueueId, c))
-            | None -> ()
+            cancel
+        else None
+//
+//            match cancel with
+//            | Some c -> raise(ComputationAbortedException (p(), c))
+//            | None -> ()
 
 
     let callBack n (t : double) (x : double[]) : unit =
@@ -246,17 +248,25 @@ module Solver =
 
     let needsCallBack n t =
         callCount <- callCount + 1L
-        checkCancellation n
-        shouldNotify n t
+        checkCancellation n, shouldNotify n t
 
 
     let callBackFunctional n t x =
         callCount <- callCount + 1L
-        checkCancellation n
+
+        match checkCancellation n with
+        | Some v -> raise(ComputationAbortedException (calculateProgressData n t x, v))
+        | None -> ()
+
         if shouldNotify n t then callBack n t x
 
 
-    let callBackChordWithDiagonalJacobian n t x = if shouldNotify n t then callBack n t x
+    let callBackChordWithDiagonalJacobian c n t x =
+        match c with
+        | Some v -> raise(ComputationAbortedException (calculateProgressData n t x, v))
+        | None -> ()
+
+        if shouldNotify n t then callBack n t x
 
 
     /// F# wrapper around various ODE solvers.
@@ -293,7 +303,7 @@ module Solver =
                 OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))
             | ChordWithDiagonalJacobian ->
                 let needsCallBack t = needsCallBack n t
-                let callBack t x = callBackChordWithDiagonalJacobian n t x
+                let callBack c t x = callBackChordWithDiagonalJacobian c n t x
                 let interop() = createInterop1(needsCallBack, callBack, n.calculationData.modelIndices)
                 // TODO kk:20210316 - DoNotCorrect is hardcoded below.
                 OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))

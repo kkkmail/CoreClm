@@ -208,7 +208,7 @@ module SolverRunnerTasks =
             runSolverData : RunSolverData
 //            resultDataWithId : ResultDataWithId
             runQueueId : RunQueueId
-            progressData : ProgressData
+//            progressData : ProgressData
             chartData : ChartData
         }
 
@@ -230,7 +230,7 @@ module SolverRunnerTasks =
             }
             |> GeneratedCharts
 
-        match i.progressData.eeData.maxEe >= i.runSolverData.minUsefulEe.value, t with
+        match i.chartData.maxEe >= i.runSolverData.minUsefulEe.value, t with
         | true, _ -> plotAll ()
         | _, ForceChartGeneration -> plotAll ()
         | _ -> NotGeneratedCharts
@@ -312,7 +312,7 @@ module SolverRunnerTasks =
         let data = getNSolveParam runSolverData w
         let getChartData() = getChartData w.runningProcessData.runQueueId w.runningProcessData.workerNodeId runSolverData
 
-        let notifyOfCharts p t =
+        let notifyOfCharts t =
             printfn $"notifyOfResults: t = %A{t}"
             let chartData = getChartData()
 //            let result = proxy.saveResult r
@@ -320,7 +320,7 @@ module SolverRunnerTasks =
             let chartResult =
                 {
                     runSolverData = runSolverData
-                    resultDataWithId = r
+                    runQueueId = w.runningProcessData.runQueueId
                     chartData = chartData
                 }
                 |> plotAllResults t
@@ -336,6 +336,13 @@ module SolverRunnerTasks =
 //                progress = p
 //            }
 
+        let getProgress s p =
+            {
+                runQueueId = w.runningProcessData.runQueueId
+                updatedRunQueueStatus = s
+                progressData = p
+            }
+
         let runSolverImpl() =
             try
                 // Uncomment temporarily when you need to test cancellations.
@@ -347,7 +354,7 @@ module SolverRunnerTasks =
                 let result = notifyOfCharts RegularChartGeneration
 
                 printfn $"runSolver: Notifying of completion for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
-                let completedResult = (None, None) |> Completed |> getProgress |> proxy.solverUpdateProxy.updateProgress
+                let completedResult = (Some RunQueueStatus.CompletedRunQueue, failwith "") ||> getProgress |> proxy.solverUpdateProxy.updateProgress
                 combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn $"runSolver: All completed for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
             with
@@ -360,7 +367,7 @@ module SolverRunnerTasks =
                 match r with
                 | CancelWithResults s ->
                     notifyOfCharts ForceChartGeneration |> logIfFailed "Unable to send charts."
-                    ((getResultAndChartData() |> snd).progress |> Some, s) |> Completed |> getProgress
+                    ((getChartData() |> snd).progress |> Some, s) |> Completed |> getProgress
                 | AbortCalculation s -> getProgress (Cancelled s)
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
             | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred.")

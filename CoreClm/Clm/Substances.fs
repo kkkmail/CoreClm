@@ -158,7 +158,7 @@ module Substances =
                 Waste
             ]
 
-        member __.length = 0
+        member _.length = 0
 
         member this.name =
             match this with

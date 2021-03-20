@@ -12,6 +12,7 @@ open Clm.ReactionTypes
 open ClmSys.ModelData
 open Clm.ReactionRates
 open ClmSys.SolverData
+open ClmSys.SolverRunnerPrimitives
 
 module ModelParams =
 

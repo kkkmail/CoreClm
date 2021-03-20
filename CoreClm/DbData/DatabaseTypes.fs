@@ -458,7 +458,7 @@ module DatabaseTypes =
                 | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g (Some (Some DateTime.Now)) true
                 | NotStartedRunQueue,       None,    CancelledRunQueue,      None -> g None true
 
-                | RunRequestedRunQueue,   Some __, NotStartedRunQueue,       None -> g (Some None) true
+                | RunRequestedRunQueue,   Some _, NotStartedRunQueue,       None -> g (Some None) true
                 | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g None true
                 | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g None true
                 | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g None true

@@ -2,6 +2,7 @@ namespace ClmSys
 
 open System
 open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerPrimitives
 
 module SolverData =
 
@@ -13,39 +14,40 @@ module SolverData =
         else None
 
 
-    type EeData =
-        {
-            maxEe : double
-            maxAverageEe : double
-            maxWeightedAverageAbsEe : double
-            maxLastEe : double
-        }
+//    type EeData =
+//        {
+//            maxEe : double
+//            maxAverageEe : double
+//            maxWeightedAverageAbsEe : double
+//            maxLastEe : double
+//        }
+//
+//        static member defaultValue =
+//            {
+//                maxEe = 0.0
+//                maxAverageEe = 0.0
+//                maxWeightedAverageAbsEe = 0.0
+//                maxLastEe = 0.0
+//            }
 
-        static member defaultValue =
-            {
-                maxEe = 0.0
-                maxAverageEe = 0.0
-                maxWeightedAverageAbsEe = 0.0
-                maxLastEe = 0.0
-            }
 
-
-    type ProgressData =
-        {
-            progress : double
-            callCount : int64
-            yRelative : double
-            eeData : EeData
-            errorMessageOpt : ErrorMessage option
-        }
-
-        static member defaultValue =
-            {
-                progress = 0.0
-                callCount = 0L
-                yRelative = 1.0
-                eeData = EeData.defaultValue
-                errorMessageOpt = None
-            }
+    type ProgressData
+        with
+//        {
+//            progress : double
+//            callCount : int64
+//            yRelative : double
+//            eeData : EeData
+//            errorMessageOpt : ErrorMessage option
+//        }
+//
+//        static member defaultValue =
+//            {
+//                progress = 0.0
+//                callCount = 0L
+//                yRelative = 1.0
+//                eeData = EeData.defaultValue
+//                errorMessageOpt = None
+//            }
 
         member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started
