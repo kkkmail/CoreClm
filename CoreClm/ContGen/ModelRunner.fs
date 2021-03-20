@@ -143,22 +143,26 @@ module ModelRunner =
         | Ok (Some q) ->
             let q1 = { q with progressData = i.progressData }
 
-            let upsert (q2, r) =
+            let upsert q2 =
                 printfn $"updateProgress.upsert: Upserting %A{i} into %A{q2}."
 
                 match proxy.upsertRunQueue q2 with
-                | Ok() -> r
-                | Error e -> (r, addError (UnableToLoadRunQueueErr i.runQueueId) e) ||> combineUnitResults
+                | Ok() -> Ok()
+                | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
+                // (r, addError (UnableToLoadRunQueueErr i.runQueueId) e) ||> combineUnitResults
 
             match i.updatedRunQueueStatus with
-            | NotStartedRunQueue -> failwith ""
-            | InactiveRunQueue -> failwith ""
-            | RunRequestedRunQueue -> failwith ""
-            | InProgressRunQueue -> failwith ""
-            | CompletedRunQueue -> failwith ""
-            | FailedRunQueue -> failwith ""
-            | CancelRequestedRunQueue -> failwith ""
-            | CancelledRunQueue -> failwith ""
+            | Some s -> { q1 with runQueueStatus = s }
+//                match s with
+//                | NotStartedRunQueue -> failwith ""
+//                | InactiveRunQueue -> failwith ""
+//                | RunRequestedRunQueue -> failwith ""
+//                | InProgressRunQueue -> failwith ""
+//                | CompletedRunQueue -> failwith ""
+//                | FailedRunQueue -> failwith ""
+//                | CancelRequestedRunQueue -> failwith ""
+//                | CancelledRunQueue -> failwith ""
+            | None -> q1
 
 //            | NotStartedRunQueue -> { q1 with runQueueStatus = NotStartedRunQueue; errorMessageOpt = None }, Ok()
 //            | InProgressRunQueue -> { q1 with runQueueStatus = InProgressRunQueue; errorMessageOpt = None }, Ok()

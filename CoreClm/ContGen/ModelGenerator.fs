@@ -2,6 +2,7 @@
 
 open System
 open ClmSys.SolverData
+open ClmSys.SolverRunnerPrimitives
 open Softellect.Sys.Rop
 
 open Clm.ModelParams

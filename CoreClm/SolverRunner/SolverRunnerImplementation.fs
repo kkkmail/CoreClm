@@ -63,20 +63,26 @@ module SolverRunnerImplementation =
             Ok()
 
 
-    let toDeliveryType progress =
-        match progress with
-        | NotStarted -> (GuaranteedDelivery, false)
-        | InProgress _ -> (NonGuaranteedDelivery, false)
-        | Completed _ -> (GuaranteedDelivery, true)
-        | Failed _ -> (GuaranteedDelivery, true)
-        | Cancelled _ -> (GuaranteedDelivery, true)
-        | AllCoresBusy _ -> (GuaranteedDelivery, true)
+    let toDeliveryType (p : ProgressUpdateInfo) =
+        match p.updatedRunQueueStatus with
+        | Some s ->
+            match s with
+            | NotStartedRunQueue -> (GuaranteedDelivery, false)
+            | InactiveRunQueue -> (GuaranteedDelivery, false)
+            | RunRequestedRunQueue -> (GuaranteedDelivery, false)
+            | InProgressRunQueue -> (GuaranteedDelivery, false)
+            | CompletedRunQueue -> (GuaranteedDelivery, true)
+            | FailedRunQueue -> (GuaranteedDelivery, true)
+            | CancelRequestedRunQueue -> (GuaranteedDelivery, false)
+            | CancelledRunQueue -> (GuaranteedDelivery, true)
+
+        | None -> (NonGuaranteedDelivery, false)
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) (p : ProgressUpdateInfo) =
-        printfn $"onUpdateProgress: runQueueId = %A{p.runQueueId}, progress = %A{p.progress}."
-        let t, completed = toDeliveryType p.progress
-        let r0 = proxy.tryUpdateProgressData p.progress
+        printfn $"onUpdateProgress: runQueueId = %A{p.runQueueId}, progress = %A{p.progressData}."
+        let t, completed = toDeliveryType p
+        let r0 = proxy.tryUpdateProgressData p.progressData
 
         let r1 =
             {
@@ -116,6 +122,7 @@ module SolverRunnerImplementation =
                         updateProgress = onUpdateProgress proxy
 //                        updateTime = proxy.tryUpdateTime
                         checkCancellation = checkCancellation
+                        logError = failwith ""
                     }
 
                 solverNotificationProxy =
@@ -161,7 +168,7 @@ module SolverRunnerImplementation =
                         let proxy =
                             {
                                 tryDeleteWorkerNodeRunModelData = fun () -> deleteRunQueue c q
-                                tryUpdateProgressData = tryUpdateProgressRunQueue c q
+                                tryUpdateProgressData = tryUpdateProgress c q
 
                                 sendMessageProxy =
                                     {

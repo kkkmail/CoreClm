@@ -254,7 +254,7 @@ module SolverRunnerTasks =
         // Note that we mimic the exception raised by the real solver when cancellation is requested.
         // See comments to the exception type below for reasoning.
         let m = $"testCancellation - Aborted at counter = %i{counter}." |> Some
-        raise(ComputationAbortedException (w.runningProcessData.runQueueId, cancel |> Option.defaultValue (AbortCalculation m)))
+        raise(ComputationAbortedException (ProgressData.defaultValue, cancel |> Option.defaultValue (AbortCalculation None)))
 
 
     type SolverProxy =
@@ -361,21 +361,27 @@ module SolverRunnerTasks =
             // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
             // There seems to be no other easy and clean way. Revisit if that changes.
             // Follow the trail of that date stamp to find other related places.
-            | ComputationAbortedException (_, r) ->
+            | ComputationAbortedException (p, r) ->
                 printfn $"getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A{w.runningProcessData.runQueueId}"
 
                 match r with
-                | CancelWithResults s ->
+                | CancelWithResults e ->
                     notifyOfCharts ForceChartGeneration |> logIfFailed "Unable to send charts."
-                    ((getChartData() |> snd).progress |> Some, s) |> Completed |> getProgress
-                | AbortCalculation s -> getProgress (Cancelled s)
+//                    ((getChartData() |> snd).progress |> Some, s) |> Completed |> getProgress
+                    getProgress (Some CompletedRunQueue) p
+                | AbortCalculation e ->
+//                    getProgress (Cancelled s)
+                    getProgress (Some RunQueueStatus.CancelledRunQueue) p
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
-            | e -> e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred.")
+            | e ->
+//                e.ToString() |> ErrorMessage |> Failed |> getProgress |> (updateFinalProgress "getSolverRunner - Exception occurred.")
+                failwith ""
 
         let proxy =
             {
                 runSolver = runSolverImpl
-                notifyOfResults = notifyOfResults
+//                notifyOfResults = notifyOfResults
+                notifyOfCharts = notifyOfCharts
                 logIfFailed = logIfFailed "getSolverRunner - SolverRunner."
                 solverNotificationProxy = proxy.solverNotificationProxy
             }

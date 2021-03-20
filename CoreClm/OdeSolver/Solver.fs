@@ -211,6 +211,24 @@ module Solver =
         }
 
 
+    let calculateProgressDataWithErr n t x v =
+        let p = calculateProgressData n t x
+
+        match v with
+        | CancelWithResults s ->
+            let m = $"The run queue was cancelled at: %.2f{p.progress * 100.0}%% progress."
+
+            match s with
+            | Some v -> { p with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some }
+            | None -> { p with errorMessageOpt = m |> ErrorMessage |> Some }
+        | AbortCalculation s ->
+            let m = $"The run queue was aborted at: %.2f{p.progress * 100.0}%% progress."
+
+            match s with
+            | Some v -> { p with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some }
+            | None -> { p with errorMessageOpt = m |> ErrorMessage |> Some }
+
+
     let notifyProgress n p =
 //        Thread.Sleep(30_000)
         n.progressCallBack None p
@@ -255,7 +273,7 @@ module Solver =
         callCount <- callCount + 1L
 
         match checkCancellation n with
-        | Some v -> raise(ComputationAbortedException (calculateProgressData n t x, v))
+        | Some v -> raise(ComputationAbortedException (calculateProgressDataWithErr n t x v, v))
         | None -> ()
 
         if shouldNotify n t then callBack n t x
@@ -263,7 +281,7 @@ module Solver =
 
     let callBackChordWithDiagonalJacobian c n t x =
         match c with
-        | Some v -> raise(ComputationAbortedException (calculateProgressData n t x, v))
+        | Some v -> raise(ComputationAbortedException (calculateProgressDataWithErr n t x v, v))
         | None -> ()
 
         if shouldNotify n t then callBack n t x

@@ -4,6 +4,7 @@ open System
 open System.Threading
 
 open ClmSys.SolverData
+open ClmSys.SolverRunnerPrimitives
 open Softellect.Sys
 open Softellect.Sys.Primitives
 open Softellect.Sys.MessagingPrimitives

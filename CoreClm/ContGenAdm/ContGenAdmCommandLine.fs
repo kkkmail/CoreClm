@@ -252,7 +252,7 @@ module AdmCommandLine =
 
 
     let getCancellationTypeOpt p =
-        p |> List.tryPick (fun e -> match e with | CancelOrAbort e -> (match e with | false -> CancelWithResults None | true -> AbortCalculation None) |> Some | _ -> None)
+        p |> List.tryPick (fun e -> match e with | CancelOrAbort e -> (match e with | false -> (CancelWithResults None) | true -> (AbortCalculation None)) |> Some | _ -> None)
 
 
     let getResultNotificationTypeOpt p =
