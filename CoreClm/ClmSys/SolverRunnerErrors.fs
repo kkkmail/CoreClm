@@ -21,10 +21,6 @@ module SolverRunnerErrors =
                 errorMessage = $"{e}"
             }
 
-//    type OnSaveResultError =
-//        | SendResultMessageErr of (MessagingClientId * ResultDataId)
-
-
     type OnSaveChartsError =
         | SendChartMessageErr of (MessagingClientId * RunQueueId)
 
@@ -42,6 +38,5 @@ module SolverRunnerErrors =
 
 
     type SolverRunnerError =
-//        | OnSaveResultErr of OnSaveResultError
         | OnSaveChartsErr of OnSaveChartsError
         | OnUpdateProgressErr of OnUpdateProgressError

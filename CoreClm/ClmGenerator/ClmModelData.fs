@@ -1,6 +1,5 @@
 ﻿namespace Clm.Generator
 
-open Clm.ReactionRateParams
 open FSharp.Collections
 
 open ClmSys.VersionInfo

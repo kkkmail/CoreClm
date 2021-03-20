@@ -154,26 +154,6 @@ module ModelRunner =
             match i.updatedRunQueueStatus with
             | Some s -> { q1 with runQueueStatus = s }
             | None -> q1
-
-//            | NotStartedRunQueue -> { q1 with runQueueStatus = NotStartedRunQueue; errorMessageOpt = None }, Ok()
-//            | InProgressRunQueue -> { q1 with runQueueStatus = InProgressRunQueue; errorMessageOpt = None }, Ok()
-
-//            | Completed v ->
-//                match v with
-//                | None, None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = None }, Ok()
-//                | Some d, None -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = sprintf "The run queue was cancelled at: %.2f%% progress." (d * 100.0m) |> ErrorMessage |> Some }, Ok()
-//                | None, Some s -> { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = $"Message: %s{s}" |> ErrorMessage |> Some }, Ok()
-//                | Some d, Some s ->
-//                    let m = sprintf "The run queue was cancelled at: %.2f%% progress. Message: %s" (d * 100.0m) s
-//                    { q1 with runQueueStatus = CompletedRunQueue; errorMessageOpt = m |> ErrorMessage |> Some }, Ok()
-//            | Failed e -> { q1 with runQueueStatus = FailedRunQueue; errorMessageOpt = Some e }, Ok()
-//            | Cancelled v ->
-//                match v with
-//                | Some s -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = $"The run queue was aborted. Message %s{s}" |> ErrorMessage |> Some }, Ok()
-//                | None -> { q1 with runQueueStatus = CancelledRunQueue; errorMessageOpt = "The run queue was aborted." |> ErrorMessage |> Some }, Ok()
-//            | AllCoresBusy w ->
-//                let e = $"Node %A{w} is busy" |> ErrorMessage |> Some
-//                { q1 with runQueueStatus = NotStartedRunQueue; workerNodeIdOpt = None; progress = NotStarted; errorMessageOpt = e }, proxy.upsertWorkerNodeErr w
             |> upsert
         | Ok None -> toError (UnableToFindLoadRunQueueErr i.runQueueId)
         | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
@@ -193,11 +173,6 @@ module ModelRunner =
         | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e
 
 
-//    let saveResult (proxy : SaveResultProxy) (r : ResultDataWithId) =
-//        printfn $"saveResult: resultDataId = %A{r.resultDataId}"
-//        proxy.saveResultData r |> bindError (addError SaveResultErr (UnableToSaveResultDataErr r.resultDataId))
-
-
     let saveCharts (proxy : SaveChartsProxy) (c : ChartInfo) =
         printfn $"saveCharts: c.runQueueId = %A{c.runQueueId}"
         proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.runQueueId))
@@ -210,7 +185,6 @@ module ModelRunner =
         | UserMsg (PartitionerMsg x) ->
             match x with
             | UpdateProgressPrtMsg i -> proxy.updateProgress i
-//            | SaveResultPrtMsg r -> proxy.saveResult r
             | SaveChartsPrtMsg c -> proxy.saveCharts c
             | RegisterWorkerNodePrtMsg r -> proxy.register r
             | UnregisterWorkerNodePrtMsg r -> proxy.unregister r
@@ -228,7 +202,6 @@ module ModelRunner =
         static member create c resultLocation =
             {
                 updateProgress = updateProgress (UpdateProgressProxy.create c)
-//                saveResult = saveResult (SaveResultProxy.create c)
                 saveCharts = saveCharts (SaveChartsProxy.create resultLocation)
                 register = register (RegisterProxy.create c)
                 unregister = unregister (UnregisterProxy.create c)

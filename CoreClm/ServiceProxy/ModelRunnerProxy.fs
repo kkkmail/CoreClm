@@ -1,7 +1,6 @@
 ﻿namespace ServiceProxy
 
 open Softellect.Messaging.ServiceInfo
-
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
@@ -102,17 +101,6 @@ module ModelRunnerProxy =
             }
 
 
-//    type SaveResultProxy =
-//        {
-//            saveResultData : ResultDataWithId -> UnitResult
-//        }
-//
-//        static member create c =
-//            {
-//                saveResultData = saveResultData c
-//            }
-
-
     type SaveChartsProxy =
         {
             saveCharts : ChartInfo -> UnitResult
@@ -127,7 +115,6 @@ module ModelRunnerProxy =
     type ProcessMessageProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
-//            saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartInfo -> UnitResult
             register : WorkerNodeInfo -> UnitResult
             unregister : WorkerNodeId -> UnitResult

@@ -40,8 +40,6 @@ module ChartData =
     type ChartSliceData =
         {
             t : double
-//            callCount : int64
-//            yRelative : double
             aminoAcidsData : array<double>
             enantiomericExcess : array<double>
             totalSubst : TotalSubstData
@@ -75,8 +73,6 @@ module ChartData =
 
             {
                 t = t
-//                callCount = c
-//                yRelative = yr
                 aminoAcidsData = totals |> List.map (fun (l, d) -> getTotal l d) |> Array.ofList
                 enantiomericExcess = totals |> List.map (fun (l, d) -> getEe l d) |> Array.ofList
 
@@ -107,8 +103,6 @@ module ChartData =
         static member defaultValue =
             {
                 t = 0.0
-//                callCount = 0L
-//                yRelative = 1.0
                 aminoAcidsData = [| 0.0 |]
                 enantiomericExcess = [| 0.0 |]
                 totalSubst =
@@ -142,9 +136,12 @@ module ChartData =
             }
 
         member cd.maxEe =
-            cd.allChartData
-            |> List.map (fun e -> e.maxEe)
-            |> List.max
+            match cd.allChartData with
+            | [] -> 0.0
+            | _ ->
+                cd.allChartData
+                |> List.map (fun e -> e.maxEe)
+                |> List.max
 
         member cd.maxAverageEe =
             match cd.allChartData with
@@ -194,16 +191,6 @@ module ChartData =
             | None -> 0.0
             |> decimal
 
-//        member cd.callCount =
-//            match cd.allChartData |> List.tryHead with
-//            | Some c -> c.callCount
-//            | None -> 0L
-//
-//        member cd.yRelative =
-//            match cd.allChartData |> List.tryHead with
-//            | Some c -> c.yRelative
-//            | None -> 1.0
-
         member cd.progress =
             let tEnd = cd.initData.tEnd
             min (max (if tEnd > 0.0m then cd.tLast / tEnd else 0.0m) 0.0m) 1.0m
@@ -215,16 +202,6 @@ module ChartData =
                 maxWeightedAverageAbsEe = cd.maxWeightedAverageAbsEe
                 maxLastEe = cd.maxLastEe
             }
-
-//        member cd.progressData e =
-//            {
-//                progress = double cd.progress
-//                callCount = cd.callCount
-//                yRelative = cd.yRelative
-//
-//                eeData = cd.eeData
-//                errorMessageOpt = e
-//            }
 
 
     type ChartDataUpdater () =

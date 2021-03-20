@@ -1,13 +1,11 @@
 ﻿namespace ContGenServiceInfo
 
 open System
-open System.IO
 open System.ServiceModel
 open System.Threading
 
 open ClmSys.ContGenPrimitives
 open ClmSys.DistributionData
-open ClmSys.SolverData
 open Softellect.Sys
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.AppSettings

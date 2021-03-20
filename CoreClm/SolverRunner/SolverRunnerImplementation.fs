@@ -34,18 +34,6 @@ module SolverRunnerImplementation =
     let private addError g f e = ((f |> g |> SolverRunnerErr) + e) |> Error
 
 
-//    let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
-//        printfn $"onSaveResult: Sending results with resultDataId = %A{r.resultDataId}."
-//
-//        {
-//            partitionerRecipient = proxy.partitionerId
-//            deliveryType = GuaranteedDelivery
-//            messageData = r |> SaveResultPrtMsg
-//        }.getMessageInfo()
-//        |> proxy.sendMessage
-//        |> Rop.bindError (addError OnSaveResultErr (SendResultMessageErr (proxy.partitionerId.messagingClientId, r.resultDataId)))
-
-
     let onSaveCharts (proxy : SendMessageProxy) (r : ChartGenerationResult) =
         match r with
         | GeneratedCharts c ->
@@ -120,7 +108,6 @@ module SolverRunnerImplementation =
                 solverUpdateProxy =
                     {
                         updateProgress = onUpdateProgress proxy
-//                        updateTime = proxy.tryUpdateTime
                         checkCancellation = checkCancellation
                         logCrit = logCrit
                     }
@@ -131,7 +118,6 @@ module SolverRunnerImplementation =
                         clearNotificationRequest = clearNotification
                     }
 
-//                saveResult = onSaveResult proxy.sendMessageProxy
                 saveCharts = onSaveCharts proxy.sendMessageProxy
                 logCrit = logCrit
             }

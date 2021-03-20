@@ -1,6 +1,5 @@
 namespace DbData
 
-open ClmSys.SolverData
 open ClmSys.WorkerNodeData
 open FSharp.Data
 open System
@@ -13,7 +12,6 @@ open Softellect.Sys.Retry
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
-open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerPrimitives
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeErrors
@@ -359,26 +357,6 @@ module WorkerNodeDatabaseTypes =
             cmd.Execute(runQueueId = q.value, notificationTypeId = v) |> bindError TryNotifyRunQueueErr q
 
         tryDbFun g
-
-
-//    /// Can modify progress when state is InProgress or CancelRequested.
-//    [<Literal>]
-//    let tryUpdateProgressSql = "
-//        update dbo.RunQueue
-//        set
-//            progress = @progress,
-//            modifiedOn = (getdate())
-//        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
-//
-//
-//    let tryUpdateProgressRunQueue c (q : RunQueueId) (p : TaskProgress) =
-//        let g() =
-//            use conn = getOpenConn c
-//            let connectionString = conn.ConnectionString
-//            use cmd = new SqlCommandProvider<tryUpdateProgressSql, WorkerNodeConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-//            cmd.Execute(runQueueId = q.value, progress = p.value) |> bindError TryUpdateProgressRunQueueErr q
-//
-//        tryDbFun g
 
 
     [<Literal>]

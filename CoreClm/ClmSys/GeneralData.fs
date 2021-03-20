@@ -38,23 +38,5 @@ module GeneralData =
         serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
 
 
-//    type ResultDataId
-//        with
-//        member this.toRunQueueId() = this.value |> RunQueueId
-
-
-//    type TaskProgress
-//        with
-//
-//        member progress.estimateEndTime (started : DateTime) =
-//            match progress with
-//            | NotStarted -> None
-//            | InProgress p -> estimateEndTime (decimal p.progressDetailed) started
-//            | Completed _ -> Some DateTime.Now
-//            | Failed _ -> None
-//            | Cancelled _ -> None
-//            | AllCoresBusy _ -> None
-
-
     let timedImpl l n f = timedImplementation true l n f
 //    let timed name f a = timedImpl logger name (fun () -> f a)

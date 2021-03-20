@@ -45,17 +45,10 @@ module GeneralPrimitives =
         member this.value = let (SqliteConnectionString v) = this in v
 
 
-//    type ResultDataId =
-//        | ResultDataId of Guid
-//
-//        member this.value = let (ResultDataId v) = this in v
-
-
     type RunQueueId =
         | RunQueueId of Guid
 
         member this.value = let (RunQueueId v) = this in v
-//        member this.toResultDataId() = this.value |> ResultDataId
         static member getNewId() = Guid.NewGuid() |> RunQueueId
 
 
@@ -122,34 +115,3 @@ module GeneralPrimitives =
             | 5 -> Some CancelRequestedRunQueue
             | 6 -> Some CancelledRunQueue
             | _ -> None
-
-
-//    type WrkRunQueueStatus =
-//        | NotStartedWrkRunQueue
-//        | InactiveWrkRunQueue
-//        | InProgressWrkRunQueue
-//        | CompletedWrkRunQueue
-//        | FailedWrkRunQueue
-//        | CancelRequestedWrkRunQueue
-//        | CancelledWrkRunQueue
-//
-//        member r.value =
-//            match r with
-//            | NotStartedWrkRunQueue -> 0
-//            | InactiveWrkRunQueue -> 1
-//            | InProgressWrkRunQueue -> 2
-//            | CompletedWrkRunQueue -> 3
-//            | FailedWrkRunQueue -> 4
-//            | CancelRequestedWrkRunQueue -> 5
-//            | CancelledWrkRunQueue -> 6
-//
-//        static member tryCreate i =
-//            match i with
-//            | 0 -> Some NotStartedWrkRunQueue
-//            | 1 -> Some InactiveWrkRunQueue
-//            | 2 -> Some InProgressWrkRunQueue
-//            | 3 -> Some CompletedWrkRunQueue
-//            | 4 -> Some FailedWrkRunQueue
-//            | 5 -> Some CancelRequestedWrkRunQueue
-//            | 6 -> Some CancelledWrkRunQueue
-//            | _ -> None

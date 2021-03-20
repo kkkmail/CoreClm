@@ -2,14 +2,9 @@
 
 open System
 open System.Threading
-open Microsoft.FSharp.NativeInterop
 open Softellect.OdePackInterop
-open Softellect.OdePackInterop.Sets
-open Softellect.OdePackInterop.SolverDescriptors
 open Microsoft.FSharp.Core
 open Clm.ChartData
-open System
-open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.GeneralData
 open ClmSys.SolverRunnerPrimitives
@@ -46,6 +41,7 @@ module Solver =
             startTime : double
             endTime : double
             xEnd : double[]
+            progressData : ProgressData
         }
 
 
@@ -112,14 +108,6 @@ module Solver =
         match estimateEndTime (calculateProgress n t) s with
         | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
         | None -> EmptyString
-
-
-    let mapResults (solverResult : SolverResult) (elapsed : TimeSpan) =
-        {
-            startTime = solverResult.StartTime
-            endTime = solverResult.EndTime
-            xEnd = solverResult.X
-        }
 
 
     let mutable private progress = 0.0
@@ -229,14 +217,20 @@ module Solver =
             | None -> { p with errorMessageOpt = m |> ErrorMessage |> Some }
 
 
+    let mapResults n (solverResult : SolverResult) (elapsed : TimeSpan) =
+        {
+            startTime = solverResult.StartTime
+            endTime = solverResult.EndTime
+            xEnd = solverResult.X
+            progressData = calculateProgressData n solverResult.EndTime solverResult.X
+        }
+
+
     let notifyProgress n p =
 //        Thread.Sleep(30_000)
         n.progressCallBack None p
 
 
-    /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
-    /// There seems to be no other easy and clean way. Revisit if that changes.
-    /// Follow the trail of that date stamp to find other related places.
     let checkCancellation n =
         let fromLastCheck = DateTime.Now - lastCheck
         //printfn "checkCancellation: runQueueId = %A, time interval from last check = %A." n.runQueueId fromLastCheck
@@ -247,10 +241,6 @@ module Solver =
             let cancel = n.checkCancellation n.runQueueId
             cancel
         else None
-//
-//            match cancel with
-//            | Some c -> raise(ComputationAbortedException (p(), c))
-//            | None -> ()
 
 
     let callBack n (t : double) (x : double[]) : unit =
@@ -269,6 +259,9 @@ module Solver =
         checkCancellation n, shouldNotify n t
 
 
+    /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+    /// There seems to be no other easy and clean way. Revisit if that changes.
+    /// Follow the trail of that date stamp to find other related places.
     let callBackFunctional n t x =
         callCount <- callCount + 1L
 
@@ -279,6 +272,9 @@ module Solver =
         if shouldNotify n t then callBack n t x
 
 
+    /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+    /// There seems to be no other easy and clean way. Revisit if that changes.
+    /// Follow the trail of that date stamp to find other related places.
     let callBackChordWithDiagonalJacobian c n t x =
         match c with
         | Some v -> raise(ComputationAbortedException (calculateProgressDataWithErr n t x v, v))
@@ -306,11 +302,13 @@ module Solver =
             let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
             do alglib.odesolversolve(s, d, null)
             let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)
+            let xEnd = yTbl.[nt - 1, *]
 
             {
                 startTime = p.startTime
                 endTime = p.endTime
-                xEnd = yTbl.[nt - 1, *]
+                xEnd = xEnd
+                progressData = calculateProgressData n p.endTime xEnd
             }
         | OdePack (m, i, nc) ->
             printfn $"nSolve: Using {m} / {i} DLSODE solver."
@@ -318,10 +316,10 @@ module Solver =
             | Functional ->
                 let interop() = createInterop(callBackFunctional, n.calculationData.modelIndices)
                 // TODO kk:20210316 - UseNonNegative is hardcoded below.
-                OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))
+                OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
             | ChordWithDiagonalJacobian ->
                 let needsCallBack t = needsCallBack n t
                 let callBack c t x = callBackChordWithDiagonalJacobian c n t x
                 let interop() = createInterop1(needsCallBack, callBack, n.calculationData.modelIndices)
                 // TODO kk:20210316 - DoNotCorrect is hardcoded below.
-                OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults r e))
+                OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))

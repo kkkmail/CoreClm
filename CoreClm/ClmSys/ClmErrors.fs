@@ -10,7 +10,6 @@ open GeneralErrors
 open WorkerNodeErrors
 open ModelGeneratorErrors
 open ModelRunnerErrors
-open GeneralPrimitives
 open ContGenErrors
 open SolverRunnerPrimitives
 open SolverRunnerErrors

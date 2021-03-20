@@ -8,7 +8,6 @@ open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
 
-open ClmSys.VersionInfo
 open Clm.Substances
 open Clm.ModelParams
 open Clm.CalculationData
@@ -21,7 +20,6 @@ open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.WorkerNodeData
 open ClmSys.PartitionerData
-open ClmSys.SolverData
 
 // ! Must be the last to open !
 open Configuration
@@ -90,16 +88,6 @@ module DatabaseTypes =
             createdOn
         from dbo.ModelData
         where modelDataId = @modelDataId", ContGenConnectionStringValue, ResultType.DataReader>
-
-
-//    type ResultDataTable = ClmDB.dbo.Tables.ResultData
-//    type ResultDataTableRow = ResultDataTable.Row
-//
-//
-//    type ResultDataTableData = SqlCommandProvider<"
-//        select *
-//        from dbo.ResultData
-//        where resultDataId = @resultDataId", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type RunQueueTable = ClmDB.dbo.Tables.RunQueue
@@ -273,50 +261,6 @@ module DatabaseTypes =
                 |> Ok
             | Error e ->  addError ModelDataTryCreateErr r.modelDataId e
 
-
-//    type ResultDataWithId
-//        with
-//
-//        static member create (r : ResultDataTableRow) =
-//            {
-//                    resultDataId = r.resultDataId |> ResultDataId
-//                    workerNodeId = r.workerNodeId |> MessagingClientId |> WorkerNodeId
-//
-//                    resultData =
-//                    {
-//                        modelDataId = r.modelDataId |> ModelDataId
-//
-//                        y0 = r.y0
-//                        tEnd = r.tEnd
-//                        useAbundant = r.useAbundant
-//
-//                        maxEe = r.maxEe
-//                        maxAverageEe = r.maxAverageEe
-//                        maxWeightedAverageAbsEe = r.maxWeightedAverageAbsEe
-//                        maxLastEe = r.maxLastEe
-//                    }
-//            }
-//
-//        member r.addRow (t : ResultDataTable) =
-//            let newRow =
-//                t.NewRow(
-//                        resultDataId = r.resultDataId.value,
-//                        workerNodeId = r.workerNodeId .value.value,
-//                        y0 = r.resultData.y0,
-//                        tEnd = r.resultData.tEnd,
-//                        useAbundant = r.resultData.useAbundant,
-//
-//                        maxEe = r.resultData.maxEe,
-//                        maxAverageEe = r.resultData.maxAverageEe,
-//                        maxWeightedAverageAbsEe = r.resultData.maxWeightedAverageAbsEe,
-//                        maxLastEe = r.resultData.maxLastEe
-//                        )
-//
-//            newRow.modelDataId <- r.resultData.modelDataId.value
-//
-//            t.Rows.Add newRow
-//            newRow
-//
 
     type RunQueue
         with

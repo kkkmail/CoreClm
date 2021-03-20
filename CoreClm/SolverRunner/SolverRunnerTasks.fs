@@ -22,19 +22,10 @@ open ClmSys.GeneralPrimitives
 open System.Threading
 open ClmSys.SolverRunnerPrimitives
 open System
-open ClmSys.SolverData
 open ClmSys.TimerEvents
 open Softellect.Sys.Logging
 
 module SolverRunnerTasks =
-
-//    let notify progressNotifier r t =
-//        progressNotifier
-//            {
-//                runQueueId = r
-//                progress = t
-//            }
-
 
     let getPlotDataInfo (df : ClmDefaultValueId) =
         let d = PlotDataInfo.defaultValue
@@ -178,37 +169,10 @@ module SolverRunnerTasks =
         }
 
 
-    let getChartData rdi w (d : RunSolverData) = d.chartDataUpdater.getContent()
-//        let chartData = d.chartDataUpdater.getContent()
-//
-//        let r =
-//            {
-//                resultDataId = rdi
-//                workerNodeId = w
-//                resultData =
-//                    {
-//                        modelDataId = d.modelDataId
-//
-//                        y0 = decimal d.y0
-//                        tEnd = decimal chartData.tLast
-//                        useAbundant = d.useAbundant
-//
-//                        maxEe = chartData.maxEe
-//                        maxAverageEe = chartData.maxAverageEe
-//                        maxWeightedAverageAbsEe = chartData.maxWeightedAverageAbsEe
-//                        maxLastEe = chartData.maxLastEe
-//                    }
-//            }
-//
-//        (r, chartData)
-
-
     type PlotResultsInfo =
         {
             runSolverData : RunSolverData
-//            resultDataWithId : ResultDataWithId
             runQueueId : RunQueueId
-//            progressData : ProgressData
             chartData : ChartData
         }
 
@@ -292,13 +256,6 @@ module SolverRunnerTasks =
             proxy.runSolver()
             printfn "SolverRunner.run - completed."
 
-//        member _.notifyOfResults t =
-//            printfn "SolverRunner.notifyOfResults was called."
-//            let result = proxy.notifyOfResults t
-//            printfn "SolverRunner.notifyOfResults - completed."
-//            result
-
-
     let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
         let q = w.runningProcessData.runQueueId
 
@@ -310,12 +267,11 @@ module SolverRunnerTasks =
         let updateFinalProgress errMessage = proxy.solverUpdateProxy.updateProgress >> (logIfFailed errMessage)
         let runSolverData = RunSolverData.create w proxy.solverUpdateProxy None
         let data = getNSolveParam runSolverData w
-        let getChartData() = getChartData w.runningProcessData.runQueueId w.runningProcessData.workerNodeId runSolverData
+        let getChartData() = runSolverData.chartDataUpdater.getContent()
 
         let notifyOfCharts t =
             printfn $"notifyOfResults: t = %A{t}"
             let chartData = getChartData()
-//            let result = proxy.saveResult r
 
             let chartResult =
                 {
@@ -326,15 +282,8 @@ module SolverRunnerTasks =
                 |> plotAllResults t
                 |> proxy.saveCharts
 
-//            let r = combineUnitResults result chartResult
             printfn $"notifyOfResults completed with result: %A{chartResult}"
             chartResult
-
-//        let getProgress p =
-//            {
-//                runQueueId = w.runningProcessData.runQueueId
-//                progress = p
-//            }
 
         let getProgress s p =
             {
@@ -354,7 +303,8 @@ module SolverRunnerTasks =
                 let result = notifyOfCharts RegularChartGeneration
 
                 printfn $"runSolver: Notifying of completion for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
-                let completedResult = (Some RunQueueStatus.CompletedRunQueue, failwith "") ||> getProgress |> proxy.solverUpdateProxy.updateProgress
+                let pd : ProgressData = failwith ""
+                let completedResult = (Some RunQueueStatus.CompletedRunQueue, pd) ||> getProgress |> proxy.solverUpdateProxy.updateProgress
                 combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn $"runSolver: All completed for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
             with
@@ -367,10 +317,8 @@ module SolverRunnerTasks =
                 match r with
                 | CancelWithResults e ->
                     notifyOfCharts ForceChartGeneration |> logIfFailed "Unable to send charts."
-//                    ((getChartData() |> snd).progress |> Some, s) |> Completed |> getProgress
                     getProgress (Some CompletedRunQueue) p
                 | AbortCalculation e ->
-//                    getProgress (Cancelled s)
                     getProgress (Some CancelledRunQueue) p
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
             | e ->
@@ -380,7 +328,6 @@ module SolverRunnerTasks =
         let proxy =
             {
                 runSolver = runSolverImpl
-//                notifyOfResults = notifyOfResults
                 notifyOfCharts = notifyOfCharts
                 logIfFailed = logIfFailed "getSolverRunner - SolverRunner."
                 solverNotificationProxy = proxy.solverNotificationProxy
