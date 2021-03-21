@@ -513,7 +513,7 @@ module CalculationData =
             NativePtr.set x i (max 0.0 (NativePtr.get x i))
 
 
-    let private f (
+    let private fUseNonNegative (
                     callaBack: double -> double[] -> unit,
                     indices : array<ModelIndices>,
                     neq : byref<int>,
@@ -528,7 +528,7 @@ module CalculationData =
             NativePtr.set dx i (calculateDerivativeValue x1 indices.[i])
 
 
-    let private f1 (
+    let private fDoNotCorrect (
                     needsCallBack: double -> CancellationType option * bool,
                     callaBack: CancellationType option -> double -> double[] -> unit,
                     indices : array<ModelIndices>,
@@ -546,15 +546,15 @@ module CalculationData =
             NativePtr.set dx i (calculateByRefDerivativeValue x indices.[i])
 
 
-    let createInterop (callaBack: double -> double[] -> unit, indices : array<ModelIndices>) =
-        Interop.F(fun n t y dy -> f(callaBack, indices, &n, &t, y, dy))
+    let createUseNonNegativeInterop (callaBack: double -> double[] -> unit, indices : array<ModelIndices>) =
+        Interop.F(fun n t y dy -> fUseNonNegative(callaBack, indices, &n, &t, y, dy))
 
 
-    let createInterop1 (
+    let createDoNotCorrectInterop (
                         needsCallBack: double -> CancellationType option * bool,
                         callaBack: CancellationType option -> double -> double[] -> unit,
                         indices : array<ModelIndices>) =
-        Interop.F(fun n t y dy -> f1(needsCallBack, callaBack, indices, &n, &t, y, dy))
+        Interop.F(fun n t y dy -> fDoNotCorrect(needsCallBack, callaBack, indices, &n, &t, y, dy))
 
 
     type ModelCalculationData =

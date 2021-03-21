@@ -265,10 +265,7 @@ module Solver =
         checkCancellation n, shouldNotify n t
 
 
-    /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
-    /// There seems to be no other easy and clean way. Revisit if that changes.
-    /// Follow the trail of that date stamp to find other related places.
-    let callBackFunctional n t x =
+    let callBackUseNonNegative n t x =
         callCount <- callCount + 1L
 
         match checkCancellation n with
@@ -278,10 +275,7 @@ module Solver =
         if shouldNotify n t then callBack n t x
 
 
-    /// kk:20200410 - Note that we have to resort to using exceptions for flow control here.
-    /// There seems to be no other easy and clean way. Revisit if that changes.
-    /// Follow the trail of that date stamp to find other related places.
-    let callBackChordWithDiagonalJacobian c n t x =
+    let callBackDoNotCorrect n c t x =
         match c with
         | Some v -> raise(ComputationAbortedException (calculateProgressDataWithErr n t x v, v))
         | None -> ()
@@ -293,7 +287,7 @@ module Solver =
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
         let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
-        let callBackFunctional t x = callBackFunctional n t x
+        let callBackUseNonNegative t x = callBackUseNonNegative n t x
         firstChartSliceData <- calculateChartSliceData n 0.0 n.initialValues
 
         calculateProgressData n n.tStart n.initialValues |> notifyProgress n
@@ -302,7 +296,11 @@ module Solver =
         | AlgLib CashCarp ->
             printfn "nSolve: Using Cash - Carp Alglib solver."
             let nt = 2
-            let cashCarpDerivative (x : double[]) (t : double) : double[] = n.calculationData.getDerivative x
+
+            let cashCarpDerivative (x : double[]) (t : double) : double[] =
+                callBackUseNonNegative t x
+                n.calculationData.getDerivative x
+
             let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
             let d = alglib.ndimensional_ode_rp (fun x t y _ -> cashCarpDerivative x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
             let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
@@ -318,14 +316,28 @@ module Solver =
             }
         | OdePack (m, i, nc) ->
             printfn $"nSolve: Using {m} / {i} DLSODE solver."
-            match i with
-            | Functional ->
-                let interop() = createInterop(callBackFunctional, n.calculationData.modelIndices)
-                // TODO kk:20210316 - UseNonNegative is hardcoded below.
+
+            match nc with
+            | UseNonNegative ->
+                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.calculationData.modelIndices)
                 OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
-            | ChordWithDiagonalJacobian ->
+            | DoNotCorrect ->
                 let needsCallBack t = needsCallBack n t
-                let callBack c t x = callBackChordWithDiagonalJacobian c n t x
-                let interop() = createInterop1(needsCallBack, callBack, n.calculationData.modelIndices)
-                // TODO kk:20210316 - DoNotCorrect is hardcoded below.
+                let callBack c t x = callBackDoNotCorrect n c t x
+                let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.calculationData.modelIndices)
                 OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
+
+//            match i with
+//            | Functional ->
+//                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.calculationData.modelIndices)
+//                OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
+//            | ChordWithDiagonalJacobian ->
+//                match nc with
+//                | DoNotCorrect ->
+//                    let needsCallBack t = needsCallBack n t
+//                    let callBack c t x = callBackDoNotCorrect c n t x
+//                    let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.calculationData.modelIndices)
+//                    OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
+//                | UseNonNegative ->
+//                    let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.calculationData.modelIndices)
+//                    OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
