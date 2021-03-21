@@ -117,7 +117,7 @@ type ModelTests(output : ITestOutputHelper) =
             let (dx : double[]) = Array.zeroCreate x.Length
             use px = fixed &x.[0]
             use pdx = fixed &dx.[0]
-            let interop = createInterop (callaBack, indices)
+            let interop = createUseNonNegativeInterop (callaBack, indices)
             do interop.Invoke(ref neq, ref t, px, pdx)
             dx
 

@@ -14,15 +14,14 @@ open Clm.CalculationData
 
 module Solver =
 
-
     type OdeParams =
         {
             startTime : double
             endTime : double
             stepSize : double
             eps : double
-            noOfOutputPoints : int option
-            noOfProgressPoints : int option
+            noOfOutputPoints : int
+            noOfProgressPoints : int
         }
 
         static member defaultValue startTime endTime op pp =
@@ -31,8 +30,8 @@ module Solver =
                 endTime = endTime
                 stepSize = 0.1
                 eps = 0.000_01
-                noOfOutputPoints = op |> Option.defaultValue defaultNoOfOutputPoints |> Some
-                noOfProgressPoints = pp |> Option.defaultValue defaultNoOfProgressPoints |> Some
+                noOfOutputPoints = op
+                noOfProgressPoints = pp
             }
 
 
@@ -96,8 +95,8 @@ module Solver =
             progressCallBack : RunQueueStatus option -> ProgressData -> unit
             chartCallBack : ChartSliceData -> unit
             getChartSliceData : double -> double[] -> ChartSliceData
-            noOfOutputPoints : int option
-            noOfProgressPoints : int option
+            noOfOutputPoints : int
+            noOfProgressPoints : int
             noOfChartDetailedPoints : int option
             checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
@@ -130,35 +129,48 @@ module Solver =
 
 
     let shouldNotifyByCallCount() =
-        [
-            callCount <= 100L && callCount % 5L = 0L
-            callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
-            callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
-            callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
-            callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
-            callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
-            callCount > 10_000_000L && callCount % 5_000_000L = 0L
-        ]
-        |> List.tryFind id
-        |> Option.defaultValue false
+        let r =
+            [
+                callCount <= 100L && callCount % 5L = 0L
+                callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
+                callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
+                callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
+                callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
+                callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
+                callCount > 10_000_000L && callCount % 5_000_000L = 0L
+            ]
+            |> List.tryFind id
+            |> Option.defaultValue false
+
+//        printfn $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
+        r
 
 
     let shouldNotifyByNextProgress (n : NSolveParam) t =
         let p = calculateProgress n t
-        p >= nextProgress
+        let r = p >= nextProgress
+//        printfn $"shouldNotifyByNextProgress: p = {p}, nextProgress = {nextProgress}, r = {r}."
+        r
 
 
     let calculateNextProgress n t =
-        match n.noOfProgressPoints with
-        | Some np -> min 1.0 ((((calculateProgress n t) * (double np) |> floor) + 1.0) / (double np))
-        | None -> 1.0
-
+        let r =
+            match n.noOfProgressPoints with
+            | np when np <= 0 -> 1.0
+            | np -> min 1.0 ((((calculateProgress n t) * (double np) |> floor) + 1.0) / (double np))
+//        printfn $"calculateNextProgress: r = {r}."
+        r
 
     let shouldNotifyChart n t =
-        match n.noOfOutputPoints, n.noOfChartDetailedPoints with
-        | Some np, Some cp ->
-            ((double np) * nextProgress <= double cp && shouldNotifyByCallCount()) || shouldNotifyByNextProgress n t
-        | _ -> false
+        let r =
+            match n.noOfOutputPoints with
+            | np when np <= 0 -> false
+            | np ->
+                match n.noOfChartDetailedPoints with
+                | Some cp -> ((double np) * nextProgress <= double cp && shouldNotifyByCallCount()) || shouldNotifyByNextProgress n t
+                | None -> shouldNotifyByNextProgress n t
+//        printfn $"shouldNotifyChart: n.noOfOutputPoints = {n.noOfOutputPoints}, n.noOfChartDetailedPoints = {n.noOfChartDetailedPoints}, r = {r}."
+        r
 
 
     let shouldNotifyProgress n t = shouldNotifyByCallCount() || shouldNotifyByNextProgress n t
@@ -166,6 +178,7 @@ module Solver =
 
 
     let calculateChartSliceData n t x =
+//        printfn $"calculateChartSliceData: Called with t = {t}."
         if calculated
         then lastChartSliceData
         else
@@ -189,11 +202,12 @@ module Solver =
 
     let notifyChart n t x =
 //        Thread.Sleep(30_000)
-        printfn "notifyChart: Calling chartCallBack."
+//        printfn $"notifyChart: Calling chartCallBack with t = {t}."
         calculateChartSliceData n t x |> n.chartCallBack
 
 
     let calculateProgressData n t x =
+//        printfn $"calculateProgressData: Called with t = {t}."
         let csd = calculateChartSliceData n t x
 
         {
@@ -206,6 +220,7 @@ module Solver =
 
 
     let calculateProgressDataWithErr n t x v =
+//        printfn $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
         let p = calculateProgressData n t x
 
         match v with
@@ -233,13 +248,14 @@ module Solver =
 
 
     let notifyProgress n p =
+//        printfn $"notifyProgress: Called with p = {p}."
 //        Thread.Sleep(30_000)
         n.progressCallBack None p
 
 
     let checkCancellation n =
         let fromLastCheck = DateTime.Now - lastCheck
-        //printfn "checkCancellation: runQueueId = %A, time interval from last check = %A." n.runQueueId fromLastCheck
+//        printfn $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
 
         if fromLastCheck > n.checkFreq
         then
@@ -250,22 +266,34 @@ module Solver =
 
 
     let callBack n (t : double) (x : double[]) : unit =
+//        printfn $"callBack: Called with t = {t}."
         calculated <- false
 
-        if shouldNotifyProgress n t
-        then
+        match shouldNotifyProgress n t, shouldNotifyChart n t with
+        | true, true ->
+            calculateProgressData n t x |> notifyProgress n
+            notifyChart n t x
+            nextProgress <- calculateNextProgress n t
+        | true, false ->
             calculateProgressData n t x |> notifyProgress n
             nextProgress <- calculateNextProgress n t
-
-        if shouldNotifyChart n t then notifyChart n t x
+        | false, true ->
+            notifyChart n t x
+            nextProgress <- calculateNextProgress n t
+        | false, false -> ()
 
 
     let needsCallBack n t =
-        callCount <- callCount + 1L
-        checkCancellation n, shouldNotify n t
+        let r =
+            callCount <- callCount + 1L
+            checkCancellation n, shouldNotify n t
+
+//        printfn $"needsCallBack: t = {t}, r = {r}."
+        r
 
 
     let callBackUseNonNegative n t x =
+//        printfn $"callBackUseNonNegative: Called with t = {t}."
         callCount <- callCount + 1L
 
         match checkCancellation n with
@@ -276,6 +304,8 @@ module Solver =
 
 
     let callBackDoNotCorrect n c t x =
+//        printfn $"callBackDoNotCorrect: Called with t = {t}."
+
         match c with
         | Some v -> raise(ComputationAbortedException (calculateProgressDataWithErr n t x v, v))
         | None -> ()
@@ -326,18 +356,3 @@ module Solver =
                 let callBack c t x = callBackDoNotCorrect n c t x
                 let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.calculationData.modelIndices)
                 OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
-
-//            match i with
-//            | Functional ->
-//                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.calculationData.modelIndices)
-//                OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
-//            | ChordWithDiagonalJacobian ->
-//                match nc with
-//                | DoNotCorrect ->
-//                    let needsCallBack t = needsCallBack n t
-//                    let callBack c t x = callBackDoNotCorrect c n t x
-//                    let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.calculationData.modelIndices)
-//                    OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
-//                | UseNonNegative ->
-//                    let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.calculationData.modelIndices)
-//                    OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))

@@ -20,10 +20,9 @@ module ModelRunnerProxy =
 
     type RunModelProxy =
         {
-            minUsefulEe : MinUsefulEe
             sendRunModelMessage : MessageInfo -> UnitResult
             loadModelData : ModelDataId -> ClmResult<ModelData>
-            earlyExitInfo : EarlyExitInfo option
+            controlData : RunnerControlData
         }
 
 
@@ -141,12 +140,11 @@ module ModelRunnerProxy =
     type RunnerData =
         {
             getConnectionString : unit -> ConnectionString
-            minUsefulEe : MinUsefulEe
             resultLocation : string
-            earlyExitInfoOpt : EarlyExitInfo option
             lastAllowedNodeErr : LastAllowedNodeErr
             collisionData : CollisionData
             dictionaryUpdateType : DictionaryUpdateType
+            controlData : RunnerControlData
         }
 
 
@@ -154,10 +152,9 @@ module ModelRunnerProxy =
         with
         static member create (d : RunnerData) s =
             {
-                minUsefulEe = d.minUsefulEe
                 sendRunModelMessage = s
                 loadModelData = loadModelData d.getConnectionString
-                earlyExitInfo = d.earlyExitInfoOpt
+                controlData = d.controlData
             }
 
 

@@ -47,14 +47,14 @@ module SolverRunnerTasks =
             progressCallBack : RunQueueStatus option -> ProgressData -> unit
             updateChart : ChartSliceData -> unit
             getChartSliceData : double -> double[] -> ChartSliceData
-            noOfProgressPoints : int option
+            noOfProgressPoints : int
             minUsefulEe : MinUsefulEe
             checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
         }
 
 
-        static member create (w : WorkerNodeRunModelData) (proxy : SolverUpdateProxy) pp =
+        static member create (w : WorkerNodeRunModelData) (proxy : SolverUpdateProxy) =
             let modelDataParamsWithExtraData = w.modelData.modelData.getModelDataParamsWithExtraData()
             let modelDataId = modelDataParamsWithExtraData.regularParams.modelDataParams.modelInfo.modelDataId
             let binaryInfo = modelDataParamsWithExtraData.binaryInfo
@@ -110,8 +110,8 @@ module SolverRunnerTasks =
                 updateChart = chartDataUpdater.addContent
                 getChartSliceData = getChartSliceData
                 progressCallBack = (fun s p -> createProgressUpdateInfo s p |> updateProgress)
-                noOfProgressPoints = pp
-                minUsefulEe = w.minUsefulEe
+                noOfProgressPoints = w.controlData.noOfProgressPoints
+                minUsefulEe = w.controlData.minUsefulEe
                 checkCancellation = proxy.checkCancellation
                 checkFreq = TimeSpan.FromMinutes 60.0
             }
@@ -132,7 +132,7 @@ module SolverRunnerTasks =
         let mutable lastCheck = DateTime.Now
 
         let checkCancellation =
-            match w.earlyExitOpt with
+            match w.controlData.earlyExitInfoOpt with
             | None -> d.checkCancellation
             | Some c ->
                 let check r =
@@ -161,7 +161,7 @@ module SolverRunnerTasks =
             progressCallBack = d.progressCallBack
             chartCallBack = d.updateChart
             getChartSliceData = d.getChartSliceData
-            noOfOutputPoints = None
+            noOfOutputPoints = defaultNoOfOutputPoints
             noOfProgressPoints = d.noOfProgressPoints
             noOfChartDetailedPoints = Some 10
             checkCancellation = checkCancellation
@@ -266,7 +266,7 @@ module SolverRunnerTasks =
             | Error e -> SolverRunnerCriticalError.create q ($"{errMessage} + : + {e}") |> proxy.logCrit |> ignore
 
         let updateFinalProgress errMessage = proxy.solverUpdateProxy.updateProgress >> (logIfFailed errMessage)
-        let runSolverData = RunSolverData.create w proxy.solverUpdateProxy None
+        let runSolverData = RunSolverData.create w proxy.solverUpdateProxy
         let data = getNSolveParam runSolverData w
         let getChartData() = runSolverData.chartDataUpdater.getContent()
 

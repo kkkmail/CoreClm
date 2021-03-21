@@ -33,7 +33,7 @@ module ModelRunner =
 
 
     let runModel (proxy : RunModelProxy) (q : RunQueue) =
-        match q.toMessageInfoOpt proxy.loadModelData proxy.minUsefulEe proxy.earlyExitInfo with
+        match q.toMessageInfoOpt proxy.loadModelData proxy.controlData with
         | Ok (Some m) -> proxy.sendRunModelMessage m
         | Ok None -> q.runQueueId |> MissingWorkerNodeErr |> toError RunModelErr
         | Error e -> (addError RunModelErr) (UnableToLoadModelDataErr (q.runQueueId, q.info.modelDataId )) e

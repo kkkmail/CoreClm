@@ -173,11 +173,10 @@ module ModelParams =
     type ModelCommandLineData =
         {
             modelDataId : ModelDataId
-//            resultDataId : ResultDataId
             workerNodeId : WorkerNodeId
             minUsefulEe : MinUsefulEe
             remote : bool
-            noOfProgressPoints : int option
+            noOfProgressPoints : int
         }
 
 
