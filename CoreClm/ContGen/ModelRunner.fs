@@ -23,6 +23,9 @@ open ModelGenerator
 
 module ModelRunner =
 
+    let private printDebug s = printfn $"{s}"
+//    let private printDebug s = ()
+
     let private toError g f = f |> g |> ModelRunnerErr |> Error
     let private addError g f e = ((f |> g |> ModelRunnerErr) + e) |> Error
     let private maxMessages = [ for _ in 1..maxNumberOfMessages -> () ]
@@ -135,7 +138,7 @@ module ModelRunner =
 
 
     let updateProgress (proxy : UpdateProgressProxy) (i : ProgressUpdateInfo) =
-        //printfn "updateProgress: i = %A" i
+        printDebug $"updateProgress: i = %A{i}"
         let addError = addError UpdateProgressErr
         let toError = toError UpdateProgressErr
 
@@ -179,17 +182,24 @@ module ModelRunner =
 
 
     let processMessage (proxy : ProcessMessageProxy) (m : Message) =
-        printfn $"processMessage: messageId = %A{m.messageDataInfo.messageId}, message = %A{m}"
+        printfn $"processMessage: messageId = %A{m.messageDataInfo.messageId}, message = %A{m}."
 
-        match m.messageData with
-        | UserMsg (PartitionerMsg x) ->
-            match x with
-            | UpdateProgressPrtMsg i -> proxy.updateProgress i
-            | SaveChartsPrtMsg c -> proxy.saveCharts c
-            | RegisterWorkerNodePrtMsg r -> proxy.register r
-            | UnregisterWorkerNodePrtMsg r -> proxy.unregister r
-            |> bindError (addError ProcessMessageErr (ErrorWhenProcessingMessageErr m.messageDataInfo.messageId))
-        | _ -> toError ProcessMessageErr (InvalidMessageTypeErr m.messageDataInfo.messageId)
+        let r =
+            match m.messageData with
+            | UserMsg (PartitionerMsg x) ->
+                match x with
+                | UpdateProgressPrtMsg i -> proxy.updateProgress i
+                | SaveChartsPrtMsg c -> proxy.saveCharts c
+                | RegisterWorkerNodePrtMsg r -> proxy.register r
+                | UnregisterWorkerNodePrtMsg r -> proxy.unregister r
+                |> bindError (addError ProcessMessageErr (ErrorWhenProcessingMessageErr m.messageDataInfo.messageId))
+            | _ -> toError ProcessMessageErr (InvalidMessageTypeErr m.messageDataInfo.messageId)
+
+        match r with
+        | Ok() -> ()
+        | Error e -> printfn $"processMessage: messageId = %A{m.messageDataInfo.messageId}, ERROR = %A{e}."
+
+        r
 
 
     let getRunState (proxy : GetRunStateProxy) =

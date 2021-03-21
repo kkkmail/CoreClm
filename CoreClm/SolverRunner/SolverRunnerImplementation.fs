@@ -1,11 +1,9 @@
 namespace SolverRunner
 
 open Argu
-open Clm.ModelParams
 open ClmSys.ClmErrors
 open ClmSys.ExitErrorCodes
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverData
 open ServiceProxy.SolverProcessProxy
 open SolverRunner.SolverRunnerCommandLine
 open NoSql.FileSystemTypes
@@ -172,8 +170,8 @@ module SolverRunnerImplementation =
                         printfn "runSolver: Call to solver.run() completed."
                         CompletedSuccessfully
                     | Error e -> exitWithLogCrit e UnknownException
-                | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) UnknownException
-                | TooManyRunning n -> exitWithLogCrit (TooManyRunning n) UnknownException
+                | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) SolverAlreadyRunning
+                | TooManyRunning n -> exitWithLogCrit (TooManyRunning n) TooManySolversRunning
                 | GetProcessesByNameExn e -> exitWithLogCrit e CriticalError
             | Error e, _ -> exitWithLogCrit e DatabaseErrorOccurred
             | _, None -> exitWithLogCrit "Unable to load WorkerNodeSettings." CriticalError

@@ -14,6 +14,9 @@ open Clm.CalculationData
 
 module Solver =
 
+    let private printDebug s = printfn $"{s}"
+//    let private printDebug s = ()
+
     type OdeParams =
         {
             startTime : double
@@ -142,14 +145,14 @@ module Solver =
             |> List.tryFind id
             |> Option.defaultValue false
 
-//        printfn $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
+        printDebug $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
         r
 
 
     let shouldNotifyByNextProgress (n : NSolveParam) t =
         let p = calculateProgress n t
         let r = p >= nextProgress
-//        printfn $"shouldNotifyByNextProgress: p = {p}, nextProgress = {nextProgress}, r = {r}."
+        printDebug $"shouldNotifyByNextProgress: p = {p}, nextProgress = {nextProgress}, r = {r}."
         r
 
 
@@ -158,7 +161,7 @@ module Solver =
             match n.noOfProgressPoints with
             | np when np <= 0 -> 1.0
             | np -> min 1.0 ((((calculateProgress n t) * (double np) |> floor) + 1.0) / (double np))
-//        printfn $"calculateNextProgress: r = {r}."
+        printDebug $"calculateNextProgress: r = {r}."
         r
 
     let shouldNotifyChart n t =
@@ -169,7 +172,7 @@ module Solver =
                 match n.noOfChartDetailedPoints with
                 | Some cp -> ((double np) * nextProgress <= double cp && shouldNotifyByCallCount()) || shouldNotifyByNextProgress n t
                 | None -> shouldNotifyByNextProgress n t
-//        printfn $"shouldNotifyChart: n.noOfOutputPoints = {n.noOfOutputPoints}, n.noOfChartDetailedPoints = {n.noOfChartDetailedPoints}, r = {r}."
+        printDebug $"shouldNotifyChart: n.noOfOutputPoints = {n.noOfOutputPoints}, n.noOfChartDetailedPoints = {n.noOfChartDetailedPoints}, r = {r}."
         r
 
 
@@ -178,7 +181,7 @@ module Solver =
 
 
     let calculateChartSliceData n t x =
-//        printfn $"calculateChartSliceData: Called with t = {t}."
+        printDebug $"calculateChartSliceData: Called with t = {t}."
         if calculated
         then lastChartSliceData
         else
@@ -202,12 +205,12 @@ module Solver =
 
     let notifyChart n t x =
 //        Thread.Sleep(30_000)
-//        printfn $"notifyChart: Calling chartCallBack with t = {t}."
+        printDebug $"notifyChart: Calling chartCallBack with t = {t}."
         calculateChartSliceData n t x |> n.chartCallBack
 
 
     let calculateProgressData n t x =
-//        printfn $"calculateProgressData: Called with t = {t}."
+        printDebug $"calculateProgressData: Called with t = {t}."
         let csd = calculateChartSliceData n t x
 
         {
@@ -220,7 +223,7 @@ module Solver =
 
 
     let calculateProgressDataWithErr n t x v =
-//        printfn $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
+        printDebug $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
         let p = calculateProgressData n t x
 
         match v with
@@ -247,15 +250,15 @@ module Solver =
         }
 
 
-    let notifyProgress n p =
-//        printfn $"notifyProgress: Called with p = {p}."
+    let notifyProgress n s p =
+        printDebug $"notifyProgress: Called with p = {p}."
 //        Thread.Sleep(30_000)
-        n.progressCallBack None p
+        n.progressCallBack s p
 
 
     let checkCancellation n =
         let fromLastCheck = DateTime.Now - lastCheck
-//        printfn $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
+        printDebug $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
 
         if fromLastCheck > n.checkFreq
         then
@@ -266,16 +269,16 @@ module Solver =
 
 
     let callBack n (t : double) (x : double[]) : unit =
-//        printfn $"callBack: Called with t = {t}."
+        printDebug $"callBack: Called with t = {t}."
         calculated <- false
 
         match shouldNotifyProgress n t, shouldNotifyChart n t with
         | true, true ->
-            calculateProgressData n t x |> notifyProgress n
+            calculateProgressData n t x |> notifyProgress n None
             notifyChart n t x
             nextProgress <- calculateNextProgress n t
         | true, false ->
-            calculateProgressData n t x |> notifyProgress n
+            calculateProgressData n t x |> notifyProgress n None
             nextProgress <- calculateNextProgress n t
         | false, true ->
             notifyChart n t x
@@ -288,12 +291,12 @@ module Solver =
             callCount <- callCount + 1L
             checkCancellation n, shouldNotify n t
 
-//        printfn $"needsCallBack: t = {t}, r = {r}."
+        printDebug $"needsCallBack: t = {t}, r = {r}."
         r
 
 
     let callBackUseNonNegative n t x =
-//        printfn $"callBackUseNonNegative: Called with t = {t}."
+        printDebug $"callBackUseNonNegative: Called with t = {t}."
         callCount <- callCount + 1L
 
         match checkCancellation n with
@@ -304,7 +307,7 @@ module Solver =
 
 
     let callBackDoNotCorrect n c t x =
-//        printfn $"callBackDoNotCorrect: Called with t = {t}."
+        printDebug $"callBackDoNotCorrect: Called with t = {t}."
 
         match c with
         | Some v -> raise(ComputationAbortedException (calculateProgressDataWithErr n t x v, v))
@@ -320,7 +323,7 @@ module Solver =
         let callBackUseNonNegative t x = callBackUseNonNegative n t x
         firstChartSliceData <- calculateChartSliceData n 0.0 n.initialValues
 
-        calculateProgressData n n.tStart n.initialValues |> notifyProgress n
+        calculateProgressData n n.tStart n.initialValues |> notifyProgress n (Some InProgressRunQueue)
 
         match n.solverType with
         | AlgLib CashCarp ->

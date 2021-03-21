@@ -22,3 +22,9 @@ module ExitErrorCodes =
 
     [<Literal>]
     let BinaryDataUnavailable = -6
+
+    [<Literal>]
+    let SolverAlreadyRunning = -7
+
+    [<Literal>]
+    let TooManySolversRunning = -8

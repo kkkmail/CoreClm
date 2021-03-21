@@ -74,7 +74,7 @@ module SolverProcessProxy =
 
 
     /// Returns CanRun when a given RunQueueId is NOT used by any of the running solvers
-    /// and when a number of running solvers is less than a maximum allowed value.
+    /// except the current one and when a number of running solvers is less than a maximum allowed value.
     ///
     /// See:
     ///     https://stackoverflow.com/questions/504208/how-to-read-command-line-arguments-of-another-process-in-c
@@ -101,7 +101,7 @@ module SolverProcessProxy =
             | true ->
                 let p =
                     processes
-                    |> List.map (fun (i, e) -> i, e.Contains(v) && i <> pid)
+                    |> List.map (fun (i, e) -> i, e.ToLower().Contains(v) && i <> pid)
                     |> List.tryFind snd
 
                 match p with
