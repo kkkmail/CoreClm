@@ -139,7 +139,7 @@ module SolverRunnerImplementation =
         match results.TryGetResult RunQueue |> Option.bind (fun e -> e |> RunQueueId |> Some) with
         | Some q ->
             let exitWithLogCrit e x =
-                printfn $"runSolver: Error: {e}, exit code: {x}."
+                printfn $"runSolver: ERROR: {e}, exit code: {x}."
                 SolverRunnerCriticalError.create q e |> logCrit |> ignore
                 x
 
