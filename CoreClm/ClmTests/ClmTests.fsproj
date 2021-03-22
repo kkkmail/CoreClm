@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <Compile Include="ModelTests.fs" />
+    <None Include="CountLines.fsx" />
   </ItemGroup>
 
   <ItemGroup>
