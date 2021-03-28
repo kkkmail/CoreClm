@@ -45,17 +45,10 @@ module GeneralPrimitives =
         member this.value = let (SqliteConnectionString v) = this in v
 
 
-    type ResultDataId =
-        | ResultDataId of Guid
-
-        member this.value = let (ResultDataId v) = this in v
-
-
     type RunQueueId =
         | RunQueueId of Guid
 
         member this.value = let (RunQueueId v) = this in v
-        member this.toResultDataId() = this.value |> ResultDataId
         static member getNewId() = Guid.NewGuid() |> RunQueueId
 
 
@@ -89,9 +82,6 @@ module GeneralPrimitives =
     [<Literal>]
     let RunQueueStatus_Cancelled = "6"
 
-    [<Literal>]
-    let RunQueueStatus_Invalid = "-1000"
-
 
     type RunQueueStatus =
         | NotStartedRunQueue
@@ -102,7 +92,6 @@ module GeneralPrimitives =
         | FailedRunQueue
         | CancelRequestedRunQueue
         | CancelledRunQueue
-        | InvalidRunQueue // It does not exist in DB, so it it not possible to insert it due to FK constraint.
 
         member r.value =
             match r with
@@ -114,7 +103,6 @@ module GeneralPrimitives =
             | FailedRunQueue -> 4
             | CancelRequestedRunQueue -> 5
             | CancelledRunQueue -> 6
-            | InvalidRunQueue -> -1000
 
         static member tryCreate i =
             match i with

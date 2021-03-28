@@ -1,8 +1,6 @@
 ﻿namespace ServiceProxy
 
-open Clm.ReactionRateParams
 open Softellect.Messaging.ServiceInfo
-
 open Clm.ModelParams
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
@@ -22,10 +20,9 @@ module ModelRunnerProxy =
 
     type RunModelProxy =
         {
-            minUsefulEe : MinUsefulEe
             sendRunModelMessage : MessageInfo -> UnitResult
             loadModelData : ModelDataId -> ClmResult<ModelData>
-            earlyExitInfo : EarlyExitInfo option
+            controlData : RunnerControlData
         }
 
 
@@ -103,17 +100,6 @@ module ModelRunnerProxy =
             }
 
 
-    type SaveResultProxy =
-        {
-            saveResultData : ResultDataWithId -> UnitResult
-        }
-
-        static member create c =
-            {
-                saveResultData = saveResultData c
-            }
-
-
     type SaveChartsProxy =
         {
             saveCharts : ChartInfo -> UnitResult
@@ -128,7 +114,6 @@ module ModelRunnerProxy =
     type ProcessMessageProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
-            saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartInfo -> UnitResult
             register : WorkerNodeInfo -> UnitResult
             unregister : WorkerNodeId -> UnitResult
@@ -155,12 +140,11 @@ module ModelRunnerProxy =
     type RunnerData =
         {
             getConnectionString : unit -> ConnectionString
-            minUsefulEe : MinUsefulEe
             resultLocation : string
-            earlyExitInfoOpt : EarlyExitInfo option
             lastAllowedNodeErr : LastAllowedNodeErr
             collisionData : CollisionData
             dictionaryUpdateType : DictionaryUpdateType
+            controlData : RunnerControlData
         }
 
 
@@ -168,10 +152,9 @@ module ModelRunnerProxy =
         with
         static member create (d : RunnerData) s =
             {
-                minUsefulEe = d.minUsefulEe
                 sendRunModelMessage = s
                 loadModelData = loadModelData d.getConnectionString
-                earlyExitInfo = d.earlyExitInfoOpt
+                controlData = d.controlData
             }
 
 

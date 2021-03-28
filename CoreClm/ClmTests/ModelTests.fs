@@ -25,7 +25,7 @@ type ModelTests(output : ITestOutputHelper) =
 
 
     let ModelDataShouldMatchGeneratedCodeImpl (mdUpdate : ModelData -> double[] -> double[]) =
-        let eps = 0.000001
+        let eps = 0.000_001
         let cgModelDataParamsWithExtraData = modelDataParamsWithExtraData
         let cgGetTotalSubst = getTotalSubst
         let cgGetTotals = getTotals
@@ -110,14 +110,14 @@ type ModelTests(output : ITestOutputHelper) =
     [<Fact>]
     member _.ModelDataShouldMatchGeneratedCodeForPointerDerivative () : unit =
         let mdUpdate (md : ModelData) (x : double[]) : double[] =
-            let indices = md.modelData.modelBinaryData.calculationData.derivative
+            let indices = md.modelData.modelBinaryData.calculationData.modelIndices
             let neq = x.Length
             let t = 0.0
             let callaBack _ _ = ()
             let (dx : double[]) = Array.zeroCreate x.Length
             use px = fixed &x.[0]
             use pdx = fixed &dx.[0]
-            let interop = createInterop (callaBack, indices)
+            let interop = createUseNonNegativeInterop (callaBack, indices)
             do interop.Invoke(ref neq, ref t, px, pdx)
             dx
 

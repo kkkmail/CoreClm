@@ -24,6 +24,7 @@ open Clm.ModelParams
 open DbData.Configuration
 open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.ModelRunnerProxy
+open ClmSys.SolverRunnerPrimitives
 
 module SvcCommandLine =
 
@@ -183,16 +184,22 @@ module SvcCommandLine =
                         runnerData =
                             {
                                 getConnectionString = getContGenConnectionString
-                                minUsefulEe = MinUsefulEe.defaultValue
                                 resultLocation = DefaultResultLocationFolder
-
-                                earlyExitInfoOpt =
-                                    Some { EarlyExitInfo.defaultValue with
-                                            frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
 
                                 lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
                                 collisionData = w.contGenInfo.collisionData
                                 dictionaryUpdateType = w.contGenInfo.dictionaryUpdateType
+
+                                controlData =
+                                    {
+                                        minUsefulEe = w.contGenInfo.minUsefulEe
+                                        noOfProgressPoints = defaultNoOfProgressPoints
+
+                                        earlyExitInfoOpt =
+                                            Some { EarlyExitInfo.defaultValue with
+                                                    frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
+
+                                    }
                             }
 
                         runnerProxy =

@@ -39,7 +39,6 @@ module ServiceInfo =
 
     type PartitionerMessage =
         | UpdateProgressPrtMsg of ProgressUpdateInfo
-        | SaveResultPrtMsg of ResultDataWithId
         | SaveChartsPrtMsg of ChartInfo
         | RegisterWorkerNodePrtMsg of WorkerNodeInfo
         | UnregisterWorkerNodePrtMsg of WorkerNodeId
@@ -47,7 +46,6 @@ module ServiceInfo =
         member this.messageSize =
             match this with
             | UpdateProgressPrtMsg _ -> SmallSize
-            | SaveResultPrtMsg _ -> SmallSize
             | SaveChartsPrtMsg _ -> MediumSize
             | RegisterWorkerNodePrtMsg _ -> SmallSize
             | UnregisterWorkerNodePrtMsg _ -> SmallSize
@@ -153,12 +151,26 @@ module ServiceInfo =
             }
 
 
+    type RunnerControlData =
+        {
+            minUsefulEe : MinUsefulEe
+            noOfProgressPoints : int
+            earlyExitInfoOpt : EarlyExitInfo option
+        }
+
+        static member defaultValue =
+            {
+                minUsefulEe = MinUsefulEe.defaultValue
+                noOfProgressPoints = defaultNoOfProgressPoints
+                earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
+            }
+
+
     type WorkerNodeRunModelData =
         {
             runningProcessData : RunningProcessData
             modelData : ModelData
-            minUsefulEe : MinUsefulEe
-            earlyExitOpt : EarlyExitInfo option
+            controlData : RunnerControlData
         }
 
 
@@ -275,7 +287,7 @@ module ServiceInfo =
                             |> Some)
 
 
-        member q.toMessageInfoOpt getModelData minUsefulEe eeo =
+        member q.toMessageInfoOpt getModelData cd =
             match q.toRunningProcessDataOpt() with
             | Some d ->
                 match getModelData q.info.modelDataId with
@@ -286,9 +298,8 @@ module ServiceInfo =
                         messageData =
                             {
                                 runningProcessData = d
-                                minUsefulEe = minUsefulEe
                                 modelData = m
-                                earlyExitOpt = eeo
+                                controlData = cd
                             }
                             |> RunModelWrkMsg
                     }.getMessageInfo()

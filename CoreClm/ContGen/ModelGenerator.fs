@@ -1,6 +1,7 @@
 ﻿namespace ContGen
 
 open System
+open ClmSys.SolverRunnerPrimitives
 open Softellect.Sys.Rop
 
 open Clm.ModelParams
@@ -54,12 +55,11 @@ module ModelGenerator =
                                                     modelCommandLineParam = e
                                                 }
                                             runQueueStatus = NotStartedRunQueue
-                                            errorMessageOpt = None
                                             workerNodeIdOpt = None
-                                            progress = NotStarted
+                                            progressData = ProgressData.defaultValue
                                             createdOn = DateTime.Now
                                         })
-                        |> List.map (fun e -> proxy.upsertRunQueue e)
+                        |> List.map proxy.upsertRunQueue
                         |> foldUnitResults
 
                     let r1 = proxy.updateClmTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }

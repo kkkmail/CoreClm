@@ -158,7 +158,7 @@ module Substances =
                 Waste
             ]
 
-        member __.length = 0
+        member _.length = 0
 
         member this.name =
             match this with
@@ -656,7 +656,7 @@ module Substances =
                 else (b, a)
 
 
-    let inline getEnantiomer i = ((^T) : (member enantiomer : 'T) (i))
+    let inline getEnantiomer i = ((^T) : (member enantiomer : 'T) i)
 
 
     let getTotalsValue (allInd : Map<Substance, int>) (allSubst : list<Substance>) (aminoAcids : list<AminoAcid>) (x : array<double>) =

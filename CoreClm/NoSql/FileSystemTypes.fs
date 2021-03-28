@@ -9,13 +9,11 @@ open Softellect.Sys.Retry
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Messaging.Primitives
 
-open ClmSys.GeneralData
 open ClmSys.GeneralErrors
 open Clm.ModelParams
 open Clm.CalculationData
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeData
-open ClmSys.MessagingPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
@@ -198,16 +196,10 @@ module FileSystemTypes =
     let getWorkerNodeRunModelDataIdsFs serviceName () = getObjectIds<RunQueueId> serviceName workerNodeRunModelDataTblName (fun e -> e |> Guid.Parse |> RunQueueId)
     let loadWorkerNodeRunModelDataAllFs serviceName () = loadObjects<WorkerNodeRunModelData, Guid> serviceName workerNodeRunModelDataTblName Guid.Parse
 
-    let saveResultDataFs serviceName (r : ResultDataWithId) = saveData<ResultDataWithId, Guid> serviceName resultDataTblName r.resultDataId.value r
-    let loadResultDataFs serviceName (ResultDataId resultDataId) = loadData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
-    let tryDeleteResultDataFs serviceName (ResultDataId resultDataId) = tryDeleteData<ResultDataWithId, Guid> serviceName resultDataTblName resultDataId
-    let getResultDataIdsFs serviceName () = getObjectIds<ResultDataId> serviceName resultDataTblName (fun e -> e |> Guid.Parse |> ResultDataId)
-    let loadResultDataAllFs serviceName () = loadObjects<ResultDataWithId, Guid> serviceName resultDataTblName Guid.Parse
-
-    let saveChartInfoFs serviceName (c : ChartInfo) = saveData<ChartInfo, Guid> serviceName chartInfoTblName c.resultDataId.value c
-    let loadChartInfoFs serviceName (ResultDataId resultDataId) = loadData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId
-    let tryDeleteChartInfoFs serviceName (ResultDataId resultDataId) = tryDeleteData<ChartInfo, Guid> serviceName chartInfoTblName resultDataId
-    let getChartInfoIdsFs serviceName () = getObjectIds<ResultDataId> serviceName chartInfoTblName (fun e -> e |> Guid.Parse |> ResultDataId)
+    let saveChartInfoFs serviceName (c : ChartInfo) = saveData<ChartInfo, Guid> serviceName chartInfoTblName c.runQueueId.value c
+    let loadChartInfoFs serviceName (RunQueueId runQueueId) = loadData<ChartInfo, Guid> serviceName chartInfoTblName runQueueId
+    let tryDeleteChartInfoFs serviceName (RunQueueId runQueueId) = tryDeleteData<ChartInfo, Guid> serviceName chartInfoTblName runQueueId
+    let getChartInfoIdsFs serviceName () = getObjectIds<RunQueueId> serviceName chartInfoTblName (fun e -> e |> Guid.Parse |> RunQueueId)
     let loadChartInfoAllFs serviceName () = loadObjects<ChartInfo, Guid> serviceName chartInfoTblName Guid.Parse
 
 

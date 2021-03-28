@@ -1,11 +1,9 @@
 namespace SolverRunner
 
 open Argu
-open Clm.ModelParams
 open ClmSys.ClmErrors
 open ClmSys.ExitErrorCodes
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverData
 open ServiceProxy.SolverProcessProxy
 open SolverRunner.SolverRunnerCommandLine
 open NoSql.FileSystemTypes
@@ -34,22 +32,10 @@ module SolverRunnerImplementation =
     let private addError g f e = ((f |> g |> SolverRunnerErr) + e) |> Error
 
 
-    let onSaveResult (proxy : SendMessageProxy) (r : ResultDataWithId) =
-        printfn $"onSaveResult: Sending results with resultDataId = %A{r.resultDataId}."
-
-        {
-            partitionerRecipient = proxy.partitionerId
-            deliveryType = GuaranteedDelivery
-            messageData = r |> SaveResultPrtMsg
-        }.getMessageInfo()
-        |> proxy.sendMessage
-        |> Rop.bindError (addError OnSaveResultErr (SendResultMessageErr (proxy.partitionerId.messagingClientId, r.resultDataId)))
-
-
     let onSaveCharts (proxy : SendMessageProxy) (r : ChartGenerationResult) =
         match r with
         | GeneratedCharts c ->
-            printfn $"onSaveCharts: Sending charts with resultDataId = %A{c.resultDataId}."
+            printfn $"onSaveCharts: Sending charts with runQueueId = %A{c.runQueueId}."
 
             {
                 partitionerRecipient = proxy.partitionerId
@@ -57,26 +43,32 @@ module SolverRunnerImplementation =
                 messageData = c |> SaveChartsPrtMsg
             }.getMessageInfo()
             |> proxy.sendMessage
-            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.resultDataId)))
+            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.runQueueId)))
         | NotGeneratedCharts ->
             printfn "onSaveCharts: No charts."
             Ok()
 
 
-    let toDeliveryType progress =
-        match progress with
-        | NotStarted -> (GuaranteedDelivery, false)
-        | InProgress _ -> (NonGuaranteedDelivery, false)
-        | Completed _ -> (GuaranteedDelivery, true)
-        | Failed _ -> (GuaranteedDelivery, true)
-        | Cancelled _ -> (GuaranteedDelivery, true)
-        | AllCoresBusy _ -> (GuaranteedDelivery, true)
+    let toDeliveryType (p : ProgressUpdateInfo) =
+        match p.updatedRunQueueStatus with
+        | Some s ->
+            match s with
+            | NotStartedRunQueue -> (GuaranteedDelivery, false)
+            | InactiveRunQueue -> (GuaranteedDelivery, false)
+            | RunRequestedRunQueue -> (GuaranteedDelivery, false)
+            | InProgressRunQueue -> (GuaranteedDelivery, false)
+            | CompletedRunQueue -> (GuaranteedDelivery, true)
+            | FailedRunQueue -> (GuaranteedDelivery, true)
+            | CancelRequestedRunQueue -> (GuaranteedDelivery, false)
+            | CancelledRunQueue -> (GuaranteedDelivery, true)
+
+        | None -> (NonGuaranteedDelivery, false)
 
 
     let onUpdateProgress (proxy : OnUpdateProgressProxy) (p : ProgressUpdateInfo) =
-        printfn $"onUpdateProgress: runQueueId = %A{p.runQueueId}, progress = %A{p.progress}."
-        let t, completed = toDeliveryType p.progress
-        let r0 = proxy.tryUpdateProgress p.progress
+        printfn $"onUpdateProgress: runQueueId = %A{p.runQueueId}, progress = %A{p.progressData}."
+        let t, completed = toDeliveryType p
+        let r0 = proxy.tryUpdateProgressData p.progressData
 
         let r1 =
             {
@@ -114,8 +106,8 @@ module SolverRunnerImplementation =
                 solverUpdateProxy =
                     {
                         updateProgress = onUpdateProgress proxy
-                        updateTime = proxy.tryUpdateTime
                         checkCancellation = checkCancellation
+                        logCrit = logCrit
                     }
 
                 solverNotificationProxy =
@@ -124,7 +116,6 @@ module SolverRunnerImplementation =
                         clearNotificationRequest = clearNotification
                     }
 
-                saveResult = onSaveResult proxy.sendMessageProxy
                 saveCharts = onSaveCharts proxy.sendMessageProxy
                 logCrit = logCrit
             }
@@ -148,7 +139,7 @@ module SolverRunnerImplementation =
         match results.TryGetResult RunQueue |> Option.bind (fun e -> e |> RunQueueId |> Some) with
         | Some q ->
             let exitWithLogCrit e x =
-                printfn $"runSolver: Error: {e}, exit code: {x}."
+                printfn $"runSolver: ERROR: {e}, exit code: {x}."
                 SolverRunnerCriticalError.create q e |> logCrit |> ignore
                 x
 
@@ -161,8 +152,7 @@ module SolverRunnerImplementation =
                         let proxy =
                             {
                                 tryDeleteWorkerNodeRunModelData = fun () -> deleteRunQueue c q
-                                tryUpdateProgress = tryUpdateProgressRunQueue c q
-                                tryUpdateTime = tryUpdateTime c q
+                                tryUpdateProgressData = tryUpdateProgress c q
 
                                 sendMessageProxy =
                                     {
@@ -177,10 +167,11 @@ module SolverRunnerImplementation =
                         let solver = runSolver solverProxy w
                         // The call below does not return until the run is completed OR cancelled in some way.
                         solver.run()
+                        printfn "runSolver: Call to solver.run() completed."
                         CompletedSuccessfully
                     | Error e -> exitWithLogCrit e UnknownException
-                | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) UnknownException
-                | TooManyRunning n -> exitWithLogCrit (TooManyRunning n) UnknownException
+                | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) SolverAlreadyRunning
+                | TooManyRunning n -> exitWithLogCrit (TooManyRunning n) TooManySolversRunning
                 | GetProcessesByNameExn e -> exitWithLogCrit e CriticalError
             | Error e, _ -> exitWithLogCrit e DatabaseErrorOccurred
             | _, None -> exitWithLogCrit "Unable to load WorkerNodeSettings." CriticalError

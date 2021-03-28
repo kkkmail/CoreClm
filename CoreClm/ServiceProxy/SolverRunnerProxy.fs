@@ -14,8 +14,9 @@ module SolverRunner =
     type SolverUpdateProxy =
         {
             updateProgress : ProgressUpdateInfo -> UnitResult
-            updateTime : TimeData -> UnitResult
+//            updateTime : ProgressData -> UnitResult
             checkCancellation : RunQueueId -> CancellationType option
+            logCrit : SolverRunnerCriticalError -> UnitResult
         }
 
 
@@ -30,7 +31,7 @@ module SolverRunner =
         {
             solverUpdateProxy : SolverUpdateProxy
             solverNotificationProxy : SolverNotificationProxy
-            saveResult : ResultDataWithId -> UnitResult
+//            saveResult : ResultDataWithId -> UnitResult
             saveCharts : ChartGenerationResult -> UnitResult
             logCrit : SolverRunnerCriticalError -> UnitResult
         }

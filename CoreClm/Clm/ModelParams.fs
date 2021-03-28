@@ -11,6 +11,8 @@ open Clm.Substances
 open Clm.ReactionTypes
 open ClmSys.ModelData
 open Clm.ReactionRates
+open ClmSys.SolverData
+open ClmSys.SolverRunnerPrimitives
 
 module ModelParams =
 
@@ -35,7 +37,6 @@ module ModelParams =
 
     type ModelInfo =
         {
-            fileStructureVersion : decimal
             versionNumber : string
             modelDataId : ModelDataId
             numberOfSubstances : int
@@ -55,28 +56,28 @@ module ModelParams =
         }
 
 
-    type ResultData =
-        {
-            modelDataId : ModelDataId
-
-            y0 : decimal
-            tEnd : decimal
-            useAbundant : bool
-
-            // All are using abs. Averaging is performed first, then abs is applied.
-            maxEe : double // max ee over all data points and all pairs of chiral substances.
-            maxAverageEe : double // max value of ee averaged over evolution period per each pair of chiral substances.
-            maxWeightedAverageAbsEe : double // the same as above but using linear weighted average and abs of ee.
-            maxLastEe : double // max ee at the last point.
-        }
-
-
-    type ResultDataWithId =
-        {
-            resultDataId : ResultDataId
-            workerNodeId : WorkerNodeId
-            resultData : ResultData
-        }
+//    type ResultData =
+//        {
+//            modelDataId : ModelDataId
+//
+//            y0 : decimal
+//            tEnd : decimal
+//            useAbundant : bool
+//
+//            // All are using abs. Averaging is performed first, then abs is applied.
+//            maxEe : double // max ee over all data points and all pairs of chiral substances.
+//            maxAverageEe : double // max value of ee averaged over evolution period per each pair of chiral substances.
+//            maxWeightedAverageAbsEe : double // the same as above but using linear weighted average and abs of ee.
+//            maxLastEe : double // max ee at the last point.
+//        }
+//
+//
+//    type ResultDataWithId =
+//        {
+//            resultDataId : ResultDataId
+//            workerNodeId : WorkerNodeId
+//            resultData : ResultData
+//        }
 
 
     type AllSubstData =
@@ -102,23 +103,23 @@ module ModelParams =
             getTotalSubstValue info.allSubstData.allInd info.allSubstData.allSubst x
 
 
-    type BinaryResultData =
-        {
-            binaryInfo : BinaryInfo
-
-            x : double [,]
-            t : double []
-        }
-
-
-    type FullResultData =
-        {
-            resultData : ResultData
-            binaryResultData : BinaryResultData
-        }
-
-        member resultData.getTotals x = resultData.binaryResultData.binaryInfo.getTotals x
-        member resultData.getTotalSubst x = resultData.binaryResultData.binaryInfo.getTotalSubst x
+//    type BinaryResultData =
+//        {
+//            binaryInfo : BinaryInfo
+//
+//            x : double [,]
+//            t : double []
+//        }
+//
+//
+//    type FullResultData =
+//        {
+//            resultData : ResultData
+//            binaryResultData : BinaryResultData
+//        }
+//
+//        member resultData.getTotals x = resultData.binaryResultData.binaryInfo.getTotals x
+//        member resultData.getTotalSubst x = resultData.binaryResultData.binaryInfo.getTotalSubst x
 
 
     type ModelDataRegularParams =
@@ -172,11 +173,10 @@ module ModelParams =
     type ModelCommandLineData =
         {
             modelDataId : ModelDataId
-            resultDataId : ResultDataId
             workerNodeId : WorkerNodeId
             minUsefulEe : MinUsefulEe
             remote : bool
-            noOfProgressPoints : int option
+            noOfProgressPoints : int
         }
 
 
@@ -202,9 +202,8 @@ module ModelParams =
             runQueueId : RunQueueId
             info : RunQueueInfo
             runQueueStatus : RunQueueStatus
-            errorMessageOpt : ErrorMessage option
             workerNodeIdOpt : WorkerNodeId option
-            progress : TaskProgress
+            progressData : ProgressData
             createdOn : DateTime
         }
 
@@ -222,9 +221,8 @@ module ModelParams =
                     }
 
                 runQueueStatus = NotStartedRunQueue
-                errorMessageOpt = None
                 workerNodeIdOpt = None
-                progress = NotStarted
+                progressData = ProgressData.defaultValue
                 createdOn = DateTime.Now
             }
 
@@ -235,11 +233,11 @@ module ModelParams =
             let s = (DateTime.Now - r.createdOn).ToString("d\.hh\:mm")
 
             let estCompl =
-                match r.runQueueStatus, r.progress.estimateEndTime r.createdOn with
+                match r.runQueueStatus, r.progressData.estimateEndTime r.createdOn with
                 | InProgressRunQueue, Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | _ -> EmptyString
 
-            $"{{ T: %s{s};%s{estCompl} DF: %A{defaultValueId}; MDID: %A{modelDataId}; PID: %A{runQueueId}; %A{r.progress} }}"
+            $"{{ T: %s{s};%s{estCompl} DF: %A{defaultValueId}; MDID: %A{modelDataId}; PID: %A{runQueueId}; %A{r.progressData.progress} }}"
 
 
     type ResultInfo =

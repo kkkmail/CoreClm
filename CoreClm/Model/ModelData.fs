@@ -12021,7 +12021,6 @@ module ModelData =
                                     {
                                         modelInfo =
                                             {
-                                                fileStructureVersion = 4.0000m
                                                 versionNumber = "5.0.3"
                                                 modelDataId = ("86a67f24-5c6d-4d9d-96ab-1ac687657dea" |> Guid |> ModelDataId)
                                                 numberOfSubstances = 261

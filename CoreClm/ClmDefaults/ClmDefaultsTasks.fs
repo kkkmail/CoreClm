@@ -8,11 +8,14 @@ open Clm.ModelParams
 module ClmDefaultsTasks =
 
     let saveAllDefaults() =
-        printfn "Saving all defaults."
+        printfn "saveAllDefaults: Saving all defaults."
 
         let saveDefault (_, (d : ClmDefaultValue)) =
             printfn $"    %A{d.clmDefaultValueId}"
-            upsertClmDefaultValue getContGenConnectionString d |> ignore
+
+            match upsertClmDefaultValue getContGenConnectionString d with
+            | Ok() -> ()
+            | Error e -> printfn $"saveAllDefaults: Error - {e}"
 
         defaultValues
         |> Map.toList

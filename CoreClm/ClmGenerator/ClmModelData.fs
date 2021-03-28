@@ -1,6 +1,5 @@
 ﻿namespace Clm.Generator
 
-open Clm.ReactionRateParams
 open FSharp.Collections
 
 open ClmSys.VersionInfo
@@ -29,7 +28,6 @@ module ClmModelData =
 
     type ModelGenerationParams =
         {
-            fileStructureVersion : decimal
             versionNumber : string
             numberOfAminoAcids : NumberOfAminoAcids
             maxPeptideLength : MaxPeptideLength
@@ -56,7 +54,6 @@ module ClmModelData =
                 {
                     modelGenerationParams =
                         {
-                            fileStructureVersion = FileStructureVersion
                             versionNumber = VersionNumberValue
                             numberOfAminoAcids = c.clmTaskInfo.numberOfAminoAcids
                             maxPeptideLength = c.clmTaskInfo.maxPeptideLength

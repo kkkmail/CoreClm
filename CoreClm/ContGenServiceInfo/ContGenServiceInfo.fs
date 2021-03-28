@@ -1,10 +1,10 @@
 ﻿namespace ContGenServiceInfo
 
 open System
-open System.IO
 open System.ServiceModel
 open System.Threading
 
+open ClmSys.ContGenPrimitives
 open ClmSys.DistributionData
 open Softellect.Sys
 open Softellect.Sys.MessagingPrimitives
@@ -50,7 +50,8 @@ module ServiceInfo =
     type ProgressUpdateInfo =
         {
             runQueueId : RunQueueId
-            progress : TaskProgress
+            updatedRunQueueStatus : RunQueueStatus option
+            progressData : ProgressData
         }
 
 
@@ -79,14 +80,13 @@ module ServiceInfo =
             try
                 printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
                 let (q, e) = getState()
-                let r0 = q |> List.sortBy (fun e -> e.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
+                let r0 = q |> List.sortBy (fun e -> e.progressData.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
                 let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
                 printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
             with
             | e -> printfn $"Exception occurred: %A{e}"
         else
             printfn $"Not getting state at %A{DateTime.Now} because callCount = %A{callCount}."
-            ignore()
 
         Interlocked.Decrement(&callCount) |> ignore
         Ok()

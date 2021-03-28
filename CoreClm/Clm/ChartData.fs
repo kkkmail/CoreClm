@@ -5,6 +5,8 @@ open Clm.Substances
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
 open Clm.CalculationData
+open ClmSys.SolverData
+open ClmSys.SolverRunnerPrimitives
 
 module ChartData =
 
@@ -134,9 +136,12 @@ module ChartData =
             }
 
         member cd.maxEe =
-            cd.allChartData
-            |> List.map (fun e -> e.maxEe)
-            |> List.max
+            match cd.allChartData with
+            | [] -> 0.0
+            | _ ->
+                cd.allChartData
+                |> List.map (fun e -> e.maxEe)
+                |> List.max
 
         member cd.maxAverageEe =
             match cd.allChartData with
@@ -190,8 +195,16 @@ module ChartData =
             let tEnd = cd.initData.tEnd
             min (max (if tEnd > 0.0m then cd.tLast / tEnd else 0.0m) 0.0m) 1.0m
 
+        member cd.eeData =
+            {
+                maxEe = cd.maxEe
+                maxAverageEe = cd.maxAverageEe
+                maxWeightedAverageAbsEe = cd.maxWeightedAverageAbsEe
+                maxLastEe = cd.maxLastEe
+            }
+
 
     type ChartDataUpdater () =
         interface IUpdater<ChartInitData, ChartSliceData, ChartData> with
-            member __.init i = ChartData.create i
-            member __.add a m = { m with allChartData = a :: m.allChartData }
+            member _.init i = ChartData.create i
+            member _.add a m = { m with allChartData = a :: m.allChartData }

@@ -65,12 +65,10 @@ module GeneralErrors =
     type InvalidRunQueueData =
         {
             runQueueId : RunQueueId
-            runQueueStatusFrom : RunQueueStatus
+            runQueueStatusFrom : RunQueueStatus option
             runQueueStatusTo : RunQueueStatus
             workerNodeIdOptFrom : WorkerNodeId option
             workerNodeIdOptTo : WorkerNodeId option
-            progressFrom : TaskProgress
-            progressTo : TaskProgress
         }
 
 
