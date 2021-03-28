@@ -42,10 +42,10 @@ select *
 from w
 where
 	1 = 1
-	and estCompl is null
-	--and estCompl is not null
+	--and estCompl is null
+	and estCompl is not null
 	and runQueueStatusId not in (3)
 	--and clmDefaultValueId >= 4004000000
 	--and estCompl < dateadd(day, 1, @now)
 	--and totalRunTime > 0.5
---order by estCompl desc
+order by estCompl desc
