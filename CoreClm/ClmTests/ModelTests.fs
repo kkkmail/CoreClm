@@ -25,7 +25,7 @@ type ModelTests(output : ITestOutputHelper) =
 
 
     let ModelDataShouldMatchGeneratedCodeImpl (mdUpdate : ModelData -> double[] -> double[]) =
-        let eps = 0.000001
+        let eps = 0.000_001
         let cgModelDataParamsWithExtraData = modelDataParamsWithExtraData
         let cgGetTotalSubst = getTotalSubst
         let cgGetTotals = getTotals
