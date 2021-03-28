@@ -231,6 +231,7 @@ function GetBinaryPathName ([string] $serviceName)
 
 function GetDescription([string] $serviceName, [string] $messagingDataVersion, [string] $versionNumber)
 {
+    $messagingDataVersion = GetValueOrDefault -value $messagingDataVersion -defaultValue $global:messagingDataVersion
     [string] $description = "$serviceName, version $versionNumber.$messagingDataVersion"
     return $description
 }

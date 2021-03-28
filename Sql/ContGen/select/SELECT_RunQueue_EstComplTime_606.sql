@@ -8,15 +8,16 @@ set @now = getdate()
 (
 	select
 		runQueueOrder
-		,case when callCount > 0 then progress / callCount else 0 end as averageStep
 		,d.clmDefaultValueId
+		,case when callCount > 0 then progress / callCount else 0 end as averageStep
 		,progress
 		,yRelative
+		,callCount
 		,runQueueStatusId
 		,errorMessage
 		,case 
 			when runQueueStatusId = 3 then q.modifiedOn
-			when startedOn is not null and progress > 0 then dateadd(second, datediff(second, startedOn, @now) / progress, startedOn) 
+			when startedOn is not null and progress > 0 and datediff(second, startedOn, @now) / progress < 2147483647 then dateadd(second, datediff(second, startedOn, @now) / progress, startedOn) 
 			else null 
 		 end as estCompl
 		,cast(
@@ -40,8 +41,11 @@ set @now = getdate()
 select * 
 from w
 where
-	estCompl is not null
+	1 = 1
+	and estCompl is null
+	--and estCompl is not null
+	and runQueueStatusId not in (3)
 	--and clmDefaultValueId >= 4004000000
 	--and estCompl < dateadd(day, 1, @now)
 	--and totalRunTime > 0.5
-order by estCompl desc
+--order by estCompl desc
