@@ -1,5 +1,5 @@
 # ClmFSharp
-## F# modelling of chiral symmetry breaking in chemical systems. Version 6.0.3.
+## F# modelling of chiral symmetry breaking in chemical systems. Version 6.0.5.
 It is a port of https://github.com/kkkmail/ClmFSharp to NET5 with some extensions to support reactions with activated catalysts.
 
 ### Complexity
@@ -21,7 +21,7 @@ The system uses MS SQL as a database to store various parameters and generates H
 
 ## Build order
 The system uses F# type providers, which means that the database must be created first. The compile time connection strings are loaded from `DbData\app.config` because type providers have not switched yet to support `appsettings.json`. The run time connection string are loaded from `appsettings.json` files. See `DbData.DatabaseTypes` for details. Because the databases are primitive (each of them contains less than 10 tables), usage of automated up/down database migrations (like `Entity Framework` based one) does not yet seem justified. So, the procedure is as follows:
-1.	Look up the values of `ClmSys.VersionInfo.ClmBaseName` and `ClmSys.VersionInfo.MsgSvcBaseName` (e.g. `clm603`, `msg603`, `wns603`). They must match the values `from DbData\app.config`.
+1.	Look up the values of `ClmSys.VersionInfo.ClmBaseName` and `ClmSys.VersionInfo.MsgSvcBaseName` (e.g. `clm605`, `msg605`, `wns605`). They must match the values `from DbData\app.config`.
 2.	Create MSSQL databases with the names from step #1.
 3.	Run `-build.bat` file from `Sql\ContGen`, `Sql\MsgSvc`, and `Sql\WrkNode` folders. they will produce files `001_all.sql` and `002_data.sql` in the folders `Sql\ContGen\!All`, `Sql\MsgSvc\!All`, and `Sql\WrkNode\!All`. If no changes to tables or data were made, then these files will come out the same as in the repository.
 4.	Load file `001_all.sql` and run it in the database created on step #2, then load file `002_data.sql` and run it. Repeat that for all three databases. The scripts are fully reentrable, which means that they can be run many times without any side effects.
