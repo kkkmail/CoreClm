@@ -11,6 +11,9 @@ module Defaults_004_005_000 =
 
     /// Feel free to change the values here in any way as long as they are not used for actual calculations.
     /// Activated catalytic reactions playground.
+    ///
+    /// The value of activationScarcity is set to 1 because we want to activate all "chosen" catalysts
+    /// and they are already scarce enough.
     type DefaultDataParam =
         {
             activationScarcity : double
@@ -191,6 +194,8 @@ module Defaults_004_005_000 =
 
 
     let data =
+            let d = DefaultDataParam.defaultValue
+
             [
                 DefaultDataParam.zero               // 0
                 DefaultDataParam.zero01             // 1
@@ -201,6 +206,11 @@ module Defaults_004_005_000 =
 
                 DefaultDataParam.defaultValue       // 5
                 DefaultDataParam.codeGenValue_002   // 6
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 1.5 }   // 7
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 1.5 }   // 8
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 1.5 } // 9
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 1.5 } // 10
 
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
 //                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }
@@ -245,10 +255,10 @@ module Defaults_004_005_000 =
             let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (e.ligForward, e.ligBackward)
 
             let acFwdCatLigParam =
-                ReactionRateProviderParams.defaultAcFwdCatLigSimParam (ligParam, Some (e.acFwdCatLigScarcity), (e.acFwdCatLigMultiplier)) (Some e.acFwdCatLigSimilarity) catRateGenType
+                ReactionRateProviderParams.defaultAcFwdCatLigSimParam (ligParam, Some e.acFwdCatLigScarcity, e.acFwdCatLigMultiplier) (Some e.acFwdCatLigSimilarity) catRateGenType
 
             let acBkwCatLigParam =
-                ReactionRateProviderParams.defaultAcBkwCatLigSimParam (ligParam, Some (e.acBkwCatLigScarcity), (e.acBkwCatLigMultiplier)) (Some e.acBkwCatLigSimilarity) catRateGenType
+                ReactionRateProviderParams.defaultAcBkwCatLigSimParam (ligParam, Some e.acBkwCatLigScarcity, e.acBkwCatLigMultiplier) (Some e.acBkwCatLigSimilarity) catRateGenType
             //===========================================================
             let sugParam = ReactionRateProviderParams.defaultSugarSynthRndParamImpl ((Some e.sugarForward, Some e.sugarBackward), Some e.sugarScarcity)
             //===========================================================
