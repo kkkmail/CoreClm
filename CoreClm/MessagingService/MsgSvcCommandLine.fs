@@ -95,4 +95,10 @@ module SvcCommandLine =
         msgServiceDataRes
 
 
-    let messagingServiceData = Lazy<Result<MessagingWcfServiceData, WcfError>>(fun () -> tryGetMessagingServiceData Logger.defaultValue)
+    let messagingServiceData =
+#if DEBUG
+        let logger = Logger.defaultValue
+#else
+        let logger = Logger.releaseValue
+#endif
+        Lazy<Result<MessagingWcfServiceData, WcfError>>(fun () -> tryGetMessagingServiceData logger)

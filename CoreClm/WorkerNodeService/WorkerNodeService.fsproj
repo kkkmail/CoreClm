@@ -34,6 +34,9 @@
     <None Include="..\Start-WorkerNodeService.ps1" Link="Start-WorkerNodeService.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+      <None Include="..\Stop-SolverRunners.ps1" Link="Stop-SolverRunners.ps1">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     <None Include="..\Stop-WorkerNodeService.ps1" Link="Stop-WorkerNodeService.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
