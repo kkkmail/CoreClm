@@ -39,7 +39,7 @@ b as
 			when q.maxWeightedAverageAbsEe > @maxWeightedAverageAbsEe or q.maxLastEe > @maxLastEe then 1 
 			else 0 
 		end as isSymmetryBroken,
-		cast(datediff(minute, isnull(q.startedOn, m.createdOn), q.createdOn) as float) / 1440.0 as runTime
+		cast(datediff(minute, isnull(q.startedOn, m.createdOn), q.modifiedOn) as float) / 1440.0 as runTime
 	from
 		RunQueue q
 		inner join ModelData m on q.modelDataId = m.modelDataId

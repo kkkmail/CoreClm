@@ -119,7 +119,7 @@ module Solver =
 
     let mutable private progress = 0.0
     let mutable private nextProgress = 0.0
-    let mutable private outputCount = 0
+    let mutable private nextChartProgress = 0.0
     let mutable private callCount = 0L
     let mutable private lastCheck = DateTime.Now
     let mutable private lastTimeCheck = lastCheck
@@ -156,6 +156,13 @@ module Solver =
         r
 
 
+    let shouldNotifyByNextChartProgress (n : NSolveParam) t =
+        let p = calculateProgress n t
+        let r = p >= nextChartProgress
+        printDebug $"shouldNotifyByNextChart: p = {p}, nextChartProgress = {nextChartProgress}, r = {r}."
+        r
+
+
     let calculateNextProgress n t =
         let r =
             match n.noOfProgressPoints with
@@ -164,19 +171,16 @@ module Solver =
         printDebug $"calculateNextProgress: r = {r}."
         r
 
-    let shouldNotifyChart n t =
+    let calculateNextChartProgress n t =
         let r =
             match n.noOfOutputPoints with
-            | np when np <= 0 -> false
-            | np ->
-                match n.noOfChartDetailedPoints with
-                | Some cp -> ((double np) * nextProgress <= double cp && shouldNotifyByCallCount()) || shouldNotifyByNextProgress n t
-                | None -> shouldNotifyByNextProgress n t
-        printDebug $"shouldNotifyChart: n.noOfOutputPoints = {n.noOfOutputPoints}, n.noOfChartDetailedPoints = {n.noOfChartDetailedPoints}, r = {r}."
+            | np when np <= 0 -> 1.0
+            | np -> min 1.0 ((((calculateProgress n t) * (double np) |> floor) + 1.0) / (double np))
+        printDebug $"calculateNextChartProgress: r = {r}."
         r
 
-
     let shouldNotifyProgress n t = shouldNotifyByCallCount() || shouldNotifyByNextProgress n t
+    let shouldNotifyChart n t = shouldNotifyByCallCount() || shouldNotifyByNextChartProgress n t
     let shouldNotify n t = shouldNotifyProgress n t || shouldNotifyChart n t
 
 
@@ -277,12 +281,13 @@ module Solver =
             calculateProgressData n t x |> notifyProgress n None
             notifyChart n t x
             nextProgress <- calculateNextProgress n t
+            nextChartProgress <- calculateNextChartProgress n t
         | true, false ->
             calculateProgressData n t x |> notifyProgress n None
             nextProgress <- calculateNextProgress n t
         | false, true ->
             notifyChart n t x
-            nextProgress <- calculateNextProgress n t
+            nextChartProgress <- calculateNextChartProgress n t
         | false, false -> ()
 
 
