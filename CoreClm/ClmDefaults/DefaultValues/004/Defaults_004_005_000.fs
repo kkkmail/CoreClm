@@ -204,13 +204,22 @@ module Defaults_004_005_000 =
 
                 DefaultDataParam.codeGenValue_001   // 4
 
-                DefaultDataParam.defaultValue       // 5
+                d                                   // 5
                 DefaultDataParam.codeGenValue_002   // 6
 
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 1.5 }   // 7
                 { d with acCatDestrScarcity = d.acCatDestrScarcity * 1.5 }   // 8
                 { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 1.5 } // 9
                 { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 1.5 } // 10
+
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 2.0 }   // 11
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 2.5 }   // 12
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 13
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 14
+
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.0
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 15
 
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
 //                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }
