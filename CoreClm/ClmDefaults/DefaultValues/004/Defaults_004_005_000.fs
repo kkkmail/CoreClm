@@ -9,7 +9,6 @@ open Clm.ReactionRatesBase
 
 module Defaults_004_005_000 =
 
-    /// Feel free to change the values here in any way as long as they are not used for actual calculations.
     /// Activated catalytic reactions playground.
     ///
     /// The value of activationScarcity is set to 1 because we want to activate all "chosen" catalysts
@@ -43,7 +42,7 @@ module Defaults_004_005_000 =
             sugarScarcity : double
         }
 
-        override p.ToString() = $"!!! FOR TESTING PURPOSES ONLY: %0A{p} !!!"
+        override p.ToString() = $"parameters: %0A{p}"
 
         static member zero =
             {
@@ -98,9 +97,6 @@ module Defaults_004_005_000 =
         /// Use: "ContGenAdm.exe add -i 4005000004 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member codeGenValue_001 =
             {
-//                activationScarcity = 0.001_000
-//                activationMultiplier = 100_000.0
-
                 activationScarcity = 1.0
                 activationMultiplier = 10_000.0
 
@@ -162,9 +158,6 @@ module Defaults_004_005_000 =
         /// Use: "ContGenAdm.exe add -i 4005000005 -n 20 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member defaultValue =
             {
-//                activationScarcity = 0.000_100
-//                activationMultiplier = 100_000.0
-
                 activationScarcity = 1.0
                 activationMultiplier = 10_000.0
 
@@ -220,6 +213,8 @@ module Defaults_004_005_000 =
                 { d with
                          acCatDestrScarcity = d.acCatDestrScarcity * 2.0
                          acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 15
+
+                { d with sugarForward = 0.0 }                                // 16
 
 //                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
 //                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }
@@ -277,16 +272,19 @@ module Defaults_004_005_000 =
                 [
                     wasteRecyclingParam
                     synthParam |> SynthesisRateParam
-                    sugParam |> SugarSynthesisRateParam
                     destrParam |> DestructionRateParam
                     ligParam |> LigationRateParam
 
-                    if (e.activationScarcity > 0.0) then activationParam
-                    if (e.activationScarcity > 0.0 && e.acCatSynthScarcity > 0.0) then acCatSynthParam
-                    if (e.activationScarcity > 0.0 && e.acCatDestrScarcity > 0.0) then acCatDestrParam
+                    if e.sugarForward > 0.0
+                    then
+                        sugParam |> SugarSynthesisRateParam
 
-                    if (e.activationScarcity > 0.0 && e.acFwdCatLigScarcity > 0.0) then acFwdCatLigParam
-                    if (e.activationScarcity > 0.0 && e.acBkwCatLigScarcity > 0.0) then acBkwCatLigParam
+                        if (e.activationScarcity > 0.0) then activationParam
+                        if (e.activationScarcity > 0.0 && e.acCatSynthScarcity > 0.0) then acCatSynthParam
+                        if (e.activationScarcity > 0.0 && e.acCatDestrScarcity > 0.0) then acCatDestrParam
+
+                        if (e.activationScarcity > 0.0 && e.acFwdCatLigScarcity > 0.0) then acFwdCatLigParam
+                        if (e.activationScarcity > 0.0 && e.acBkwCatLigScarcity > 0.0) then acBkwCatLigParam
                 ]
             //===========================================================
 
