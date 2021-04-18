@@ -34,6 +34,9 @@
     <None Include="..\Start-WorkerNodeService.ps1" Link="Start-WorkerNodeService.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+      <None Include="..\Stop-SolverRunners.ps1" Link="Stop-SolverRunners.ps1">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     <None Include="..\Stop-WorkerNodeService.ps1" Link="Stop-WorkerNodeService.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -57,7 +60,9 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="5.0.1" />
+  </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy /Y &quot;$(ProjectDir)..\WorkerNodeAdm\$(OutDir)WorkerNodeAdm.*.json&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;copy /Y &quot;$(ProjectDir)..\SolverRunner\$(OutDir)SolverRunner.*.json&quot; &quot;$(TargetDir)&quot;" />

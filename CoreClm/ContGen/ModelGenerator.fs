@@ -70,9 +70,17 @@ module ModelGenerator =
 
 
     let generateAll (proxy : GenerateAllProxy) =
-        let (r, f) = proxy.loadIncompleteClmTasks() |> unzipListResult
-        let e = r |> List.map proxy.generateModel |> foldUnitResults
-        f |> foldToUnitResult |> combineUnitResults e
+        let rec inner() =
+            let r, f = proxy.loadIncompleteClmTasks() |> unzipListResult
+            let e = r |> List.map proxy.generateModel |> foldUnitResults
+            let f1 = f |> foldToUnitResult |> combineUnitResults e
+
+            match r, f1 with
+            | [], Ok() -> Ok()
+            | _ :: _, Ok() -> inner()
+            | _, Error e -> Error e
+
+        inner()
 
 
     type GenerateAllProxy

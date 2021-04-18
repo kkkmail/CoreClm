@@ -9,8 +9,10 @@ open Clm.ReactionRatesBase
 
 module Defaults_004_005_000 =
 
-    /// Feel free to change the values here in any way as long as they are not used for actual calculations.
     /// Activated catalytic reactions playground.
+    ///
+    /// The value of activationScarcity is set to 1 because we want to activate all "chosen" catalysts
+    /// and they are already scarce enough.
     type DefaultDataParam =
         {
             activationScarcity : double
@@ -40,7 +42,7 @@ module Defaults_004_005_000 =
             sugarScarcity : double
         }
 
-        override p.ToString() = $"!!! FOR TESTING PURPOSES ONLY: %0A{p} !!!"
+        override p.ToString() = $"parameters: %0A{p}"
 
         static member zero =
             {
@@ -95,9 +97,6 @@ module Defaults_004_005_000 =
         /// Use: "ContGenAdm.exe add -i 4005000004 -n 10 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member codeGenValue_001 =
             {
-//                activationScarcity = 0.001_000
-//                activationMultiplier = 100_000.0
-
                 activationScarcity = 1.0
                 activationMultiplier = 10_000.0
 
@@ -159,9 +158,6 @@ module Defaults_004_005_000 =
         /// Use: "ContGenAdm.exe add -i 4005000005 -n 20 -m 3 -y 10 -t 250000 -r 1 -g > -a.txt" for these values.
         static member defaultValue =
             {
-//                activationScarcity = 0.000_100
-//                activationMultiplier = 100_000.0
-
                 activationScarcity = 1.0
                 activationMultiplier = 10_000.0
 
@@ -191,6 +187,8 @@ module Defaults_004_005_000 =
 
 
     let data =
+            let d = DefaultDataParam.defaultValue
+
             [
                 DefaultDataParam.zero               // 0
                 DefaultDataParam.zero01             // 1
@@ -199,19 +197,36 @@ module Defaults_004_005_000 =
 
                 DefaultDataParam.codeGenValue_001   // 4
 
-                DefaultDataParam.defaultValue       // 5
+                d                                   // 5
                 DefaultDataParam.codeGenValue_002   // 6
 
-//                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
-//                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }
-//                { DefaultDataParam.defaultValue with sugarForward = 10.0; acCatLigScarcity = 0.000_000_002 }
-//
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.002 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.002; sugarForward = 500.0 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5; sugarForward = 500.0 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.002; acCatLigSimilarity = 0.002_0 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5; acCatLigSimilarity = 0.002_0 }
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 1.5 }   // 7
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 1.5 }   // 8
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 1.5 } // 9
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 1.5 } // 10
+
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 2.0 }   // 11
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 2.5 }   // 12 +
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 13
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 14
+
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.0
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 15 +
+
+                { d with sugarForward = 0.0 }                                // 16
+
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.0
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 17
+
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 18
+
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 19
             ]
             |> withRowNumber
 
@@ -245,10 +260,10 @@ module Defaults_004_005_000 =
             let ligParam = ReactionRateProviderParams.defaultLigRndParamImpl (e.ligForward, e.ligBackward)
 
             let acFwdCatLigParam =
-                ReactionRateProviderParams.defaultAcFwdCatLigSimParam (ligParam, Some (e.acFwdCatLigScarcity), (e.acFwdCatLigMultiplier)) (Some e.acFwdCatLigSimilarity) catRateGenType
+                ReactionRateProviderParams.defaultAcFwdCatLigSimParam (ligParam, Some e.acFwdCatLigScarcity, e.acFwdCatLigMultiplier) (Some e.acFwdCatLigSimilarity) catRateGenType
 
             let acBkwCatLigParam =
-                ReactionRateProviderParams.defaultAcBkwCatLigSimParam (ligParam, Some (e.acBkwCatLigScarcity), (e.acBkwCatLigMultiplier)) (Some e.acBkwCatLigSimilarity) catRateGenType
+                ReactionRateProviderParams.defaultAcBkwCatLigSimParam (ligParam, Some e.acBkwCatLigScarcity, e.acBkwCatLigMultiplier) (Some e.acBkwCatLigSimilarity) catRateGenType
             //===========================================================
             let sugParam = ReactionRateProviderParams.defaultSugarSynthRndParamImpl ((Some e.sugarForward, Some e.sugarBackward), Some e.sugarScarcity)
             //===========================================================
@@ -258,16 +273,19 @@ module Defaults_004_005_000 =
                 [
                     wasteRecyclingParam
                     synthParam |> SynthesisRateParam
-                    sugParam |> SugarSynthesisRateParam
                     destrParam |> DestructionRateParam
                     ligParam |> LigationRateParam
 
-                    if (e.activationScarcity > 0.0) then activationParam
-                    if (e.activationScarcity > 0.0 && e.acCatSynthScarcity > 0.0) then acCatSynthParam
-                    if (e.activationScarcity > 0.0 && e.acCatDestrScarcity > 0.0) then acCatDestrParam
+                    if e.sugarForward > 0.0
+                    then
+                        sugParam |> SugarSynthesisRateParam
 
-                    if (e.activationScarcity > 0.0 && e.acFwdCatLigScarcity > 0.0) then acFwdCatLigParam
-                    if (e.activationScarcity > 0.0 && e.acBkwCatLigScarcity > 0.0) then acBkwCatLigParam
+                        if (e.activationScarcity > 0.0) then activationParam
+                        if (e.activationScarcity > 0.0 && e.acCatSynthScarcity > 0.0) then acCatSynthParam
+                        if (e.activationScarcity > 0.0 && e.acCatDestrScarcity > 0.0) then acCatDestrParam
+
+                        if (e.activationScarcity > 0.0 && e.acFwdCatLigScarcity > 0.0) then acFwdCatLigParam
+                        if (e.activationScarcity > 0.0 && e.acBkwCatLigScarcity > 0.0) then acBkwCatLigParam
                 ]
             //===========================================================
 
