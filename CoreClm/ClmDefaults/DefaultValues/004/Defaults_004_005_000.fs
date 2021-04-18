@@ -206,26 +206,27 @@ module Defaults_004_005_000 =
                 { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 1.5 } // 10
 
                 { d with acCatDestrScarcity = d.acCatDestrScarcity * 2.0 }   // 11
-                { d with acCatDestrScarcity = d.acCatDestrScarcity * 2.5 }   // 12
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 2.5 }   // 12 +
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 13
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 14
 
                 { d with
                          acCatDestrScarcity = d.acCatDestrScarcity * 2.0
-                         acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 15
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 15 +
 
                 { d with sugarForward = 0.0 }                                // 16
 
-//                { DefaultDataParam.defaultValue with sugarForward = 10.0 }
-//                { DefaultDataParam.defaultValue with acCatLigScarcity = 0.000_000_002 }
-//                { DefaultDataParam.defaultValue with sugarForward = 10.0; acCatLigScarcity = 0.000_000_002 }
-//
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.002 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.002; sugarForward = 500.0 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5; sugarForward = 500.0 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.002; acCatLigSimilarity = 0.002_0 }
-//                { DefaultDataParam.defaultValue with sugarScarcity = 0.000_5; acCatLigSimilarity = 0.002_0 }
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.0
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 17
+
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 18
+
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 19
             ]
             |> withRowNumber
 

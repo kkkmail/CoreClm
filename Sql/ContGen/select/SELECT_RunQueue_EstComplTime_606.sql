@@ -9,11 +9,15 @@ set @now = getdate()
 	select
 		runQueueOrder
 		,d.clmDefaultValueId
+		,runQueueId
+		,m.modelDataId
 		,case when callCount > 0 then progress / callCount else 0 end as averageStep
 		,progress
-		,yRelative
 		,callCount
 		,runQueueStatusId
+		,q.maxLastEe
+		,q.maxWeightedAverageAbsEe
+		,yRelative
 		,errorMessage
 		,case 
 			when runQueueStatusId = 3 then q.modifiedOn
@@ -26,7 +30,6 @@ set @now = getdate()
 				when startedOn is not null and progress > 0 then datediff(second, startedOn, @now) / progress / (3600.0 * 24.0) 
 				else null 
 			end as money) as totalRunTime
-		,runQueueId
 		,workerNodeName
 		,q.startedOn
 		,q.modifiedOn
@@ -48,6 +51,8 @@ where
 	--and clmDefaultValueId = 4005000015
 	--and estCompl < dateadd(day, 1, @now)
 	--and totalRunTime > 0.5
+	--and runQueueId = 'B879FA79-63D8-46DD-8353-76F14F03151A'
+	and maxLastEe > 0.2 and progress > 0.01
 order by estCompl desc
 --order by  yRelative desc
 
