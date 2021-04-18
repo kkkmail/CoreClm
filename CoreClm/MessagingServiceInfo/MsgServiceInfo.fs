@@ -83,53 +83,80 @@ module ServiceInfo =
         static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
 
 
+    /// Outer list - all collections must be satisfied, inner list - at least one rule must be satisfied.
+    type EarlyExitRuleCollection = list<list<EarlyExitRule>>
+
+
     type EarlyExitStrategy =
-        | AllOfAny of list<list<EarlyExitRule>> // Outer list - all collections must be satisfied, inner list - at least one rule must be satisfied.
+        | AllOfAny of list<EarlyExitRuleCollection> // Any of the collections can be satisfied
 
         member e.exitEarly d =
             match e with
-            |AllOfAny v ->
-                match v with
-                | [] -> false, None // If outer list is empty, then early exit strategy cannot work.
+            |AllOfAny c ->
+                match c with
+                | [] -> false, None // If there are no collections, then early exit strategy cannot work.
                 | _ ->
-                    let g m1 m2 =
-                        match m1, m2 with
-                        | Some m1, Some m2 -> m1 + ", " + m2 |> Some
-                        | Some m1, None -> Some m1
-                        | None, Some m2 -> Some m2
-                        | None, None -> None
+                    let r v =
+                        match v with
+                        | [] -> false, None // If outer list is empty, then early exit strategy cannot work.
+                        | _ ->
+                            let g m1 m2 =
+                                match m1, m2 with
+                                | Some m1, Some m2 -> m1 + ", " + m2 |> Some
+                                | Some m1, None -> Some m1
+                                | None, Some m2 -> Some m2
+                                | None, None -> None
 
-                    let combineOr (r1, m1) (r2, m2) = r1 || r2, g m1 m2
+                            let combineOr (r1, m1) (r2, m2) = r1 || r2, g m1 m2
 
-                    let foldInner (a : list<EarlyExitRule>) =
-                        a |> List.fold (fun acc b -> combineOr (b.isValid d) acc) (false, None)
+                            let foldInner (a : list<EarlyExitRule>) =
+                                a |> List.fold (fun acc b -> combineOr (b.isValid d) acc) (false, None)
 
-                    let combineAnd (r1, m1) (r2, m2) = r1 && r2, g m1 m2
+                            let combineAnd (r1, m1) (r2, m2) = r1 && r2, g m1 m2
 
-                    let r =
-                        v
-                        |> List.map foldInner
-                        |> List.fold combineAnd (true, None)
+                            let r =
+                                v
+                                |> List.map foldInner
+                                |> List.fold combineAnd (true, None)
 
-                    r
+                            r
+
+                    let chooser v =
+                        let x = r v
+                        match x with
+                        | false, _ -> None
+                        | true, _ -> Some x
+
+                    c |> List.tryPick chooser |> Option.defaultValue (false, None)
 
         static member defaultProgress = 0.05M
         static member defaultMinEe = 0.15
 
+        static member quickProgress = 0.01M
+        static member quickMinEe = 0.25
+
         static member getDefaultValue p e =
             [
                 [
-                    ProgressExceeds p
-                ]
-                [
-                    MaxWeightedAverageAbsEeExceeds e
-                    MaxLastEeExceeds e
-                    MaxAverageEeExceeds e
+                    [
+                        ProgressExceeds p
+                    ]
+                    [
+                        MaxWeightedAverageAbsEeExceeds e
+                        MaxLastEeExceeds e
+                        MaxAverageEeExceeds e
+                    ]
                 ]
             ]
-            |> AllOfAny
 
-            static member defaultValue = EarlyExitStrategy.getDefaultValue EarlyExitStrategy.defaultProgress EarlyExitStrategy.defaultMinEe
+            static member defaultValue =
+                    EarlyExitStrategy.getDefaultValue EarlyExitStrategy.defaultProgress EarlyExitStrategy.defaultMinEe
+                    |> AllOfAny
+
+            static member quickValue =
+                EarlyExitStrategy.getDefaultValue EarlyExitStrategy.quickProgress EarlyExitStrategy.quickMinEe
+                |> List.append (EarlyExitStrategy.getDefaultValue EarlyExitStrategy.defaultProgress EarlyExitStrategy.defaultMinEe)
+                |> AllOfAny
 
 
     type EarlyExitInfo =
@@ -141,7 +168,7 @@ module ServiceInfo =
         static member getDefaultValue f p e =
             {
                 frequency = f
-                earlyExitStrategy = EarlyExitStrategy.getDefaultValue p e
+                earlyExitStrategy = EarlyExitStrategy.getDefaultValue p e |> AllOfAny
             }
 
         static member defaultValue =
