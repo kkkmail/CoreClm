@@ -4,9 +4,9 @@ open System
 open System.IO
 
 let countLines path wildcard recurse =
+    printfn $"Counting '{wildcard}' lines in '{path}'."
 
     let lineCount file =
-
         let isEmpty (line : string) = line.Trim() = ""
         let isComment (line : string) = line.Trim().StartsWith("//")
         let isCode (line : string) = not (isEmpty line) && not (isComment line)
@@ -19,11 +19,12 @@ let countLines path wildcard recurse =
     |> Seq.map lineCount
     |> Seq.sum
 
-let src = __SOURCE_DIRECTORY__
-printfn $"{src}"
 
-let lines = countLines @"C:\GitHub\CoreClm\CoreClm" "*.fs" true
-let modelLines = countLines @"C:\GitHub\CoreClm\CoreClm\Model" "*.fs" true
+let src = __SOURCE_DIRECTORY__
+printfn $"Script folder: '{src}'."
+
+let lines = countLines @$"{src}\.." "*.fs" true
+let modelLines = countLines @$"{src}\..\Model" "*.fs" true
 
 printfn $"lines = {lines}, modelLines = {modelLines}, actual = {lines - modelLines}."
 
