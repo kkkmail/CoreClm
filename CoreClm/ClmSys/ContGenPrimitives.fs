@@ -14,6 +14,10 @@ module ContGenPrimitives =
     let DefaultMinEe = 0.000_1
 
 
+    [<Literal>]
+    let DefaultAbsoluteTolerance = 1.0e-08
+
+
     type ContGenServiceName =
         | ContGenServiceName of ServiceName
 
@@ -27,6 +31,13 @@ module ContGenPrimitives =
 
         member this.value = let (MinUsefulEe v) = this in v
         static member defaultValue = MinUsefulEe DefaultMinEe
+
+
+    type AbsoluteTolerance =
+        | AbsoluteTolerance of double
+
+        member this.value = let (AbsoluteTolerance v) = this in v
+        static member defaultValue = AbsoluteTolerance DefaultAbsoluteTolerance
 
 
     type ModelDataId =

@@ -1,7 +1,7 @@
 ﻿namespace OdeSolver
 
 open System
-open System.Threading
+open ClmSys.ContGenPrimitives
 open Softellect.OdePackInterop
 open Microsoft.FSharp.Core
 open Clm.ChartData
@@ -22,21 +22,11 @@ module Solver =
             startTime : double
             endTime : double
             stepSize : double
-            eps : double
+            absoluteTolerance : AbsoluteTolerance
             noOfOutputPoints : int
             noOfProgressPoints : int
+            noOfChartDetailedPoints : int option
         }
-
-        static member defaultValue startTime endTime op pp =
-            {
-                startTime = startTime
-                endTime = endTime
-                stepSize = 0.1
-                eps = 0.000_01
-                noOfOutputPoints = op
-                noOfProgressPoints = pp
-            }
-
 
     type OdeResult =
         {
@@ -88,27 +78,23 @@ module Solver =
 
     type NSolveParam =
         {
+            odeParams : OdeParams
             solverType : SolverType
             modelDataId : Guid
             runQueueId : RunQueueId
-            tStart : double
-            tEnd : double
             calculationData : ModelCalculationData
             initialValues : double[]
             progressCallBack : RunQueueStatus option -> ProgressData -> unit
             chartCallBack : ChartSliceData -> unit
             getChartSliceData : double -> double[] -> ChartSliceData
-            noOfOutputPoints : int
-            noOfProgressPoints : int
-            noOfChartDetailedPoints : int option
             checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
         }
 
-        member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
+//        member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
 
 
-    let calculateProgress n t = (t - n.tStart) / (n.tEnd - n.tStart)
+    let calculateProgress n t = (t - n.odeParams.startTime) / (n.odeParams.endTime - n.odeParams.startTime)
 
 
     let estCompl n t s =
@@ -165,7 +151,7 @@ module Solver =
 
     let calculateNextProgress n t =
         let r =
-            match n.noOfProgressPoints with
+            match n.odeParams.noOfProgressPoints with
             | np when np <= 0 -> 1.0
             | np -> min 1.0 ((((calculateProgress n t) * (double np) |> floor) + 1.0) / (double np))
         printDebug $"calculateNextProgress: r = {r}."
@@ -173,7 +159,7 @@ module Solver =
 
     let calculateNextChartProgress n t =
         let r =
-            match n.noOfOutputPoints with
+            match n.odeParams.noOfOutputPoints with
             | np when np <= 0 -> 1.0
             | np -> min 1.0 ((((calculateProgress n t) * (double np) |> floor) + 1.0) / (double np))
         printDebug $"calculateNextChartProgress: r = {r}."
@@ -196,7 +182,7 @@ module Solver =
                 {
                     maxEe = max lastEeData.maxEe csd.maxEe
                     maxAverageEe = (lastEeData.maxAverageEe * (double eeCount) + csd.maxEe) / ((double eeCount) + 1.0)
-                    maxWeightedAverageAbsEe = if t > n.tStart then (lastEeData.maxWeightedAverageAbsEe * tSum + csd.maxEe * t) / (tSum + t) else 0.0
+                    maxWeightedAverageAbsEe = if t > n.odeParams.startTime then (lastEeData.maxWeightedAverageAbsEe * tSum + csd.maxEe * t) / (tSum + t) else 0.0
                     maxLastEe = csd.maxEe
                 }
 
@@ -324,11 +310,11 @@ module Solver =
     /// F# wrapper around various ODE solvers.
     let nSolve (n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
-        let p = OdeParams.defaultValue n.tStart n.tEnd n.noOfOutputPoints n.noOfProgressPoints
+        let p = n.odeParams
         let callBackUseNonNegative t x = callBackUseNonNegative n t x
         firstChartSliceData <- calculateChartSliceData n 0.0 n.initialValues
 
-        calculateProgressData n n.tStart n.initialValues |> notifyProgress n (Some InProgressRunQueue)
+        calculateProgressData n n.odeParams.startTime n.initialValues |> notifyProgress n (Some InProgressRunQueue)
 
         match n.solverType with
         | AlgLib CashCarp ->
@@ -341,7 +327,7 @@ module Solver =
 
             let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
             let d = alglib.ndimensional_ode_rp (fun x t y _ -> cashCarpDerivative x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
-            let mutable s = alglib.odesolverrkck(n.initialValues, x, p.eps, p.stepSize)
+            let mutable s = alglib.odesolverrkck(n.initialValues, x, p.absoluteTolerance.value, p.stepSize)
             do alglib.odesolversolve(s, d, null)
             let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)
             let xEnd = yTbl.[nt - 1, *]
@@ -358,9 +344,26 @@ module Solver =
             match nc with
             | UseNonNegative ->
                 let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.calculationData.modelIndices)
-                OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
+                OdeSolver.RunFSharp(
+                        (fun() -> interop()),
+                        m.value,
+                        i.value,
+                        p.startTime,
+                        p.endTime,
+                        n.initialValues,
+                        (fun r e -> mapResults n r e),
+                        p.absoluteTolerance.value)
+
             | DoNotCorrect ->
                 let needsCallBack t = needsCallBack n t
                 let callBack c t x = callBackDoNotCorrect n c t x
                 let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.calculationData.modelIndices)
-                OdeSolver.RunFSharp((fun() -> interop()), m.value, i.value, p.startTime, p.endTime, n.initialValues, (fun r e -> mapResults n r e))
+                OdeSolver.RunFSharp(
+                        (fun() -> interop()),
+                        m.value,
+                        i.value,
+                        p.startTime,
+                        p.endTime,
+                        n.initialValues,
+                        (fun r e -> mapResults n r e),
+                        p.absoluteTolerance.value)

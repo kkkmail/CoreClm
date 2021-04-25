@@ -20,7 +20,6 @@ open ClmSys.GeneralData
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
 open ClmSys.ContGenData
@@ -74,12 +73,12 @@ module ServiceInfo =
     let mutable private callCount = -1
 
 
-    let getServiceState (getState : unit -> (list<RunQueue> * UnitResult)) =
+    let getServiceState (getState : unit -> list<RunQueue> * UnitResult) =
         if Interlocked.Increment(&callCount) = 0
         then
             try
                 printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
-                let (q, e) = getState()
+                let q, _ = getState()
                 let r0 = q |> List.sortBy (fun e -> e.progressData.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
                 let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
                 printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
@@ -123,6 +122,7 @@ module ServiceInfo =
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
     let dictionaryUpdateType = ConfigKey "DictionaryUpdateType"
+    let absoluteTolerance = ConfigKey "AbsoluteTolerance"
 
 
     let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
@@ -209,6 +209,7 @@ module ServiceInfo =
                     provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
                     provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
                     provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
+                    provider.trySet absoluteTolerance w.contGenInfo.absoluteTolerance.value |> ignore
                     provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
 
                     provider.trySave() |> Rop.bindError toErr
@@ -357,6 +358,14 @@ module ServiceInfo =
                         match provider.tryGet DictionaryUpdateType.tryDeserialize dictionaryUpdateType with
                         | Ok (Some v) -> v
                         | _ -> AllRateData
+
+                    absoluteTolerance =
+                        match provider.tryGetDouble absoluteTolerance with
+                        | Ok (Some t) -> t |> AbsoluteTolerance
+                        | Error e ->
+                            printfn $"loadContGenSettings: {absoluteTolerance}: {e}."
+                            AbsoluteTolerance.defaultValue
+                        | _ -> AbsoluteTolerance.defaultValue
                 }
             | _ ->
                 {
@@ -366,10 +375,11 @@ module ServiceInfo =
                     earlyExitCheckFreq = EarlyExitCheckFreq.defaultValue
                     collisionData = CollisionData.defaultValue
                     dictionaryUpdateType = AllRateData
+                    absoluteTolerance = AbsoluteTolerance.defaultValue
                 }
 
-        let (contGenSvcInfo, contGenServiceCommunicationType) = loadContGenServiceSettings providerRes
-        let (messagingSvcInfo, messagingServiceCommunicationType) = loadMessagingSettings providerRes
+        let contGenSvcInfo, contGenServiceCommunicationType = loadContGenServiceSettings providerRes
+        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
 
         let w =
             {

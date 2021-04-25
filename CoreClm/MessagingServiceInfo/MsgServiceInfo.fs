@@ -183,6 +183,7 @@ module ServiceInfo =
             minUsefulEe : MinUsefulEe
             noOfProgressPoints : int
             earlyExitInfoOpt : EarlyExitInfo option
+            absoluteTolerance : AbsoluteTolerance
         }
 
         static member defaultValue =
@@ -190,6 +191,7 @@ module ServiceInfo =
                 minUsefulEe = MinUsefulEe.defaultValue
                 noOfProgressPoints = defaultNoOfProgressPoints
                 earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
+                absoluteTolerance = AbsoluteTolerance.defaultValue
             }
 
 
@@ -364,7 +366,7 @@ module ServiceInfo =
 
     let loadMsgServiceSettings() =
         let providerRes = AppSettingsProvider.tryCreate appSettingsFile
-        let (messagingSvcInfo, messagingServiceCommunicationType) = loadMessagingSettings providerRes
+        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
 
         let expirationTimeInMinutes =
             match providerRes with
