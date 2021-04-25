@@ -363,7 +363,7 @@ module ServiceInfo =
                         match provider.tryGetDouble absoluteTolerance with
                         | Ok (Some t) -> t |> AbsoluteTolerance
                         | Error e ->
-                            printfn $"loadContGenSettings: {absoluteTolerance}: {e}."
+                            printfn $"loadContGenSettings: {absoluteTolerance}, error: {e}."
                             AbsoluteTolerance.defaultValue
                         | _ -> AbsoluteTolerance.defaultValue
                 }
