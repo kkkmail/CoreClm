@@ -84,15 +84,18 @@ module ServiceInfo =
 
 
     /// Outer list - all collections must be satisfied, inner list - at least one rule must be satisfied.
-    type EarlyExitRuleCollection = list<list<EarlyExitRule>>
+    type EarlyExitRuleCollection =
+        | EarlyExitRuleCollection of list<list<EarlyExitRule>>
+
+        member e.value = let (EarlyExitRuleCollection v) = e in v
 
 
     type EarlyExitStrategy =
-        | AllOfAny of list<EarlyExitRuleCollection> // Any of the collections can be satisfied
+        | AnyRuleCollection of list<EarlyExitRuleCollection> // Any of the collections can be satisfied.
 
         member e.exitEarly d =
             match e with
-            |AllOfAny c ->
+            | AnyRuleCollection c ->
                 match c with
                 | [] -> false, None // If there are no collections, then early exit strategy cannot work.
                 | _ ->
@@ -121,7 +124,7 @@ module ServiceInfo =
 
                             r
 
-                    let chooser v =
+                    let chooser (EarlyExitRuleCollection v) =
                         let x = r v
                         match x with
                         | false, _ -> None
@@ -129,34 +132,44 @@ module ServiceInfo =
 
                     c |> List.tryPick chooser |> Option.defaultValue (false, None)
 
-        static member defaultProgress = 0.05M
-        static member defaultMinEe = 0.15
-
         static member quickProgress = 0.01M
-        static member quickMinEe = 0.25
+        static member quickMinEe = 0.30
 
-        static member getDefaultValue p e =
+        static member standardProgress = 0.05M
+        static member standardMinEe = 0.20
+
+        static member slowProgress = 0.10M
+        static member slowMinEe = 0.15
+
+        static member getValue p e =
             [
                 [
-                    [
-                        ProgressExceeds p
-                    ]
-                    [
-                        MaxWeightedAverageAbsEeExceeds e
-                        MaxLastEeExceeds e
-                        MaxAverageEeExceeds e
-                    ]
+                    ProgressExceeds p
+                ]
+                [
+                    MaxWeightedAverageAbsEeExceeds e
+                    MaxLastEeExceeds e
+                    MaxAverageEeExceeds e
                 ]
             ]
-
-            static member defaultValue =
-                    EarlyExitStrategy.getDefaultValue EarlyExitStrategy.defaultProgress EarlyExitStrategy.defaultMinEe
-                    |> AllOfAny
+            |> EarlyExitRuleCollection
 
             static member quickValue =
-                EarlyExitStrategy.getDefaultValue EarlyExitStrategy.quickProgress EarlyExitStrategy.quickMinEe
-                |> List.append (EarlyExitStrategy.getDefaultValue EarlyExitStrategy.defaultProgress EarlyExitStrategy.defaultMinEe)
-                |> AllOfAny
+                    EarlyExitStrategy.getValue EarlyExitStrategy.quickProgress EarlyExitStrategy.quickMinEe
+
+            static member standardValue =
+                    EarlyExitStrategy.getValue EarlyExitStrategy.standardProgress EarlyExitStrategy.standardMinEe
+
+            static member slowValue =
+                    EarlyExitStrategy.getValue EarlyExitStrategy.slowProgress EarlyExitStrategy.slowMinEe
+
+            static member defaultValue =
+                [
+                    EarlyExitStrategy.quickValue
+                    EarlyExitStrategy.standardValue
+                    EarlyExitStrategy.slowValue
+                ]
+                |> AnyRuleCollection
 
 
     type EarlyExitInfo =
@@ -164,12 +177,6 @@ module ServiceInfo =
             frequency : EarlyExitCheckFrequency
             earlyExitStrategy : EarlyExitStrategy
         }
-
-        static member getDefaultValue f p e =
-            {
-                frequency = f
-                earlyExitStrategy = EarlyExitStrategy.getDefaultValue p e |> AllOfAny
-            }
 
         static member defaultValue =
             {
