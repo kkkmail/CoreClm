@@ -3,8 +3,8 @@ go
 
 -- Calculates how often the symmetry is broken for all processed default sets.
 declare @maxWeightedAverageAbsEe float, @maxLastEe float, @runeTimeEst float
-set @maxWeightedAverageAbsEe = 0.05
-set @maxLastEe = 0.05
+set @maxLastEe = 0.10
+set @maxWeightedAverageAbsEe = 0.10
 set @runeTimeEst = 1.60
 
 ; with

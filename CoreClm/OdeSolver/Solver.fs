@@ -216,19 +216,16 @@ module Solver =
         printDebug $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
         let p = calculateProgressData n t x
 
+        let withMessage s m =
+            match s with
+            | Some v -> { p with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some }
+            | None ->   { p with errorMessageOpt = m |> ErrorMessage |> Some }
+
         match v with
+        | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progress * 100.0}%% progress." |> withMessage s
         | CancelWithResults s ->
-            let m = $"The run queue was cancelled at: %.2f{p.progress * 100.0}%% progress."
-
-            match s with
-            | Some v -> { p with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some }
-            | None -> { p with errorMessageOpt = m |> ErrorMessage |> Some }
-        | AbortCalculation s ->
-            let m = $"The run queue was aborted at: %.2f{p.progress * 100.0}%% progress."
-
-            match s with
-            | Some v -> { p with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some }
-            | None -> { p with errorMessageOpt = m |> ErrorMessage |> Some }
+            $"The run queue was cancelled at: %.2f{p.progress * 100.0}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
+            |> withMessage s
 
 
     let mapResults n (solverResult : SolverResult) (elapsed : TimeSpan) =
