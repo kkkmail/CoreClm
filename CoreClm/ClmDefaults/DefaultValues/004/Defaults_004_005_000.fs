@@ -214,7 +214,11 @@ module Defaults_004_005_000 =
                          acCatDestrScarcity = d.acCatDestrScarcity * 2.0
                          acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 15 +
 
+                // ===============================================================
+
                 { d with sugarForward = 0.0 }                                // 16
+
+                // ===============================================================
 
                 { d with
                          acCatDestrScarcity = d.acCatDestrScarcity * 2.0
@@ -227,6 +231,19 @@ module Defaults_004_005_000 =
                 { d with
                          acCatDestrScarcity = d.acCatDestrScarcity * 2.5
                          acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 19
+
+                // ===============================================================
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.5 }   // 20
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.4 }   // 21
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0 }   // 22
+
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.5 }   // 23
+
+                // ===============================================================
+
             ]
             |> withRowNumber
 
