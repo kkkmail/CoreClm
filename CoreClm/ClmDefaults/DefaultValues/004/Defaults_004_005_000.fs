@@ -261,6 +261,12 @@ module Defaults_004_005_000 =
                 { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.6 } // 28
                 { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.6 } // 29
 
+                { d with
+                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 1.5
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.8 } // 30
+
                 // ===============================================================
             ]
             |> withRowNumber
