@@ -4,7 +4,7 @@ go
 -- Calculates how often the symmetry is broken for all processed default sets.
 declare @maxWeightedAverageAbsEe float, @maxLastEe float, @runeTimeEst float
 set @maxLastEe = 0.10
-set @maxWeightedAverageAbsEe = 0.10
+set @maxWeightedAverageAbsEe = @maxLastEe
 set @runeTimeEst = 1.60
 
 ; with
