@@ -15,9 +15,14 @@ let countLines path wildcard recurse =
         |> Seq.filter isCode
         |> Seq.length
 
-    Directory.EnumerateFiles(path, wildcard, if recurse then SearchOption.AllDirectories else SearchOption.TopDirectoryOnly)
-    |> Seq.map lineCount
-    |> Seq.sum
+    try
+        Directory.EnumerateFiles(path, wildcard, if recurse then SearchOption.AllDirectories else SearchOption.TopDirectoryOnly)
+        |> Seq.map lineCount
+        |> Seq.sum
+    with
+    | e ->
+        printfn $"Exception: '{e}'."
+        -1
 
 
 let src = __SOURCE_DIRECTORY__
