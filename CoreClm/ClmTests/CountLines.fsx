@@ -25,6 +25,9 @@ printfn $"Script folder: '{src}'."
 
 let lines = countLines @$"{src}\.." "*.fs" true
 let modelLines = countLines @$"{src}\..\Model" "*.fs" true
-
 printfn $"lines = {lines}, modelLines = {modelLines}, actual = {lines - modelLines}."
 
+let propulsionLines = countLines @"C:\GitHub\propulsion" "*.fs" true
+let equinoxLines = countLines @"C:\GitHub\equinox"  "*.fs" true
+let softellectLines = countLines @"C:\GitHub\Softellect"  "*.fs" true
+printfn $"propulsionLines = {propulsionLines}, equinoxLines = {equinoxLines}, softellectLines = {softellectLines}."
