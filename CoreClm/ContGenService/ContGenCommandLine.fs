@@ -199,6 +199,7 @@ module SvcCommandLine =
                                             Some { EarlyExitInfo.defaultValue with
                                                     frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
 
+                                        absoluteTolerance = w.contGenInfo.absoluteTolerance
                                     }
                             }
 

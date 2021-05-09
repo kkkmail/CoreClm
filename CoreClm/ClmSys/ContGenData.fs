@@ -36,6 +36,7 @@ module ContGenData =
             earlyExitCheckFreq : EarlyExitCheckFreq
             collisionData : CollisionData
             dictionaryUpdateType : DictionaryUpdateType
+            absoluteTolerance : AbsoluteTolerance
         }
 
 

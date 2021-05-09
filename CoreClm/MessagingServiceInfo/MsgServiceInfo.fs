@@ -83,40 +83,65 @@ module ServiceInfo =
         static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
 
 
+    /// Outer list - all collections must be satisfied, inner list - at least one rule must be satisfied.
+    type EarlyExitRuleCollection =
+        | EarlyExitRuleCollection of list<list<EarlyExitRule>>
+
+        member e.value = let (EarlyExitRuleCollection v) = e in v
+
+
     type EarlyExitStrategy =
-        | AllOfAny of list<list<EarlyExitRule>> // Outer list - all collections must be satisfied, inner list - at least one rule must be satisfied.
+        | AnyRuleCollection of list<EarlyExitRuleCollection> // Any of the collections can be satisfied.
 
         member e.exitEarly d =
             match e with
-            |AllOfAny v ->
-                match v with
-                | [] -> false, None // If outer list is empty, then early exit strategy cannot work.
+            | AnyRuleCollection c ->
+                match c with
+                | [] -> false, None // If there are no collections, then early exit strategy cannot work.
                 | _ ->
-                    let g m1 m2 =
-                        match m1, m2 with
-                        | Some m1, Some m2 -> m1 + ", " + m2 |> Some
-                        | Some m1, None -> Some m1
-                        | None, Some m2 -> Some m2
-                        | None, None -> None
+                    let r v =
+                        match v with
+                        | [] -> false, None // If outer list is empty, then early exit strategy cannot work.
+                        | _ ->
+                            let g m1 m2 =
+                                match m1, m2 with
+                                | Some m1, Some m2 -> m1 + ", " + m2 |> Some
+                                | Some m1, None -> Some m1
+                                | None, Some m2 -> Some m2
+                                | None, None -> None
 
-                    let combineOr (r1, m1) (r2, m2) = r1 || r2, g m1 m2
+                            let combineOr (r1, m1) (r2, m2) = r1 || r2, g m1 m2
 
-                    let foldInner (a : list<EarlyExitRule>) =
-                        a |> List.fold (fun acc b -> combineOr (b.isValid d) acc) (false, None)
+                            let foldInner (a : list<EarlyExitRule>) =
+                                a |> List.fold (fun acc b -> combineOr (b.isValid d) acc) (false, None)
 
-                    let combineAnd (r1, m1) (r2, m2) = r1 && r2, g m1 m2
+                            let combineAnd (r1, m1) (r2, m2) = r1 && r2, g m1 m2
 
-                    let r =
-                        v
-                        |> List.map foldInner
-                        |> List.fold combineAnd (true, None)
+                            let r =
+                                v
+                                |> List.map foldInner
+                                |> List.fold combineAnd (true, None)
 
-                    r
+                            r
 
-        static member defaultProgress = 0.05M
-        static member defaultMinEe = 0.15
+                    let chooser (EarlyExitRuleCollection v) =
+                        let x = r v
+                        match x with
+                        | false, _ -> None
+                        | true, _ -> Some x
 
-        static member getDefaultValue p e =
+                    c |> List.tryPick chooser |> Option.defaultValue (false, None)
+
+        static member quickProgress = 0.01M
+        static member quickMinEe = 0.30
+
+        static member standardProgress = 0.05M
+        static member standardMinEe = 0.20
+
+        static member slowProgress = 0.10M
+        static member slowMinEe = 0.15
+
+        static member getValue p e =
             [
                 [
                     ProgressExceeds p
@@ -127,9 +152,24 @@ module ServiceInfo =
                     MaxAverageEeExceeds e
                 ]
             ]
-            |> AllOfAny
+            |> EarlyExitRuleCollection
 
-            static member defaultValue = EarlyExitStrategy.getDefaultValue EarlyExitStrategy.defaultProgress EarlyExitStrategy.defaultMinEe
+            static member quickValue =
+                    EarlyExitStrategy.getValue EarlyExitStrategy.quickProgress EarlyExitStrategy.quickMinEe
+
+            static member standardValue =
+                    EarlyExitStrategy.getValue EarlyExitStrategy.standardProgress EarlyExitStrategy.standardMinEe
+
+            static member slowValue =
+                    EarlyExitStrategy.getValue EarlyExitStrategy.slowProgress EarlyExitStrategy.slowMinEe
+
+            static member defaultValue =
+                [
+                    EarlyExitStrategy.quickValue
+                    EarlyExitStrategy.standardValue
+                    EarlyExitStrategy.slowValue
+                ]
+                |> AnyRuleCollection
 
 
     type EarlyExitInfo =
@@ -137,12 +177,6 @@ module ServiceInfo =
             frequency : EarlyExitCheckFrequency
             earlyExitStrategy : EarlyExitStrategy
         }
-
-        static member getDefaultValue f p e =
-            {
-                frequency = f
-                earlyExitStrategy = EarlyExitStrategy.getDefaultValue p e
-            }
 
         static member defaultValue =
             {
@@ -156,6 +190,7 @@ module ServiceInfo =
             minUsefulEe : MinUsefulEe
             noOfProgressPoints : int
             earlyExitInfoOpt : EarlyExitInfo option
+            absoluteTolerance : AbsoluteTolerance
         }
 
         static member defaultValue =
@@ -163,6 +198,7 @@ module ServiceInfo =
                 minUsefulEe = MinUsefulEe.defaultValue
                 noOfProgressPoints = defaultNoOfProgressPoints
                 earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
+                absoluteTolerance = AbsoluteTolerance.defaultValue
             }
 
 
@@ -337,7 +373,7 @@ module ServiceInfo =
 
     let loadMsgServiceSettings() =
         let providerRes = AppSettingsProvider.tryCreate appSettingsFile
-        let (messagingSvcInfo, messagingServiceCommunicationType) = loadMessagingSettings providerRes
+        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
 
         let expirationTimeInMinutes =
             match providerRes with

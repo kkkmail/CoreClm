@@ -4,9 +4,9 @@ open System
 open System.IO
 
 let countLines path wildcard recurse =
+    printfn $"Counting '{wildcard}' lines in '{path}'."
 
     let lineCount file =
-
         let isEmpty (line : string) = line.Trim() = ""
         let isComment (line : string) = line.Trim().StartsWith("//")
         let isCode (line : string) = not (isEmpty line) && not (isComment line)
@@ -15,15 +15,24 @@ let countLines path wildcard recurse =
         |> Seq.filter isCode
         |> Seq.length
 
-    Directory.EnumerateFiles(path, wildcard, if recurse then SearchOption.AllDirectories else SearchOption.TopDirectoryOnly)
-    |> Seq.map lineCount
-    |> Seq.sum
+    try
+        Directory.EnumerateFiles(path, wildcard, if recurse then SearchOption.AllDirectories else SearchOption.TopDirectoryOnly)
+        |> Seq.map lineCount
+        |> Seq.sum
+    with
+    | e ->
+        printfn $"Exception: '{e}'."
+        -1
+
 
 let src = __SOURCE_DIRECTORY__
-printfn $"{src}"
+printfn $"Script folder: '{src}'."
 
-let lines = countLines @"C:\GitHub\CoreClm\CoreClm" "*.fs" true
-let modelLines = countLines @"C:\GitHub\CoreClm\CoreClm\Model" "*.fs" true
-
+let lines = countLines @$"{src}\.." "*.fs" true
+let modelLines = countLines @$"{src}\..\Model" "*.fs" true
 printfn $"lines = {lines}, modelLines = {modelLines}, actual = {lines - modelLines}."
 
+let propulsionLines = countLines @"C:\GitHub\propulsion" "*.fs" true
+let equinoxLines = countLines @"C:\GitHub\equinox"  "*.fs" true
+let softellectLines = countLines @"C:\GitHub\Softellect"  "*.fs" true
+printfn $"propulsionLines = {propulsionLines}, equinoxLines = {equinoxLines}, softellectLines = {softellectLines}."

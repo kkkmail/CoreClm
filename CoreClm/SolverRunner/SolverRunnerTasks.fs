@@ -151,19 +151,25 @@ module SolverRunnerTasks =
                 check
 
         {
+            odeParams =
+                {
+                    startTime = 0.0
+                    endTime = (double w.runningProcessData.commandLineParams.tEnd)
+                    stepSize = 0.1
+                    absoluteTolerance = w.controlData.absoluteTolerance
+                    noOfOutputPoints = defaultNoOfOutputPoints
+                    noOfProgressPoints = d.noOfProgressPoints
+                    noOfChartDetailedPoints = Some 10
+                }
+
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
             modelDataId = d.modelDataId.value
             runQueueId = w.runningProcessData.runQueueId
-            tStart = 0.0
-            tEnd = (double w.runningProcessData.commandLineParams.tEnd)
             calculationData = d.modelData.modelData.modelBinaryData.calculationData
             initialValues = d.getInitValues d.y0
             progressCallBack = d.progressCallBack
             chartCallBack = d.updateChart
             getChartSliceData = d.getChartSliceData
-            noOfOutputPoints = defaultNoOfOutputPoints
-            noOfProgressPoints = d.noOfProgressPoints
-            noOfChartDetailedPoints = Some 10
             checkCancellation = checkCancellation
             checkFreq = d.checkFreq
         }
