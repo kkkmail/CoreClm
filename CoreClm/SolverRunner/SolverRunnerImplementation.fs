@@ -145,7 +145,7 @@ module SolverRunnerImplementation =
 
             match tryLoadRunQueue c q, tryLoadWorkerNodeSettings() with
             | Ok w, Some s ->
-                match checkRunning q s.workerNodeInfo.noOfCores with
+                match checkRunning s.workerNodeInfo.noOfCores q with
                 | CanRun ->
                     match tryStartRunQueue c q with
                     | Ok() ->

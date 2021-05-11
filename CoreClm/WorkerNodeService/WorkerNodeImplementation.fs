@@ -94,18 +94,20 @@ module ServiceImplementation =
         s, result
 
 
+    /// TODO kk:20210511 - At this point having a "state" for a worker node seems totally useless
+    /// because now we attempt to restart everything on a [lengthy] timer event. This is to account for NOT
+    /// started solvers due to node overload.
     let onStart (proxy : OnStartProxy) s =
+        let g() =
+            match proxy.loadAllActiveRunQueueId() with
+            | Ok m -> m |> List.map proxy.onRunModel |> foldUnitResults
+            | Error e -> Error e
+
         match s.workerNodeState with
         | NotStartedWorkerNode ->
             let w = { s with workerNodeState = StartedWorkerNode }
-
-            let result =
-                match proxy.loadAllActiveRunQueueId() with
-                | Ok m -> m |> List.map proxy.onRunModel |> foldUnitResults
-                | Error e -> Error e
-
-            w, result
-        | StartedWorkerNode -> s, Ok()
+            w, g()
+        | StartedWorkerNode -> s, g()
 
 
     let onProcessMessage (proxy : OnProcessMessageProxy) (m : Message) =
@@ -240,6 +242,11 @@ module ServiceImplementation =
             | Ok() ->
                 let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger w.getMessages "WorkerNodeRunner - getMessages")
                 do h.start()
+
+                // Attempt to restart solvers in case they did not start (due to whatever reason) or got killed.
+                let s = ClmEventHandler(ClmEventHandlerInfo.oneHourValue logger w.start "WorkerNodeRunner - start")
+                do s.start()
+
                 Ok w
             | Error e -> Error e
         | true ->
@@ -256,8 +263,8 @@ module ServiceImplementation =
             let addError f e = ((f |> WorkerNodeServiceErr) + e) |> Error
             let c = getWorkerNodeSvcConnectionString
 
-            let sr (q : RunQueueId) : UnitResult =
-                match runSolverProcess q with
+            let sr n (q : RunQueueId) : UnitResult =
+                match tryRunSolverProcess n q with
                 | Some _ -> Ok()
                 | None -> q |> CannotRunModelErr |> OnRunModelErr |> WorkerNodeErr |> Error
 
@@ -287,7 +294,7 @@ module ServiceImplementation =
                         let n =
                             {
                                 workerNodeServiceInfo = i
-                                workerNodeProxy = WorkerNodeProxy.create c sr
+                                workerNodeProxy = WorkerNodeProxy.create c (sr i.workerNodeInfo.noOfCores)
                                 messageProcessorProxy = messagingClient.messageProcessorProxy
                             }
                             |> createServiceImpl logger
