@@ -14,8 +14,8 @@ open Clm.CalculationData
 
 module Solver =
 
-    let private printDebug s = printfn $"{s}"
-//    let private printDebug s = ()
+//    let private printDebug s = printfn $"{s}"
+    let private printDebug s = ()
 
     type OdeParams =
         {
@@ -115,6 +115,9 @@ module Solver =
     let mutable private tSum = 0.0
     let mutable private eeCount = 0
     let mutable calculated = false
+
+    let printProgressInfo t =
+        printfn $"t = {t}, progress = {progress}, eeData = %0A{lastEeData}."
 
 
     let shouldNotifyByCallCount() =
@@ -265,12 +268,15 @@ module Solver =
             notifyChart n t x
             nextProgress <- calculateNextProgress n t
             nextChartProgress <- calculateNextChartProgress n t
+            printProgressInfo t
         | true, false ->
             calculateProgressData n t x |> notifyProgress n None
             nextProgress <- calculateNextProgress n t
+            printProgressInfo t
         | false, true ->
             notifyChart n t x
             nextChartProgress <- calculateNextChartProgress n t
+            printProgressInfo t
         | false, false -> ()
 
 

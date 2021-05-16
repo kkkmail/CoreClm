@@ -2,6 +2,9 @@ use clm607
 go
 
 -- Calculates how often the symmetry is broken for all processed default sets.
+declare @startRunQueueOrder bigint
+set @startRunQueueOrder = 21
+
 declare @maxWeightedAverageAbsEe float, @maxLastEe float, @runeTimeEst float
 set @maxLastEe = 0.10
 set @maxWeightedAverageAbsEe = @maxLastEe
@@ -25,6 +28,7 @@ a as
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
 		inner join ModelData m on m.clmTaskId = t.clmTaskId
 		inner join RunQueue q on q.modelDataId = m.modelDataId
+		where q.runQueueOrder >= @startRunQueueOrder
 	group by d.clmDefaultValueId, t.numberOfAminoAcids, t.maxPeptideLength
 ),
 b as
@@ -45,7 +49,7 @@ b as
 		inner join ModelData m on q.modelDataId = m.modelDataId
 		inner join ClmTask t on m.clmTaskId = t.clmTaskId
 		inner join ClmDefaultValue d on t.clmDefaultValueId = d.clmDefaultValueId
-	where isnull(q.maxEe, 0) <= 1 and q.runQueueStatusId = 3
+	where isnull(q.maxEe, 0) <= 1 and q.runQueueStatusId = 3 and q.runQueueOrder >= @startRunQueueOrder
 ),
 c as
 (
