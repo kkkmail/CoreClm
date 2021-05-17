@@ -103,6 +103,7 @@ module Solver =
         | None -> EmptyString
 
 
+    let mutable private lastNotifiedT = 0.0
     let mutable private progress = 0.0
     let mutable private nextProgress = 0.0
     let mutable private nextChartProgress = 0.0
@@ -123,13 +124,15 @@ module Solver =
     let shouldNotifyByCallCount() =
         let r =
             [
-                callCount <= 100L && callCount % 5L = 0L
+                callCount <= 10L
+                callCount > 10L && callCount <= 100L && callCount % 5L = 0L
                 callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
                 callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
                 callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
                 callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
                 callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
-                callCount > 10_000_000L && callCount % 5_000_000L = 0L
+                callCount > 10_000_000L && callCount <= 100_000_000L && callCount % 5_000_000L = 0L
+                callCount > 100_000_000L && callCount % 50_000_000L = 0L
             ]
             |> List.tryFind id
             |> Option.defaultValue false
@@ -170,7 +173,10 @@ module Solver =
 
     let shouldNotifyProgress n t = shouldNotifyByCallCount() || shouldNotifyByNextProgress n t
     let shouldNotifyChart n t = shouldNotifyByCallCount() || shouldNotifyByNextChartProgress n t
-    let shouldNotify n t = shouldNotifyProgress n t || shouldNotifyChart n t
+
+
+    /// Don't notify twice for the same value of t. This could happen during diagonal Jacobian evaluation.
+    let shouldNotify n t = (shouldNotifyProgress n t || shouldNotifyChart n t) && (lastNotifiedT <> t)
 
 
     let calculateChartSliceData n t x =
@@ -262,21 +268,25 @@ module Solver =
         printDebug $"callBack: Called with t = {t}."
         calculated <- false
 
+        let g() =
+            lastNotifiedT <- t
+            printProgressInfo t
+
         match shouldNotifyProgress n t, shouldNotifyChart n t with
         | true, true ->
             calculateProgressData n t x |> notifyProgress n None
             notifyChart n t x
             nextProgress <- calculateNextProgress n t
             nextChartProgress <- calculateNextChartProgress n t
-            printProgressInfo t
+            g()
         | true, false ->
             calculateProgressData n t x |> notifyProgress n None
             nextProgress <- calculateNextProgress n t
-            printProgressInfo t
+            g()
         | false, true ->
             notifyChart n t x
             nextChartProgress <- calculateNextChartProgress n t
-            printProgressInfo t
+            g()
         | false, false -> ()
 
 
