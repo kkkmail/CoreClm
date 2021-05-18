@@ -279,6 +279,17 @@ module Defaults_004_005_000 =
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 1.3 }   // 38
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 1.4 }   // 39
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 2.0 }   // 40
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 2.5 }   // 41
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 3.0 }   // 42
+
+                // ===============================================================
+
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.6 }   // 43
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.8 }   // 44
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 1.2 }   // 45
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 3.0 }   // 46
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 4.0 }   // 47
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 5.0 }   // 48
 
                 // ===============================================================
             ]
