@@ -291,9 +291,34 @@ module Defaults_004_005_000 =
                 { d with acCatDestrScarcity = d.acCatDestrScarcity * 4.0 }   // 47
                 { d with acCatDestrScarcity = d.acCatDestrScarcity * 5.0 }   // 48
 
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.0 }   // 49
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.1 }   // 50
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.2 }   // 51
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.3 }   // 52
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.4 }   // 53
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.5 }   // 54
+
+                // ===============================================================
+
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.2 } // 55
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.4 } // 56
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 1.2 } // 57
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 2.0 } // 58
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 2.5 } // 59
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 3.0 } // 60
+
+                // ===============================================================
+
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.2 } // 61
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.4 } // 62
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 1.2 } // 63
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 2.0 } // 64
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 2.5 } // 65
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 3.0 } // 66
+
                 // ===============================================================
             ]
-            |> withRowNumber
+            |> withRowNumberUniqueOrFail
 
 
     let getDefaultValue (n, e) =
