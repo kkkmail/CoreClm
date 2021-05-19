@@ -291,9 +291,28 @@ module Defaults_004_005_000 =
                 { d with acCatDestrScarcity = d.acCatDestrScarcity * 4.0 }   // 47
                 { d with acCatDestrScarcity = d.acCatDestrScarcity * 5.0 }   // 48
 
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.0 }   // 49
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.1 }   // 50
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.2 }   // 51
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.3 }   // 52
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.4 }   // 53
+                { d with acCatDestrScarcity = d.acCatDestrScarcity * 0.5 }   // 54
+
+                // ===============================================================
+
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.4 } // 55
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 1.2 } // 56
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 2.0 } // 57
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 2.5 } // 58
+                { d with acFwdCatLigScarcity = d.acFwdCatLigScarcity * 3.0 } // 59
+
+                // ===============================================================
+
+                { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 1.5 } // 10
+
                 // ===============================================================
             ]
-            |> withRowNumber
+            |> withRowNumberUniqueOrFail
 
 
     let getDefaultValue (n, e) =

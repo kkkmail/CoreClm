@@ -1,5 +1,6 @@
 ﻿namespace ClmDefaults
 
+open ClmSys.GeneralData
 open Clm.Distributions
 open Clm.ReactionRates
 open Clm.ReactionRatesBase
@@ -10,6 +11,26 @@ module DefaultValuesExt =
     /// Converts a list of 'A into a list of tuples (i, 'A) where i is a zero based int64 element number
     /// in the original list.
     let withRowNumber a = a |> List.mapi (fun i e -> (int64 i, e))
+
+
+    /// !!! If the list contains any duplicates, then this function will fail !!!
+    /// This to simplify catching the default cases when all elements must be unique.
+    /// Converts a list of unique 'A into a list of tuples (i, 'A)
+    /// where i is a zero based int64 element number in the original list.
+    let withRowNumberUniqueOrFail a =
+        let b =
+            a
+            |> List.groupBy id
+            |> List.filter (fun (_, v) -> v.Length > 1)
+            |> List.map snd
+            |> List.concat
+            |> List.distinct
+            |> List.map (fun e -> $"%0A{e}")
+            |> String.concat ", "
+
+        match b with
+        | EmptyString -> failwith $"Sequence has non-unique elements: {b}."
+        | _ -> withRowNumber a
 
 
     let defaultRateDistribution threshold mult =
