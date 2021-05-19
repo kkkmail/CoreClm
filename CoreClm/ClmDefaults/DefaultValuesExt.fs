@@ -25,12 +25,16 @@ module DefaultValuesExt =
             |> List.map snd
             |> List.concat
             |> List.distinct
-            |> List.map (fun e -> $"%0A{e}")
-            |> String.concat ", "
+            |> List.map (fun e -> $"%A{e}")
+            |> String.concat "\n\n"
 
         match b with
-        | EmptyString -> failwith $"Sequence has non-unique elements: {b}."
-        | _ -> withRowNumber a
+        | EmptyString -> withRowNumber a
+        | _ ->
+            let s = "\n\n=========================================\n\n"
+            let m = $"{s}ERROR - Sequence has non-unique elements:\n{b}{s}"
+            printfn $"%s{m}"
+            failwith m
 
 
     let defaultRateDistribution threshold mult =
