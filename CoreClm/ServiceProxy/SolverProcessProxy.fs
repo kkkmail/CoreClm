@@ -43,7 +43,7 @@ module SolverProcessProxy =
     ///     https://stackoverflow.com/questions/504208/how-to-read-command-line-arguments-of-another-process-in-c
     ///     https://docs.microsoft.com/en-us/dotnet/core/porting/windows-compat-pack
     ///     https://stackoverflow.com/questions/33635852/how-do-i-convert-a-weakly-typed-icollection-into-an-f-list
-    let checkRunning n (RunQueueId q) : CheckRunningResult =
+    let checkRunning no (RunQueueId q) : CheckRunningResult =
         try
             let v = $"{q}".ToLower()
             let pid = Process.GetCurrentProcess().Id
@@ -60,8 +60,7 @@ module SolverProcessProxy =
                 |> List.map (fun e -> e.["Handle"], e.["CommandLine"])
                 |> List.map (fun (a, b) -> int $"{a}", $"{b}")
 
-            match processes.Length <= n with
-            | true ->
+            let run() =
                 let p =
                     processes
                     |> List.map (fun (i, e) -> i, e.ToLower().Contains(v) && i <> pid)
@@ -70,7 +69,13 @@ module SolverProcessProxy =
                 match p with
                 | None -> CanRun
                 | Some (i, _) -> i |> ProcessId |> AlreadyRunning
-            | false -> TooManyRunning processes.Length
+
+            match no with
+            | Some n ->
+                match processes.Length <= n with
+                | true -> run()
+                | false -> TooManyRunning processes.Length
+            | None -> run()
         with
         | e -> e |> GetProcessesByNameExn
 
@@ -113,8 +118,8 @@ module SolverProcessProxy =
                 printfn $"Failed to start process: {fileName} with exception: {ex}."
                 None
 
-        // Decrease max value by one to account for itself.
-        match checkRunning (n - 1) (RunQueueId q) with
+        // Decrease max value by one to account for the solver to be started.
+        match checkRunning (Some (n - 1)) (RunQueueId q) with
         | CanRun -> run()
         | e ->
             printfn $"Can't run: %A{e}."

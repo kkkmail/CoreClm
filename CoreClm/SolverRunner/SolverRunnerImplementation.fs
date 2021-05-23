@@ -159,7 +159,10 @@ module SolverRunnerImplementation =
 
             match tryLoadRunQueue c q, tryLoadWorkerNodeSettings() with
             | Ok w, Some s ->
-                let allowedSolvers = getAllowedSolvers s.workerNodeInfo
+                let allowedSolvers =
+                    match results.TryGetResult ForceRun |> Option.defaultValue false with
+                    | false -> getAllowedSolvers s.workerNodeInfo |> Some
+                    | true -> None
 
                 match checkRunning allowedSolvers q with
                 | CanRun ->
