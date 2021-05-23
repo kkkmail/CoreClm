@@ -28,6 +28,15 @@ open ClmSys.VersionInfo
 
 module SolverRunnerImplementation =
 
+    /// TODO kk:20210522 - Shall it be moved into some setting?
+    /// Extra solver's "overhead" allowed when running SolverRunner by hands.
+    /// This is needed when two versions share the same machine and one version has some stuck
+    /// work, which needs to be started.
+    ///
+    /// WorkNodeService does not use that overhead and so it will not start more that allowed.
+    [<Literal>]
+    let AllowedOverhead = 0.20
+
     let private toError g f = f |> g |> SolverRunnerErr |> Error
     let private addError g f e = ((f |> g |> SolverRunnerErr) + e) |> Error
 
@@ -132,6 +141,11 @@ module SolverRunnerImplementation =
         tryStartRunQueue c q pid
 
 
+    let getAllowedSolvers i =
+        let noOfCores = i.noOfCores
+        max ((float noOfCores) * (1.0 + AllowedOverhead) |> int) (noOfCores + 1)
+
+
     let runSolverProcessImpl (results : ParseResults<SolverRunnerArguments>) usage : int =
         let c = getWorkerNodeSvcConnectionString
         let logCrit = saveSolverRunnerErrFs name
@@ -145,7 +159,9 @@ module SolverRunnerImplementation =
 
             match tryLoadRunQueue c q, tryLoadWorkerNodeSettings() with
             | Ok w, Some s ->
-                match checkRunning s.workerNodeInfo.noOfCores q with
+                let allowedSolvers = getAllowedSolvers s.workerNodeInfo
+
+                match checkRunning allowedSolvers q with
                 | CanRun ->
                     match tryStartRunQueue c q with
                     | Ok() ->
