@@ -88,24 +88,31 @@ e as
 f as
 (
 	select
-		a.numberOfAminoAcids,
-		a.maxPeptideLength,
+		--a.numberOfAminoAcids,
+		--a.maxPeptideLength,
 		a.defaultSetIndex,
 		isnull(d.modelCount, 0) as modelCount,
 		isnull(e.symmBrokenCount, 0) as symmBrokenCount,
 		cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
-		isnull(cast(cast(d.runTime as decimal(10, 2)) as nvarchar(20)), '') as runTime,
-		isnull(cast(dbo.getWasteRecyclingRate(a.defaultSetIndex) as nvarchar(20)), '') as wasteRecyclingRate,
-		isnull(cast(dbo.getCatSynthSim(a.defaultSetIndex) as nvarchar(20)), '') as catSynthSim,
-		isnull(cast(dbo.getCatSynthScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catSynthScarcity,
-		isnull(cast(dbo.getCatDestrSim(a.defaultSetIndex) as nvarchar(20)), '') as catDestrSim,
-		isnull(cast(dbo.getCatDestrScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catDestrScarcity,
-		isnull(cast(dbo.getLigFwd(a.defaultSetIndex) as nvarchar(20)), '') as ligFwd,
-		isnull(cast(dbo.getLigBkw(a.defaultSetIndex) as nvarchar(20)), '') as ligBkw,
-		isnull(cast(dbo.getCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catLigScarcity,
-		isnull(cast(dbo.getCatLigMult(a.defaultSetIndex) as nvarchar(20)), '') as catLigMult,
-		isnull(cast(dbo.getCatLigSim(a.defaultSetIndex) as nvarchar(20)), '') as catLigSim,
-		cast(a.remainingRepetitions * isnull(d.runTime, @runeTimeEst) as decimal(10, 2)) as remainingRunTime
+
+		--isnull(cast(dbo.getWasteRecyclingRate(a.defaultSetIndex) as nvarchar(20)), '') as wasteRecyclingRate,
+		--isnull(cast(dbo.getCatSynthSim(a.defaultSetIndex) as nvarchar(20)), '') as catSynthSim,
+		--isnull(cast(dbo.getCatSynthScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catSynthScarcity,
+		--isnull(cast(dbo.getCatDestrSim(a.defaultSetIndex) as nvarchar(20)), '') as catDestrSim,
+		--isnull(cast(dbo.getCatDestrScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catDestrScarcity,
+		--isnull(cast(dbo.getLigFwd(a.defaultSetIndex) as nvarchar(20)), '') as ligFwd,
+		--isnull(cast(dbo.getLigBkw(a.defaultSetIndex) as nvarchar(20)), '') as ligBkw,
+		--isnull(cast(dbo.getCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as catLigScarcity,
+		--isnull(cast(dbo.getCatLigMult(a.defaultSetIndex) as nvarchar(20)), '') as catLigMult,
+		--isnull(cast(dbo.getCatLigSim(a.defaultSetIndex) as nvarchar(20)), '') as catLigSim,
+
+		isnull(cast(dbo.getAcCatSynthScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acCatSynthScarcity,
+		isnull(cast(dbo.getAcCatDestrScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acCatDestrScarcity,
+		isnull(cast(dbo.getAcFwdCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acFwdCatLigScarcity,
+		isnull(cast(dbo.getAcBkwCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acBkwCatLigScarcity
+
+		--,isnull(cast(cast(d.runTime as decimal(10, 2)) as nvarchar(20)), '') as runTime
+		--,cast(a.remainingRepetitions * isnull(d.runTime, @runeTimeEst) as decimal(10, 2)) as remainingRunTime
 	from a
 		left outer join d on a.defaultSetIndex = d.defaultSetIndex and a.numberOfAminoAcids = d.numberOfAminoAcids
 		left outer join e on a.defaultSetIndex = e.defaultSetIndex and a.numberOfAminoAcids = e.numberOfAminoAcids
@@ -114,6 +121,6 @@ f as
 select 
 	* 
 from f
-order by numberOfAminoAcids, defaultSetIndex
+order by defaultSetIndex
 
 
