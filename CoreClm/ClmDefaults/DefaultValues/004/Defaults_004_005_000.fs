@@ -221,16 +221,16 @@ module Defaults_004_005_000 =
                 // ===============================================================
 
                 { d with
-                         acCatDestrScarcity = d.acCatDestrScarcity * 2.0
-                         acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 17
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.6
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.0 }   // 17
 
                 { d with
-                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5
-                         acCatSynthScarcity = d.acCatSynthScarcity * 0.8 }   // 18
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.8
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5 }   // 18
 
                 { d with
-                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5
-                         acCatSynthScarcity = d.acCatSynthScarcity * 0.6 }   // 19
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.6
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5 }   // 19
 
                 // ===============================================================
 
@@ -239,8 +239,8 @@ module Defaults_004_005_000 =
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0 }   // 22
 
                 { d with
-                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0
-                         acCatSynthScarcity = d.acCatSynthScarcity * 0.5 }   // 23
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.5
+                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0 }   // 23
 
                 // ===============================================================
 
@@ -253,8 +253,8 @@ module Defaults_004_005_000 =
                          acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.8 } // 26
 
                 { d with
-                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0
                          acCatSynthScarcity = d.acCatSynthScarcity * 0.5
+                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0
                          acFwdCatLigScarcity = d.acFwdCatLigScarcity * 1.5
                          acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.8 } // 27
 
@@ -262,8 +262,8 @@ module Defaults_004_005_000 =
                 { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.6 } // 29
 
                 { d with
-                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0
                          acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0
                          acFwdCatLigScarcity = d.acFwdCatLigScarcity * 1.5
                          acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.8 } // 30
 
@@ -315,6 +315,15 @@ module Defaults_004_005_000 =
                 { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 2.0 } // 64
                 { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 2.5 } // 65
                 { d with acBkwCatLigScarcity = d.acBkwCatLigScarcity * 3.0 } // 66
+
+                // ===============================================================
+
+                // From: AcCat_FactorAnalysis__004.nb
+                { d with
+                         acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 1.74953
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.974201 } // 67
 
                 // ===============================================================
             ]
