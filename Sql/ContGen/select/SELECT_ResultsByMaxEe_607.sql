@@ -15,6 +15,7 @@ a as
 (
 	select
 		d.clmDefaultValueId as defaultSetIndex,
+		t.clmTaskStatusId,
 		t.numberOfAminoAcids,
 		t.maxPeptideLength,
 		sum(
@@ -29,7 +30,7 @@ a as
 		inner join ModelData m on m.clmTaskId = t.clmTaskId
 		inner join RunQueue q on q.modelDataId = m.modelDataId
 		where q.runQueueOrder >= @startRunQueueOrder
-	group by d.clmDefaultValueId, t.numberOfAminoAcids, t.maxPeptideLength
+	group by d.clmDefaultValueId, t.clmTaskStatusId, t.numberOfAminoAcids, t.maxPeptideLength
 ),
 b as
 (
@@ -91,6 +92,7 @@ f as
 		--a.numberOfAminoAcids,
 		--a.maxPeptideLength,
 		a.defaultSetIndex,
+		a.clmTaskStatusId,
 		isnull(d.modelCount, 0) as modelCount,
 		isnull(e.symmBrokenCount, 0) as symmBrokenCount,
 		cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
@@ -122,5 +124,3 @@ select
 	* 
 from f
 order by defaultSetIndex
-
-
