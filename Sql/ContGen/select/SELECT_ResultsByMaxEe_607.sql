@@ -23,7 +23,17 @@ a as
 				when q.RunQueueStatusId = 0 then 1.0 
 				when q.RunQueueStatusId = 2 then (1.0 - q.progress) 
 				else 0 
-		end) as remainingRepetitions
+		end) as remainingRepetitions,
+		sum(
+			case
+				when q.RunQueueStatusId = 2 then 1
+				else 0 
+		end) as running,
+		sum(
+			case
+				when q.RunQueueStatusId = 2 then q.progress
+				else 0 
+		end) as progress
 	from
 		ClmDefaultValue d 
 		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
@@ -94,6 +104,8 @@ f as
 		a.defaultSetIndex,
 		a.clmTaskStatusId,
 		isnull(d.modelCount, 0) as modelCount,
+		a.running,
+		a.progress / (case when a.running > 0 then a.running else 1 end) as progress,
 		isnull(e.symmBrokenCount, 0) as symmBrokenCount,
 		cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
 
