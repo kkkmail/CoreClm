@@ -36,12 +36,15 @@ module ContGenWcfService =
     type ContGenWcfService() =
         let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> TryCancelRunQueueErr |> ContGenServiceErr
         let toRequestResultsError f = f |> TryRequestResultsWcfErr |> TryRequestResultsErr |> ContGenServiceErr
+        let toResetError f = f |> TryResetWcfErr |> TryResetErr |> ContGenServiceErr
         let tryCancelRunQueue (q, c) = modelRunner.Value |> Rop.bind (fun e -> e.tryCancelRunQueue q c)
         let tryRequestResults (q, c) = modelRunner.Value |> Rop.bind (fun e -> e.tryRequestResults q c)
+        let tryReset q = modelRunner.Value |> Rop.bind (fun e -> e.tryReset q)
 
         interface IContGenWcfService with
             member _.tryCancelRunQueue b = tryReply tryCancelRunQueue toCancelRunQueueError b
             member _.tryRequestResults b = tryReply tryRequestResults toRequestResultsError b
+            member _.tryReset b = tryReply tryReset toResetError b
 
 
     type ContGenWcfServiceImpl = WcfService<ContGenWcfService, IContGenWcfService, ContGenServiceData>

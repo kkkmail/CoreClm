@@ -11,6 +11,10 @@ module ContGenErrors =
         | TryRequestResultsWcfErr of WcfError
 
 
+    type TryResetError =
+        | TryResetWcfErr of WcfError
+
+
     type ContGenSettingsError =
         | InvalidSettings of string
         | ContGenSettingExn of exn
@@ -19,4 +23,5 @@ module ContGenErrors =
     type ContGenServiceError =
         | TryCancelRunQueueErr of TryCancelRunQueueError
         | TryRequestResultsErr of TryRequestResultsError
+        | TryResetErr of TryResetError
         | ContGenSettingsErr of ContGenSettingsError

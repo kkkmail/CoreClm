@@ -94,6 +94,7 @@ module ServiceInfo =
     type IContGenService =
         abstract tryCancelRunQueue : RunQueueId -> CancellationType -> UnitResult
         abstract tryRequestResults : RunQueueId -> ResultNotificationType -> UnitResult
+        abstract tryReset : RunQueueId -> UnitResult
 
 
     /// https://gist.github.com/dgfitch/661656
@@ -105,6 +106,9 @@ module ServiceInfo =
 
         [<OperationContract(Name = "tryRequestResults")>]
         abstract tryRequestResults : q:byte[] -> byte[]
+
+        [<OperationContract(Name = "tryReset")>]
+        abstract tryReset : q:byte[] -> byte[]
 
 
     let contGenServiceAddress = ConfigKey "ContGenServiceAddress"

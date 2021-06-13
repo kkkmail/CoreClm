@@ -91,10 +91,10 @@ module GeneralErrors =
         | ClmTaskTryCreatErr of Guid
         | ModelDataTryCreateErr of Guid
         | DeleteRunQueueEntryErr of RunQueueId
+        | ResetRunQueueEntryErr of RunQueueId
         | MapRunQueueErr of Guid
         | LoadWorkerNodeInfoErr of Guid
         | RunQueueTryUpdateRowErr of RunQueueTryUpdateRowError
-
         | TryStartRunQueueErr of RunQueueId
         | TryCompleteRunQueueErr of RunQueueId
         | TryCancelRunQueueErr of RunQueueId

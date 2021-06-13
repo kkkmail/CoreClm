@@ -40,20 +40,6 @@ module AdmCommandLine =
         }
 
 
-//    type ContGenAdmSettings =
-//        {
-//            contGenSettings : ContGenSettings
-//
-//            defaultValueId : ClmDefaultValueId
-//            numberOfAminoAcids : NumberOfAminoAcids
-//            maxPeptideLength : MaxPeptideLength
-//            runData : list<RunData>
-//            numberOfRepetitions : int
-//            generateModelCode : GenerateModelSettings option
-//            seedValue : int option
-//        }
-
-
     [<CliPrefix(CliPrefix.Dash)>]
     type AddClmTaskArgs =
         | [<Mandatory>] [<Unique>] [<AltCommandLine("-i")>] IndexOfDefault of int64
@@ -118,6 +104,7 @@ module AdmCommandLine =
         | [<Unique>] [<AltCommandLine("-q")>] RunQueueIdToModify of Guid
         | [<Unique>] [<AltCommandLine("-c")>] CancelOrAbort of bool
         | [<Unique>] [<AltCommandLine("-r")>] ReportResults of bool
+        | [<Unique>] [<AltCommandLine("-e")>] ResetIfFailed
         | [<Unique>] [<AltCommandLine("-p")>] Partitioner of Guid
         | [<Unique>] [<AltCommandLine("-address")>] SvcAddress of string
         | [<Unique>] [<AltCommandLine("-port")>] SvcPort of int
@@ -129,6 +116,7 @@ module AdmCommandLine =
                 | RunQueueIdToModify _ -> "RunQueueId to modify."
                 | CancelOrAbort _ -> "if false then requests to cancel with results, if true then requests to abort calculations."
                 | ReportResults _ -> "if false then requests results without charts, if true the requests results with charts."
+                | ResetIfFailed -> "if present then reset a failed run queue. That's run queues with status = Failed."
                 | Partitioner _ -> "messaging client id of a partitioner service."
                 | SvcAddress _ -> "ContGen service ip address / name."
                 | SvcPort _ -> "ContGen service port."
@@ -228,6 +216,7 @@ module AdmCommandLine =
     let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
     let tryGetRunQueueIdToModify p = p |> List.tryPick (fun e -> match e with | RunQueueIdToModify e -> e |> RunQueueId |> Some | _ -> None)
+    let getResetIfFailed p = p |> List.tryPick (fun e -> match e with | ResetIfFailed -> Some true | _ -> Some false) |> Option.defaultValue false
 
 
     let loadSettings p =
@@ -288,10 +277,20 @@ module AdmCommandLine =
         | _ -> Ok()
 
 
+    let tryResetImpl (logger : Logger) p =
+        match tryGetRunQueueIdToModify p, getResetIfFailed p with
+        | Some q, true ->
+            let s = loadSettings p
+            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
+            h.tryReset q |> reportResult logger "tryResetImpl"
+        | _ -> Ok()
+
+
     let tryModifyRunQueueImpl l p =
         [
             tryRequestResultsImpl
             tryCancelRunQueueImpl
+            tryResetImpl
         ]
         |> List.map (fun e -> e l p)
         |> foldUnitResults

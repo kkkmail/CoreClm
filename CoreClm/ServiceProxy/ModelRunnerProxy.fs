@@ -50,6 +50,12 @@ module ModelRunnerProxy =
         }
 
 
+    type TryResetProxy =
+        {
+            tryResetRunQueue : RunQueueId -> UnitResult
+        }
+
+
     type TryRunModelResult =
         | WorkScheduled
         | NoWork

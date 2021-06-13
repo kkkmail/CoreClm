@@ -928,6 +928,20 @@ module DatabaseTypes =
         tryDbFun g |> Rop.unwrapResultOption
 
 
+    let tryResetRunQueue c (q : RunQueueId) =
+        let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+
+            use cmd = new SqlCommandProvider<"update dbo.RunQueue set runQueueStatusId = 0, errorMessage = null, workerNodeId = null, startedOn = null, modifiedOn = getdate() where runQueueId = @runQueueId and runQueueStatusId = 4", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            match cmd.Execute(runQueueId = q.value) = 1 with
+            | true -> Ok ()
+            | false -> toError ResetRunQueueEntryErr q
+
+        tryDbFun g
+
+
     let saveRunQueue c modelDataId defaultValueId p =
         let g() =
             use conn = getOpenConn c
