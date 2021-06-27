@@ -121,9 +121,16 @@ f as
 		--isnull(cast(dbo.getCatLigSim(a.defaultSetIndex) as nvarchar(20)), '') as catLigSim,
 
 		isnull(cast(dbo.getAcCatSynthScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acCatSynthScarcity,
+		isnull(cast(dbo.getAcCatSynthSimilarity(a.defaultSetIndex) as nvarchar(20)), '') as acCatSynthSimilarity,
+
 		isnull(cast(dbo.getAcCatDestrScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acCatDestrScarcity,
+		isnull(cast(dbo.getAcCatDestrSimilarity(a.defaultSetIndex) as nvarchar(20)), '') as acCatDestrSimilarity,
+
 		isnull(cast(dbo.getAcFwdCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acFwdCatLigScarcity,
-		isnull(cast(dbo.getAcBkwCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acBkwCatLigScarcity
+		isnull(cast(dbo.getAcFwdCatLigSimilarity(a.defaultSetIndex) as nvarchar(20)), '') as acFwdCatLigSimilarity,
+
+		isnull(cast(dbo.getAcBkwCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acBkwCatLigScarcity,
+		isnull(cast(dbo.getAcBkwCatLigSimilarity(a.defaultSetIndex) as nvarchar(20)), '') as acBkwCatLigSimilarity
 
 		--,isnull(cast(cast(d.runTime as decimal(10, 2)) as nvarchar(20)), '') as runTime
 		--,cast(a.remainingRepetitions * isnull(d.runTime, @runeTimeEst) as decimal(10, 2)) as remainingRunTime
