@@ -34,6 +34,6 @@ order by [clmTaskOrder]
 -- Disable ALL.
 -- update [clm607].[dbo].[ClmTask] set [clmTaskStatusId] = 1
 
-
+-- Flip on / off tasks that needs completion.
 -- update [clm607].[dbo].[ClmTask] set [clmTaskStatusId] = 0 where [clmDefaultValueId] in (4005000022, 4005000021, 4005000013, 4005000005, 4005000008, 4005000011, 4005000012, 4005000047, 4005000048)
 
