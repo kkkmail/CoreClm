@@ -33,7 +33,7 @@ module SolverRunnerImplementation =
     /// This is needed when two versions share the same machine and one version has some stuck
     /// work, which needs to be started.
     ///
-    /// WorkNodeService does not use that overhead and so it will not start more that allowed.
+    /// WorkNodeService does not use that overhead and so it will not start more than allowed.
     [<Literal>]
     let AllowedOverhead = 0.20
 
