@@ -378,6 +378,20 @@ module Defaults_004_005_000 =
                          acBkwCatLigSimilarity = d.acBkwCatLigSimilarity * 1.5 } // 81
 
                 // ===============================================================
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.6
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 0.0 }   // 82
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.6
+                         acFwdCatLigSimilarity = d.acFwdCatLigSimilarity * 0.0 } // 83
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.6
+                         acBkwCatLigSimilarity = d.acBkwCatLigSimilarity * 0.0 } // 84
+
+                // ===============================================================
             ]
             |> withRowNumberUniqueOrFail
 
