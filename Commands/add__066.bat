@@ -1,0 +1,11 @@
+ContGenAdm.exe add -i 4005000085 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000086 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000087 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000088 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000089 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000090 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000091 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000092 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000093 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000094 -n 20 -m 3 -y 10 -t 250000 -r 100
+ContGenAdm.exe add -i 4005000095 -n 20 -m 3 -y 10 -t 250000 -r 100
