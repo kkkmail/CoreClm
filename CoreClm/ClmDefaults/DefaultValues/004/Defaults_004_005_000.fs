@@ -392,6 +392,41 @@ module Defaults_004_005_000 =
                          acBkwCatLigSimilarity = d.acBkwCatLigSimilarity * 0.0 } // 84
 
                 // ===============================================================
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0 } // 85
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0 } // 86
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.2 } // 87
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.4}  // 88
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.0 }   // 89
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.2 }   // 90
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.4 }   // 91
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.6 }   // 92
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.8 }   // 93
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5 }   // 94
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0 }   // 95
+
+                // ===============================================================
             ]
             |> withRowNumberUniqueOrFail
 
