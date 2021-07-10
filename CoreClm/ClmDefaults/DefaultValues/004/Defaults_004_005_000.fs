@@ -426,6 +426,10 @@ module Defaults_004_005_000 =
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
                          acCatDestrScarcity = d.acCatDestrScarcity * 3.0 }   // 95
 
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0 } // 96
+
                 // ===============================================================
             ]
             |> withRowNumberUniqueOrFail
