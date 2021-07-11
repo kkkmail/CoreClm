@@ -36,8 +36,8 @@ module ClmModel =
 
         let si =
             {
-                maxPeptideLength = modelParams.maxPeptideLength
-                numberOfAminoAcids = modelParams.numberOfAminoAcids
+                maxPeptideLength = modelParams.taskDetails.maxPeptideLength
+                numberOfAminoAcids = modelParams.taskDetails.numberOfAminoAcids
                 sedDirInfo = SedDirInfo.defaultValue
             }
             |> SubstInfo.create
@@ -50,10 +50,10 @@ module ClmModel =
                 versionNumber = modelParams.versionNumber
                 modelDataId = modelDataId
                 numberOfSubstances = si.allSubst.Length
-                numberOfAminoAcids = modelParams.numberOfAminoAcids
-                maxPeptideLength = modelParams.maxPeptideLength
+                numberOfAminoAcids = modelParams.taskDetails.numberOfAminoAcids
+                maxPeptideLength = modelParams.taskDetails.maxPeptideLength
                 seedValue = seedValue
-                clmDefaultValueId = modelParams.clmDefaultValueId
+                clmDefaultValueId = modelParams.taskDetails.clmDefaultValueId
                 description = modelParams.description
             }
 
@@ -372,9 +372,9 @@ module ClmModel =
 
             let paramCode =
                 "    let seedValue = " + seedValue.ToString() + Nl +
-                "    let clmDefaultValueId = ClmDefaultValueId " + (modelParams.clmDefaultValueId.ToString()) + Nl +
-                "    let numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.numberOfAminoAcids.ToString()) + Nl +
-                "    let maxPeptideLength = MaxPeptideLength." + (modelParams.maxPeptideLength.ToString()) + Nl +
+                "    let clmDefaultValueId = ClmDefaultValueId " + (modelParams.taskDetails.clmDefaultValueId.ToString()) + Nl +
+                "    let numberOfAminoAcids = NumberOfAminoAcids." + (modelParams.taskDetails.numberOfAminoAcids.ToString()) + Nl +
+                "    let maxPeptideLength = MaxPeptideLength." + (modelParams.taskDetails.maxPeptideLength.ToString()) + Nl +
                 "    let numberOfSubstances = " + (si.allSubst.Length).ToString() + Nl +
                 "    let description = " + (stringOptFSharpString modelParams.description) + Nl +
                 generateSubst() +
@@ -431,9 +431,7 @@ module ClmModel =
                 clmTaskInfo =
                     {
                         clmTaskId = clmTaskId
-                        numberOfAminoAcids = modelParams.numberOfAminoAcids
-                        maxPeptideLength = modelParams.maxPeptideLength
-                        clmDefaultValueId = modelParams.clmDefaultValueId
+                        taskDetails = modelParams.taskDetails
                     }
                 data =
                 {

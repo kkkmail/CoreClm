@@ -49,9 +49,13 @@ module ContGenAdmTasks =
                         clmTaskInfo =
                             {
                                 clmTaskId = ClmTaskId.getNewId()
-                                clmDefaultValueId = i
-                                numberOfAminoAcids = n
-                                maxPeptideLength = m
+                                taskDetails =
+                                    {
+                                        clmDefaultValueId = i
+                                        clmTaskPriority = getClmTaskPriority p
+                                        numberOfAminoAcids = n
+                                        maxPeptideLength = m                                        
+                                    }
                             }
                         commandLineParams = c
                         numberOfRepetitions = r

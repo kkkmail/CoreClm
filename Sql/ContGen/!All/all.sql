@@ -170,6 +170,7 @@ IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
 		[clmTaskOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[clmDefaultValueId] [bigint] NOT NULL,
 		[clmTaskStatusId] [int] NOT NULL,
+		[clmTaskPriority] [int] NOT NULL,
 		[numberOfAminoAcids] [int] NOT NULL,
 		[maxPeptideLength] [int] NOT NULL,
 		[numberOfRepetitions] [int] NOT NULL,
@@ -185,10 +186,11 @@ IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
 	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((1)) FOR [numberOfRepetitions]
 	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((1)) FOR [remainingRepetitions]
 	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((0)) FOR [clmTaskStatusId]
+	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((1000)) FOR [clmTaskPriority]
 	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT (getdate()) FOR [createdOn]
 	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT (getdate()) FOR [modifiedOn]
 
-	ALTER TABLE [dbo].[ClmTask]  WITH CHECK ADD  CONSTRAINT [FK_ClmTask_ClmTaskStatus] FOREIGN KEY([clmTaskStatusId])
+	ALTER TABLE [dbo].[ClmTask]  WITH CHECK ADD CONSTRAINT [FK_ClmTask_ClmTaskStatus] FOREIGN KEY([clmTaskStatusId])
 	REFERENCES [dbo].[ClmTaskStatus] ([clmTaskStatusId])
 
 	ALTER TABLE [dbo].[ClmTask] CHECK CONSTRAINT [FK_ClmTask_ClmTaskStatus]

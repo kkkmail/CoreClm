@@ -52,8 +52,15 @@ module ContGenPrimitives =
 
         member df.value = let (ClmDefaultValueId v) = df in v
         override df.ToString() = df.value.ToString().PadLeft(9, '0') + "L"
+        
+        
+    type ClmTaskPriority =
+        | ClmTaskPriority of int
 
+        member df.value = let (ClmTaskPriority v) = df in v
+        static member defaultValue = ClmTaskPriority 1_000
 
+    
     type ClmTaskStatus =
         | ActiveClmTask
         | InactiveClmTask

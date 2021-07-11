@@ -47,6 +47,7 @@ module AdmCommandLine =
         | [<Mandatory>] [<Unique>] [<AltCommandLine("-m")>] MaxPeptideLength of int
         | [<Mandatory>] [<Unique>] [<AltCommandLine("-y")>] TaskY0 of list<decimal>
         | [<Mandatory>] [<Unique>] [<AltCommandLine("-t")>] TaskTEnd of list<decimal>
+        | [<Unique>] [<AltCommandLine("-p")>]               TaskPriority of int
         | [<Unique>] [<AltCommandLine("-r")>]               Repetitions of int
         | [<Unique>] [<AltCommandLine("-g")>]               GenerateModelCode
         | [<Unique>] [<AltCommandLine("-f")>]               ModelCodeFileName of string
@@ -63,6 +64,7 @@ module AdmCommandLine =
                 | MaxPeptideLength _ -> "max peptide length."
                 | TaskY0 _ -> "value of total y0."
                 | TaskTEnd _ -> "value of tEnd."
+                | TaskPriority _ -> $"task priority, default is {ClmTaskPriority.defaultValue.value}."
                 | Repetitions _ -> "number of repetitions."
                 | GenerateModelCode -> "add in order to generate and save model code."
                 | ModelCodeFileName _ -> "use to override default name of a model code file (ModelCode)."
@@ -177,6 +179,13 @@ module AdmCommandLine =
 
     let tryGetClmDefaultValueId (p :list<AddClmTaskArgs>) =
         p |> List.tryPick (fun e -> match e with | IndexOfDefault i -> Some i | _ -> None) |> Option.bind (fun e -> e |> ClmDefaultValueId |> Some)
+
+
+    let getClmTaskPriority (p :list<AddClmTaskArgs>) =
+        p
+        |> List.tryPick (fun e -> match e with | TaskPriority p -> Some p | _ -> None)
+        |> Option.bind (fun e -> e |> ClmTaskPriority |> Some)
+        |> Option.defaultValue ClmTaskPriority.defaultValue
 
 
     let getNumberOrRepetitions (p :list<AddClmTaskArgs>) =

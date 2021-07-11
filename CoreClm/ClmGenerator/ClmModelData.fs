@@ -3,7 +3,6 @@
 open FSharp.Collections
 
 open ClmSys.VersionInfo
-open ClmSys.ContGenPrimitives
 open Clm.Substances
 open Clm.Reactions
 open Clm.ReactionTypes
@@ -29,11 +28,9 @@ module ClmModelData =
     type ModelGenerationParams =
         {
             versionNumber : string
-            numberOfAminoAcids : NumberOfAminoAcids
-            maxPeptideLength : MaxPeptideLength
+            taskDetails : ClmTaskDetails
             reactionRateModelParams : List<ReactionRateModelParam>
             updateFuncType : UpdateFuncType
-            clmDefaultValueId : ClmDefaultValueId
             successNumberType : SuccessNumberType
             collisionData : CollisionData
             dictionaryUpdateType : DictionaryUpdateType
@@ -49,17 +46,15 @@ module ClmModelData =
         }
 
         static member create u coll so g (c : ClmTask) =
-            match g c.clmTaskInfo.clmDefaultValueId with
+            match g c.clmTaskInfo.taskDetails.clmDefaultValueId with
             | Ok v ->
                 {
                     modelGenerationParams =
                         {
                             versionNumber = VersionNumberValue
-                            numberOfAminoAcids = c.clmTaskInfo.numberOfAminoAcids
-                            maxPeptideLength = c.clmTaskInfo.maxPeptideLength
+                            taskDetails = c.clmTaskInfo.taskDetails
                             reactionRateModelParams = v.defaultRateParams.rateParams
                             updateFuncType = UseFunctions
-                            clmDefaultValueId = c.clmTaskInfo.clmDefaultValueId
                             successNumberType = v.defaultRateParams.successNumberType
                             collisionData = coll
                             dictionaryUpdateType = u
