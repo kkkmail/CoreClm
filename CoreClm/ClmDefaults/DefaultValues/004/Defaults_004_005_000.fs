@@ -426,9 +426,52 @@ module Defaults_004_005_000 =
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
                          acCatDestrScarcity = d.acCatDestrScarcity * 3.0 }   // 95
 
+                // ===============================================================
+                // 3 pair of parameters (acCatSynth, acFwdCatLig, acBkwCatLig) set to 0.
+
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
                          acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
                          acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0 } // 96
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.0 }   // 97
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.5 }   // 98
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 1.5 }   // 99
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.0 }   // 100
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 2.5 }   // 101
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 3.0 }   // 102
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 4.0 }   // 103
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 5.0 }   // 104
 
                 // ===============================================================
             ]
