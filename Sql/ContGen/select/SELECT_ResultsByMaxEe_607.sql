@@ -5,6 +5,9 @@ go
 declare @startRunQueueOrder bigint
 set @startRunQueueOrder = 21
 
+declare @eps float
+set @eps = 0.25
+
 declare @maxWeightedAverageAbsEe float, @maxLastEe float, @runeTimeEst float
 set @maxLastEe = 0.10
 set @maxWeightedAverageAbsEe = @maxLastEe
@@ -24,11 +27,12 @@ a as
 				when q.RunQueueStatusId = 2 then (1.0 - q.progress) 
 				else 0 
 		end) as remainingRepetitions,
-		sum(
-			case
-				when q.RunQueueStatusId = 2 then 1
-				else 0 
-		end) as running,
+		isnull(
+			sum(
+				case
+					when q.RunQueueStatusId = 2 then 1
+					else 0 
+			end), 0) as running,
 		sum(
 			case
 				when q.RunQueueStatusId = 2 then q.progress
@@ -80,7 +84,7 @@ d as
 		defaultSetIndex,
 		numberOfAminoAcids,
 		maxPeptideLength,
-		count(*) as modelCount,
+		cast(isnull(count(*), 0) as float) as modelCount,
 		avg(runTime) as runTime
 	from c
 	group by defaultSetIndex, numberOfAminoAcids, maxPeptideLength
@@ -91,7 +95,7 @@ e as
 		defaultSetIndex,
 		numberOfAminoAcids,
 		maxPeptideLength,
-		count(*) as symmBrokenCount
+		cast(isnull(count(*), 0) as float) as symmBrokenCount
 	from c
 	where isSymmetryBroken = 1
 	group by defaultSetIndex, numberOfAminoAcids, maxPeptideLength
@@ -107,7 +111,12 @@ f as
 		a.running,
 		a.progress / (case when a.running > 0 then a.running else 1 end) as progress,
 		isnull(e.symmBrokenCount, 0) as symmBrokenCount,
-		cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
+
+		-- Not corrected.
+		--cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
+
+		-- Corrected to account for a long running tail.
+		cast(isnull(e.symmBrokenCount * (d.modelCount + @eps * a.running) / (d.modelCount * (d.modelCount + a.running)), 0) as money) as symmBrokenPct,
 
 		--isnull(cast(dbo.getWasteRecyclingRate(a.defaultSetIndex) as nvarchar(20)), '') as wasteRecyclingRate,
 		--isnull(cast(dbo.getCatSynthSim(a.defaultSetIndex) as nvarchar(20)), '') as catSynthSim,
@@ -138,6 +147,7 @@ f as
 		--,isnull(cast(cast(d.runTime as decimal(10, 2)) as nvarchar(20)), '') as runTime
 		--,cast(a.remainingRepetitions * isnull(d.runTime, @runeTimeEst) as decimal(10, 2)) as remainingRunTime
 	from a
+
 		left outer join d on a.defaultSetIndex = d.defaultSetIndex and a.numberOfAminoAcids = d.numberOfAminoAcids
 		left outer join e on a.defaultSetIndex = e.defaultSetIndex and a.numberOfAminoAcids = e.numberOfAminoAcids
 )
