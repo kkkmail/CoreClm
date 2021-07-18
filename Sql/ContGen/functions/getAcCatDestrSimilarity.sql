@@ -1,8 +1,8 @@
 --declare @clmDefaultValueId bigint
 --set @clmDefaultValueId = 4005000020
 
---drop function if exists dbo.getAcCatDestrSimilarity
---go
+drop function if exists dbo.getAcCatDestrSimilarity
+go
 
 create function dbo.getAcCatDestrSimilarity(@clmDefaultValueId bigint)
 returns float
