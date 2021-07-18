@@ -433,6 +433,7 @@ module Defaults_004_005_000 =
                          acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
                          acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0 } // 96
 
+                // All are zeros, which makes it effectively produce only sugar.
                 { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
                          acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
                          acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
@@ -474,6 +475,59 @@ module Defaults_004_005_000 =
                          acCatDestrScarcity = d.acCatDestrScarcity * 5.0 }   // 104
 
                 // ===============================================================
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 0.0 } // 105
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 0.5 } // 106
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 1.5 } // 107
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 2.0 } // 108
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 2.5 } // 109
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 3.0 } // 110
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 3.5 } // 111
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 4.0 } // 112
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 4.5 } // 113
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrSimilarity = d.acCatDestrSimilarity * 5.0 } // 114
+
+                // ===============================================================
+
             ]
             |> withRowNumberUniqueOrFail
 
