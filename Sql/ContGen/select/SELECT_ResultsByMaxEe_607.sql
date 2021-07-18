@@ -130,7 +130,10 @@ f as
 		isnull(cast(dbo.getAcFwdCatLigSimilarity(a.defaultSetIndex) as nvarchar(20)), '') as acFwdCatLigSimilarity,
 
 		isnull(cast(dbo.getAcBkwCatLigScarcity(a.defaultSetIndex) as nvarchar(20)), '') as acBkwCatLigScarcity,
-		isnull(cast(dbo.getAcBkwCatLigSimilarity(a.defaultSetIndex) as nvarchar(20)), '') as acBkwCatLigSimilarity
+		isnull(cast(dbo.getAcBkwCatLigSimilarity(a.defaultSetIndex) as nvarchar(20)), '') as acBkwCatLigSimilarity,
+
+		isnull(cast(dbo.getSugarForward(a.defaultSetIndex) as nvarchar(20)), '') as sugarForward,
+		isnull(cast(dbo.getSugarBackward(a.defaultSetIndex) as nvarchar(20)), '') as sugarBackward
 
 		--,isnull(cast(cast(d.runTime as decimal(10, 2)) as nvarchar(20)), '') as runTime
 		--,cast(a.remainingRepetitions * isnull(d.runTime, @runeTimeEst) as decimal(10, 2)) as remainingRunTime
