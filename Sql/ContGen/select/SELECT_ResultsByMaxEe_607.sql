@@ -113,10 +113,10 @@ f as
 		isnull(e.symmBrokenCount, 0) as symmBrokenCount,
 
 		-- Not corrected.
-		--cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
+		cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
 
 		-- Corrected to account for a long running tail.
-		cast(isnull(e.symmBrokenCount * (d.modelCount + @eps * a.running) / (d.modelCount * (d.modelCount + a.running)), 0) as money) as symmBrokenPct,
+		cast(isnull(e.symmBrokenCount * (d.modelCount + @eps * a.running) / (d.modelCount * (d.modelCount + a.running)), 0) as money) as symmBrokenPctCorr,
 
 		--isnull(cast(dbo.getWasteRecyclingRate(a.defaultSetIndex) as nvarchar(20)), '') as wasteRecyclingRate,
 		--isnull(cast(dbo.getCatSynthSim(a.defaultSetIndex) as nvarchar(20)), '') as catSynthSim,
