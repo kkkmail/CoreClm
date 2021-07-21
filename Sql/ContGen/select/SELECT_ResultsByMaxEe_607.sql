@@ -5,8 +5,9 @@ go
 declare @startRunQueueOrder bigint
 set @startRunQueueOrder = 21
 
-declare @eps float
-set @eps = 0.25
+declare @eps1 float, @eps2 float
+set @eps1 = 0.50
+set @eps2 = 0.25
 
 declare @maxWeightedAverageAbsEe float, @maxLastEe float, @runeTimeEst float
 set @maxLastEe = 0.10
@@ -116,7 +117,8 @@ f as
 		cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
 
 		-- Corrected to account for a long running tail.
-		cast(isnull(e.symmBrokenCount * (d.modelCount + @eps * a.running) / (d.modelCount * (d.modelCount + a.running)), 0) as money) as symmBrokenPctCorr,
+		cast(isnull(e.symmBrokenCount * (d.modelCount + @eps1 * a.running) / (d.modelCount * (d.modelCount + a.running)), 0) as money) as symmBrokenPctCorr1,
+		cast(isnull(e.symmBrokenCount * (d.modelCount + @eps2 * a.running) / (d.modelCount * (d.modelCount + a.running)), 0) as money) as symmBrokenPctCorr2,
 
 		--isnull(cast(dbo.getWasteRecyclingRate(a.defaultSetIndex) as nvarchar(20)), '') as wasteRecyclingRate,
 		--isnull(cast(dbo.getCatSynthSim(a.defaultSetIndex) as nvarchar(20)), '') as catSynthSim,
