@@ -6,6 +6,7 @@ open System.Threading
 
 open ClmSys.ContGenPrimitives
 open ClmSys.DistributionData
+open ClmSys.SolverData
 open Softellect.Sys
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.AppSettings
@@ -164,6 +165,16 @@ module ServiceInfo =
     let acCatRacemCollKey = ConfigKey "AcCatRacemColl"
     let sedDirCollKey = ConfigKey "SedDirColl"
     let acCollKey = ConfigKey "AcColl"
+    
+
+    let earlyExitCheckFreqKey = ConfigKey "EarlyExitCheckFrequencyInMinutes"
+    let quickProgressKey = ConfigKey "QuickProgress"
+    let quickMinEeKey = ConfigKey "QuickMinEe"
+    let standardProgressKey = ConfigKey "StandardProgress"
+    let standardMinEeKey = ConfigKey "StandardMinEe"
+    let slowProgressKey = ConfigKey "SlowProgress"
+    let slowMinEeKey = ConfigKey "SlowMinEe"
+    let maxRunTimeKey = ConfigKey "MaxRunTimeInDays"
 
 
     type AppSettingsProvider
@@ -195,6 +206,19 @@ module ServiceInfo =
                 provider.trySetPairCollisionResolution sedDirCollKey d.sedDirColl
                 provider.trySetPairCollisionResolution acCollKey d.acColl
             ]
+            
+            
+        member provider.trySetEarlyExitParam(d : EarlyExitParam) =
+            [
+                provider.trySet earlyExitCheckFreqKey (int d.earlyExitCheckFreq.value.TotalMinutes)
+                provider.trySet quickProgressKey d.quickProgress
+                provider.trySet quickMinEeKey d.quickMinEe
+                provider.trySet standardProgressKey d.standardProgress
+                provider.trySet standardMinEeKey d.standardMinEe
+                provider.trySet slowProgressKey d.slowProgress
+                provider.trySet slowMinEeKey d.slowMinEe
+                provider.trySet maxRunTimeKey d.maxRunTime.TotalDays
+            ]
 
 
     type ContGenSettings
@@ -215,6 +239,7 @@ module ServiceInfo =
                     provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
                     provider.trySet absoluteTolerance w.contGenInfo.absoluteTolerance.value |> ignore
                     provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
+                    provider.trySetEarlyExitParam w.contGenInfo.earlyExitParam |> ignore
 
                     provider.trySave() |> Rop.bindError toErr
                 with
@@ -330,6 +355,34 @@ module ServiceInfo =
         let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort WcfSecurityMode.defaultValue
 
         (contGenSvcInfo, contGenServiceCommunicationType)
+        
+        
+    let loadEarlyExitParam (provider : AppSettingsProvider) =
+        let getProgress key defaultValue = provider.tryGetDecimal key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
+        let getEe key defaultValue = provider.tryGetDouble key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
+        let d = EarlyExitParam.defaultValue
+        
+        {
+            earlyExitCheckFreq =
+                provider.tryGetInt earlyExitCheckFreqKey
+                |> Rop.toOption
+                |> Option.flatten
+                |> Option.map (fun e -> TimeSpan.FromMinutes(double e) |> EarlyExitCheckFrequency)
+                |> Option.defaultValue EarlyExitCheckFrequency.defaultValue
+                
+            quickProgress = getProgress quickProgressKey d.quickProgress
+            quickMinEe = getEe quickMinEeKey d.quickMinEe
+            standardProgress = getProgress standardProgressKey d.standardProgress
+            standardMinEe = getEe standardMinEeKey d.standardMinEe
+            slowProgress = getProgress slowProgressKey d.slowProgress
+            slowMinEe = getEe slowMinEeKey d.slowMinEe
+            maxRunTime =
+                provider.tryGetDouble maxRunTimeKey
+                |> Rop.toOption
+                |> Option.flatten
+                |> Option.map TimeSpan.FromDays
+                |> Option.defaultValue d.maxRunTime                
+        }
 
 
     let loadContGenSettings() =
@@ -350,12 +403,8 @@ module ServiceInfo =
                         match provider.tryGetInt lastAllowedNodeErrInMinutes with
                         | Ok (Some p) when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
                         | _ -> LastAllowedNodeErr.defaultValue
-
-                    earlyExitCheckFreq =
-                        match provider.tryGetInt earlyExitCheckFrequencyInMinutes with
-                        | Ok (Some p) when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
-                        | _ -> EarlyExitCheckFreq.defaultValue
-
+                        
+                    earlyExitParam = loadEarlyExitParam provider                       
                     collisionData = getCollisionData provider
 
                     dictionaryUpdateType =
@@ -376,7 +425,7 @@ module ServiceInfo =
                     minUsefulEe = MinUsefulEe.defaultValue
                     partitionerId = defaultPartitionerId
                     lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
-                    earlyExitCheckFreq = EarlyExitCheckFreq.defaultValue
+                    earlyExitParam = EarlyExitParam.defaultValue
                     collisionData = CollisionData.defaultValue
                     dictionaryUpdateType = AllRateData
                     absoluteTolerance = AbsoluteTolerance.defaultValue

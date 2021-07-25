@@ -104,44 +104,6 @@ module ContGenPrimitives =
         | NotGeneratedCharts
 
 
-//    type TaskProgress =
-////        | NotStarted
-////        | InProgress of double
-////        | Completed of (double option * string option)
-////        | Failed of ErrorMessage
-////        | Cancelled of string option
-////        | AllCoresBusy of WorkerNodeId
-//
-//        | NotStarted
-//        | InProgress
-//        | Completed
-//        | Failed
-//        | Cancelled
-//        | AllCoresBusy
-
-
-//        static member notStartedValue = 0.0
-//        static member failedValue = -1000.0
-//
-//        static member create p =
-//            match p with
-//            | d when d <= 0.0 -> NotStarted
-//            | d when d < 1.0 -> InProgress p
-//            | _ -> InProgress 1.0
-//
-//        member progress.value =
-//            match progress with
-//            | NotStarted -> 0.0
-//            | InProgress d -> max 0.0 (min d 1.0)
-//            | Completed (v, _) ->
-//                match v with
-//                | None -> 1.0
-//                | Some d -> max 0.0 (min d 1.0)
-//            | Failed _ -> TaskProgress.failedValue
-//            | Cancelled _ -> TaskProgress.failedValue
-//            | AllCoresBusy _ -> TaskProgress.notStartedValue
-
-
     type ContGenAdmId =
         | ContGenAdmId of MessagingClientId
 
@@ -156,11 +118,3 @@ module ContGenPrimitives =
 
         member this.value = let (LastAllowedNodeErr v) = this in v
         static member defaultValue = LastAllowedNodeErr 60<minute>
-
-
-    /// Number of minutes between checks for early exit.
-    type EarlyExitCheckFreq =
-        | EarlyExitCheckFreq of int<minute>
-
-        member this.value = let (EarlyExitCheckFreq v) = this in v
-        static member defaultValue = EarlyExitCheckFreq 60<minute>

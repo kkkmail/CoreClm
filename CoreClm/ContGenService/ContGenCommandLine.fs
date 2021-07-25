@@ -92,6 +92,8 @@ module SvcCommandLine =
 
 
     let loadContGenInfo (c : ContGenInfo) p =
+        let e = c
+            
         let contGenInfo =
             {
                 c with
@@ -194,11 +196,7 @@ module SvcCommandLine =
                                     {
                                         minUsefulEe = w.contGenInfo.minUsefulEe
                                         noOfProgressPoints = defaultNoOfProgressPoints
-
-                                        earlyExitInfoOpt =
-                                            Some { EarlyExitInfo.defaultValue with
-                                                    frequency = TimeSpan.FromMinutes(w.contGenInfo.earlyExitCheckFreq.value / 1<minute> |> float) |> EarlyExitCheckFrequency}
-
+                                        earlyExitInfoOpt = w.contGenInfo.earlyExitParam |> EarlyExitInfo.getValue |> Some
                                         absoluteTolerance = w.contGenInfo.absoluteTolerance
                                     }
                             }

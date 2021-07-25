@@ -14,6 +14,7 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
 open ClmSys.ModelData
+open ClmSys.SolverData
 
 module ContGenData =
 
@@ -33,7 +34,7 @@ module ContGenData =
             minUsefulEe : MinUsefulEe
             partitionerId : PartitionerId
             lastAllowedNodeErr : LastAllowedNodeErr
-            earlyExitCheckFreq : EarlyExitCheckFreq
+            earlyExitParam : EarlyExitParam
             collisionData : CollisionData
             dictionaryUpdateType : DictionaryUpdateType
             absoluteTolerance : AbsoluteTolerance

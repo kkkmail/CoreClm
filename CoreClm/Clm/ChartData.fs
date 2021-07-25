@@ -1,5 +1,6 @@
 ﻿namespace Clm
 
+open System
 open Softellect.Sys.Core
 open Clm.Substances
 open Clm.ModelParams
@@ -125,12 +126,14 @@ module ChartData =
 
     type ChartData =
         {
+            startedOn : DateTime
             initData : ChartInitData
             allChartData : list<ChartSliceData>
         }
 
         static member create i =
             {
+                startedOn = DateTime.Now
                 initData = i
                 allChartData = []
             }

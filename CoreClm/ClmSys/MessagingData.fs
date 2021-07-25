@@ -14,6 +14,7 @@ module MessagingData =
     [<Literal>]
     let MsgDatabase = "MsgClient.db"
 
+    
     type MsgSettings =
         {
             messagingInfo : MessagingServiceInfo
