@@ -16,15 +16,12 @@ open ClmSys.Logging
 open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo
 open ServiceProxy.MsgServiceProxy
-open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ContGenData
-open Clm.ModelParams
 open DbData.Configuration
 open ContGenServiceInfo.ServiceInfo
 open ServiceProxy.ModelRunnerProxy
-open ClmSys.SolverRunnerPrimitives
 
 module SvcCommandLine =
 
@@ -92,12 +89,10 @@ module SvcCommandLine =
 
 
     let loadContGenInfo (c : ContGenInfo) p =
-        let e = c
-            
         let contGenInfo =
             {
                 c with
-                    minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue c.minUsefulEe
+                    controlData = { c.controlData with minUsefulEe = tryGeMinUsefulEe p |> Option.defaultValue c.controlData.minUsefulEe }
                     partitionerId = tryGetPartitioner p |> Option.defaultValue c.partitionerId
             }
 
@@ -149,7 +144,7 @@ module SvcCommandLine =
         saveContGenSettings load tryGet
 
 
-    let getMessageProcessorProxy i (d : MessagingClientAccessInfo) =
+    let getMessageProcessorProxy (d : MessagingClientAccessInfo) =
         let i =
             {
                 messagingClientName = ContGenServiceName.netTcpServiceName.value.value |> MessagingClientName
@@ -186,24 +181,12 @@ module SvcCommandLine =
                         runnerData =
                             {
                                 getConnectionString = getContGenConnectionString
-                                resultLocation = DefaultResultLocationFolder
-
-                                lastAllowedNodeErr = w.contGenInfo.lastAllowedNodeErr
-                                collisionData = w.contGenInfo.collisionData
-                                dictionaryUpdateType = w.contGenInfo.dictionaryUpdateType
-
-                                controlData =
-                                    {
-                                        minUsefulEe = w.contGenInfo.minUsefulEe
-                                        noOfProgressPoints = defaultNoOfProgressPoints
-                                        earlyExitInfoOpt = w.contGenInfo.earlyExitParam |> EarlyExitInfo.getValue |> Some
-                                        absoluteTolerance = w.contGenInfo.absoluteTolerance
-                                    }
+                                contGenInfo = w.contGenInfo
                             }
 
                         runnerProxy =
                             {
-                                getMessageProcessorProxy = getMessageProcessorProxy i
+                                getMessageProcessorProxy = getMessageProcessorProxy
                             }
 
                         messagingClientAccessInfo = i

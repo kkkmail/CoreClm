@@ -132,7 +132,7 @@ module SolverRunnerTasks =
         let mutable lastCheck = DateTime.Now
 
         let checkCancellation =
-            match w.controlData.earlyExitInfoOpt with
+            match w.controlData.earlyExitParamOpt |> Option.map EarlyExitInfo.getValue with
             | None -> d.checkCancellation
             | Some c ->
                 let check r =

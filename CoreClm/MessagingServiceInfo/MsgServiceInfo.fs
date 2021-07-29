@@ -187,15 +187,6 @@ module ServiceInfo =
             }
 
 
-    type RunnerControlData =
-        {
-            minUsefulEe : MinUsefulEe
-            noOfProgressPoints : int
-            earlyExitInfoOpt : EarlyExitInfo option
-            absoluteTolerance : AbsoluteTolerance
-        }
-
-
     type WorkerNodeRunModelData =
         {
             runningProcessData : RunningProcessData

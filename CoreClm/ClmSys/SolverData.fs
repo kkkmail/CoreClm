@@ -1,7 +1,7 @@
 namespace ClmSys
 
 open System
-open ClmSys.GeneralPrimitives
+open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerPrimitives
 
 module SolverData =
@@ -51,4 +51,14 @@ module SolverData =
                 slowProgress = 0.10M
                 slowMinEe = 0.15
                 maxRunTime = TimeSpan.FromDays 20.0
-            }                    
+            }            
+
+    
+    type RunnerControlData =
+        {
+            minUsefulEe : MinUsefulEe
+            noOfProgressPoints : int
+            earlyExitParamOpt : EarlyExitParam option
+            absoluteTolerance : AbsoluteTolerance
+        }
+                    

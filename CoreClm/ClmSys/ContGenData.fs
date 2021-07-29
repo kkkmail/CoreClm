@@ -31,13 +31,12 @@ module ContGenData =
 
     type ContGenInfo =
         {
-            minUsefulEe : MinUsefulEe
             partitionerId : PartitionerId
+            resultLocation : string
             lastAllowedNodeErr : LastAllowedNodeErr
-            earlyExitParam : EarlyExitParam
             collisionData : CollisionData
             dictionaryUpdateType : DictionaryUpdateType
-            absoluteTolerance : AbsoluteTolerance
+            controlData : RunnerControlData
         }
 
 

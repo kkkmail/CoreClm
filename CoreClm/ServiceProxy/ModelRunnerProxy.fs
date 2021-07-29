@@ -1,19 +1,20 @@
 ﻿namespace ServiceProxy
 
+open ClmSys.ContGenData
 open Softellect.Messaging.ServiceInfo
-open Clm.ModelParams
-open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
-open MessagingServiceInfo.ServiceInfo
+open ClmSys.SolverData
 open ClmSys.WorkerNodePrimitives
 open ClmSys.Logging
+open Clm.ModelParams
+open Clm.CalculationData
+open ContGenServiceInfo.ServiceInfo
+open MessagingServiceInfo.ServiceInfo
 open DbData.DatabaseTypes
 open ServiceProxy.MsgProcessorProxy
-open Clm.CalculationData
-open ClmSys.ModelData
 open NoSql.FileSystemTypes
 
 module ModelRunnerProxy =
@@ -146,11 +147,7 @@ module ModelRunnerProxy =
     type RunnerData =
         {
             getConnectionString : unit -> ConnectionString
-            resultLocation : string
-            lastAllowedNodeErr : LastAllowedNodeErr
-            collisionData : CollisionData
-            dictionaryUpdateType : DictionaryUpdateType
-            controlData : RunnerControlData
+            contGenInfo : ContGenInfo
         }
 
 
@@ -160,7 +157,7 @@ module ModelRunnerProxy =
             {
                 sendRunModelMessage = s
                 loadModelData = loadModelData d.getConnectionString
-                controlData = d.controlData
+                controlData = d.contGenInfo.controlData
             }
 
 
