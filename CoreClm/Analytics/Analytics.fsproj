@@ -20,10 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="FSharp.Plotly" Version="2.0.0-alpha" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="5.0.1" />
+    <PackageReference Update="FSharp.Core" Version="5.0.2" />
   </ItemGroup>
 
 </Project>
