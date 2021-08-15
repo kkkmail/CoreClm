@@ -1,9 +1,7 @@
-use clm607
-go
+-- Calculates how often the symmetry is broken for all processed default sets across clm607 and clm608 databases.
 
--- Calculates how often the symmetry is broken for all processed default sets.
-declare @startRunQueueOrder bigint
-set @startRunQueueOrder = 21
+declare @startRunQueueOrder607 bigint
+set @startRunQueueOrder607 = 21
 
 declare @eps1 float, @eps2 float
 set @eps1 = 0.50
@@ -15,6 +13,28 @@ set @maxWeightedAverageAbsEe = @maxLastEe
 set @runeTimeEst = 1.60
 
 ; with
+q as
+(
+	select * from clm607.dbo.RunQueue where runQueueOrder >= @startRunQueueOrder607
+	union all
+	select * from clm608.dbo.RunQueue
+),
+d as
+(
+	select * from clm608.dbo.ClmDefaultValue
+),
+t as
+(
+	select clmTaskId, clmDefaultValueId, clmTaskStatusId, numberOfAminoAcids, maxPeptideLength from clm607.dbo.ClmTask
+	union all
+	select clmTaskId, clmDefaultValueId, clmTaskStatusId, numberOfAminoAcids, maxPeptideLength from clm608.dbo.ClmTask
+),
+m as
+(
+	select modelDataId, clmTaskId, createdOn from clm607.dbo.ModelData
+	union all
+	select modelDataId, clmTaskId, createdOn from clm608.dbo.ModelData
+),
 a as
 (
 	select
@@ -40,11 +60,10 @@ a as
 				else 0 
 		end) as progress
 	from
-		ClmDefaultValue d 
-		inner join ClmTask t on d.clmDefaultValueId = t.clmDefaultValueId
-		inner join ModelData m on m.clmTaskId = t.clmTaskId
-		inner join RunQueue q on q.modelDataId = m.modelDataId
-		where q.runQueueOrder >= @startRunQueueOrder
+		d 
+		inner join t on d.clmDefaultValueId = t.clmDefaultValueId
+		inner join m on m.clmTaskId = t.clmTaskId
+		inner join q on q.modelDataId = m.modelDataId
 	group by d.clmDefaultValueId, t.clmTaskStatusId, t.numberOfAminoAcids, t.maxPeptideLength
 ),
 b as
@@ -61,11 +80,11 @@ b as
 		end as isSymmetryBroken,
 		cast(datediff(minute, isnull(q.startedOn, m.createdOn), q.modifiedOn) as float) / 1440.0 as runTime
 	from
-		RunQueue q
-		inner join ModelData m on q.modelDataId = m.modelDataId
-		inner join ClmTask t on m.clmTaskId = t.clmTaskId
-		inner join ClmDefaultValue d on t.clmDefaultValueId = d.clmDefaultValueId
-	where isnull(q.maxEe, 0) <= 1 and q.runQueueStatusId = 3 and q.runQueueOrder >= @startRunQueueOrder
+		q
+		inner join m on q.modelDataId = m.modelDataId
+		inner join t on m.clmTaskId = t.clmTaskId
+		inner join d on t.clmDefaultValueId = d.clmDefaultValueId
+	where isnull(q.maxEe, 0) <= 1 and q.runQueueStatusId = 3
 ),
 c as
 (
@@ -79,7 +98,7 @@ c as
 	from b
 	group by defaultSetIndex, numberOfAminoAcids, maxPeptideLength, modelDataId
 ),
-d as
+e as
 (
 	select
 		defaultSetIndex,
@@ -90,7 +109,7 @@ d as
 	from c
 	group by defaultSetIndex, numberOfAminoAcids, maxPeptideLength
 ),
-e as
+f as
 (
 	select
 		defaultSetIndex,
@@ -101,24 +120,24 @@ e as
 	where isSymmetryBroken = 1
 	group by defaultSetIndex, numberOfAminoAcids, maxPeptideLength
 ),
-f as
+g as
 (
 	select
 		--a.numberOfAminoAcids,
 		--a.maxPeptideLength,
 		a.defaultSetIndex,
 		a.clmTaskStatusId,
-		isnull(d.modelCount, 0) as modelCount,
+		isnull(e.modelCount, 0) as modelCount,
 		a.running,
 		a.progress / (case when a.running > 0 then a.running else 1 end) as progress,
-		isnull(e.symmBrokenCount, 0) as symmBrokenCount,
+		isnull(f.symmBrokenCount, 0) as symmBrokenCount,
 
 		-- Not corrected.
-		cast(isnull(cast(isnull(e.symmBrokenCount, 0) as float) / cast(d.modelCount as float), 0) as money) as symmBrokenPct,
+		cast(isnull(cast(isnull(f.symmBrokenCount, 0) as float) / cast(e.modelCount as float), 0) as money) as symmBrokenPct,
 
 		-- Corrected to account for a long running tail.
-		cast(isnull(e.symmBrokenCount * (d.modelCount + @eps1 * a.running) / (d.modelCount * (d.modelCount + a.running)), 0) as money) as symmBrokenPctCorr1,
-		cast(isnull(e.symmBrokenCount * (d.modelCount + @eps2 * a.running) / (d.modelCount * (d.modelCount + a.running)), 0) as money) as symmBrokenPctCorr2,
+		cast(isnull(f.symmBrokenCount * (e.modelCount + @eps1 * a.running) / (e.modelCount * (e.modelCount + a.running)), 0) as money) as symmBrokenPctCorr1,
+		cast(isnull(f.symmBrokenCount * (e.modelCount + @eps2 * a.running) / (e.modelCount * (e.modelCount + a.running)), 0) as money) as symmBrokenPctCorr2,
 
 		--isnull(cast(dbo.getWasteRecyclingRate(a.defaultSetIndex) as nvarchar(20)), '') as wasteRecyclingRate,
 		--isnull(cast(dbo.getCatSynthSim(a.defaultSetIndex) as nvarchar(20)), '') as catSynthSim,
@@ -146,15 +165,16 @@ f as
 		isnull(cast(dbo.getSugarForward(a.defaultSetIndex) as nvarchar(20)), '') as sugarForward,
 		isnull(cast(dbo.getSugarBackward(a.defaultSetIndex) as nvarchar(20)), '') as sugarBackward
 
-		--,isnull(cast(cast(d.runTime as decimal(10, 2)) as nvarchar(20)), '') as runTime
-		--,cast(a.remainingRepetitions * isnull(d.runTime, @runeTimeEst) as decimal(10, 2)) as remainingRunTime
+		--,isnull(cast(cast(e.runTime as decimal(10, 2)) as nvarchar(20)), '') as runTime
+		--,cast(a.remainingRepetitions * isnull(e.runTime, @runeTimeEst) as decimal(10, 2)) as remainingRunTime
 	from a
 
-		left outer join d on a.defaultSetIndex = d.defaultSetIndex and a.numberOfAminoAcids = d.numberOfAminoAcids
 		left outer join e on a.defaultSetIndex = e.defaultSetIndex and a.numberOfAminoAcids = e.numberOfAminoAcids
+		left outer join f on a.defaultSetIndex = f.defaultSetIndex and a.numberOfAminoAcids = f.numberOfAminoAcids
 )
 
 select 
 	* 
-from f
+from g
 order by defaultSetIndex
+
