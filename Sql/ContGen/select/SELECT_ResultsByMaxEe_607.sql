@@ -10,8 +10,8 @@ set @eps1 = 0.50
 set @eps2 = 0.25
 
 declare @maxWeightedAverageAbsEe float, @maxLastEe float, @runeTimeEst float
-set @maxLastEe = 0.10
-set @maxWeightedAverageAbsEe = @maxLastEe
+set @maxLastEe = 1.30
+set @maxWeightedAverageAbsEe = 0.30
 set @runeTimeEst = 1.60
 
 ; with
