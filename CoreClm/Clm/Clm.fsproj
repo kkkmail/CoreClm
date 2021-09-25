@@ -26,14 +26,11 @@
 
   <ItemGroup>
     <PackageReference Include="Softellect.OdePackInterop" Version="0.1.1" />
+    <PackageReference Update="FSharp.Core" Version="5.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="5.0.1" />
   </ItemGroup>
 
 </Project>

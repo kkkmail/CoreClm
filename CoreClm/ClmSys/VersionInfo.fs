@@ -10,29 +10,32 @@ module VersionInfo =
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
     ///     3. Version number (below) is increased.
-    let messagingDataVersion = MessagingDataVersion 120
+    let messagingDataVersion = MessagingDataVersion 122
 
 
     /// ! Do not forget to update versionNumber in VersionInfo.ps1 when this parameter is updated !
     ///
     /// This is an overall system version.
     [<Literal>]
-    let VersionNumberValue = "6.0.7"
+    let VersionNumberValue = "6.0.8"
+
+
+    /// The same as above but without the dots in order to use in database and folder names.
+    [<Literal>]
+    let private VersionNumberNumericalValue = "608"
 
 
     /// A base name, which controls the database name and a working folder name.
-    /// It is loosely the same as the version number.
-    /// It must be updated when the old version is still running (for days) but the new version needs to be deployed.
     [<Literal>]
-    let ClmBaseName = "clm607"
+    let ClmBaseName = "clm" + VersionNumberNumericalValue
 
 
     [<Literal>]
-    let MsgSvcBaseName = "msg607"
+    let MsgSvcBaseName = "msg" + VersionNumberNumericalValue
 
 
     [<Literal>]
-    let WorkerNodeSvcBaseName = "wns607"
+    let WorkerNodeSvcBaseName = "wns" + VersionNumberNumericalValue
 
 
     /// Default port on which messaging communication is performed.

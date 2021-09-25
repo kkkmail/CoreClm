@@ -6,6 +6,7 @@ open System.Threading
 
 open ClmSys.ContGenPrimitives
 open ClmSys.DistributionData
+open ClmSys.SolverData
 open Softellect.Sys
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.AppSettings
@@ -94,6 +95,7 @@ module ServiceInfo =
     type IContGenService =
         abstract tryCancelRunQueue : RunQueueId -> CancellationType -> UnitResult
         abstract tryRequestResults : RunQueueId -> ResultNotificationType -> UnitResult
+        abstract tryReset : RunQueueId -> UnitResult
 
 
     /// https://gist.github.com/dgfitch/661656
@@ -105,6 +107,9 @@ module ServiceInfo =
 
         [<OperationContract(Name = "tryRequestResults")>]
         abstract tryRequestResults : q:byte[] -> byte[]
+
+        [<OperationContract(Name = "tryReset")>]
+        abstract tryReset : q:byte[] -> byte[]
 
 
     let contGenServiceAddress = ConfigKey "ContGenServiceAddress"
@@ -160,6 +165,19 @@ module ServiceInfo =
     let acCatRacemCollKey = ConfigKey "AcCatRacemColl"
     let sedDirCollKey = ConfigKey "SedDirColl"
     let acCollKey = ConfigKey "AcColl"
+    
+
+    let earlyExitCheckFreqKey = ConfigKey "EarlyExitCheckFrequencyInMinutes"
+    let quickProgressKey = ConfigKey "QuickProgress"
+    let quickMinEeKey = ConfigKey "QuickMinEe"
+    let standardProgressKey = ConfigKey "StandardProgress"
+    let standardMinEeKey = ConfigKey "StandardMinEe"
+    let slowProgressKey = ConfigKey "SlowProgress"
+    let slowMinEeKey = ConfigKey "SlowMinEe"
+    let maxRunTimeKey = ConfigKey "MaxRunTimeInDays"
+    
+    let resultLocationKey = ConfigKey "ResultLocation"
+    let noOfProgressPointsKey = ConfigKey "NoOfProgressPoints"
 
 
     type AppSettingsProvider
@@ -191,6 +209,19 @@ module ServiceInfo =
                 provider.trySetPairCollisionResolution sedDirCollKey d.sedDirColl
                 provider.trySetPairCollisionResolution acCollKey d.acColl
             ]
+            
+            
+        member provider.trySetEarlyExitParam(d : EarlyExitParam) =
+            [
+                provider.trySet earlyExitCheckFreqKey (int d.earlyExitCheckFreq.value.TotalMinutes)
+                provider.trySet quickProgressKey d.quickProgress
+                provider.trySet quickMinEeKey d.quickMinEe
+                provider.trySet standardProgressKey d.standardProgress
+                provider.trySet standardMinEeKey d.standardMinEe
+                provider.trySet slowProgressKey d.slowProgress
+                provider.trySet slowMinEeKey d.slowMinEe
+                provider.trySet maxRunTimeKey d.maxRunTime.TotalDays
+            ]
 
 
     type ContGenSettings
@@ -205,12 +236,20 @@ module ServiceInfo =
                     updateContGenSettings provider w.contGenSvcInfo w.contGenCommType
                     updateMessagingSettings provider w.messagingSvcInfo w.messagingCommType
 
-                    provider.trySet minUsefulEe w.contGenInfo.minUsefulEe.value |> ignore
                     provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
+                    provider.trySet resultLocationKey w.contGenInfo.resultLocation |> ignore
                     provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
                     provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
-                    provider.trySet absoluteTolerance w.contGenInfo.absoluteTolerance.value |> ignore
                     provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
+
+                    provider.trySet minUsefulEe w.contGenInfo.controlData.minUsefulEe.value |> ignore
+                    provider.trySet absoluteTolerance w.contGenInfo.controlData.absoluteTolerance.value |> ignore
+                    provider.trySet noOfProgressPointsKey w.contGenInfo.controlData.noOfProgressPoints |> ignore
+                    
+                    w.contGenInfo.controlData.earlyExitParamOpt
+                    |> Option.defaultValue EarlyExitParam.defaultValue
+                    |> provider.trySetEarlyExitParam
+                    |> ignore
 
                     provider.trySave() |> Rop.bindError toErr
                 with
@@ -326,6 +365,35 @@ module ServiceInfo =
         let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort WcfSecurityMode.defaultValue
 
         (contGenSvcInfo, contGenServiceCommunicationType)
+        
+        
+    /// Gets the value out of provider's result or default.        
+    let toValueOrDefault m d v =
+        v                    
+        |> Rop.toOption
+        |> Option.flatten
+        |> Option.map m
+        |> Option.defaultValue d         
+        
+        
+    let loadEarlyExitParam (provider : AppSettingsProvider) =
+        let getProgress key defaultValue = provider.tryGetDecimal key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
+        let getEe key defaultValue = provider.tryGetDouble key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
+        let d = EarlyExitParam.defaultValue
+        
+        {
+            earlyExitCheckFreq =
+                provider.tryGetInt earlyExitCheckFreqKey
+                |> toValueOrDefault (fun e -> TimeSpan.FromMinutes(double e) |> EarlyExitCheckFrequency) EarlyExitCheckFrequency.defaultValue
+                
+            quickProgress = getProgress quickProgressKey d.quickProgress
+            quickMinEe = getEe quickMinEeKey d.quickMinEe
+            standardProgress = getProgress standardProgressKey d.standardProgress
+            standardMinEe = getEe standardMinEeKey d.standardMinEe
+            slowProgress = getProgress slowProgressKey d.slowProgress
+            slowMinEe = getEe slowMinEeKey d.slowMinEe            
+            maxRunTime =provider.tryGetDouble maxRunTimeKey|> toValueOrDefault TimeSpan.FromDays d.maxRunTime
+        }
 
 
     let loadContGenSettings() =
@@ -335,47 +403,55 @@ module ServiceInfo =
             match providerRes with
             | Ok provider ->
                 {
-                    minUsefulEe =
-                        match provider.tryGetDecimal minUsefulEe with
-                        | Ok (Some ee) -> ee |> double |> MinUsefulEe
-                        | _ -> MinUsefulEe.defaultValue
-
                     partitionerId = getPartitionerId providerRes partitionerId defaultPartitionerId
+                    resultLocation = provider.tryGetString resultLocationKey |> toValueOrDefault id DefaultResultLocationFolder
 
                     lastAllowedNodeErr =
                         match provider.tryGetInt lastAllowedNodeErrInMinutes with
                         | Ok (Some p) when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
                         | _ -> LastAllowedNodeErr.defaultValue
-
-                    earlyExitCheckFreq =
-                        match provider.tryGetInt earlyExitCheckFrequencyInMinutes with
-                        | Ok (Some p) when p > 0 -> p * 1<minute> |> EarlyExitCheckFreq
-                        | _ -> EarlyExitCheckFreq.defaultValue
-
+                        
                     collisionData = getCollisionData provider
 
                     dictionaryUpdateType =
                         match provider.tryGet DictionaryUpdateType.tryDeserialize dictionaryUpdateType with
                         | Ok (Some v) -> v
                         | _ -> AllRateData
+                        
+                    controlData =
+                        {
+                            minUsefulEe =
+                                match provider.tryGetDecimal minUsefulEe with
+                                | Ok (Some ee) -> ee |> double |> MinUsefulEe
+                                | _ -> MinUsefulEe.defaultValue
 
-                    absoluteTolerance =
-                        match provider.tryGetDouble absoluteTolerance with
-                        | Ok (Some t) -> t |> AbsoluteTolerance
-                        | Error e ->
-                            printfn $"loadContGenSettings: {absoluteTolerance}, error: {e}."
-                            AbsoluteTolerance.defaultValue
-                        | _ -> AbsoluteTolerance.defaultValue
+                            noOfProgressPoints = provider.tryGetInt noOfProgressPointsKey |> toValueOrDefault id defaultNoOfProgressPoints                           
+                            earlyExitParamOpt = loadEarlyExitParam provider |> Some                       
+
+                            absoluteTolerance =
+                                match provider.tryGetDouble absoluteTolerance with
+                                | Ok (Some t) -> t |> AbsoluteTolerance
+                                | Error e ->
+                                    printfn $"loadContGenSettings: {absoluteTolerance}, error: {e}."
+                                    AbsoluteTolerance.defaultValue
+                                | _ -> AbsoluteTolerance.defaultValue
+                        }
                 }
             | _ ->
                 {
-                    minUsefulEe = MinUsefulEe.defaultValue
                     partitionerId = defaultPartitionerId
+                    resultLocation = DefaultResultLocationFolder
                     lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
-                    earlyExitCheckFreq = EarlyExitCheckFreq.defaultValue
                     collisionData = CollisionData.defaultValue
                     dictionaryUpdateType = AllRateData
-                    absoluteTolerance = AbsoluteTolerance.defaultValue
+                    
+                    controlData =
+                        {
+                            minUsefulEe = MinUsefulEe.defaultValue
+                            noOfProgressPoints = defaultNoOfProgressPoints                          
+                            earlyExitParamOpt = Some EarlyExitParam.defaultValue
+                            absoluteTolerance = AbsoluteTolerance.defaultValue                            
+                        }
                 }
 
         let contGenSvcInfo, contGenServiceCommunicationType = loadContGenServiceSettings providerRes

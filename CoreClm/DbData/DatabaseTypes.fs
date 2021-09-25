@@ -60,7 +60,7 @@ module DatabaseTypes =
         select *
         from dbo.ClmTask
         where remainingRepetitions > 0 and clmTaskStatusId = 0
-        order by clmTaskOrder", ContGenConnectionStringValue, ResultType.DataReader>
+        order by clmTaskPriority, clmTaskOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type CommandLineParamTable = ClmDB.dbo.Tables.CommandLineParam
@@ -110,7 +110,7 @@ module DatabaseTypes =
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
-        order by runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
+        order by t.clmTaskPriority, runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     /// SQL to load RunQueue by runQueueId.
@@ -133,7 +133,7 @@ module DatabaseTypes =
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
-        order by runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
+        order by t.clmTaskPriority, runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     /// SQL to load all currently running models == total progress.
@@ -146,7 +146,7 @@ module DatabaseTypes =
         inner join dbo.ModelData m on r.modelDataId = m.modelDataId
         inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
         where r.runQueueStatusId = 2 and t.clmTaskStatusId = 0 and r.workerNodeId is not null
-        order by runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
+        order by t.clmTaskPriority, runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
     type WorkerNodeTable = ClmDB.dbo.Tables.WorkerNode
@@ -208,9 +208,14 @@ module DatabaseTypes =
                         clmTaskInfo =
                             {
                                 clmTaskId = clmTaskId
-                                clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
-                                numberOfAminoAcids = n
-                                maxPeptideLength = m
+                                
+                                taskDetails =
+                                    {
+                                        clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
+                                        clmTaskPriority = r.clmTaskPriority |> ClmTaskPriority
+                                        numberOfAminoAcids = n
+                                        maxPeptideLength = m                                        
+                                    }
                             }
                         commandLineParams = p
                         numberOfRepetitions = r.numberOfRepetitions
@@ -225,9 +230,10 @@ module DatabaseTypes =
             let newRow =
                 t.NewRow(
                         clmTaskId = r.clmTaskInfo.clmTaskId.value,
-                        clmDefaultValueId = r.clmTaskInfo.clmDefaultValueId.value,
-                        numberOfAminoAcids = r.clmTaskInfo.numberOfAminoAcids.length,
-                        maxPeptideLength = r.clmTaskInfo.maxPeptideLength.length,
+                        clmDefaultValueId = r.clmTaskInfo.taskDetails.clmDefaultValueId.value,
+                        clmTaskPriority = r.clmTaskInfo.taskDetails.clmTaskPriority.value,
+                        numberOfAminoAcids = r.clmTaskInfo.taskDetails.numberOfAminoAcids.length,
+                        maxPeptideLength = r.clmTaskInfo.taskDetails.maxPeptideLength.length,
                         numberOfRepetitions = r.numberOfRepetitions,
                         remainingRepetitions = r.remainingRepetitions,
                         createdOn = DateTime.Now
@@ -593,9 +599,9 @@ module DatabaseTypes =
             let connectionString = conn.ConnectionString
 
             use cmd = new SqlCommandProvider<"
-                    UPDATE dbo.ClmTask
-                    SET remainingRepetitions = @remainingRepetitions
-                    WHERE clmTaskId = @clmTaskId
+                    update dbo.ClmTask
+                    set remainingRepetitions = @remainingRepetitions
+                    where clmTaskId = @clmTaskId
                 ", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
 
             let recordsUpdated =
@@ -926,6 +932,20 @@ module DatabaseTypes =
             |> Ok
 
         tryDbFun g |> Rop.unwrapResultOption
+
+
+    let tryResetRunQueue c (q : RunQueueId) =
+        let g() =
+            use conn = getOpenConn c
+            let connectionString = conn.ConnectionString
+
+            use cmd = new SqlCommandProvider<"update dbo.RunQueue set runQueueStatusId = 0, errorMessage = null, workerNodeId = null, startedOn = null, modifiedOn = getdate() where runQueueId = @runQueueId and runQueueStatusId = 4", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            match cmd.Execute(runQueueId = q.value) = 1 with
+            | true -> Ok ()
+            | false -> toError ResetRunQueueEntryErr q
+
+        tryDbFun g
 
 
     let saveRunQueue c modelDataId defaultValueId p =

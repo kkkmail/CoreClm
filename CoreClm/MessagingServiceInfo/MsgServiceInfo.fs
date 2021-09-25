@@ -27,6 +27,7 @@ open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open Clm.ChartData
 open ClmSys.GeneralData
+open ClmSys.SolverData
 
 module ServiceInfo =
 
@@ -54,7 +55,7 @@ module ServiceInfo =
     type EarlyExitData = ChartData
 
 
-    let bindBool s b =
+    let bindBool b s =
         match b with
         | true -> b, Some s
         | false -> b, None
@@ -65,31 +66,30 @@ module ServiceInfo =
         | MaxWeightedAverageAbsEeExceeds of float
         | MaxLastEeExceeds of float
         | MaxAverageEeExceeds of float
+        | RunTimeExceeds of TimeSpan
 
         member r.isValid (d : EarlyExitData) =
             match r with
-            | ProgressExceeds p -> d.progress > p |> bindBool $"progress: %A{d.progress} > %A{p}"
-            | MaxWeightedAverageAbsEeExceeds e ->
-                d.maxWeightedAverageAbsEe > e |> bindBool $"maxWeightedAverageAbsEe: %A{d.maxWeightedAverageAbsEe} > %A{e}"
-            | MaxLastEeExceeds e -> d.maxLastEe > e |> bindBool $"maxLastEe: %A{d.maxLastEe} > %A{e}"
-            | MaxAverageEeExceeds e -> d.maxAverageEe > e |> bindBool $"maxAverageEe: %A{d.maxAverageEe} > %A{e}"
+            | ProgressExceeds p -> d.progress > p, $"progress: %A{d.progress} > %A{p}"
+            | MaxWeightedAverageAbsEeExceeds e -> d.maxWeightedAverageAbsEe > e, $"maxWeightedAverageAbsEe: %A{d.maxWeightedAverageAbsEe} > %A{e}"
+            | MaxLastEeExceeds e -> d.maxLastEe > e, $"maxLastEe: %A{d.maxLastEe} > %A{e}"
+            | MaxAverageEeExceeds e -> d.maxAverageEe > e, $"maxAverageEe: %A{d.maxAverageEe} > %A{e}"
+            | RunTimeExceeds e -> (DateTime.Now - d.startedOn) > e, $"runTime exceeds: {e}"
+            ||> bindBool
 
 
-    type EarlyExitCheckFrequency =
-        | EarlyExitCheckFrequency of TimeSpan
+    /// Any rule can be satisfied.        
+    type AnyRule =
+        | AnyRule of list<EarlyExitRule>
 
-        member this.value = let (EarlyExitCheckFrequency v) = this in v
+        member e.value = let (AnyRule v) = e in v
+    
 
-        static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
-
-
-    /// Outer list - all collections must be satisfied, inner list - at least one rule must be satisfied.
+    /// Outer list - all collections must be satisfied, inner list (from AnyRule) - at least one rule must be satisfied.
     type EarlyExitRuleCollection =
-        | EarlyExitRuleCollection of list<list<EarlyExitRule>>
+        | AllOfAny of list<AnyRule>
 
-        member e.value = let (EarlyExitRuleCollection v) = e in v
-
-
+    
     type EarlyExitStrategy =
         | AnyRuleCollection of list<EarlyExitRuleCollection> // Any of the collections can be satisfied.
 
@@ -112,19 +112,19 @@ module ServiceInfo =
 
                             let combineOr (r1, m1) (r2, m2) = r1 || r2, g m1 m2
 
-                            let foldInner (a : list<EarlyExitRule>) =
-                                a |> List.fold (fun acc b -> combineOr (b.isValid d) acc) (false, None)
+                            let foldInner (a : AnyRule) =
+                                a.value |> List.fold (fun acc b -> combineOr (b.isValid d) acc) (false, None)
 
                             let combineAnd (r1, m1) (r2, m2) = r1 && r2, g m1 m2
 
-                            let r =
+                            let result =
                                 v
                                 |> List.map foldInner
                                 |> List.fold combineAnd (true, None)
 
-                            r
+                            result
 
-                    let chooser (EarlyExitRuleCollection v) =
+                    let chooser (AllOfAny v) =
                         let x = r v
                         match x with
                         | false, _ -> None
@@ -132,44 +132,46 @@ module ServiceInfo =
 
                     c |> List.tryPick chooser |> Option.defaultValue (false, None)
 
-        static member quickProgress = 0.01M
-        static member quickMinEe = 0.30
-
-        static member standardProgress = 0.05M
-        static member standardMinEe = 0.20
-
-        static member slowProgress = 0.10M
-        static member slowMinEe = 0.15
-
-        static member getValue p e =
+        static member getEeValue p e =
             [
                 [
                     ProgressExceeds p
                 ]
+                |> AnyRule
+                
                 [
                     MaxWeightedAverageAbsEeExceeds e
                     MaxLastEeExceeds e
                     MaxAverageEeExceeds e
                 ]
+                |> AnyRule
             ]
-            |> EarlyExitRuleCollection
+            |> AllOfAny
 
-            static member quickValue =
-                    EarlyExitStrategy.getValue EarlyExitStrategy.quickProgress EarlyExitStrategy.quickMinEe
+        static member quickValue p =
+                EarlyExitStrategy.getEeValue p.quickProgress p.quickMinEe
 
-            static member standardValue =
-                    EarlyExitStrategy.getValue EarlyExitStrategy.standardProgress EarlyExitStrategy.standardMinEe
+        static member standardValue p =
+                EarlyExitStrategy.getEeValue p.standardProgress p.standardMinEe
 
-            static member slowValue =
-                    EarlyExitStrategy.getValue EarlyExitStrategy.slowProgress EarlyExitStrategy.slowMinEe
+        static member slowValue p =
+                EarlyExitStrategy.getEeValue p.slowProgress p.slowMinEe
+                
+        static member longRunningValue p =
+            [
+                [ RunTimeExceeds p.maxRunTime ] |> AnyRule
+            ]
+            |> AllOfAny
 
-            static member defaultValue =
-                [
-                    EarlyExitStrategy.quickValue
-                    EarlyExitStrategy.standardValue
-                    EarlyExitStrategy.slowValue
-                ]
-                |> AnyRuleCollection
+        static member getValue p =
+            [
+                EarlyExitStrategy.quickValue
+                EarlyExitStrategy.standardValue
+                EarlyExitStrategy.slowValue
+                EarlyExitStrategy.longRunningValue
+            ]
+            |> List.map (fun e -> e p)
+            |> AnyRuleCollection
 
 
     type EarlyExitInfo =
@@ -177,28 +179,11 @@ module ServiceInfo =
             frequency : EarlyExitCheckFrequency
             earlyExitStrategy : EarlyExitStrategy
         }
-
-        static member defaultValue =
+        
+        static member getValue p = 
             {
-                frequency = EarlyExitCheckFrequency.defaultValue
-                earlyExitStrategy = EarlyExitStrategy.defaultValue
-            }
-
-
-    type RunnerControlData =
-        {
-            minUsefulEe : MinUsefulEe
-            noOfProgressPoints : int
-            earlyExitInfoOpt : EarlyExitInfo option
-            absoluteTolerance : AbsoluteTolerance
-        }
-
-        static member defaultValue =
-            {
-                minUsefulEe = MinUsefulEe.defaultValue
-                noOfProgressPoints = defaultNoOfProgressPoints
-                earlyExitInfoOpt = Some EarlyExitInfo.defaultValue
-                absoluteTolerance = AbsoluteTolerance.defaultValue
+                frequency = p.earlyExitCheckFreq
+                earlyExitStrategy = EarlyExitStrategy.getValue p
             }
 
 

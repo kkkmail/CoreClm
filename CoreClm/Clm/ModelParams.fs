@@ -246,19 +246,26 @@ module ModelParams =
             separator : string
         }
 
-        static member defautlValue =
+        static member defaultValue =
             {
                 resultLocation = DefaultResultLocationFolder
                 separator = "_"
             }
+            
+            
+    type ClmTaskDetails =
+        {
+            clmDefaultValueId : ClmDefaultValueId
+            clmTaskPriority : ClmTaskPriority
+            numberOfAminoAcids : NumberOfAminoAcids
+            maxPeptideLength : MaxPeptideLength
+        }
 
 
     type ClmTaskInfo =
         {
             clmTaskId : ClmTaskId
-            clmDefaultValueId : ClmDefaultValueId
-            numberOfAminoAcids : NumberOfAminoAcids
-            maxPeptideLength : MaxPeptideLength
+            taskDetails : ClmTaskDetails
         }
 
 

@@ -51,7 +51,7 @@ module ChartExt =
 
         static member defaultValue =
             {
-                resultInfo = ResultInfo.defautlValue
+                resultInfo = ResultInfo.defaultValue
                 useTempFolder = false
             }
 

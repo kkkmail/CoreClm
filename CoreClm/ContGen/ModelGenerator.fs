@@ -51,7 +51,7 @@ module ModelGenerator =
                                             info =
                                                 {
                                                     modelDataId = modelDataId;
-                                                    defaultValueId = c.clmTaskInfo.clmDefaultValueId;
+                                                    defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId;
                                                     modelCommandLineParam = e
                                                 }
                                             runQueueStatus = NotStartedRunQueue

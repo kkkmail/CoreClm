@@ -14,6 +14,7 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
 open ClmSys.ModelData
+open ClmSys.SolverData
 
 module ContGenData =
 
@@ -30,13 +31,12 @@ module ContGenData =
 
     type ContGenInfo =
         {
-            minUsefulEe : MinUsefulEe
             partitionerId : PartitionerId
+            resultLocation : string
             lastAllowedNodeErr : LastAllowedNodeErr
-            earlyExitCheckFreq : EarlyExitCheckFreq
             collisionData : CollisionData
             dictionaryUpdateType : DictionaryUpdateType
-            absoluteTolerance : AbsoluteTolerance
+            controlData : RunnerControlData
         }
 
 
