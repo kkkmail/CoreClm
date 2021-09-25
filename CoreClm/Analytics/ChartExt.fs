@@ -6,9 +6,10 @@ open Microsoft.FSharp.Core
 open ClmSys.ContGenPrimitives
 open Clm.ModelParams
 open Clm.ChartData
-open FSharp.Plotly
-open FSharp.Plotly.GenericChart
-open FSharp.Plotly.ChartDescription
+open Plotly.NET
+open Plotly.NET.GenericChart
+//open Plotly.NET.ChartDescription
+//open Plotly.NET.
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 
@@ -21,13 +22,22 @@ module ChartExt =
         }
 
 
+    let toEmbeddedHtmlWithDescription (description : ChartDescription) gChart =
+         let chartMarkup =
+             toChartHTML gChart
+
+         HTML.doc
+             .Replace("[CHART]", chartMarkup)
+             .Replace("[DESCRIPTION]", description.Text)
+
+
     type Chart with
 
         /// Show chart in browser
         static member ShowWithDescription1 (show : bool) (d : string) (ch:GenericChart) =
             let guid = Guid.NewGuid().ToString()
             let description = toDescription "" d
-            let html = GenericChart.toEmbeddedHtmlWithDescription description ch
+            let html = toEmbeddedHtmlWithDescription description ch
             let tempPath = Path.GetTempPath()
             let file = $"%s{guid}.html"
             let path = Path.Combine(tempPath, file)
@@ -38,7 +48,7 @@ module ChartExt =
         /// Saves chart in a specified file name and shows it in the browser. The caller is responsible for full path / filename / extension.
         static member ShowFileWithDescription (show : bool) (fullFileName : string) (d : string) (ch:GenericChart) =
             let description = toDescription "" d
-            let html = GenericChart.toEmbeddedHtmlWithDescription description ch
+            let html = toEmbeddedHtmlWithDescription description ch
             File.WriteAllText(fullFileName, html)
             if show then System.Diagnostics.Process.Start(fullFileName) |> ignore
 
@@ -93,7 +103,7 @@ module ChartExt =
 
     let getChart fileName d ch =
         {
-            htmlContent = GenericChart.toEmbeddedHtmlWithDescription d ch
+            htmlContent = toEmbeddedHtmlWithDescription d ch
             fileName = fileName
         }
 

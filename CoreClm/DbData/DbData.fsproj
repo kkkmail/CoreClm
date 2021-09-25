@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> 
     <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
@@ -22,16 +23,18 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.90" />
-    <PackageReference Include="FSharp.Data.SqlClient" Version="2.0.7" />
     <PackageReference Include="SQLite.Interop.dll" Version="1.0.103" />
     <PackageReference Include="SQLProvider" Version="1.2.9" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0-rc.1.21451.13" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.114.3" />
-    <PackageReference Update="FSharp.Core" Version="5.0.2" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115" />
+    <PackageReference Update="FSharp.Core" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\FSharp.Data.SqlClient\src\SqlClient.DesignTime\SqlClient.DesignTime.fsproj" />
+    <ProjectReference Include="..\..\FSharp.Data.SqlClient\src\SqlClient\SqlClient.fsproj" />
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />

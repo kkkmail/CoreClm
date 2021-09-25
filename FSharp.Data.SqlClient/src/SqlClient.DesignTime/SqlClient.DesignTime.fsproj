@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Import Project="..\..\netfx.props" / -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AssemblyName>FSharp.Data.SqlClient.DesignTime</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NoWarn>101</NoWarn>
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+    <DisableImplicitSystemValueTupleReference>true</DisableImplicitSystemValueTupleReference>
+    <DefineConstants>$(DefineConstants);DESIGNTIME_CODE_ONLY;WITH_LEGACY_NAMESPACE</DefineConstants>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.0-preview2.21264.2" />
+    <PackageReference Include="Microsoft.SqlServer.DacFx" Version="160.5196.4-preview" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0-rc.1.21451.13" />
+    <PackageReference Include="System.Runtime.Caching" Version="6.0.0-rc.1.21451.13" />
+  </ItemGroup>
+  <ItemGroup Condition="$(TargetFramework) == 'net461'">
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="..\..\paket-files\fsprojects\FSharp.TypeProviders.SDK\src\ProvidedTypes.fsi">
+      <Link>ProvidedTypes.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\fsprojects\FSharp.TypeProviders.SDK\src\ProvidedTypes.fs">
+      <Link>ProvidedTypes.fs</Link>
+    </Compile>
+    <Compile Include="../SqlClient/Extensions.fs" />
+    <Compile Include="../SqlClient/Shared.fs" />
+    <Compile Include="../SqlClient/Configuration.fs" />
+    <Compile Include="../SqlClient/DataTable.fs" />
+    <Compile Include="../SqlClient/DynamicRecord.fs" />
+    <Compile Include="../SqlClient/ISqlCommand.fs" />
+    <Compile Include="../SqlClient/Runtime.fs" />
+    <Compile Include="DesignTimeConnectionString.fs" />
+    <Compile Include="ProvidedTypesCache.fs" />
+    <Compile Include="SqlClientExtensions.fs" />
+    <Compile Include="QuotationsFactory.fs" />
+    <Compile Include="DesignTime.fs" />
+    <Compile Include="SingleFileChangeMonitor.fs" />
+    <Compile Include="SingleRootTypeProvider.fs" />
+    <Compile Include="SqlClientProvider.fs" />
+    <Compile Include="SqlCommandProvider.fs" />
+    <Compile Include="SqlEnumProvider.fs" />
+    <Compile Include="SqlFileProvider.fs" />
+    <Content Include="paket.references" />
+    <None Include="Scripts\Scratchpad.fsx" />
+    <None Include="Scripts\ReverseLineOrderForNotex.fsx" />
+    <None Include="Scripts\XE.fsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="System.Data.SqlClient" Version="4.8.3" />
+  </ItemGroup>
+  <Target Name="CopyAssembliesToTPFolder" AfterTargets="Build">
+    <ItemGroup>
+      <DesignTimeAssemblies Include="$(OutputPath)\FSharp.Data.SqlClient.DesignTime.*" />
+      <DesignTimeAssemblies Include="$(OutputPath)\Microsoft.SqlServer.*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DesignTimeAssemblies)" DestinationFolder="..\..\bin\typeproviders\fsharp41\$(TargetFramework)" />
+  </Target>
+  <Target Name="CopyAssembliesToLegacyFolder" AfterTargets="Build" Condition="$(TargetFramework) == 'net40'">
+    <ItemGroup>
+      <DesignTimeAssemblies Include="$(OutputPath)\FSharp.Data.SqlClient.DesignTime.*" />
+      <DesignTimeAssemblies Include="$(OutputPath)\Microsoft.SqlServer.*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DesignTimeAssemblies)" DestinationFolder="..\..\bin\$(TargetFramework)" />
+  </Target>
+
+</Project>

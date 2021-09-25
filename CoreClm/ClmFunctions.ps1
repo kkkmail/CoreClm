@@ -57,6 +57,9 @@ function CleanAll()
     Remove-Item -path .\WorkerNodeAdm\bin -recurse -force -ea silentlycontinue
     Remove-Item -path .\WorkerNodeService\bin -recurse -force -ea silentlycontinue
     Remove-Item -path .\WorkerNodeServiceInfo\bin -recurse -force -ea silentlycontinue
+    Remove-Item -path ..\FSharp.Data.SqlClient\src\SqlClient.DesignTime\bin -recurse -force -ea silentlycontinue
+    Remove-Item -path ..\FSharp.Data.SqlClient\src\SqlClient\bin -recurse -force -ea silentlycontinue
+    Remove-Item -path ..\FSharp.Data.SqlClient\bin -recurse -force -ea silentlycontinue
 
     Remove-Item -path .\Analytics\obj -recurse -force -ea silentlycontinue
     Remove-Item -path .\Clm\obj -recurse -force -ea silentlycontinue
@@ -82,7 +85,8 @@ function CleanAll()
     Remove-Item -path .\WorkerNodeAdm\obj -recurse -force -ea silentlycontinue
     Remove-Item -path .\WorkerNodeService\obj -recurse -force -ea silentlycontinue
     Remove-Item -path .\WorkerNodeServiceInfo\obj -recurse -force -ea silentlycontinue
-
+    Remove-Item -path ..\FSharp.Data.SqlClient\src\SqlClient.DesignTime\obj -recurse -force -ea silentlycontinue
+    Remove-Item -path ..\FSharp.Data.SqlClient\src\SqlClient\obj -recurse -force -ea silentlycontinue
 
     echo "Deleting all garbage from user Temp folder..."
     Remove-Item -path $env:userprofile\AppData\Local\Temp -recurse -force -ea silentlycontinue

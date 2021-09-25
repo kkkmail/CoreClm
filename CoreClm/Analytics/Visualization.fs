@@ -6,7 +6,7 @@ open Microsoft.FSharp.Core
 open Clm.ModelParams
 open ClmSys.GeneralData
 open Clm.ChartData
-open FSharp.Plotly
+open Plotly.NET
 open ChartExt
 
 module Visualization =
@@ -66,8 +66,8 @@ module Visualization =
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = zName) |> Some) sugarData ]
                 |> List.choose id
 
-            Chart.Combine (charts)
-            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
+            Chart.combine (charts)
+            |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
             |> getChart fileName (description "Amino Acids")
 
 
@@ -92,8 +92,8 @@ module Visualization =
                 @ [ Option.bind (fun d -> Chart.Line(d, Name = zName) |> Some) sugarEe ]
                 |> List.choose id
 
-            Chart.Combine (charts)
-            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
+            Chart.combine (charts)
+            |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
             |> getChart fileName (description "Enantiomeric Excess")
 
 
@@ -127,8 +127,8 @@ module Visualization =
                 @ [ for level in 0..p.initData.binaryInfo.maxPeptideLength.length - 1 -> Chart.Line(levelData level, Name = (level + 1).ToString()) |> Some ]
                 |> List.choose id
 
-            Chart.Combine(charts)
-            |> Chart.withX_AxisStyle(xAxisName, MinMax = minMax)
+            Chart.combine(charts)
+            |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
             |> getChart fileName (description "Totals")
 
 

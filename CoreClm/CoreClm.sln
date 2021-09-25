@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30717.126
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31717.71
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ClmSys", "ClmSys\ClmSys.fsproj", "{E0F610B3-4953-459C-84C1-547304C04868}"
 EndProject
@@ -46,6 +46,10 @@ EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ClmTests", "ClmTests\ClmTests.fsproj", "{7DEA5BCC-D700-4ADD-A3F6-09AF79FE3202}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "WorkerNodeAdm", "WorkerNodeAdm\WorkerNodeAdm.fsproj", "{4A2113EC-4290-46BA-A5A8-ECE7665361D2}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "SqlClient", "..\FSharp.Data.SqlClient\src\SqlClient\SqlClient.fsproj", "{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "SqlClient.DesignTime", "..\FSharp.Data.SqlClient\src\SqlClient.DesignTime\SqlClient.DesignTime.fsproj", "{714C1E76-744B-4487-AB16-9182DFB81A65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -231,6 +235,22 @@ Global
 		{4A2113EC-4290-46BA-A5A8-ECE7665361D2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4A2113EC-4290-46BA-A5A8-ECE7665361D2}.Release|x64.ActiveCfg = Release|x64
 		{4A2113EC-4290-46BA-A5A8-ECE7665361D2}.Release|x64.Build.0 = Release|x64
+		{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}.Debug|x64.Build.0 = Debug|Any CPU
+		{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}.Release|x64.ActiveCfg = Release|x64
+		{1EC4C6BD-9B44-4C87-BDC7-F0D8DFA76D9E}.Release|x64.Build.0 = Release|x64
+		{714C1E76-744B-4487-AB16-9182DFB81A65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{714C1E76-744B-4487-AB16-9182DFB81A65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{714C1E76-744B-4487-AB16-9182DFB81A65}.Debug|x64.ActiveCfg = Debug|x64
+		{714C1E76-744B-4487-AB16-9182DFB81A65}.Debug|x64.Build.0 = Debug|x64
+		{714C1E76-744B-4487-AB16-9182DFB81A65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{714C1E76-744B-4487-AB16-9182DFB81A65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{714C1E76-744B-4487-AB16-9182DFB81A65}.Release|x64.ActiveCfg = Release|x64
+		{714C1E76-744B-4487-AB16-9182DFB81A65}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
