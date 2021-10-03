@@ -147,19 +147,6 @@ module DatabaseTypes =
 //        order by t.clmTaskPriority, runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
-//    /// SQL to load all currently running models == total progress.
-//    /// runQueueStatusId = 2 is InProgressRunQueue.
-//    type RunQueueProgressTableData = SqlCommandProvider<"
-//        select
-//            r.*,
-//            t.clmDefaultValueId
-//        from dbo.RunQueue r
-//        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
-//        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-//        where r.runQueueStatusId = 2 and t.clmTaskStatusId = 0 and r.workerNodeId is not null
-//        order by t.clmTaskPriority, runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
-
-
 //    type WorkerNodeTable = ClmDB.dbo.Tables.WorkerNode
 //    type WorkerNodeTableRow = WorkerNodeTable.Row
 
@@ -883,6 +870,13 @@ module DatabaseTypes =
         | None -> toError MapRunQueueErr (r.runQueue.RunQueueId)
 
 
+    let private mapRunQueueResults x =
+        x
+        |> List.ofSeq
+        |> List.map (fun e -> { runQueue = fst e; clmDefaultValueId = snd e })
+        |> List.map mapRunQueue
+
+
     let loadRunQueue c =
         let g() =
             let ctx = getContext c
@@ -896,28 +890,30 @@ module DatabaseTypes =
                     select (r, t.ClmDefaultValueId)
                 }
 
-            x
-            |> List.ofSeq
-            |> List.map (fun e -> { runQueue = fst e; clmDefaultValueId = snd e })
-            |> List.map mapRunQueue
-            |> Ok
+            mapRunQueueResults x |> Ok
 
         tryDbFun g
 
+    /// Loads all currently running models == total progress.
+    /// RunQueueStatusId = 2 is InProgressRunQueue.
+    let loadRunQueueProgress c =
+        let g() =
+            let ctx = getContext c
 
-//    let loadRunQueueProgress c =
-//        let g() =
-//            seq
-//                {
-//                    use conn = getOpenConn c
-//                    use data = new RunQueueProgressTableData(conn)
-//                    use reader= new DynamicSqlDataReader(data.Execute())
-//                    while (reader.Read()) do yield mapRunQueue reader
-//                        }
-//            |> List.ofSeq
-//            |> Ok
+            let x =
+                query {
+                    for r in ctx.Dbo.RunQueue do
+                    join m in ctx.Dbo.ModelData on (r.ModelDataId = m.ModelDataId)
+                    join t in ctx.Dbo.ClmTask on (m.ClmTaskId = t.ClmTaskId)
+                    where (r.RunQueueStatusId = 2 && t.ClmTaskStatusId = 0 && r.WorkerNodeId <> None)
+                    sortBy t.ClmTaskPriority
+                    thenBy r.RunQueueOrder
+                    select (r, t.ClmDefaultValueId)
+                }
 
-//        tryDbFun g
+            mapRunQueueResults x |> Ok
+
+        tryDbFun g
 
 
 //    let tryLoadFirstRunQueue c =
