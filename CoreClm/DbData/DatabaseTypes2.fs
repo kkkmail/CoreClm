@@ -26,18 +26,26 @@ open DbData.Configuration
 
 module DatabaseTypes =
 
-    type ClmDB = SqlDataProvider<Common.DatabaseProviderTypes.MSSQLSERVER, ConnectionString = ContGenConnectionStringValue, UseOptionTypes = true>
+    type private ClmDb = SqlDataProvider<
+                    Common.DatabaseProviderTypes.MSSQLSERVER,
+                    ConnectionString = ContGenConnectionStringValue,
+                    UseOptionTypes = true>
 
 
-    /// RunQueue + ClmDefaultValueId
-    type RunQueueTableData =
+    type private ClmDefaultValueEntity = ClmDb.dataContext.``dbo.ClmDefaultValueEntity``
+    type private CommandLineParamEntity = ClmDb.dataContext.``dbo.CommandLineParamEntity``
+    type private ModelDataEntity = ClmDb.dataContext.``dbo.ModelDataEntity``
+    type private RunQueueEntity = ClmDb.dataContext.``dbo.RunQueueEntity``
+
+
+    type private RunQueueTableData =
         {
-            runQueue: ClmDB.dataContext.``dbo.RunQueueEntity``
+            runQueue : RunQueueEntity
             clmDefaultValueId : int64
         }
 
 
-    let getContext (c : unit -> ConnectionString) = c().value |> ClmDB.GetDataContext
+    let getContext (c : unit -> ConnectionString) = c().value |> ClmDb.GetDataContext
 
 
 //    type ClmDefaultValueTable = ClmDB.dbo.Tables.ClmDefaultValue
@@ -110,41 +118,6 @@ module DatabaseTypes =
 //        select *
 //        from dbo.RunQueue
 //        where runQueueId = @runQueueId", ContGenConnectionStringValue, ResultType.DataReader>
-
-
-//    /// SQL to load all not started RunQueue.
-//    type RunQueueAllTableData = SqlCommandProvider<"
-//        select
-//            r.*,
-//            t.clmDefaultValueId
-//        from dbo.RunQueue r
-//        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
-//        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-//        where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
-//        order by t.clmTaskPriority, runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
-
-
-//    /// SQL to load RunQueue by runQueueId.
-//    type RunQueueSingleTableData = SqlCommandProvider<"
-//        select
-//            r.*,
-//            t.clmDefaultValueId
-//        from dbo.RunQueue r
-//        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
-//        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-//        where runQueueId = @runQueueId", ContGenConnectionStringValue, ResultType.DataReader>
-
-
-//    /// SQL to load first not started RunQueue.
-//    type RunQueueFirstTableData = SqlCommandProvider<"
-//        select top 1
-//            r.*,
-//            t.clmDefaultValueId
-//        from dbo.RunQueue r
-//        inner join dbo.ModelData m on r.modelDataId = m.modelDataId
-//        inner join dbo.ClmTask t on m.clmTaskId = t.clmTaskId
-//        where r.runQueueStatusId = 0 and r.progress = 0 and t.clmTaskStatusId = 0 and r.workerNodeId is null
-//        order by t.clmTaskPriority, runQueueOrder", ContGenConnectionStringValue, ResultType.DataReader>
 
 
 //    type WorkerNodeTable = ClmDB.dbo.Tables.WorkerNode
@@ -877,6 +850,7 @@ module DatabaseTypes =
         |> List.map mapRunQueue
 
 
+    /// Loads all not started RunQueue.
     let loadRunQueue c =
         let g() =
             let ctx = getContext c
@@ -886,13 +860,14 @@ module DatabaseTypes =
                     for r in ctx.Dbo.RunQueue do
                     join m in ctx.Dbo.ModelData on (r.ModelDataId = m.ModelDataId)
                     join t in ctx.Dbo.ClmTask on (m.ClmTaskId = t.ClmTaskId)
-                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0 && t.ClmTaskStatusId = 0 && r.WorkerNodeId = None)
+                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.ClmTaskStatusId = 0 && r.WorkerNodeId = None)
                     select (r, t.ClmDefaultValueId)
                 }
 
             mapRunQueueResults x |> Ok
 
         tryDbFun g
+
 
     /// Loads all currently running models == total progress.
     /// RunQueueStatusId = 2 is InProgressRunQueue.
@@ -916,50 +891,64 @@ module DatabaseTypes =
         tryDbFun g
 
 
-//    let tryLoadFirstRunQueue c =
-//        let g() =
-//            seq
-//                {
-//                    use conn = getOpenConn c
-//                    use data = new RunQueueFirstTableData(conn)
-//                    use reader= new DynamicSqlDataReader(data.Execute())
-//                    while (reader.Read()) do yield mapRunQueue reader
-//                        }
-//            |> List.ofSeq
-//            |> List.tryHead
-//            |> Ok
+    /// Loads first not started RunQueue.
+    let tryLoadFirstRunQueue c =
+        let g() =
+            let ctx = getContext c
 
-//        tryDbFun g |> Rop.unwrapResultOption
+            let x =
+                query {
+                    for r in ctx.Dbo.RunQueue do
+                    join m in ctx.Dbo.ModelData on (r.ModelDataId = m.ModelDataId)
+                    join t in ctx.Dbo.ClmTask on (m.ClmTaskId = t.ClmTaskId)
+                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.ClmTaskStatusId = 0 && r.WorkerNodeId = None)
+                    sortBy t.ClmTaskPriority
+                    thenBy r.RunQueueOrder
+                    select (r, t.ClmDefaultValueId)
+                }
 
+            mapRunQueueResults x |> List.tryHead |> Ok
 
-//    let tryLoadRunQueue c (q : RunQueueId) =
-//        let g() =
-//            seq
-//                {
-//                    use conn = getOpenConn c
-//                    use data = new RunQueueSingleTableData(conn)
-//                    use reader= new DynamicSqlDataReader(data.Execute q.value)
-//                    while (reader.Read()) do yield mapRunQueue reader
-//                        }
-//            |> List.ofSeq
-//            |> List.tryHead
-//            |> Ok
-
-//        tryDbFun g |> Rop.unwrapResultOption
+        tryDbFun g |> Rop.unwrapResultOption
 
 
-//    let tryResetRunQueue c (q : RunQueueId) =
-//        let g() =
-//            use conn = getOpenConn c
-//            let connectionString = conn.ConnectionString
+    /// Loads RunQueue by runQueueId.
+    let tryLoadRunQueue c (q : RunQueueId) =
+        let g() =
+            let ctx = getContext c
 
-//            use cmd = new SqlCommandProvider<"update dbo.RunQueue set runQueueStatusId = 0, errorMessage = null, workerNodeId = null, startedOn = null, modifiedOn = getdate() where runQueueId = @runQueueId and runQueueStatusId = 4", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+            let x =
+                query {
+                    for r in ctx.Dbo.RunQueue do
+                    join m in ctx.Dbo.ModelData on (r.ModelDataId = m.ModelDataId)
+                    join t in ctx.Dbo.ClmTask on (m.ClmTaskId = t.ClmTaskId)
+                    where (r.RunQueueId = q.value)
+                    select (r, t.ClmDefaultValueId)
+                }
 
-//            match cmd.Execute(runQueueId = q.value) = 1 with
-//            | true -> Ok ()
-//            | false -> toError ResetRunQueueEntryErr q
+            mapRunQueueResults x |> List.tryHead |> Ok
 
-//        tryDbFun g
+        tryDbFun g |> Rop.unwrapResultOption
+
+
+    let tryResetRunQueue c (q : RunQueueId) =
+        let g() =
+            let ctx = getContext c
+            let r = ctx.Procedures.TryResetRunQueue.Invoke q.value
+            let m = r.ResultSet |> Array.map(fun i -> i.ColumnValues |> List.ofSeq |> List.head)
+
+            //use conn = getOpenConn c
+            //let connectionString = conn.ConnectionString
+
+            //use cmd = new SqlCommandProvider<"update dbo.RunQueue set runQueueStatusId = 0, errorMessage = null, workerNodeId = null, startedOn = null, modifiedOn = getdate() where runQueueId = @runQueueId and runQueueStatusId = 4", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
+
+            //match cmd.Execute(runQueueId = q.value) = 1 with
+            //| true -> Ok ()
+            //| false -> toError ResetRunQueueEntryErr q
+
+            Ok 0
+
+        tryDbFun g
 
 
 //    let saveRunQueue c modelDataId defaultValueId p =

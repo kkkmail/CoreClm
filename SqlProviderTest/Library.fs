@@ -14,5 +14,5 @@ module Say =
     let load() =
         let ctx = sql.GetDataContext()
 
-
+        let x = ctx.Dbo.ClmDefaultValue
         0

@@ -96,7 +96,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL,
 		[errorMessage] nvarchar(max) NULL,
-		[progress] [float] NOT NULL,
+		[progress] [decimal](18, 0) NOT NULL,
 		[callCount] [bigint] NOT NULL,
 		[yRelative] [float] NOT NULL,
 		[maxEe] [float] NOT NULL,
