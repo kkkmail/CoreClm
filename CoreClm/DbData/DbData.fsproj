@@ -13,8 +13,8 @@
     <Compile Include="Configuration2.fs" />
     <Compile Include="DynamicSql.fs" />
     <Compile Include="DatabaseTypes2.fs" />
-    <Compile Include="MsgSvcDatabaseTypes.fs" />
-    <Compile Include="WorkerNodeDatabaseTypes.fs" />
+    <Compile Include="MsgSvcDatabaseTypes2.fs" />
+    <Compile Include="WorkerNodeDatabaseTypes2.fs" />
     <Content Include="MsgClient.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -52,16 +52,6 @@ module DatabaseTypes =
         }
 
 
-    type private WorkerNodeDb = SqlDataProvider<
-                    Common.DatabaseProviderTypes.MSSQLSERVER,
-                    ConnectionString = WorkerNodeConnectionStringValue,
-                    UseOptionTypes = true>
-
-
-    type private WorkerNodeContext = WorkerNodeDb.dataContext
-    let private getWorkerNodeContext (c : unit -> ConnectionString) = c().value |> WorkerNodeDb.GetDataContext
-
-
     /// Analog of ExecuteScalar - gets the first column of the first result set.
     /// In contrast to ExecuteScalar it also expects it to be castable to int32.
     /// Otherwise it will return None.
@@ -74,81 +64,6 @@ module DatabaseTypes =
         |> Array.tryHead
         |> Option.bind id
 
-
-//    /// SQL to upsert RunQueue.
-//    type RunQueueTableData = SqlCommandProvider<"
-//        select *
-//        from dbo.RunQueue
-//        where runQueueId = @runQueueId", ContGenConnectionStringValue, ResultType.DataReader>
-
-
-//    type WorkerNodeTableData = SqlCommandProvider<"
-//        select *
-//        from dbo.WorkerNode
-//        where workerNodeId = @workerNodeId", ContGenConnectionStringValue, ResultType.DataReader>
-
-
-//    type RunQueue
-//        with
-//
-//        static member tryCreate d (r : RunQueueTableRow) =
-//            match RunQueueStatus.tryCreate r.runQueueStatusId with
-//            | Some s ->
-//                {
-//                    runQueueId = RunQueueId r.runQueueId
-//                    info =
-//                        {
-//                            modelDataId = ModelDataId r.modelDataId
-//                            defaultValueId = d
-//
-//                            modelCommandLineParam =
-//                                {
-//                                    y0 = r.y0
-//                                    tEnd = r.tEnd
-//                                    useAbundant = r.useAbundant
-//                                }
-//                        }
-//                    runQueueStatus = s
-//                    workerNodeIdOpt = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
-//
-//                    progressData =
-//                        {
-//                            progress = r.progress
-//                            callCount = r.callCount
-//                            yRelative = r.yRelative
-//
-//                            eeData =
-//                                {
-//                                    maxEe = r.maxEe
-//                                    maxAverageEe = r.maxAverageEe
-//                                    maxWeightedAverageAbsEe = r.maxWeightedAverageAbsEe
-//                                    maxLastEe = r.maxLastEe
-//                                }
-//
-//                            errorMessageOpt = r.errorMessage |> Option.map ErrorMessage
-//                        }
-//
-//                    createdOn = r.createdOn
-//                }
-//                |> Some
-//            | None -> None
-
-
-//    type WorkerNodeInfo
-//        with
-//        member w.updateRow (r : WorkerNodeTableRow) =
-//            r.workerNodeName <- w.workerNodeName.value
-//            r.numberOfCores <- w.noOfCores
-//            r.nodePriority <- w.nodePriority.value
-//            r.modifiedOn <- DateTime.Now
-//            r.lastErrorOn <- w.lastErrorDateOpt
-
-
-// ===================================================================
-// ===================================================================
-// ===================================================================
-// ===================================================================
-// ===================================================================
 
     let private createClmDefaultValue (r : ClmDefaultValueEntity) =
         {
@@ -813,53 +728,24 @@ module DatabaseTypes =
         tryDbFun g
 
 
-//    /// SQL to get the first available worker node to schedule work.
-//    [<Literal>]
-//    let AvailableWorkerNodeSql = @"
-//        ; with q as
-//        (
-//        select
-//            workerNodeId
-//            ,nodePriority
-//            ,cast(
-//                case
-//                    when numberOfCores <= 0 then 1
-//                    else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
-//                end as money) as workLoad
-//            ,case when lastErrorOn is null or dateadd(minute, @lastAllowedNodeErrInMinutes, lastErrorOn) < getdate() then 0 else 1 end as noErr
-//        from WorkerNode w
-//        where isInactive = 0
-//        )
-//        select top 1
-//        workerNodeId
-//        from q
-//        where noErr = 0 and workLoad < 1
-//        order by nodePriority desc, workLoad, newid()"
-
-
-//    type AvailableWorkerNodeTableData = SqlCommandProvider<AvailableWorkerNodeSql, ContGenConnectionStringValue, ResultType.DataReader>
-
-
+    ///Gets the first available worker node to schedule work.
     let tryGetAvailableWorkerNode c (LastAllowedNodeErr m) =
         let g() =
             let ctx = getClmContext c
 
             let x =
                 query {
-                    for r in ctx.Dbo.WorkerNode do
-                    where (r.WorkerNodeId = w.workerNodeId.value.value)
+                    for r in ctx.Dbo.VwAvailableWorkerNode do
+                    where (r.WorkLoad < 1.0m && (r.LastErrMinAgo = None || r.LastErrMinAgo.Value < (m / 1<minute>)))
+                    sortByDescending r.NodePriority
+                    thenBy r.WorkLoad
+                    thenBy r.OrderId
                     select (Some r)
                     exactlyOneOrDefault
                 }
 
-//            use conn = getOpenConn c
-//            use cmd = new SqlCommandProvider<AvailableWorkerNodeSql, ContGenConnectionStringValue, ResultType.DataTable>(conn)
-//            let table = cmd.Execute (m / 1<minute>)
-
-//            match table.Rows |> Seq.tryHead with
-//            | None -> Ok None
-//            | Some r -> r.workerNodeId |> MessagingClientId |> WorkerNodeId |> Some |> Ok
-
-            Ok 0
+            match x with
+            | Some r -> r.WorkerNodeId |> MessagingClientId |> WorkerNodeId |> Some |> Ok
+            | None -> Ok None
 
         tryDbFun g
