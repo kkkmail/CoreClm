@@ -1094,6 +1094,45 @@ begin
 	return @retval
 end
 go
+drop function if exists dbo.getAvailableWorkerNode
+go
+
+
+create function dbo.getAvailableWorkerNode(@lastAllowedNodeErrInMinutes int)
+returns table
+as
+return
+(
+	with a as
+	(
+	select
+		workerNodeId
+		,nodePriority
+		,cast(
+			case
+				when numberOfCores <= 0 then 1
+				else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
+			end as money) as workLoad
+		,case when lastErrorOn is null or dateadd(minute, @lastAllowedNodeErrInMinutes, lastErrorOn) < getdate() then 0 else 1 end as noErr
+	from WorkerNode w
+	where isInactive = 0
+	),
+	b as
+	(
+		select
+			a.*, 
+			c.new_id
+			from a
+			cross apply (select top 1 new_id from vw_newid order by 1) c
+	)
+	select top 1
+	workerNodeId
+	from b
+	where noErr = 0 and workLoad < 1
+	order by nodePriority desc, workLoad, new_id
+)
+go
+
 drop function if exists dbo.getCatDestrScarcity
 go
 
@@ -2219,6 +2258,15 @@ begin
 	return @retVal
 end
 go
+drop view if exists vw_newid
+go
+
+
+create view vw_newid
+as
+select newid() as new_id
+go
+
 drop procedure if exists deleteRunQueue
 go
 
@@ -2326,6 +2374,43 @@ begin
         values (source.clmDefaultValueId, source.defaultRateParams, source.description)
     when matched then
         update set defaultRateParams = source.defaultRateParams, description = source.description;
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists upsertModelData
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure upsertModelData 
+		@modelDataId uniqueidentifier, 
+		@clmTaskId uniqueidentifier, 
+		@seedValue int, 
+		@modelDataParams nvarchar(max), 
+		@modelBinaryData varbinary(max), 
+		@createdOn datetime
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    merge ModelData as target
+    using (select @modelDataId, @clmTaskId, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
+    as source (modelDataId, clmTaskId, seedValue, modelDataParams, modelBinaryData, createdOn)
+    on (target.modelDataId = source.modelDataId)
+    when not matched then
+        insert (modelDataId, clmTaskId, seedValue, modelDataParams, modelBinaryData, createdOn)
+        values (source.modelDataId, source.clmTaskId, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
+    when matched then
+        update set clmTaskId = source.clmTaskId, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
 
 	set @rowCount = @@rowcount
 	select @rowCount as [RowCount]
