@@ -32,10 +32,13 @@ module DatabaseTypes =
                     UseOptionTypes = true>
 
 
-    type private ClmDefaultValueEntity = ClmDb.dataContext.``dbo.ClmDefaultValueEntity``
-    type private CommandLineParamEntity = ClmDb.dataContext.``dbo.CommandLineParamEntity``
-    type private ModelDataEntity = ClmDb.dataContext.``dbo.ModelDataEntity``
-    type private RunQueueEntity = ClmDb.dataContext.``dbo.RunQueueEntity``
+    type private ClmContext = ClmDb.dataContext
+
+
+    type private ClmDefaultValueEntity = ClmContext.``dbo.ClmDefaultValueEntity``
+    type private CommandLineParamEntity = ClmContext.``dbo.CommandLineParamEntity``
+    type private ModelDataEntity = ClmContext.``dbo.ModelDataEntity``
+    type private RunQueueEntity = ClmContext.``dbo.RunQueueEntity``
 
 
     type private RunQueueTableData =
@@ -179,13 +182,13 @@ module DatabaseTypes =
 //                        clmTaskInfo =
 //                            {
 //                                clmTaskId = clmTaskId
-                                
+
 //                                taskDetails =
 //                                    {
 //                                        clmDefaultValueId = r.clmDefaultValueId |> ClmDefaultValueId
 //                                        clmTaskPriority = r.clmTaskPriority |> ClmTaskPriority
 //                                        numberOfAminoAcids = n
-//                                        maxPeptideLength = m                                        
+//                                        maxPeptideLength = m
 //                                    }
 //                            }
 //                        commandLineParams = p
@@ -283,120 +286,6 @@ module DatabaseTypes =
 //                }
 //                |> Some
 //            | None -> None
-
-//        member r.addRow (t : RunQueueTable) =
-//            let newRow =
-//                t.NewRow(
-//                        runQueueId = r.runQueueId.value,
-//                        modelDataId = r.info.modelDataId.value,
-//                        runQueueStatusId = r.runQueueStatus.value,
-//                        y0 = r.modelCommandLineParam.y0,
-//                        tEnd = r.modelCommandLineParam.tEnd,
-//                        useAbundant = r.modelCommandLineParam.useAbundant,
-//                        progress = r.progressData.progress,
-//                        callCount = r.progressData.callCount,
-//                        yRelative = r.progressData.yRelative,
-//                        maxEe = r.progressData.eeData.maxEe,
-//                        maxAverageEe = r.progressData.eeData.maxAverageEe,
-//                        maxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
-//                        maxLastEe = r.progressData.eeData.maxLastEe,
-//                        workerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
-//                        modifiedOn = DateTime.Now
-//                        )
-
-//            newRow.errorMessage <- r.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
-//            t.Rows.Add newRow
-//            newRow
-
-//        /// The following transitions are allowed here:
-//        ///
-//        ///     NotStartedRunQueue + None (workerNodeId) -> RunRequestedRunQueue + Some workerNodeId - scheduled (but not yet confirmed) new work.
-//        ///     NotStartedRunQueue + None (workerNodeId) -> CancelledRunQueue + None (workerNodeId) - cancelled work that has not been scheduled yet.
-//        ///
-//        ///     RunRequestedRunQueue + Some workerNodeId -> NotStartedRunQueue + None (workerNodeId) - the node rejected work.
-//        ///     RunRequestedRunQueue + Some workerNodeId -> InProgressRunQueue + the same Some workerNodeId - the node accepted work.
-//        ///     RunRequestedRunQueue + Some workerNodeId -> CancelRequestedRunQueue + the same Some workerNodeId -
-//        //          scheduled (but not yet confirmed) new work, which then was requested to be cancelled before the node replied.
-//        ///     + -> completed / failed
-//        ///
-//        ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId - normal work progress.
-//        ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to Completed _) - completed work.
-//        ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId - failed work.
-//        ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - request for cancellation of actively running work.
-//        ///
-//        ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - repeated cancel request.
-//        ///     CancelRequestedRunQueue -> InProgressRunQueue + the same Some workerNodeId -
-//        ///         roll back to cancel requested - in progress message came while our cancel request propagates through the system.
-//        ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId - the work has been successfully cancelled.
-//        ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propagated through the system.
-//        ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propagated through the system.
-//        ///
-//        /// All others are not allowed and / or out of scope of this function.
-//        member q.tryUpdateRow (r : RunQueueTableRow) =
-//            let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
-
-//            let g s u =
-//                r.runQueueId <- q.runQueueId.value
-//                r.workerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
-//                r.progress <- q.progressData.progress
-//                r.callCount <- q.progressData.callCount
-//                r.yRelative <- q.progressData.yRelative
-//                r.maxEe <- q.progressData.eeData.maxEe
-//                r.maxAverageEe <- q.progressData.eeData.maxAverageEe
-//                r.maxAverageEe <- q.progressData.eeData.maxAverageEe
-//                r.maxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
-//                r.maxLastEe <- q.progressData.eeData.maxLastEe
-//                r.errorMessage <- q.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
-
-//                match s with
-//                | Some (Some v) -> r.startedOn <- Some v
-//                | Some None-> r.startedOn <- None
-//                | None -> ()
-
-//                r.modifiedOn <- DateTime.Now
-
-//                match u with
-//                | true -> r.runQueueStatusId <- q.runQueueStatus.value
-//                | false -> ()
-
-//                Ok()
-
-//            let f s =
-//                {
-//                    runQueueId = q.runQueueId
-//                    runQueueStatusFrom = s
-//                    runQueueStatusTo = q.runQueueStatus
-//                    workerNodeIdOptFrom = r.workerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
-//                    workerNodeIdOptTo = q.workerNodeIdOpt
-//                }
-
-//            let f1 e = e |> InvalidStatusTransitionErr |> toError
-//            let f2 e = e |> InvalidDataErr |> toError
-
-//            match RunQueueStatus.tryCreate r.runQueueStatusId with
-//            | Some s ->
-//                match s, r.workerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
-//                | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g (Some (Some DateTime.Now)) true
-//                | NotStartedRunQueue,       None,    CancelledRunQueue,      None -> g None true
-
-//                | RunRequestedRunQueue,   Some _, NotStartedRunQueue,       None -> g (Some None) true
-//                | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g None true
-//                | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g None true
-//                | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g None true
-//                | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g None true
-
-//                | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g None true
-//                | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g None true
-//                | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g None true
-//                | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g None true
-
-//                | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g None true
-//                | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g None false // !!! Roll back the status change !!!
-//                | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g None true
-//                | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g None true
-//                | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g None true
-//                | _ -> s |> Some |> f |> f1
-//            | None -> None |> f |> f2
 
 
 //    type WorkerNodeInfo
@@ -931,68 +820,195 @@ module DatabaseTypes =
         tryDbFun g |> Rop.unwrapResultOption
 
 
+    /// Analog of ExecuteScalar - gets the first column of the first result set.
+    /// In contrast to ExecuteScalar it als expect it to be castable to int32.
+    /// Otherwise it will return None.
+    let private mapScalar (r : Common.SqlEntity[]) =
+        r
+        |> Array.map(fun e -> e.ColumnValues |> List.ofSeq |> List.head)
+        |> Array.map snd
+        |> Array.map (fun e -> match e with | :? Int32 as i -> Some i | _ -> None)
+        |> Array.tryHead
+        |> Option.bind id
+
+
+    /// Tries to rest RunQueue.
     let tryResetRunQueue c (q : RunQueueId) =
         let g() =
             let ctx = getContext c
             let r = ctx.Procedures.TryResetRunQueue.Invoke q.value
-            let m = r.ResultSet |> Array.map(fun i -> i.ColumnValues |> List.ofSeq |> List.head)
+            let m = r.ResultSet |> mapScalar
 
-            //use conn = getOpenConn c
-            //let connectionString = conn.ConnectionString
-
-            //use cmd = new SqlCommandProvider<"update dbo.RunQueue set runQueueStatusId = 0, errorMessage = null, workerNodeId = null, startedOn = null, modifiedOn = getdate() where runQueueId = @runQueueId and runQueueStatusId = 4", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-            //match cmd.Execute(runQueueId = q.value) = 1 with
-            //| true -> Ok ()
-            //| false -> toError ResetRunQueueEntryErr q
-
-            Ok 0
+            match m with
+            | Some 1 -> Ok ()
+            | _ -> toError ResetRunQueueEntryErr q
 
         tryDbFun g
 
 
-//    let saveRunQueue c modelDataId defaultValueId p =
-//        let g() =
-//            use conn = getOpenConn c
-//            use t = new RunQueueTable()
-//            let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
-//            let row = r.addRow t
-//            t.Update conn |> ignore
-//            row.runQueueId |> RunQueueId |> Ok
+    let private addRunQueueRow (ctx : ClmContext) (r : RunQueue) =
+        let row = ctx.Dbo.RunQueue.Create(
+                                        RunQueueId = r.runQueueId.value,
+                                        ModelDataId = r.info.modelDataId.value,
+                                        RunQueueStatusId = r.runQueueStatus.value,
+                                        Y0 = r.modelCommandLineParam.y0,
+                                        TEnd = r.modelCommandLineParam.tEnd,
+                                        UseAbundant = r.modelCommandLineParam.useAbundant,
+                                        Progress = r.progressData.progress,
+                                        CallCount = r.progressData.callCount,
+                                        YRelative = r.progressData.yRelative,
+                                        MaxEe = r.progressData.eeData.maxEe,
+                                        MaxAverageEe = r.progressData.eeData.maxAverageEe,
+                                        MaxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
+                                        MaxLastEe = r.progressData.eeData.maxLastEe,
+                                        WorkerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
+                                        ModifiedOn = DateTime.Now,
+                                        ErrorMessage = (r.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value))
+                                        )
 
-//        tryDbFun g
-
-
-//    let deleteRunQueue c (runQueueId : RunQueueId) =
-//        let g() =
-//            use conn = getOpenConn c
-//            let connectionString = conn.ConnectionString
-
-//            use cmd = new SqlCommandProvider<"delete from dbo.RunQueue where runQueueId = @runQueueId", ContGenConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-//            match cmd.Execute(runQueueId = runQueueId.value) = 1 with
-//            | true -> Ok ()
-//            | false -> toError DeleteRunQueueEntryErr runQueueId
-
-//        tryDbFun g
+        row
 
 
-//    let upsertRunQueue c (w : RunQueue) =
-//        let g() =
-//            use conn = getOpenConn c
-//            use d = new RunQueueTableData(conn)
-//            let t = new RunQueueTable()
-//            d.Execute w.runQueueId.value |> t.Load
+    let saveRunQueue c modelDataId defaultValueId p =
+        let g() =
+            let ctx = getContext c
+            let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
+            let row = addRunQueueRow ctx r
+            ctx.SubmitUpdates()
+            row.RunQueueId |> RunQueueId |> Ok
 
-//            let result =
-//                match t.Rows |> Seq.tryFind (fun e -> e.runQueueId = w.runQueueId.value) with
-//                | Some r -> w.tryUpdateRow r
-//                | None -> w.addRow t |> ignore; Ok()
-//                |> Rop.bind (fun () -> t.Update conn |> ignore; Ok())
 
-//            result
+        tryDbFun g
 
-//        tryDbFun g
+
+    let deleteRunQueue c (q : RunQueueId) =
+        let g() =
+            let ctx = getContext c
+            let r = ctx.Procedures.DeleteRunQueue.Invoke q.value
+            let m = r.ResultSet |> mapScalar
+
+            match m with
+            | Some 1 -> Ok ()
+            | _ -> toError DeleteRunQueueEntryErr q
+
+        tryDbFun g
+
+
+
+
+
+    /// The following transitions are allowed here:
+    ///
+    ///     NotStartedRunQueue + None (workerNodeId) -> RunRequestedRunQueue + Some workerNodeId - scheduled (but not yet confirmed) new work.
+    ///     NotStartedRunQueue + None (workerNodeId) -> CancelledRunQueue + None (workerNodeId) - cancelled work that has not been scheduled yet.
+    ///
+    ///     RunRequestedRunQueue + Some workerNodeId -> NotStartedRunQueue + None (workerNodeId) - the node rejected work.
+    ///     RunRequestedRunQueue + Some workerNodeId -> InProgressRunQueue + the same Some workerNodeId - the node accepted work.
+    ///     RunRequestedRunQueue + Some workerNodeId -> CancelRequestedRunQueue + the same Some workerNodeId -
+    //          scheduled (but not yet confirmed) new work, which then was requested to be cancelled before the node replied.
+    ///     + -> completed / failed
+    ///
+    ///     InProgressRunQueue -> InProgressRunQueue + the same Some workerNodeId - normal work progress.
+    ///     InProgressRunQueue -> CompletedRunQueue + the same Some workerNodeId (+ the progress will be updated to Completed _) - completed work.
+    ///     InProgressRunQueue -> FailedRunQueue + the same Some workerNodeId - failed work.
+    ///     InProgressRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - request for cancellation of actively running work.
+    ///
+    ///     CancelRequestedRunQueue -> CancelRequestedRunQueue + the same Some workerNodeId - repeated cancel request.
+    ///     CancelRequestedRunQueue -> InProgressRunQueue + the same Some workerNodeId -
+    ///         roll back to cancel requested - in progress message came while our cancel request propagates through the system.
+    ///     CancelRequestedRunQueue -> CancelledRunQueue + the same Some workerNodeId - the work has been successfully cancelled.
+    ///     CancelRequestedRunQueue -> CompletedRunQueue + the same Some workerNodeId - the node completed work before cancel request propagated through the system.
+    ///     CancelRequestedRunQueue -> FailedRunQueue + the same Some workerNodeId - the node failed before cancel request propagated through the system.
+    ///
+    /// All others are not allowed and / or out of scope of this function.
+    let private tryUpdateRunQueueRow (r : RunQueueEntity) (q : RunQueue) =
+        let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
+
+        let g s u =
+            r.RunQueueId <- q.runQueueId.value
+            r.WorkerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
+            r.Progress <- q.progressData.progress
+            r.CallCount <- q.progressData.callCount
+            r.YRelative <- q.progressData.yRelative
+            r.MaxEe <- q.progressData.eeData.maxEe
+            r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
+            r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
+            r.MaxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
+            r.MaxLastEe <- q.progressData.eeData.maxLastEe
+            r.ErrorMessage <- q.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
+
+            match s with
+            | Some (Some v) -> r.StartedOn <- Some v
+            | Some None-> r.StartedOn <- None
+            | None -> ()
+
+            r.ModifiedOn <- DateTime.Now
+
+            match u with
+            | true -> r.RunQueueStatusId <- q.runQueueStatus.value
+            | false -> ()
+
+            Ok()
+
+        let f s =
+            {
+                runQueueId = q.runQueueId
+                runQueueStatusFrom = s
+                runQueueStatusTo = q.runQueueStatus
+                workerNodeIdOptFrom = r.WorkerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+                workerNodeIdOptTo = q.workerNodeIdOpt
+            }
+
+        let f1 e = e |> InvalidStatusTransitionErr |> toError
+        let f2 e = e |> InvalidDataErr |> toError
+
+        match RunQueueStatus.tryCreate r.RunQueueStatusId with
+        | Some s ->
+            match s, r.WorkerNodeId, q.runQueueStatus, q.workerNodeIdOpt with
+            | NotStartedRunQueue,       None,    RunRequestedRunQueue,   Some _ -> g (Some (Some DateTime.Now)) true
+            | NotStartedRunQueue,       None,    CancelledRunQueue,      None -> g None true
+
+            | RunRequestedRunQueue,   Some _, NotStartedRunQueue,       None -> g (Some None) true
+            | RunRequestedRunQueue,   Some w1, InProgressRunQueue,       Some w2 when w1 = w2.value.value -> g None true
+            | RunRequestedRunQueue,   Some w1, CancelRequestedRunQueue,  Some w2 when w1 = w2.value.value -> g None true
+            | RunRequestedRunQueue,   Some w1, CompletedRunQueue,        Some w2 when w1 = w2.value.value -> g None true
+            | RunRequestedRunQueue,   Some w1, FailedRunQueue,           Some w2 when w1 = w2.value.value -> g None true
+
+            | InProgressRunQueue,      Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g None true
+            | InProgressRunQueue,      Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g None true
+            | InProgressRunQueue,      Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g None true
+            | InProgressRunQueue,      Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g None true
+
+            | CancelRequestedRunQueue, Some w1, CancelRequestedRunQueue, Some w2 when w1 = w2.value.value -> g None true
+            | CancelRequestedRunQueue, Some w1, InProgressRunQueue,      Some w2 when w1 = w2.value.value -> g None false // !!! Roll back the status change !!!
+            | CancelRequestedRunQueue, Some w1, CancelledRunQueue,       Some w2 when w1 = w2.value.value -> g None true
+            | CancelRequestedRunQueue, Some w1, CompletedRunQueue,       Some w2 when w1 = w2.value.value -> g None true
+            | CancelRequestedRunQueue, Some w1, FailedRunQueue,          Some w2 when w1 = w2.value.value -> g None true
+            | _ -> s |> Some |> f |> f1
+        | None -> None |> f |> f2
+
+
+    let upsertRunQueue c (w : RunQueue) =
+        let g() =
+            let ctx = getContext c
+
+            let x =
+                query {
+                    for r in ctx.Dbo.RunQueue do
+                    where (r.RunQueueId = w.runQueueId.value)
+                    select (Some r)
+                    exactlyOneOrDefault
+                }
+
+            let result =
+                match x with
+                | Some v -> tryUpdateRunQueueRow v w
+                | None -> addRunQueueRow ctx w |> ignore; Ok()
+
+            ctx.SubmitUpdates()
+            result
+
+        tryDbFun g
 
 
 //    let loadWorkerNodeInfo c (i : WorkerNodeId) =
