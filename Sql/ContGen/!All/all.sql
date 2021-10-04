@@ -278,29 +278,6 @@ go
 
 
 
-drop procedure if exists deleteRunQueue
-go
-
-
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-
-create procedure deleteRunQueue @runQueueId uniqueidentifier
-as
-begin
-	declare @rowCount int
-	set nocount on;
-
-	delete from dbo.RunQueue where runQueueId = @runQueueId
-
-	set @rowCount = @@rowcount
-	select @rowCount as [RowCount]
-end
-go
-
 --declare @clmDefaultValueId bigint
 --set @clmDefaultValueId = 4005000020
 
@@ -2242,6 +2219,29 @@ begin
 	return @retVal
 end
 go
+drop procedure if exists deleteRunQueue
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure deleteRunQueue @runQueueId uniqueidentifier
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+	delete from dbo.RunQueue where runQueueId = @runQueueId
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
 drop procedure if exists tryResetRunQueue
 go
 
@@ -2266,6 +2266,66 @@ begin
 		startedOn = null,
 		modifiedOn = getdate()
 	where runQueueId = @runQueueId and runQueueStatusId = 4
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists updateClmTask
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure updateClmTask
+		@clmTaskId uniqueidentifier,
+		@remainingRepetitions int
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    update dbo.ClmTask
+    set remainingRepetitions = @remainingRepetitions
+    where clmTaskId = @clmTaskId
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists upsertClmDefaultValue
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure upsertClmDefaultValue 
+		@clmDefaultValueId bigint,
+		@defaultRateParams nvarchar(max),
+		@description nvarchar(max)
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    merge ClmDefaultValue as target
+    using (select @clmDefaultValueId, @defaultRateParams, @description) as source (clmDefaultValueId, defaultRateParams, description)
+    on (target.clmDefaultValueId = source.clmDefaultValueId)
+    when not matched then
+        insert (clmDefaultValueId, defaultRateParams, description)
+        values (source.clmDefaultValueId, source.defaultRateParams, source.description)
+    when matched then
+        update set defaultRateParams = source.defaultRateParams, description = source.description;
 
 	set @rowCount = @@rowcount
 	select @rowCount as [RowCount]
