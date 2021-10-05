@@ -94,7 +94,9 @@ module Solver =
 //        member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
 
 
-    let calculateProgress n t = (t - n.odeParams.startTime) / (n.odeParams.endTime - n.odeParams.startTime)
+    let calculateProgress n t =
+        (t - n.odeParams.startTime) / (n.odeParams.endTime - n.odeParams.startTime)
+        |> decimal
 
 
     let estCompl n t s =
@@ -104,9 +106,9 @@ module Solver =
 
 
     let mutable private lastNotifiedT = 0.0
-    let mutable private progress = 0.0
-    let mutable private nextProgress = 0.0
-    let mutable private nextChartProgress = 0.0
+    let mutable private progress = 0.0m
+    let mutable private nextProgress = 0.0m
+    let mutable private nextChartProgress = 0.0m
     let mutable private callCount = 0L
     let mutable private lastCheck = DateTime.Now
     let mutable private lastTimeCheck = lastCheck
@@ -158,16 +160,16 @@ module Solver =
     let calculateNextProgress n t =
         let r =
             match n.odeParams.noOfProgressPoints with
-            | np when np <= 0 -> 1.0
-            | np -> min 1.0 ((((calculateProgress n t) * (double np) |> floor) + 1.0) / (double np))
+            | np when np <= 0 -> 1.0m
+            | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
         printDebug $"calculateNextProgress: r = {r}."
         r
 
     let calculateNextChartProgress n t =
         let r =
             match n.odeParams.noOfOutputPoints with
-            | np when np <= 0 -> 1.0
-            | np -> min 1.0 ((((calculateProgress n t) * (double np) |> floor) + 1.0) / (double np))
+            | np when np <= 0 -> 1.0m
+            | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
         printDebug $"calculateNextChartProgress: r = {r}."
         r
 
@@ -231,9 +233,9 @@ module Solver =
             | None ->   { p with errorMessageOpt = m |> ErrorMessage |> Some }
 
         match v with
-        | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progress * 100.0}%% progress." |> withMessage s
+        | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progress * 100.0m}%% progress." |> withMessage s
         | CancelWithResults s ->
-            $"The run queue was cancelled at: %.2f{p.progress * 100.0}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
+            $"The run queue was cancelled at: %.2f{p.progress * 100.0m}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
             |> withMessage s
 
 
