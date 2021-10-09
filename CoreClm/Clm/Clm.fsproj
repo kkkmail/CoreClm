@@ -41,7 +41,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Softellect.OdePackInterop" Version="0.1.1" />
     <PackageReference Update="FSharp.Core" Version="6.0.0" />
   </ItemGroup>
 

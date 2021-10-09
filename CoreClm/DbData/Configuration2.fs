@@ -8,7 +8,7 @@ open Softellect.Sys.AppSettings
 open ClmSys.VersionInfo
 open ClmSys.GeneralPrimitives
 open System.Data
-open System.Data.SqlClient
+open Microsoft.Data.SqlClient
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralData
