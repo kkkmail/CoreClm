@@ -43,7 +43,6 @@
     <PackageReference Include="SQLite.Interop.dll" Version="1.0.103" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0-rc.1.21451.13" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115" />
     <PackageReference Update="FSharp.Core" Version="6.0.0" />
   </ItemGroup>
