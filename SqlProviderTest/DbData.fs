@@ -9,7 +9,7 @@ module DatabaseTypes =
 
 
     type private MyDatabase = SqlDataProvider<
-                    Common.DatabaseProviderTypes.MSSQLSERVER_DYNAMIC,
+                    Common.DatabaseProviderTypes.MSSQLSERVER,
                     ConnectionString = ConnectionString,
                     UseOptionTypes = true>
 
