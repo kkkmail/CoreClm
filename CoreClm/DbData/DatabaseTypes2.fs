@@ -34,7 +34,7 @@ module DatabaseTypes =
 
 
     type private ClmContext = ClmDb.dataContext
-    let private getClmContext (c : unit -> ConnectionString) = c().value |> ClmDb.GetDataContext
+    let private getDbContext (c : unit -> ConnectionString) = c().value |> ClmDb.GetDataContext
 
 
     type private ClmDefaultValueEntity = ClmContext.``dbo.ClmDefaultValueEntity``
@@ -52,18 +52,6 @@ module DatabaseTypes =
         }
 
 
-    /// Analog of ExecuteScalar - gets the first column of the first result set.
-    /// In contrast to ExecuteScalar it also expects it to be castable to int32.
-    /// Otherwise it will return None.
-    /// This function is monsly used to get the number of updated rows.
-    let mapIntScalar (r : Common.SqlEntity[]) =
-        r
-        |> Array.map(fun e -> e.ColumnValues |> List.ofSeq |> List.head)
-        |> Array.map snd
-        |> Array.map (fun e -> match e with | :? Int32 as i -> Some i | _ -> None)
-        |> Array.tryHead
-        |> Option.bind id
-
 
     let private createClmDefaultValue (r : ClmDefaultValueEntity) =
         {
@@ -75,7 +63,7 @@ module DatabaseTypes =
 
     let loadClmDefaultValue c (ClmDefaultValueId clmDefaultValueId) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -86,7 +74,7 @@ module DatabaseTypes =
                 }
 
             x
-            |> Option.bind (fun v -> createClmDefaultValue v |> Some)
+            |> Option.map createClmDefaultValue
             |> mapDbError LoadClmDefaultValueErr clmDefaultValueId
 
         tryDbFun g
@@ -94,7 +82,7 @@ module DatabaseTypes =
 
     let upsertClmDefaultValue c (p : ClmDefaultValue) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let r = ctx.Procedures.UpsertClmDefaultValue.Invoke(
                             ``@clmDefaultValueId`` = p.clmDefaultValueId.value,
@@ -120,7 +108,7 @@ module DatabaseTypes =
 
     let loadCommandLineParams c (ClmTaskId clmTaskId) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -150,7 +138,7 @@ module DatabaseTypes =
 
     let addCommandLineParams c clmTaskId (p : ModelCommandLineParam) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
             let row = addCommandLineParamRow ctx p
             ctx.SubmitUpdates()
             Ok()
@@ -190,7 +178,7 @@ module DatabaseTypes =
 
     let loadClmTask c (ClmTaskId clmTaskId) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -209,7 +197,7 @@ module DatabaseTypes =
 
     let loadIncompleteClmTasks c =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -242,7 +230,7 @@ module DatabaseTypes =
 
     let addClmTask c (clmTask : ClmTask) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
             let row = addClmTaskRow ctx clmTask
             ctx.SubmitUpdates()
 
@@ -258,7 +246,7 @@ module DatabaseTypes =
     /// Updates remainingRepetitions of ClmTask.
     let updateClmTask c (clmTask : ClmTask) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let r = ctx.Procedures.UpdateClmTask.Invoke(
                             ``@clmTaskId`` = clmTask.clmTaskInfo.clmTaskId.value,
@@ -297,7 +285,7 @@ module DatabaseTypes =
 
     let loadModelData c (ModelDataId modelDataId) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -316,7 +304,7 @@ module DatabaseTypes =
 
     let upsertModelData c (m : ModelData) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let r = ctx.Procedures.UpsertModelData.Invoke(
                         ``@modelDataId`` = m.modelDataId.value,
@@ -391,7 +379,7 @@ module DatabaseTypes =
     /// Loads all not started RunQueue.
     let loadRunQueue c =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -411,7 +399,7 @@ module DatabaseTypes =
     /// RunQueueStatusId = 2 is InProgressRunQueue.
     let loadRunQueueProgress c =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -432,7 +420,7 @@ module DatabaseTypes =
     /// Loads first not started RunQueue.
     let tryLoadFirstRunQueue c =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -453,7 +441,7 @@ module DatabaseTypes =
     /// Loads RunQueue by runQueueId.
     let tryLoadRunQueue c (q : RunQueueId) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -472,7 +460,7 @@ module DatabaseTypes =
     /// Tries to reset RunQueue.
     let tryResetRunQueue c (q : RunQueueId) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
             let r = ctx.Procedures.TryResetRunQueue.Invoke q.value
             let m = r.ResultSet |> mapIntScalar
 
@@ -507,7 +495,7 @@ module DatabaseTypes =
 
     let saveRunQueue c modelDataId defaultValueId p =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
             let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
             let row = addRunQueueRow ctx r
             ctx.SubmitUpdates()
@@ -518,7 +506,7 @@ module DatabaseTypes =
 
     let deleteRunQueue c (q : RunQueueId) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
             let r = ctx.Procedures.DeleteRunQueue.Invoke q.value
             let m = r.ResultSet |> mapIntScalar
 
@@ -622,7 +610,7 @@ module DatabaseTypes =
 
     let upsertRunQueue c (w : RunQueue) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -657,7 +645,7 @@ module DatabaseTypes =
 
     let loadWorkerNodeInfo c p (i : WorkerNodeId) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -698,7 +686,7 @@ module DatabaseTypes =
 
     let upsertWorkerNodeInfo c (w : WorkerNodeInfo) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {
@@ -731,7 +719,7 @@ module DatabaseTypes =
     ///Gets the first available worker node to schedule work.
     let tryGetAvailableWorkerNode c (LastAllowedNodeErr m) =
         let g() =
-            let ctx = getClmContext c
+            let ctx = getDbContext c
 
             let x =
                 query {

@@ -40,198 +40,149 @@ module WorkerNodeDatabaseTypes =
 
 
     type private WorkerNodeDbContext = WorkerNodeDb.dataContext
-    let private getWorkerNodeDbContext (c : unit -> ConnectionString) = c().value |> WorkerNodeDb.GetDataContext
+    let private getDbContext (c : unit -> ConnectionString) = c().value |> WorkerNodeDb.GetDataContext
 
 
-    type private RunQueueTable = WorkerNodeDbContext.``dbo.RunQueueEntity``
-    type private MessageTable = WorkerNodeDbContext.``dbo.MessageEntity``
+    type private RunQueueEntity = WorkerNodeDbContext.``dbo.RunQueueEntity``
+    type private MessageEntity = WorkerNodeDbContext.``dbo.MessageEntity``
 
 
-    /// SQL to load / upsert RunQueue.
-    type RunQueueTableData = SqlCommandProvider<"
-        select *
-        from dbo.RunQueue
-        where runQueueId = @runQueueId", WorkerNodeConnectionStringValue, ResultType.DataReader>
+    ///// SQL to load / upsert RunQueue.
+    //type RunQueueTableData = SqlCommandProvider<"
+    //    select *
+    //    from dbo.RunQueue
+    //    where runQueueId = @runQueueId", WorkerNodeConnectionStringValue, ResultType.DataReader>
 
 
-    /// SQL to load first not started runQueueId.
-    [<Literal>]
-    let runQueueFirstSql = "
-        select top 1 runQueueId
-        from dbo.RunQueue
-        where runQueueStatusId = " + RunQueueStatus_NotStarted + "
-        order by runQueueOrder"
+    ///// SQL to load first not started runQueueId.
+    //[<Literal>]
+    //let runQueueFirstSql = "
+    //    select top 1 runQueueId
+    //    from dbo.RunQueue
+    //    where runQueueStatusId = " + RunQueueStatus_NotStarted + "
+    //    order by runQueueOrder"
 
 
-    type RunQueueFirstTableData =
-        SqlCommandProvider<runQueueFirstSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
+    //type RunQueueFirstTableData =
+    //    SqlCommandProvider<runQueueFirstSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
 
-
-    /// Sql to load count of all running solvers.
-    [<Literal>]
-    let runningSolversCountSql = "
-        select isnull(count(*), 0) as runCount
-        from dbo.RunQueue
-        where runQueueStatusId = " + RunQueueStatus_InProgress
-
-
-    type RunningSolversCountTableData =
-        SqlCommandProvider<runningSolversCountSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
-
-
-    /// Sql to load all running solvers.
-    [<Literal>]
-    let runningSolversSql = "
-        select
-            runQueueId,
-            processId
-        from dbo.RunQueue
-        where runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
-
-
-    type RunningSolversTableData =
-        SqlCommandProvider<runningSolversSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
-
-
-    let mapSolverRunnerInfo (reader : DynamicSqlDataReader) =
-        {
-            runQueueId = reader?runQueueId |> RunQueueId
-            processId = reader?processId  |> Option.bind (fun e -> e |> ProcessId |> Some)
-        }
 
 
     let tryLoadSolverRunners c =
         let g() =
-            seq
-                {
-                    use conn = getOpenConn c
-                    use data = new RunningSolversTableData(conn)
-                    use reader= new DynamicSqlDataReader(data.Execute())
-                    while (reader.Read()) do yield mapSolverRunnerInfo reader
-                        }
-            |> List.ofSeq
+            let ctx = getDbContext c
+
+            let x = 
+                query {
+                    for q in ctx.Dbo.RunQueue do
+                    where (q.RunQueueStatusId = RunQueueStatus_InProgress || q.RunQueueStatusId = RunQueueStatus_CancelRequested)
+                    select (q.RunQueueId, q.ProcessId)
+                }
+
+            x
+            |> Seq.toList
+            |> List.map (fun (r, p) -> { runQueueId = RunQueueId r; processId = p |> Option.bind (fun e -> e |> ProcessId |> Some) })
             |> Ok
 
         tryDbFun g
-
-
-    let private mapSolverRunnersCount (reader : DynamicSqlDataReader) =
-        int reader?runCount |> Ok
 
 
     let tryGetRunningSolversCount c =
         let g() =
-            seq
-                {
-                    use conn = getOpenConn c
-                    use data = new RunningSolversCountTableData(conn)
-                    use reader= new DynamicSqlDataReader(data.Execute())
-                    while (reader.Read()) do yield mapSolverRunnersCount reader
-                        }
-            |> List.ofSeq
-            |> List.tryHead
-            |> Ok
+            let ctx = getDbContext c
 
-        tryDbFun g |> Rop.unwrapResultOption
+            let x =
+                query {
+                    for q in ctx.Dbo.RunQueue do
+                    where (q.RunQueueStatusId = RunQueueStatus_InProgress)
+                    select q
+                    count
+                }
 
+            Ok x
 
-    type WorkerNodeRunModelData
-        with
-        static member tryCreate (r : RunQueueTableRow) : ClmResult<WorkerNodeRunModelData> =
-            let w() =
-                try
-                    r.workerNodeRunModelData |> deserialize serializationFormat |> Ok
-                with
-                | e -> e |> DbExn |> DbErr |> Error
-
-            tryRopFun (fun e -> e |> DbExn |> DbErr) w
-
-        member r.addRow(t : RunQueueTable) =
-            let newRow =
-                    t.NewRow(
-                            runQueueId = r.runningProcessData.runQueueId.value,
-                            workerNodeRunModelData = (r |> serialize serializationFormat),
-                            runQueueStatusId = RunQueueStatus.NotStartedRunQueue.value,
-                            createdOn = DateTime.Now,
-                            modifiedOn = DateTime.Now
-                            )
-
-            t.Rows.Add newRow
-            newRow
-
-
-    let private mapRunQueueId (reader : DynamicSqlDataReader) =
-        RunQueueId reader?runQueueId |> Ok
+        tryDbFun g
 
 
     let tryPickRunQueue c =
         let g() =
-            seq
-                {
-                    use conn = getOpenConn c
-                    use data = new RunQueueFirstTableData(conn)
-                    use reader= new DynamicSqlDataReader(data.Execute())
-                    while (reader.Read()) do yield mapRunQueueId reader
-                        }
-            |> List.ofSeq
-            |> List.tryHead
-            |> Ok
+            let ctx = getDbContext c
 
-        tryDbFun g |> Rop.unwrapResultOption
+            let x =
+                query {
+                    for q in ctx.Dbo.RunQueue do
+                    where (q.RunQueueStatusId = RunQueueStatus_NotStarted)
+                    sortBy q.RunQueueOrder
+                    select (Some q.RunQueueId)
+                    exactlyOneOrDefault
+                }
 
-
-    let tryLoadRunQueue c (q : RunQueueId) =
-        let g() =
-            use conn = getOpenConn c
-            use d = new RunQueueTableData(conn)
-            let t = new RunQueueTable()
-            d.Execute q.value |> t.Load
-
-            match t.Rows |> Seq.tryFind (fun e -> e.runQueueId = q.value) with
-            | Some v -> v |> WorkerNodeRunModelData.tryCreate
-            | None -> toError TryLoadRunQueueErr q
+            x |> Option.map RunQueueId |> Ok
 
         tryDbFun g
 
 
-    /// Sql to load incomplete run queue.
-    [<Literal>]
-    let incompleteRunQueueSql = "
-        select
-            runQueueId
-        from dbo.RunQueue
-        where runQueueStatusId in (" + RunQueueStatus_NotStarted + ", " + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+    let tryLoadRunQueue c (i : RunQueueId) =
+        let g() =
+            let ctx = getDbContext c
 
+            let x =
+                query {
+                    for q in ctx.Dbo.RunQueue do
+                    where (q.RunQueueId = i.value)
+                    select (Some q.WorkerNodeRunModelData)
+                    exactlyOneOrDefault
+                }
 
-    type IncompleteRunQueueTableData =
-        SqlCommandProvider<incompleteRunQueueSql, WorkerNodeConnectionStringValue, ResultType.DataReader>
+            match x with
+            | Some v ->
+                let w() =
+                    try
+                        v |> deserialize serializationFormat |> Ok
+                    with
+                    | e -> e |> DbExn |> DbErr |> Error
 
+                tryRopFun (fun e -> e |> DbExn |> DbErr) w
+            | None -> toError TryLoadRunQueueErr i
 
-    let mapIncompleteRunQueue (reader : DynamicSqlDataReader) =
-        reader?runQueueId |> RunQueueId
+        tryDbFun g
 
 
     let loadAllActiveRunQueueId c =
         let g() =
-            seq
-                {
-                    use conn = getOpenConn c
-                    use data = new IncompleteRunQueueTableData(conn)
-                    use reader= new DynamicSqlDataReader(data.Execute())
-                    while (reader.Read()) do yield mapIncompleteRunQueue reader
-                        }
-            |> List.ofSeq
+            let ctx = getDbContext c
+
+            let x =
+                query {
+                    for q in ctx.Dbo.RunQueue do
+                    where (q.RunQueueStatusId = RunQueueStatus_NotStarted || q.RunQueueStatusId = RunQueueStatus_InProgress || q.RunQueueStatusId = RunQueueStatus_CancelRequested)
+                    select q.RunQueueId
+                }
+
+            x
+            |> Seq.toList
+            |> List.map RunQueueId
             |> Ok
 
         tryDbFun g
 
 
+    let private addRunQueueRow (ctx : WorkerNodeDbContext) (w : WorkerNodeRunModelData) =
+        let row = ctx.Dbo.RunQueue.Create(
+                            RunQueueId = w.runningProcessData.runQueueId.value,
+                            WorkerNodeRunModelData = (w |> serialize serializationFormat),
+                            RunQueueStatusId = RunQueueStatus.NotStartedRunQueue.value,
+                            CreatedOn = DateTime.Now,
+                            ModifiedOn = DateTime.Now)
+
+        row
+
     let saveRunQueue c (w : WorkerNodeRunModelData) =
         let g() =
-            use conn = getOpenConn c
-            use t = new RunQueueTable()
-            let row = w.addRow t
-            t.Update conn |> ignore
+            let ctx = getDbContext c
+            let row = addRunQueueRow ctx w
+            ctx.SubmitUpdates()
+
             Ok()
 
         tryDbFun g
@@ -241,15 +192,15 @@ module WorkerNodeDatabaseTypes =
     /// If run queue is in RunQueueStatus_CancelRequested state then we don't allow restarting it automatically.
     /// This could happen when cancel requested has propagated to the database but the system then crashed and
     /// did not actually cancel the solver.
-    [<Literal>]
-    let tryStartRunQueueSql = "
-        update dbo.RunQueue
-        set
-            processId = @processId,
-            runQueueStatusId = " + RunQueueStatus_InProgress + ",
-            startedOn = (getdate()),
-            modifiedOn = (getdate())
-        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_NotStarted + ", " + RunQueueStatus_InProgress + ")"
+    //[<Literal>]
+    //let tryStartRunQueueSql = "
+    //    update dbo.RunQueue
+    //    set
+    //        processId = @processId,
+    //        runQueueStatusId = " + RunQueueStatus_InProgress + ",
+    //        startedOn = (getdate()),
+    //        modifiedOn = (getdate())
+    //    where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_NotStarted + ", " + RunQueueStatus_InProgress + ")"
 
 
     let tryStartRunQueue c (q : RunQueueId) (ProcessId pid) =
@@ -263,14 +214,14 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Can transition to Completed from InProgress or CancelRequested.
-    [<Literal>]
-    let tryCompleteRunQueueSql = "
-        update dbo.RunQueue
-        set
-            runQueueStatusId = " + RunQueueStatus_Completed + ",
-            processId = null,
-            modifiedOn = (getdate())
-        where runQueueId = @runQueueId and processId is not null and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+    //[<Literal>]
+    //let tryCompleteRunQueueSql = "
+    //    update dbo.RunQueue
+    //    set
+    //        runQueueStatusId = " + RunQueueStatus_Completed + ",
+    //        processId = null,
+    //        modifiedOn = (getdate())
+    //    where runQueueId = @runQueueId and processId is not null and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
     let tryCompleteRunQueue c (q : RunQueueId) =
@@ -284,15 +235,15 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Can transition to Cancelled from NotStarted, InProgress, or CancelRequested.
-    [<Literal>]
-    let tryCancelRunQueueSql = "
-        update dbo.RunQueue
-        set
-            runQueueStatusId = " + RunQueueStatus_Cancelled + ",
-            processId = null,
-            modifiedOn = (getdate()),
-            errorMessage = @errorMessage
-        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_NotStarted + ", " + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+    //[<Literal>]
+    //let tryCancelRunQueueSql = "
+    //    update dbo.RunQueue
+    //    set
+    //        runQueueStatusId = " + RunQueueStatus_Cancelled + ",
+    //        processId = null,
+    //        modifiedOn = (getdate()),
+    //        errorMessage = @errorMessage
+    //    where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_NotStarted + ", " + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
     let tryCancelRunQueue c (q : RunQueueId) (errMsg : string) =
@@ -306,15 +257,15 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Can transition to Failed from InProgress or CancelRequested.
-    [<Literal>]
-    let tryFailRunQueueSql = "
-        update dbo.RunQueue
-        set
-            runQueueStatusId = " + RunQueueStatus_Failed + ",
-            processId = null,
-            modifiedOn = (getdate()),
-            errorMessage = @errorMessage
-        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+    //[<Literal>]
+    //let tryFailRunQueueSql = "
+    //    update dbo.RunQueue
+    //    set
+    //        runQueueStatusId = " + RunQueueStatus_Failed + ",
+    //        processId = null,
+    //        modifiedOn = (getdate()),
+    //        errorMessage = @errorMessage
+    //    where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
     let tryFailRunQueue c (q : RunQueueId) (errMsg : string) =
@@ -329,15 +280,15 @@ module WorkerNodeDatabaseTypes =
 
     /// !!! kk:20210217 - WTF !!!  - Putting the first " on the same line as tryRequestCancelRunQueueSql breaks compilation but it is the same as above !!!
     /// Can transition to CancelRequested from InProgress.
-    [<Literal>]
-    let tryRequestCancelRunQueueSql =
-        "
-        update dbo.RunQueue
-        set
-            runQueueStatusId = " + RunQueueStatus_CancelRequested + ",
-            notificationTypeId = @notificationTypeId,
-            modifiedOn = (getdate())
-        where runQueueId = @runQueueId and runQueueStatusId = " + RunQueueStatus_InProgress
+    //[<Literal>]
+    //let tryRequestCancelRunQueueSql =
+    //    "
+    //    update dbo.RunQueue
+    //    set
+    //        runQueueStatusId = " + RunQueueStatus_CancelRequested + ",
+    //        notificationTypeId = @notificationTypeId,
+    //        modifiedOn = (getdate())
+    //    where runQueueId = @runQueueId and runQueueStatusId = " + RunQueueStatus_InProgress
 
 
     let tryRequestCancelRunQueue c (q : RunQueueId) (r : CancellationType) =
@@ -351,13 +302,13 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Can request notification of results when state is InProgress or CancelRequested.
-    [<Literal>]
-    let tryNotifySql = "
-        update dbo.RunQueue
-        set
-            notificationTypeId = @notificationTypeId,
-            modifiedOn = (getdate())
-        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+    //[<Literal>]
+    //let tryNotifySql = "
+    //    update dbo.RunQueue
+    //    set
+    //        notificationTypeId = @notificationTypeId,
+    //        modifiedOn = (getdate())
+    //    where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
     let tryNotifyRunQueue c (q : RunQueueId) (r : ResultNotificationType option) =
@@ -445,14 +396,14 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Clear notification only when InProgress
-    [<Literal>]
-    let tryClearNotificationQueueSql =
-        "
-        update dbo.RunQueue
-        set
-            notificationTypeId = 0,
-            modifiedOn = (getdate())
-        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ")"
+    //[<Literal>]
+    //let tryClearNotificationQueueSql =
+    //    "
+    //    update dbo.RunQueue
+    //    set
+    //        notificationTypeId = 0,
+    //        modifiedOn = (getdate())
+    //    where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ")"
 
 
     let tryClearNotification c (q : RunQueueId) =
@@ -479,19 +430,19 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Can modify progress related information when state is InProgress or CancelRequested.
-    [<Literal>]
-    let tryUpdateProgressSql = "
-        update dbo.RunQueue
-        set
-            progress = @progress,
-            callCount = @callCount,
-            yRelative = @yRelative,
-            maxEe = @maxEe,
-            maxAverageEe = @maxAverageEe,
-            maxWeightedAverageAbsEe = @maxWeightedAverageAbsEe,
-            maxLastEe = @maxLastEe,
-            modifiedOn = (getdate())
-        where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
+    //[<Literal>]
+    //let tryUpdateProgressSql = "
+    //    update dbo.RunQueue
+    //    set
+    //        progress = @progress,
+    //        callCount = @callCount,
+    //        yRelative = @yRelative,
+    //        maxEe = @maxEe,
+    //        maxAverageEe = @maxAverageEe,
+    //        maxWeightedAverageAbsEe = @maxWeightedAverageAbsEe,
+    //        maxLastEe = @maxLastEe,
+    //        modifiedOn = (getdate())
+    //    where runQueueId = @runQueueId and runQueueStatusId in (" + RunQueueStatus_InProgress + ", " + RunQueueStatus_CancelRequested + ")"
 
 
     let tryUpdateProgress c (q : RunQueueId) (td : ProgressData) =
