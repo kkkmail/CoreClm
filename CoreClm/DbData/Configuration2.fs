@@ -2,13 +2,15 @@
 
 open System
 open System.Data.SQLite
+open FSharp.Data.Sql
+
 open Softellect.Sys.Retry
 open Softellect.Sys.AppSettings
 
 open ClmSys.VersionInfo
 open ClmSys.GeneralPrimitives
 open System.Data
-open Microsoft.Data.SqlClient
+open System.Data.SqlClient
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralData
@@ -138,3 +140,18 @@ module Configuration =
             | e -> mapExceptionToError e
 
         tryRopFun mapException w
+
+
+
+    /// Analog of ExecuteScalar - gets the first column of the first result set.
+    /// In contrast to ExecuteScalar it also expects it to be castable to int32.
+    /// Otherwise it will return None.
+    /// This function is monsly used to get the number of updated rows.
+    let mapIntScalar (r : Common.SqlEntity[]) =
+        r
+        |> Array.map(fun e -> e.ColumnValues |> List.ofSeq |> List.head)
+        |> Array.map snd
+        |> Array.map (fun e -> match e with | :? Int32 as i -> Some i | _ -> None)
+        |> Array.tryHead
+        |> Option.bind id
+

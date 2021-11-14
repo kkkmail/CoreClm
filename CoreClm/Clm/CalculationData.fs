@@ -5,7 +5,7 @@ open ClmSys.SolverRunnerPrimitives
 #nowarn "9"
 
 open Microsoft.FSharp.NativeInterop
-//open Softellect.OdePackInterop
+open Softellect.OdePackInterop
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRatesBase
@@ -546,15 +546,15 @@ module CalculationData =
             NativePtr.set dx i (calculateByRefDerivativeValue x indices.[i])
 
 
-    //let createUseNonNegativeInterop (callaBack: double -> double[] -> unit, indices : array<ModelIndices>) =
-    //    Interop.F(fun n t y dy -> fUseNonNegative(callaBack, indices, &n, &t, y, dy))
+    let createUseNonNegativeInterop (callaBack: double -> double[] -> unit, indices : array<ModelIndices>) =
+        Interop.F(fun n t y dy -> fUseNonNegative(callaBack, indices, &n, &t, y, dy))
 
 
-    //let createDoNotCorrectInterop (
-    //                                needsCallBack: double -> CancellationType option * bool,
-    //                                callaBack: CancellationType option -> double -> double[] -> unit,
-    //                                indices : array<ModelIndices>) =
-    //    Interop.F(fun n t y dy -> fDoNotCorrect(needsCallBack, callaBack, indices, &n, &t, y, dy))
+    let createDoNotCorrectInterop (
+                                    needsCallBack: double -> CancellationType option * bool,
+                                    callaBack: CancellationType option -> double -> double[] -> unit,
+                                    indices : array<ModelIndices>) =
+        Interop.F(fun n t y dy -> fDoNotCorrect(needsCallBack, callaBack, indices, &n, &t, y, dy))
 
 
     type ModelCalculationData =

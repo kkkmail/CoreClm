@@ -4,7 +4,7 @@ open ClmSys.WorkerNodeData
 open FSharp.Data
 open System
 open FSharp.Data.Sql
-open DynamicSql
+//open DynamicSql
 open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
@@ -31,9 +31,21 @@ module WorkerNodeDatabaseTypes =
         | false -> toError f q
 
 
-    type WorkerNodeDB = SqlProgrammabilityProvider<WorkerNodeSqlProviderName, ConfigFile = AppConfigFile>
-    type RunQueueTable = WorkerNodeDB.dbo.Tables.RunQueue
-    type RunQueueTableRow = RunQueueTable.Row
+    //type WorkerNodeDB = SqlProgrammabilityProvider<WorkerNodeSqlProviderName, ConfigFile = AppConfigFile>
+
+    type private WorkerNodeDb = SqlDataProvider<
+                    Common.DatabaseProviderTypes.MSSQLSERVER,
+                    ConnectionString = WorkerNodeConnectionStringValue,
+                    UseOptionTypes = true>
+
+
+    type private WorkerNodeDbContext = WorkerNodeDb.dataContext
+    let private getWorkerNodeDbContext (c : unit -> ConnectionString) = c().value |> WorkerNodeDb.GetDataContext
+
+
+    type private RunQueueTable = WorkerNodeDbContext.``dbo.RunQueueEntity``
+    type private MessageTable = WorkerNodeDbContext.``dbo.MessageEntity``
+
 
     /// SQL to load / upsert RunQueue.
     type RunQueueTableData = SqlCommandProvider<"

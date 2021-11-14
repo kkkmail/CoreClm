@@ -56,7 +56,7 @@ module DatabaseTypes =
     /// In contrast to ExecuteScalar it also expects it to be castable to int32.
     /// Otherwise it will return None.
     /// This function is monsly used to get the number of updated rows.
-    let private mapIntScalar (r : Common.SqlEntity[]) =
+    let mapIntScalar (r : Common.SqlEntity[]) =
         r
         |> Array.map(fun e -> e.ColumnValues |> List.ofSeq |> List.head)
         |> Array.map snd
