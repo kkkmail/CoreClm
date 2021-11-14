@@ -1,1 +1,0 @@
-﻿SELECT GETDATE() AS Now
