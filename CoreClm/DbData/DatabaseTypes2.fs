@@ -89,11 +89,7 @@ module DatabaseTypes =
                             ``@defaultRateParams`` = (p.defaultRateParams |> JsonConvert.SerializeObject),
                             ``@description`` = (match p.description with | Some d -> d | None -> null))
 
-            let m = r.ResultSet |> mapIntScalar
-
-            match m with
-            | Some 1 -> Ok ()
-            | _ -> toError UpsertClmDefaultValueErr p.clmDefaultValueId.value
+            r.ResultSet |> bindIntScalar UpsertClmDefaultValueErr p.clmDefaultValueId.value
 
         tryDbFun g
 

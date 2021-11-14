@@ -1,4 +1,6 @@
-﻿namespace DbData
+﻿#nowarn "1104"
+
+namespace DbData
 
 open FSharp.Data
 open System
@@ -17,6 +19,7 @@ open Softellect.Sys.MessagingServiceErrors
 open ClmSys.VersionInfo
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
+open ClmSys.GeneralErrors
 open Clm.ModelParams
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
@@ -33,6 +36,7 @@ module MsgSvcDatabaseTypes =
     [<Literal>]
     let MsgSqliteConnStr =
         "Data Source=" + __SOURCE_DIRECTORY__ + @"\" + MsgDatabase + @";Version=3;foreign keys=true"
+
 
     let getSqlLiteConnStr msgDbLocation = @"Data Source=" + msgDbLocation + ";Version=3;foreign keys=true"
     let msgSqliteConnStr = MsgSqliteConnStr |> SqliteConnectionString
@@ -54,110 +58,135 @@ module MsgSvcDatabaseTypes =
     let serializationFormat = BinaryZippedFormat
 
 
-    type MsgSvcDB = SqlProgrammabilityProvider<MessagingSqlProviderName, ConfigFile = AppConfigFile>
-    type MessageTable = MsgSvcDB.dbo.Tables.Message
-    type MessageTableRow = MessageTable.Row
+    //type MsgSvcDB = SqlProgrammabilityProvider<MessagingSqlProviderName, ConfigFile = AppConfigFile>
+    //type MessageTable = MsgSvcDB.dbo.Tables.Message
+    //type MessageTableRow = MessageTable.Row
+
+    type private MsgSvcDb = SqlDataProvider<
+                    Common.DatabaseProviderTypes.MSSQLSERVER,
+                    ConnectionString = MessagingConnectionStringValue,
+                    UseOptionTypes = true>
 
 
-    type MessageDatabaseData = SqlCommandProvider<"
-        select *
-        from dbo.Message
-        where messageId = @messageId", MessagingConnectionStringValue, ResultType.DataReader>
+    type private MsgSvcContext = MsgSvcDb.dataContext
+    let private getDbContext (c : unit -> ConnectionString) = c().value |> MsgSvcDb.GetDataContext
+
+    type private MessageEntity = MsgSvcContext.``dbo.MessageEntity``
 
 
-    type TryPickRecipientMessageData = SqlCommandProvider<"
-           select top 1 *
-           from dbo.Message
-           where recipientId = @recipientId and dataVersion = @dataVersion
-           order by messageOrder
-           ", MessagingConnectionStringValue, ResultType.DataReader>
+    //type MessageDatabaseData = SqlCommandProvider<"
+    //    select *
+    //    from dbo.Message
+    //    where messageId = @messageId", MessagingConnectionStringValue, ResultType.DataReader>
 
 
-    type TryPickSenderMessageData = SqlCommandProvider<"
-           select top 1 *
-           from dbo.Message
-           where senderId = @senderId and dataVersion = @dataVersion
-           order by messageOrder
-           ", MessagingConnectionStringValue, ResultType.DataReader>
+    //type TryPickRecipientMessageData = SqlCommandProvider<"
+    //       select top 1 *
+    //       from dbo.Message
+    //       where recipientId = @recipientId and dataVersion = @dataVersion
+    //       order by messageOrder
+    //       ", MessagingConnectionStringValue, ResultType.DataReader>
 
 
-    let tryCreateMessageImpl (r : MessageTableRow) =
+    //type TryPickSenderMessageData = SqlCommandProvider<"
+    //       select top 1 *
+    //       from dbo.Message
+    //       where senderId = @senderId and dataVersion = @dataVersion
+    //       order by messageOrder
+    //       ", MessagingConnectionStringValue, ResultType.DataReader>
+
+
+    let private tryCreateMessageImpl (r : MessageEntity) =
             let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
             let g() =
-                match MessageDeliveryType.tryCreate r.deliveryTypeId, messagingDataVersion.value = r.dataVersion with
+                match MessageDeliveryType.tryCreate r.DeliveryTypeId, messagingDataVersion.value = r.DataVersion with
                 | Some t, true ->
                     {
                         messageDataInfo =
                             {
-                                messageId = r.messageId |> MessageId
-                                dataVersion = r.dataVersion |> MessagingDataVersion
-                                sender = r.senderId |> MessagingClientId
+                                messageId = r.MessageId |> MessageId
+                                dataVersion = r.DataVersion |> MessagingDataVersion
+                                sender = r.SenderId |> MessagingClientId
 
                                 recipientInfo =
                                     {
-                                        recipient = r.recipientId |> MessagingClientId
+                                        recipient = r.RecipientId |> MessagingClientId
                                         deliveryType = t
                                     }
 
-                                createdOn = r.createdOn
+                                createdOn = r.CreatedOn
                             }
 
-                        messageData = r.messageData |> deserialize serializationFormat
+                        messageData = r.MessageData |> deserialize serializationFormat
                     }
                     |> Some
                     |> Ok
-                | Some _, false -> InvalidDataVersionErr { localVersion = messagingDataVersion; remoteVersion = MessagingDataVersion r.dataVersion } |> toError
-                | None, true -> InvalidDeliveryTypeErr r.deliveryTypeId |> toError
-                | None, false -> InvalidDeliveryTypeAndDataVersionErr (r.deliveryTypeId, { localVersion = messagingDataVersion; remoteVersion = MessagingDataVersion r.dataVersion }) |> toError
+                | Some _, false -> InvalidDataVersionErr { localVersion = messagingDataVersion; remoteVersion = MessagingDataVersion r.DataVersion } |> toError
+                | None, true -> InvalidDeliveryTypeErr r.DeliveryTypeId |> toError
+                | None, false -> InvalidDeliveryTypeAndDataVersionErr (r.DeliveryTypeId, { localVersion = messagingDataVersion; remoteVersion = MessagingDataVersion r.DataVersion }) |> toError
 
             tryDbFun g
 
 
-    let addMessageTableRow (r : Message) (t : MessageTable) =
-            let g() =
-                let newRow =
-                    t.NewRow(
-                            messageId = r.messageDataInfo.messageId.value,
-                            dataVersion = messagingDataVersion.value,
-                            deliveryTypeId = r.messageDataInfo.recipientInfo.deliveryType.value,
-                            senderId = r.messageDataInfo.sender.value,
-                            recipientId = r.messageDataInfo.recipientInfo.recipient.value,
-                            messageData = (r.messageData |> serialize serializationFormat)
-                            )
-
-                newRow.createdOn <- DateTime.Now // Set our local time as we don't care about remote time.
-
-                t.Rows.Add newRow
-                Ok newRow
-
-            tryDbFun g
-
-
-    let tryCreateMessage (t : MessageTable) =
-        match t.Rows |> Seq.tryHead with
+    let tryCreateMessage (t : MessageEntity option) =
+        match t with
         | Some v -> v |> tryCreateMessageImpl
         | None -> Ok None
 
 
+    //let addMessageTableRow (r : Message) (t : MessageTable) =
+    //        let g() =
+    //            let newRow =
+    //                t.NewRow(
+    //                        messageId = r.messageDataInfo.messageId.value,
+    //                        dataVersion = messagingDataVersion.value,
+    //                        deliveryTypeId = r.messageDataInfo.recipientInfo.deliveryType.value,
+    //                        senderId = r.messageDataInfo.sender.value,
+    //                        recipientId = r.messageDataInfo.recipientInfo.recipient.value,
+    //                        messageData = (r.messageData |> serialize serializationFormat)
+    //                        )
+
+    //            newRow.createdOn <- DateTime.Now // Set our local time as we don't care about remote time.
+
+    //            t.Rows.Add newRow
+    //            Ok newRow
+
+    //        tryDbFun g
+
+
     let tryPickIncomingMessage c (MessagingClientId i) =
         let g () =
-            use conn = getOpenConn c
-            let t = new MessageTable()
-            use d = new TryPickRecipientMessageData(conn)
-            d.Execute(i, messagingDataVersion.value) |> t.Load
-            tryCreateMessage t
+            let ctx = getDbContext c
+
+            let x =
+                query {
+                    for m in ctx.Dbo.Message do
+                    where (m.RecipientId = i && m.DataVersion = messagingDataVersion.value)
+                    sortBy m.MessageOrder
+                    select (Some m)
+                    headOrDefault
+                }
+
+            tryCreateMessage x
 
         tryDbFun g
 
 
     let tryPickOutgoingMessage c (MessagingClientId i) =
         let g () =
-            use conn = getOpenConn c
-            let t = new MessageTable()
-            use d = new TryPickSenderMessageData(conn)
-            d.Execute(i, messagingDataVersion.value) |> t.Load
-            tryCreateMessage t
+            let ctx = getDbContext c
+
+            let x =
+                query {
+                    for m in ctx.Dbo.Message do
+                    where (m.SenderId = i && m.DataVersion = messagingDataVersion.value)
+                    sortBy m.MessageOrder
+                    select (Some m)
+                    headOrDefault
+                }
+
+            tryCreateMessage x
 
         tryDbFun g
 
@@ -175,32 +204,20 @@ module MsgSvcDatabaseTypes =
     ///                when matched then
     ///                    update set senderId = source.senderId, recipientId = source.recipientId, dataVersion = source.dataVersion, deliveryTypeId = source.deliveryTypeId, messageData = source.messageData, createdOn = source.createdOn;
     let saveMessage c (m : Message) =
-//        let toError e = e |> MessageCreateErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
+        let toError e = e |> CannotUpsertMessageErr |> MessageUpsertErr |> MessagingServiceErr
 
         let g() =
-            use conn = getOpenConn c
-            let connectionString = conn.ConnectionString
+            let ctx = getDbContext c
 
-            use cmd = new SqlCommandProvider<"
-                declare @messageIdValue uniqueidentifier
-                set @messageIdValue = @messageId
+            let r = ctx.Procedures.SaveMessage.Invoke(
+                            ``@messageId`` = m.messageDataInfo.messageId.value,
+                            ``@senderId`` = m.messageDataInfo.sender.value,
+                            ``@recipientId`` = m.messageDataInfo.recipientInfo.recipient.value,
+                            ``@dataVersion`` = messagingDataVersion.value,
+                            ``@deliveryTypeId`` = m.messageDataInfo.recipientInfo.deliveryType.value,
+                            ``@messageData`` = (m.messageData |> serialize serializationFormat))
 
-				insert into Message (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
-				select @messageIdValue, @senderId, @recipientId, @dataVersion, @deliveryTypeId, @messageData, @createdOn
-				where not exists (select 1 from Message where messageId = @messageIdValue)
-            ", MessagingConnectionStringValue>(connectionString, commandTimeout = ClmCommandTimeout)
-
-            let result = cmd.Execute(messageId = m.messageDataInfo.messageId.value
-                                    ,senderId = m.messageDataInfo.sender.value
-                                    ,recipientId = m.messageDataInfo.recipientInfo.recipient.value
-                                    ,dataVersion = messagingDataVersion.value
-                                    ,deliveryTypeId = m.messageDataInfo.recipientInfo.deliveryType.value
-                                    ,messageData = (m.messageData |> serialize serializationFormat)
-                                    ,createdOn = DateTime.Now) // Set our local time as we don't care about remote time.
-
-            match result with
-            | 1 -> Ok ()
-            | _ -> m.messageDataInfo.messageId |> CannotUpsertMessageErr |> MessageUpsertErr |> MessagingServiceErr |> Error
+            r.ResultSet |> bindIntScalar MessagingSvcSaveMessageErr m.messageDataInfo.messageId
 
         tryDbFun g
 
@@ -209,31 +226,18 @@ module MsgSvcDatabaseTypes =
         let toError e = e |> MessageDeleteErr |> MsgSvcDbErr |> MessagingServiceErr |> Error
 
         let g() =
-            use conn = getOpenConn c
-            let connectionString = conn.ConnectionString
-
-            use cmd = new SqlCommandProvider<"delete from dbo.Message where messageId = @messageId", MessagingConnectionStringValue>(connectionString)
-
-            match cmd.Execute(messageId = messageId.value) with
-            | 0 | 1 -> Ok()
-            | _ -> messageId |> MessageDeleteError.CannotDeleteMessageErr |> toError
+            let ctx = getDbContext c
+            let r = ctx.Procedures.DeleteMessage .Invoke(``@messageId`` = messageId.value)
+            r.ResultSet |> bindIntScalar MessagingSvcCannotDeleteMessageErr messageId
 
         tryDbFun g
 
 
     let deleteExpiredMessages c (expirationTime : TimeSpan) =
         let g() =
-            use conn = getOpenConn c
-            let connectionString = conn.ConnectionString
-
-            use cmd = new SqlCommandProvider<"
-                delete from dbo.Message
-                where
-                    deliveryTypeId = 1
-                    and dataVersion = @dataVersion
-                    and createdOn < @createdOn", MessagingConnectionStringValue>(connectionString)
-
-            let _ = cmd.Execute(messagingDataVersion.value, DateTime.Now - expirationTime)
+            let ctx = getDbContext c
+            let r = ctx.Procedures.DeleteExpiredMessages .Invoke(``@dataVersion`` = messagingDataVersion.value, ``@createdOn`` = DateTime.Now - expirationTime)
+            r.ResultSet |> ignore
             Ok()
 
         tryDbFun g

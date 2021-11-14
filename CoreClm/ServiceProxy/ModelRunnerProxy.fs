@@ -76,11 +76,11 @@ module ModelRunnerProxy =
             upsertWorkerNodeErr : WorkerNodeId -> UnitResult
         }
 
-        static member create c =
+        static member create c p =
             {
                 tryLoadRunQueue = tryLoadRunQueue c
                 upsertRunQueue = upsertRunQueue c
-                upsertWorkerNodeErr = upsertWorkerNodeErr c
+                upsertWorkerNodeErr = upsertWorkerNodeErr c p
             }
 
 
@@ -100,9 +100,9 @@ module ModelRunnerProxy =
             loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
             upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
         }
-        static member create c =
+        static member create c p =
             {
-                loadWorkerNodeInfo = loadWorkerNodeInfo c
+                loadWorkerNodeInfo = loadWorkerNodeInfo c p
                 upsertWorkerNodeInfo = upsertWorkerNodeInfo c
             }
 

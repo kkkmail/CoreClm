@@ -155,3 +155,20 @@ module Configuration =
         |> Array.tryHead
         |> Option.bind id
 
+
+
+    /// Binds an unsuccessful database update operation to a given continuation function.
+    let bindError f q r =
+        match r = 1 with
+        | true -> Ok ()
+        | false -> toError f q
+
+
+    /// Binds an unsuccessful database update operation to a given continuation function.
+    let bindOptionError f q r =
+        match r = (Some 1) with
+        | true -> Ok ()
+        | false -> toError f q
+
+
+    let bindIntScalar  f q r = r |> mapIntScalar |> bindOptionError f q

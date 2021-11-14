@@ -157,6 +157,29 @@ go
 create function dbo.RunQueueStatus_Cancelled() returns int as begin return 6 end
 go
 
+drop procedure if exists deleteRunQueue
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure deleteRunQueue @runQueueId uniqueidentifier
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+	delete from dbo.RunQueue where runQueueId = @runQueueId
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
 drop procedure if exists tryCancelRunQueue
 go
 
