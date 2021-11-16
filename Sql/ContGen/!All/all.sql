@@ -278,6 +278,15 @@ go
 
 
 
+drop view if exists vw_newid
+go
+
+
+create view vw_newid
+as
+select newid() as new_id
+go
+
 --declare @clmDefaultValueId bigint
 --set @clmDefaultValueId = 4005000020
 
@@ -2284,15 +2293,6 @@ select
 	from a
 	cross apply (select new_id from vw_newid) c
 
-go
-
-drop view if exists vw_newid
-go
-
-
-create view vw_newid
-as
-select newid() as new_id
 go
 
 drop procedure if exists deleteRunQueue
