@@ -68,6 +68,7 @@ module Visualization =
 
             Chart.combine (charts)
             |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
+            |> Chart.withTemplate ChartTemplates.light
             |> getChart fileName (description "Amino Acids")
 
 
@@ -94,6 +95,7 @@ module Visualization =
 
             Chart.combine (charts)
             |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
+            |> Chart.withTemplate ChartTemplates.light
             |> getChart fileName (description "Enantiomeric Excess")
 
 
@@ -129,6 +131,7 @@ module Visualization =
 
             Chart.combine(charts)
             |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
+            |> Chart.withTemplate ChartTemplates.light
             |> getChart fileName (description "Totals")
 
 

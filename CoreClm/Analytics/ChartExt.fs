@@ -8,8 +8,6 @@ open Clm.ModelParams
 open Clm.ChartData
 open Plotly.NET
 open Plotly.NET.GenericChart
-//open Plotly.NET.ChartDescription
-//open Plotly.NET.
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 
@@ -28,8 +26,8 @@ module ChartExt =
 
          HTML.doc
              .Replace("[CHART]", chartMarkup)
-             //.Replace("[DESCRIPTION]", description.Text)
-             .Replace("[ADDITIONAL_HEAD_TAGS]", description.Text)
+             .Replace("[DESCRIPTION]", description.Text)
+             //.Replace("[ADDITIONAL_HEAD_TAGS]", description.Text)
 
 
     type Chart with
