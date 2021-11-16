@@ -122,8 +122,9 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    let private addCommandLineParamRow (ctx : ClmContext) (p : ModelCommandLineParam) =
+    let private addCommandLineParamRow (ctx : ClmContext) (ClmTaskId clmTaskId) (p : ModelCommandLineParam) =
         let row = ctx.Dbo.CommandLineParam.Create(
+                            ClmTaskId = clmTaskId,
                             CommandLineParamId = Guid.NewGuid(),
                             Y0 = p.y0,
                             TEnd = p.tEnd,
@@ -135,7 +136,7 @@ module DatabaseTypes =
     let addCommandLineParams c clmTaskId (p : ModelCommandLineParam) =
         let g() =
             let ctx = getDbContext c
-            let row = addCommandLineParamRow ctx p
+            let row = addCommandLineParamRow ctx clmTaskId p
             ctx.SubmitUpdates()
             Ok()
 
@@ -230,11 +231,12 @@ module DatabaseTypes =
             let row = addClmTaskRow ctx clmTask
             ctx.SubmitUpdates()
 
-            clmTask.commandLineParams
-            |> List.map (addCommandLineParams c clmTask.clmTaskInfo.clmTaskId)
-            |> ignore
+            let result =
+                clmTask.commandLineParams
+                |> List.map (addCommandLineParams c clmTask.clmTaskInfo.clmTaskId)
+                |> foldUnitResults
 
-            Ok()
+            result
 
         tryDbFun g
 
@@ -541,13 +543,12 @@ module DatabaseTypes =
         let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
         let g s u =
-            r.RunQueueId <- q.runQueueId.value
+            //r.RunQueueId <- q.runQueueId.value
             r.WorkerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
             r.Progress <- q.progressData.progress
             r.CallCount <- q.progressData.callCount
             r.YRelative <- q.progressData.yRelative
             r.MaxEe <- q.progressData.eeData.maxEe
-            r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
             r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
             r.MaxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
             r.MaxLastEe <- q.progressData.eeData.maxLastEe

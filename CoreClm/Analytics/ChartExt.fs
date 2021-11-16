@@ -28,7 +28,8 @@ module ChartExt =
 
          HTML.doc
              .Replace("[CHART]", chartMarkup)
-             .Replace("[DESCRIPTION]", description.Text)
+             //.Replace("[DESCRIPTION]", description.Text)
+             .Replace("[ADDITIONAL_HEAD_TAGS]", description.Text)
 
 
     type Chart with
