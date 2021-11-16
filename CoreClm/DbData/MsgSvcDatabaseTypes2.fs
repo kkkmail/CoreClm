@@ -58,10 +58,6 @@ module MsgSvcDatabaseTypes =
     let serializationFormat = BinaryZippedFormat
 
 
-    //type MsgSvcDB = SqlProgrammabilityProvider<MessagingSqlProviderName, ConfigFile = AppConfigFile>
-    //type MessageTable = MsgSvcDB.dbo.Tables.Message
-    //type MessageTableRow = MessageTable.Row
-
     type private MsgSvcDb = SqlDataProvider<
                     Common.DatabaseProviderTypes.MSSQLSERVER,
                     ConnectionString = MessagingConnectionStringValue,
@@ -72,28 +68,6 @@ module MsgSvcDatabaseTypes =
     let private getDbContext (c : unit -> ConnectionString) = c().value |> MsgSvcDb.GetDataContext
 
     type private MessageEntity = MsgSvcContext.``dbo.MessageEntity``
-
-
-    //type MessageDatabaseData = SqlCommandProvider<"
-    //    select *
-    //    from dbo.Message
-    //    where messageId = @messageId", MessagingConnectionStringValue, ResultType.DataReader>
-
-
-    //type TryPickRecipientMessageData = SqlCommandProvider<"
-    //       select top 1 *
-    //       from dbo.Message
-    //       where recipientId = @recipientId and dataVersion = @dataVersion
-    //       order by messageOrder
-    //       ", MessagingConnectionStringValue, ResultType.DataReader>
-
-
-    //type TryPickSenderMessageData = SqlCommandProvider<"
-    //       select top 1 *
-    //       from dbo.Message
-    //       where senderId = @senderId and dataVersion = @dataVersion
-    //       order by messageOrder
-    //       ", MessagingConnectionStringValue, ResultType.DataReader>
 
 
     let private tryCreateMessageImpl (r : MessageEntity) =
@@ -133,26 +107,6 @@ module MsgSvcDatabaseTypes =
         match t with
         | Some v -> v |> tryCreateMessageImpl
         | None -> Ok None
-
-
-    //let addMessageTableRow (r : Message) (t : MessageTable) =
-    //        let g() =
-    //            let newRow =
-    //                t.NewRow(
-    //                        messageId = r.messageDataInfo.messageId.value,
-    //                        dataVersion = messagingDataVersion.value,
-    //                        deliveryTypeId = r.messageDataInfo.recipientInfo.deliveryType.value,
-    //                        senderId = r.messageDataInfo.sender.value,
-    //                        recipientId = r.messageDataInfo.recipientInfo.recipient.value,
-    //                        messageData = (r.messageData |> serialize serializationFormat)
-    //                        )
-
-    //            newRow.createdOn <- DateTime.Now // Set our local time as we don't care about remote time.
-
-    //            t.Rows.Add newRow
-    //            Ok newRow
-
-    //        tryDbFun g
 
 
     let tryPickIncomingMessage c (MessagingClientId i) =

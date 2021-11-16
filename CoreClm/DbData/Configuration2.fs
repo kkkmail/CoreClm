@@ -142,7 +142,6 @@ module Configuration =
         tryRopFun mapException w
 
 
-
     /// Analog of ExecuteScalar - gets the first column of the first result set.
     /// In contrast to ExecuteScalar it also expects it to be castable to int32.
     /// Otherwise it will return None.
@@ -154,7 +153,6 @@ module Configuration =
         |> Array.map (fun e -> match e with | :? Int32 as i -> Some i | _ -> None)
         |> Array.tryHead
         |> Option.bind id
-
 
 
     /// Binds an unsuccessful database update operation to a given continuation function.

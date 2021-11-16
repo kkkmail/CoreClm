@@ -17,12 +17,14 @@ type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
     inherit BackgroundService()
 
     static let tyGetHost() =
+        let logger =  Logger.defaultValue
+
         match serviceAccessInfo with
         | Ok data ->
-            match tryGetServiceData data.workerNodeServiceAccessInfo.value Logger.defaultValue data with
+            match tryGetServiceData data.workerNodeServiceAccessInfo.value logger data with
             | Ok serviceData ->
                 let service = WorkerNodeWcfServiceImpl.tryGetService serviceData
-                tryStartWorkerNodeRunner() |> ignore
+                let r = tryStartWorkerNodeRunner()
                 service
             | Error e -> Error e
         | Error e ->
@@ -31,8 +33,22 @@ type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
 
     static let hostRes = Lazy<WcfResult<WcfService>>(fun () -> tyGetHost())
 
+    //override _.StartAsync(token: CancellationToken) =
+    //    async {
+    //        printfn "WorkerNodeWorker::Starting..."
+    //        //base.StartAsync(token)
+    //        logger.LogInformation("Starting...")
+
+    //        match hostRes.Value with
+    //        | Ok host -> do! host.runAsync()
+    //        | Error e -> logger.LogCritical$"Error: %A{e}"
+    //    }
+    //    |> Async.StartAsTask
+    //    :> Task
+
     override _.ExecuteAsync(_: CancellationToken) =
         async {
+            printfn "WorkerNodeWorker::Executing..."
             logger.LogInformation("Executing...")
 
             match hostRes.Value with

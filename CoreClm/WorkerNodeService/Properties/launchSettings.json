@@ -2,7 +2,7 @@
   "profiles": {
     "WorkerNodeService": {
       "commandName": "Project",
-      "commandLineArgs": "s -save -id 92D31DDF-9967-4219-A218-94439EAD31D1 -n HYPER -c 20"
+      "commandLineArgs": "r"
     }
   }
 }
