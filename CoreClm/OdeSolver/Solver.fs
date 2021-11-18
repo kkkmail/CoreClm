@@ -370,9 +370,10 @@ module Solver =
         let callBackUseNonNegative t x = callBackUseNonNegative { nSolveParam = n; t = t; x = x }
 
         let d = StatUpdateData.create n
+        let csd = n.getChartSliceData d.t d.x
+        dtEeSum <- csd.enantiomericExcess |> Array.map (fun _ -> 0.0)
+        tDtEeSum <- csd.enantiomericExcess |> Array.map (fun _ -> 0.0)
         firstChartSliceData <- calculateChartSliceData d
-        dtEeSum <- firstChartSliceData.enantiomericExcess |> Array.map (fun _ -> 0.0)
-        tDtEeSum <- firstChartSliceData.enantiomericExcess |> Array.map (fun _ -> 0.0)
         calculateProgressData d |> notifyProgress n (Some InProgressRunQueue)
 
         match n.solverType with
