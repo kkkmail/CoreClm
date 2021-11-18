@@ -62,8 +62,8 @@ module Visualization =
                 | x -> Some x
 
             let charts =
-                (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i) |> Some))
-                @ [ Option.bind (fun d -> Chart.Line(d, Name = zName) |> Some) sugarData ]
+                (fn |> List.map (fun i -> Chart.Spline(getFuncData i, Name = name i) |> Some))
+                @ [ Option.bind (fun d -> Chart.Spline(d, Name = zName) |> Some) sugarData ]
                 |> List.choose id
 
             Chart.combine (charts)
@@ -89,8 +89,8 @@ module Visualization =
                 | x -> Some x
 
             let charts =
-                (fn |> List.map (fun i -> Chart.Line(getFuncData i, Name = name i) |> Some))
-                @ [ Option.bind (fun d -> Chart.Line(d, Name = zName) |> Some) sugarEe ]
+                (fn |> List.map (fun i -> Chart.Spline(getFuncData i, Name = name i) |> Some))
+                @ [ Option.bind (fun d -> Chart.Spline(d, Name = zName) |> Some) sugarEe ]
                 |> List.choose id
 
             Chart.combine (charts)
@@ -122,11 +122,11 @@ module Visualization =
             let levelData level = tIdx |> List.map (fun t -> allChartData.[t].t, allChartData.[t].totalSubst.levelData.[level])
 
             let charts =
-                [ Chart.Line(totalData, Name = "Total") |> Some; Chart.Line(minData, Name = "Min") |> Some ]
-                @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
-                @ [ Option.bind (fun d -> Chart.Line(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
-                @ [ Option.bind (fun d -> Chart.Line(d, Name = Z.name) |> Some) sugarData ]
-                @ [ for level in 0..p.initData.binaryInfo.maxPeptideLength.length - 1 -> Chart.Line(levelData level, Name = (level + 1).ToString()) |> Some ]
+                [ Chart.Spline(totalData, Name = "Total") |> Some; Chart.Spline(minData, Name = "Min") |> Some ]
+                @ [ Option.bind (fun d -> Chart.Spline(d, Name = AchiralSubst.Food.name)|> Some) foodData ]
+                @ [ Option.bind (fun d -> Chart.Spline(d, Name = AchiralSubst.Waste.name)|> Some) wasteData ]
+                @ [ Option.bind (fun d -> Chart.Spline(d, Name = Z.name) |> Some) sugarData ]
+                @ [ for level in 0..p.initData.binaryInfo.maxPeptideLength.length - 1 -> Chart.Spline(levelData level, Name = (level + 1).ToString()) |> Some ]
                 |> List.choose id
 
             Chart.combine(charts)
