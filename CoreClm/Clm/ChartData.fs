@@ -46,9 +46,10 @@ module ChartData =
             totalSubst : TotalSubstData
             sugarData : double option
             sugarEe : double option
+            eeData : EeData
         }
 
-        static member create (i : BinaryInfo) t xInput =
+        static member create (i : BinaryInfo) t xInput eeData =
             let x = makeNonNegative xInput
             let totals = i.getTotals x
 
@@ -99,6 +100,7 @@ module ChartData =
 
                 sugarData = z
                 sugarEe = eeZ
+                eeData = eeData
             }
 
         static member defaultValue =
@@ -116,6 +118,7 @@ module ChartData =
                     }
                 sugarData = None
                 sugarEe = None
+                eeData = EeData.defaultValue
             }
 
         member csd.maxEe =
@@ -138,55 +141,6 @@ module ChartData =
                 allChartData = []
             }
 
-        member cd.maxEe =
-            match cd.allChartData with
-            | [] -> 0.0
-            | _ ->
-                cd.allChartData
-                |> List.map (fun e -> e.maxEe)
-                |> List.max
-
-        member cd.maxAverageEe =
-            match cd.allChartData with
-            | [] -> 0.0
-            | h :: _ ->
-                let getData i = cd.allChartData |> List.map (fun e -> e.enantiomericExcess.[i])
-
-                h.enantiomericExcess
-                |> Array.mapi (fun i _ -> getData i)
-                |> Array.map (fun e -> List.average e |> abs)
-                |> Array.max
-
-        member cd.maxWeightedAverageAbsEe =
-            match cd.allChartData with
-            | [] -> 0.0
-            | h :: _ ->
-                let weightFun i = double i
-
-                let totalWeight =
-                    cd.allChartData
-                    |> List.mapi(fun i _ -> weightFun i)
-                    |> List.sum
-
-                let weigh i e = e |> Array.map (fun x -> (weightFun i) * (abs x) / totalWeight)
-
-                let ee =
-                    cd.allChartData
-                    |> List.rev
-                    |> List.mapi (fun i e -> weigh i e.enantiomericExcess)
-
-                let getData i = ee |> List.map (fun e -> e.[i])
-
-                h.enantiomericExcess
-                |> Array.mapi (fun i _ -> getData i)
-                |> Array.map List.sum
-                |> Array.max
-
-        member cd.maxLastEe =
-            match cd.allChartData with
-            | [] -> 0.0
-            | h :: _ -> h.maxEe
-
         /// Last calculated value of tEnd.
         member cd.tLast =
             match cd.allChartData |> List.tryHead with
@@ -199,12 +153,9 @@ module ChartData =
             min (max (if tEnd > 0.0m then cd.tLast / tEnd else 0.0m) 0.0m) 1.0m
 
         member cd.eeData =
-            {
-                maxEe = cd.maxEe
-                maxAverageEe = cd.maxAverageEe
-                maxWeightedAverageAbsEe = cd.maxWeightedAverageAbsEe
-                maxLastEe = cd.maxLastEe
-            }
+            match cd.allChartData |> List.tryHead with
+            | Some c -> c.eeData
+            | None -> EeData.defaultValue
 
 
     type ChartDataUpdater () =

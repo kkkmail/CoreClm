@@ -26,7 +26,7 @@ module Visualization =
             | false -> Ok()
 
 
-        let description h =
+        let getDescription h =
             [
                 "model name", p.initData.modelDataId.value |> toModelName
                 "default id", $"%A{p.initData.defaultValueId.value}"
@@ -34,16 +34,25 @@ module Visualization =
                 "number of amino acids", $"%A{p.initData.binaryInfo.aminoAcids.Length}"
                 "max peptide length", $"%A{p.initData.binaryInfo.maxPeptideLength.length}"
                 "number of substances", $"%A{p.initData.binaryInfo.allSubstData.allSubst.Length}"
+                "\n\n", ""
+                "maxEe", $"%.6f{p.eeData.maxEe}"
+                "maxAverageEe", $"%.6f{p.eeData.maxAverageEe}"
+                "maxLastEe", $"%.6f{p.eeData.maxLastEe}"
+                "maxWeightedAverageAbsEe", $"%.6f{p.eeData.maxWeightedAverageAbsEe}"
+                "\n\n", ""
             ]
             @
-            (p.initData.binaryInfo.allSubstData.allReactions |> List.map (fun (r, c) -> r.name, c.ToString()))
+            (p.initData.binaryInfo.allSubstData.allReactions |> List.sortBy (fun (r, _) -> r.name) |> List.map (fun (r, i) -> r.name, i.ToString()))
             @
-            (p.initData.binaryInfo.allSubstData.allRawReactions |> List.map (fun (r, c) -> r.name + " (raw)", c.ToString()))
+            [ "\n\n", "" ]
+            @
+            (p.initData.binaryInfo.allSubstData.allRawReactions |> List.sortBy (fun (r, _) -> r.name) |> List.map (fun (r, i) -> r.name + " (raw)", i.ToString()))
             @
             [
-                "\ndescription", p.initData.description |> Option.defaultValue EmptyString
+                "\n\n", ""
+                "description", p.initData.description |> Option.defaultValue EmptyString
             ]
-            |> List.map (fun (n, d) -> n + ": " + d)
+            |> List.map (fun (n, e) -> if e <> "" then n + ": " + e else n)
             |> List.map (fun e -> e.Replace("\n", "<br>"))
             |> String.concat ", "
             |> toDescription h
@@ -69,7 +78,7 @@ module Visualization =
             Chart.combine (charts)
             |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
             |> Chart.withTemplate ChartTemplates.light
-            |> getChart fileName (description "Amino Acids")
+            |> getChart fileName (getDescription "Amino Acids")
 
 
         let getEnantiomericExcessImpl () =
@@ -96,7 +105,7 @@ module Visualization =
             Chart.combine (charts)
             |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
             |> Chart.withTemplate ChartTemplates.light
-            |> getChart fileName (description "Enantiomeric Excess")
+            |> getChart fileName (getDescription "Enantiomeric Excess")
 
 
         let getTotalSubstImpl () =
@@ -132,7 +141,7 @@ module Visualization =
             Chart.combine(charts)
             |> Chart.withXAxisStyle(xAxisName, MinMax = minMax)
             |> Chart.withTemplate ChartTemplates.light
-            |> getChart fileName (description "Totals")
+            |> getChart fileName (getDescription "Totals")
 
 
         member _.plotAminoAcids (show : bool) = getAminoAcidsImpl() |> showHtmlChart show

@@ -86,7 +86,7 @@ module Solver =
             initialValues : double[]
             progressCallBack : RunQueueStatus option -> ProgressData -> unit
             chartCallBack : ChartSliceData -> unit
-            getChartSliceData : double -> double[] -> ChartSliceData
+            getChartSliceData : double -> double[] -> EeData -> ChartSliceData
             checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
         }
@@ -208,7 +208,7 @@ module Solver =
         else
             let dt = d.t - tPrev
             let tDt = d.t * dt
-            let csd = n.getChartSliceData d.t d.x
+            let csd = n.getChartSliceData d.t d.x EeData.defaultValue
 
             let tDtSumNew = tDtSum + tDt
             let dtEeSumNew = (csd.enantiomericExcess, dtEeSum) ||> Array.map2 (fun e s -> dt * e + s)
@@ -238,7 +238,7 @@ module Solver =
             tDtEeSum <- tDtEeSumNew
             eeCount <- eeCount + 1
             lastEeData <- eeData
-            lastChartSliceData <- csd
+            lastChartSliceData <- { csd with eeData = eeData }
             calculated <- true
             csd
 
@@ -370,7 +370,8 @@ module Solver =
         let callBackUseNonNegative t x = callBackUseNonNegative { nSolveParam = n; t = t; x = x }
 
         let d = StatUpdateData.create n
-        let csd = n.getChartSliceData d.t d.x
+        let csd = n.getChartSliceData d.t d.x EeData.defaultValue
+        lastChartSliceData <- csd
         dtEeSum <- csd.enantiomericExcess |> Array.map (fun _ -> 0.0)
         tDtEeSum <- csd.enantiomericExcess |> Array.map (fun _ -> 0.0)
         firstChartSliceData <- calculateChartSliceData d

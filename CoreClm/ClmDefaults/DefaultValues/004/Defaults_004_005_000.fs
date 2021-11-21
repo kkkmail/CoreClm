@@ -528,6 +528,12 @@ module Defaults_004_005_000 =
 
                 // ===============================================================
 
+                { d with sugarScarcity = d.sugarScarcity * 0.2 }               // 115
+                { d with sugarScarcity = d.sugarScarcity * 0.5 }               // 116
+                { d with sugarScarcity = d.sugarScarcity * 2.0 }               // 117
+                { d with sugarScarcity = d.sugarScarcity * 5.0 }               // 118
+
+                // ===============================================================
             ]
             |> withRowNumberUniqueOrFail
 
@@ -577,7 +583,7 @@ module Defaults_004_005_000 =
                     destrParam |> DestructionRateParam
                     ligParam |> LigationRateParam
 
-                    if e.sugarForward > 0.0
+                    if e.sugarForward > 0.0 && e.sugarScarcity > 0.0
                     then
                         sugParam |> SugarSynthesisRateParam
 

@@ -46,7 +46,7 @@ module SolverRunnerTasks =
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : RunQueueStatus option -> ProgressData -> unit
             updateChart : ChartSliceData -> unit
-            getChartSliceData : double -> double[] -> ChartSliceData
+            getChartSliceData : double -> double[] -> EeData -> ChartSliceData
             noOfProgressPoints : int
             minUsefulEe : MinUsefulEe
             checkCancellation : RunQueueId -> CancellationType option
@@ -90,7 +90,7 @@ module SolverRunnerTasks =
                 }
 
             let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
-            let getChartSliceData t x = ChartSliceData.create binaryInfo t x
+            let getChartSliceData t x e = ChartSliceData.create binaryInfo t x e
 
             let createProgressUpdateInfo s p =
                 {
@@ -121,10 +121,10 @@ module SolverRunnerTasks =
         with
         member cd.toEeData() =
             {
-                maxEe = cd.maxEe
-                maxAverageEe = cd.maxAverageEe
-                maxWeightedAverageAbsEe = cd.maxWeightedAverageAbsEe
-                maxLastEe = cd.maxLastEe
+                maxEe = cd.eeData.maxEe
+                maxAverageEe = cd.eeData.maxAverageEe
+                maxWeightedAverageAbsEe = cd.eeData.maxWeightedAverageAbsEe
+                maxLastEe = cd.eeData.maxLastEe
             }
 
 
@@ -200,8 +200,8 @@ module SolverRunnerTasks =
             }
             |> GeneratedCharts
 
-        printfn $"plotAllResults: i.chartData.maxEe = {i.chartData.maxEe}, i.runSolverData.minUsefulEe.value = {i.runSolverData.minUsefulEe.value}"
-        match i.chartData.maxEe >= i.runSolverData.minUsefulEe.value, t with
+        printfn $"plotAllResults: i.chartData.maxEe = {i.chartData.eeData.maxEe}, i.runSolverData.minUsefulEe.value = {i.runSolverData.minUsefulEe.value}"
+        match i.chartData.eeData.maxEe >= i.runSolverData.minUsefulEe.value, t with
         | true, _ -> plotAll ()
         | _, ForceChartGeneration -> plotAll ()
         | _ -> NotGeneratedCharts
