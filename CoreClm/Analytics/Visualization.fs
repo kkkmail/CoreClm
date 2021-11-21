@@ -27,34 +27,41 @@ module Visualization =
 
 
         let getDescription h =
+            let g s =
+                s
+                |> List.map (fun (n, e) -> if e <> "" then n + ": " + e else n)
+                |> List.map (fun e -> e.Replace("\n", "<br>"))
+                |> String.concat ", "
+
             [
-                "model name", p.initData.modelDataId.value |> toModelName
-                "default id", $"%A{p.initData.defaultValueId.value}"
-                "y0", $"%A{p.initData.y0}"
-                "number of amino acids", $"%A{p.initData.binaryInfo.aminoAcids.Length}"
-                "max peptide length", $"%A{p.initData.binaryInfo.maxPeptideLength.length}"
-                "number of substances", $"%A{p.initData.binaryInfo.allSubstData.allSubst.Length}"
-                "\n\n", ""
-                "maxEe", $"%.6f{p.eeData.maxEe}"
-                "maxAverageEe", $"%.6f{p.eeData.maxAverageEe}"
-                "maxLastEe", $"%.6f{p.eeData.maxLastEe}"
-                "maxWeightedAverageAbsEe", $"%.6f{p.eeData.maxWeightedAverageAbsEe}"
-                "\n\n", ""
+                [
+                    "model name", p.initData.modelDataId.value |> toModelName
+                    "default id", $"%A{p.initData.defaultValueId.value}"
+                    "y0", $"%A{p.initData.y0}"
+                    "number of amino acids", $"%A{p.initData.binaryInfo.aminoAcids.Length}"
+                    "max peptide length", $"%A{p.initData.binaryInfo.maxPeptideLength.length}"
+                    "number of substances", $"%A{p.initData.binaryInfo.allSubstData.allSubst.Length}"
+                    "\n\n", ""
+                    "maxEe", $"%.6f{p.eeData.maxEe}"
+                    "maxAverageEe", $"%.6f{p.eeData.maxAverageEe}"
+                    "maxLastEe", $"%.6f{p.eeData.maxLastEe}"
+                    "maxWeightedAverageAbsEe", $"%.6f{p.eeData.maxWeightedAverageAbsEe}"
+                    "\n\n", ""
+                ]
+                (p.initData.binaryInfo.allSubstData.allReactions |> List.sortBy (fun (r, _) -> r.name) |> List.map (fun (r, i) -> r.name, i.ToString()))
+                @
+                [ "\n\n", "" ]
+                (p.initData.binaryInfo.allSubstData.allRawReactions |> List.sortBy (fun (r, _) -> r.name) |> List.map (fun (r, i) -> r.name + " (raw)", i.ToString()))
+                @
+                [
+                    "\n\n", ""
+                ]
+                [
+                    "description", p.initData.description |> Option.defaultValue EmptyString
+                ]
             ]
-            @
-            (p.initData.binaryInfo.allSubstData.allReactions |> List.sortBy (fun (r, _) -> r.name) |> List.map (fun (r, i) -> r.name, i.ToString()))
-            @
-            [ "\n\n", "" ]
-            @
-            (p.initData.binaryInfo.allSubstData.allRawReactions |> List.sortBy (fun (r, _) -> r.name) |> List.map (fun (r, i) -> r.name + " (raw)", i.ToString()))
-            @
-            [
-                "\n\n", ""
-                "description", p.initData.description |> Option.defaultValue EmptyString
-            ]
-            |> List.map (fun (n, e) -> if e <> "" then n + ": " + e else n)
-            |> List.map (fun e -> e.Replace("\n", "<br>"))
-            |> String.concat ", "
+            |> List.map g
+            |> String.concat ""
             |> toDescription h
 
 

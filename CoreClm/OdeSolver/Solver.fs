@@ -14,8 +14,9 @@ open Clm.CalculationData
 
 module Solver =
 
-//    let private printDebug s = printfn $"{s}"
+    //let private printDebug s = printfn $"{s}"
     let private printDebug s = ()
+
 
     type OdeParams =
         {
@@ -27,6 +28,7 @@ module Solver =
             noOfProgressPoints : int
             noOfChartDetailedPoints : int option
         }
+
 
     type OdeResult =
         {
@@ -126,7 +128,6 @@ module Solver =
     let mutable private nextChartProgress = 0.0m
     let mutable private callCount = 0L
     let mutable private lastCheck = DateTime.Now
-    let mutable private lastTimeCheck = lastCheck
     let mutable private firstChartSliceData = ChartSliceData.defaultValue
     let mutable private lastChartSliceData = ChartSliceData.defaultValue
     let mutable private lastEeData = EeData.defaultValue
@@ -138,7 +139,7 @@ module Solver =
     let mutable calculated = false
 
     let printProgressInfo t =
-        printfn $"t = {t}, progress = {progress}, eeData = %0A{lastEeData}."
+        printfn $"printProgressInfo: t = {t}, progress = {progress}, eeData = %0A{lastEeData}."
 
 
     let shouldNotifyByCallCount() =
@@ -239,6 +240,7 @@ module Solver =
             eeCount <- eeCount + 1
             lastEeData <- eeData
             lastChartSliceData <- { csd with eeData = eeData }
+            progress <- calculateProgress d.nSolveParam d.t
             calculated <- true
             csd
 
@@ -311,6 +313,7 @@ module Solver =
         calculated <- false
 
         let g() =
+            progress <- calculateProgress d.nSolveParam d.t
             lastNotifiedT <- d.t
             printProgressInfo d.t
 
