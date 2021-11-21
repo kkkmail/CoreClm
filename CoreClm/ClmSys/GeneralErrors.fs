@@ -101,7 +101,7 @@ module GeneralErrors =
         | TryCancelRunQueueErr of RunQueueId
         | TryFailRunQueueErr of RunQueueId
         | TryPickRunQueueErr
-        | TryLoadRunQueueErr of RunQueueId
+        | TryLoadRunQueueErr of RunQueueId * string
         | TryRequestCancelRunQueueErr of RunQueueId
         | TryNotifyRunQueueErr of RunQueueId
         | TryUpdateProgressRunQueueErr of RunQueueId

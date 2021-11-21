@@ -58,31 +58,6 @@ module GeneralPrimitives =
         member this.value = let (ErrorMessage v) = this in v
 
 
-    [<Literal>]
-    let RunQueueStatus_NotStarted = 0
-
-    [<Literal>]
-    let RunQueueStatus_Inactive = 1
-
-    [<Literal>]
-    let RunQueueStatus_RunRequested = 7
-
-    [<Literal>]
-    let RunQueueStatus_InProgress = 2
-
-    [<Literal>]
-    let RunQueueStatus_Completed = 3
-
-    [<Literal>]
-    let RunQueueStatus_Failed = 4
-
-    [<Literal>]
-    let RunQueueStatus_CancelRequested = 5
-
-    [<Literal>]
-    let RunQueueStatus_Cancelled = 6
-
-
     type RunQueueStatus =
         | NotStartedRunQueue
         | InactiveRunQueue

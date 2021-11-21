@@ -33,19 +33,6 @@ type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
 
     static let hostRes = Lazy<WcfResult<WcfService>>(fun () -> tyGetHost())
 
-    //override _.StartAsync(token: CancellationToken) =
-    //    async {
-    //        printfn "WorkerNodeWorker::Starting..."
-    //        //base.StartAsync(token)
-    //        logger.LogInformation("Starting...")
-
-    //        match hostRes.Value with
-    //        | Ok host -> do! host.runAsync()
-    //        | Error e -> logger.LogCritical$"Error: %A{e}"
-    //    }
-    //    |> Async.StartAsTask
-    //    :> Task
-
     override _.ExecuteAsync(_: CancellationToken) =
         async {
             printfn "WorkerNodeWorker::Executing..."

@@ -158,7 +158,7 @@ module SolverRunnerImplementation =
                 x
 
             match tryLoadRunQueue c q, tryLoadWorkerNodeSettings() with
-            | Ok w, Some s ->
+            | Ok (w, st), Some s ->
                 let allowedSolvers =
                     match results.TryGetResult ForceRun |> Option.defaultValue false with
                     | false -> getAllowedSolvers s.workerNodeInfo |> Some
@@ -166,29 +166,39 @@ module SolverRunnerImplementation =
 
                 match checkRunning allowedSolvers q with
                 | CanRun ->
-                    match tryStartRunQueue c q with
-                    | Ok() ->
-                        let proxy =
-                            {
-                                tryDeleteWorkerNodeRunModelData = fun () -> deleteRunQueue c q
-                                tryUpdateProgressData = tryUpdateProgress c q
+                    let proxy =
+                        {
+                            tryDeleteWorkerNodeRunModelData = fun () -> deleteRunQueue c q
+                            tryUpdateProgressData = tryUpdateProgress c q
 
-                                sendMessageProxy =
-                                    {
-                                        partitionerId = s.workerNodeInfo.partitionerId
-                                        sendMessage = sendMessage c s.workerNodeInfo.workerNodeId.messagingClientId
-                                    }
-                            }
+                            sendMessageProxy =
+                                {
+                                    partitionerId = s.workerNodeInfo.partitionerId
+                                    sendMessage = sendMessage c s.workerNodeInfo.workerNodeId.messagingClientId
+                                }
+                        }
 
-                        let solverProxy = SolverRunnerProxy.create c logCrit proxy
+                    let solverProxy = SolverRunnerProxy.create c logCrit proxy
 
-                        printfn $"runSolver: Starting solver with runQueueId: {q}."
-                        let solver = runSolver solverProxy w
-                        // The call below does not return until the run is completed OR cancelled in some way.
-                        solver.run()
-                        printfn "runSolver: Call to solver.run() completed."
-                        CompletedSuccessfully
-                    | Error e -> exitWithLogCrit e UnknownException
+                    match st with
+                    | NotStartedRunQueue | InProgressRunQueue ->
+                        match tryStartRunQueue c q with
+                        | Ok() ->
+                            printfn $"runSolver: Starting solver with runQueueId: {q}."
+                            let solver = runSolver solverProxy w
+                            // The call below does not return until the run is completed OR cancelled in some way.
+                            solver.run()
+                            printfn "runSolver: Call to solver.run() completed."
+                            CompletedSuccessfully
+                        | Error e -> exitWithLogCrit e UnknownException
+                    | CancelRequestedRunQueue ->
+                        // If we got here that means that the solver was terminated before it had a chance to process cancellation.
+                        // At this point we have no choice but abort the calculation because there is no data availalbe to continue.
+                        let errMessage = "The solver was terminated before processing cancallation. Aborting."
+                        let p = { ProgressData.defaultValue with errorMessageOpt = errMessage |> ErrorMessage |> Some }
+                        getProgress w (Some FailedRunQueue) p |> (updateFinalProgress solverProxy q errMessage)
+                        exitWithLogCrit errMessage NotProcessedCancellation
+                    | _ -> exitWithLogCrit ($"Invalid run queue status: {st}") InvalidRunQueueStatus
                 | AlreadyRunning p -> exitWithLogCrit (AlreadyRunning p) SolverAlreadyRunning
                 | TooManyRunning n -> exitWithLogCrit (TooManyRunning n) TooManySolversRunning
                 | GetProcessesByNameExn e -> exitWithLogCrit e CriticalError

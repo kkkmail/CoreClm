@@ -93,8 +93,6 @@ module Solver =
             checkFreq : TimeSpan
         }
 
-//        member p.next tEndNew initValNew = { p with tStart = p.tEnd; tEnd = tEndNew; initialValues = initValNew }
-
 
     type StatUpdateData =
         {

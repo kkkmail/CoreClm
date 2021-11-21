@@ -53,7 +53,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[processId] [int] NULL,
 		[notificationTypeId] [int] NOT NULL,
 		[errorMessage] [nvarchar](max) NULL,
-		[progress] [decimal](18, 0) NOT NULL,
+		[progress] [decimal](18, 14) NOT NULL,
 		[callCount] [bigint] NOT NULL,
 		[yRelative] [float] NOT NULL,
 		[maxEe] [float] NOT NULL,
@@ -389,7 +389,7 @@ GO
 
 create procedure tryUpdateProgressRunQueue (
 						@runQueueId uniqueidentifier,
-						@progress decimal,
+						@progress decimal(18, 14),
 						@callCount bigint,
 						@yRelative float,
 						@maxEe float,

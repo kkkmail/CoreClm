@@ -10,7 +10,7 @@ GO
 
 create procedure tryUpdateProgressRunQueue (
 						@runQueueId uniqueidentifier,
-						@progress decimal,
+						@progress decimal(18, 14),
 						@callCount bigint,
 						@yRelative float,
 						@maxEe float,

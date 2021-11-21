@@ -3,11 +3,8 @@
 namespace DbData
 
 open ClmSys.WorkerNodeData
-open FSharp.Data
 open System
 open FSharp.Data.Sql
-//open DynamicSql
-open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.Retry
@@ -16,7 +13,6 @@ open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerPrimitives
 open MessagingServiceInfo.ServiceInfo
-open ClmSys.WorkerNodeErrors
 
 // ! Must be the last to open !
 open Configuration
@@ -47,7 +43,7 @@ module WorkerNodeDatabaseTypes =
             let x = 
                 query {
                     for q in ctx.Dbo.RunQueue do
-                    where (q.RunQueueStatusId = RunQueueStatus_InProgress || q.RunQueueStatusId = RunQueueStatus_CancelRequested)
+                    where (q.RunQueueStatusId = RunQueueStatus.InProgressRunQueue.value || q.RunQueueStatusId = RunQueueStatus.CancelRequestedRunQueue.value)
                     select (q.RunQueueId, q.ProcessId)
                 }
 
@@ -66,7 +62,7 @@ module WorkerNodeDatabaseTypes =
             let x =
                 query {
                     for q in ctx.Dbo.RunQueue do
-                    where (q.RunQueueStatusId = RunQueueStatus_InProgress)
+                    where (q.RunQueueStatusId = RunQueueStatus.InProgressRunQueue.value || q.RunQueueStatusId = RunQueueStatus.CancelRequestedRunQueue.value)
                     select q
                     count
                 }
@@ -83,7 +79,7 @@ module WorkerNodeDatabaseTypes =
             let x =
                 query {
                     for q in ctx.Dbo.RunQueue do
-                    where (q.RunQueueStatusId = RunQueueStatus_NotStarted)
+                    where (q.RunQueueStatusId = RunQueueStatus.NotStartedRunQueue.value)
                     sortBy q.RunQueueOrder
                     select (Some q.RunQueueId)
                     exactlyOneOrDefault
@@ -102,20 +98,22 @@ module WorkerNodeDatabaseTypes =
                 query {
                     for q in ctx.Dbo.RunQueue do
                     where (q.RunQueueId = i.value)
-                    select (Some q.WorkerNodeRunModelData)
+                    select (Some (q.WorkerNodeRunModelData, q.RunQueueStatusId))
                     exactlyOneOrDefault
                 }
 
             match x with
-            | Some v ->
+            | Some (v, s) ->
                 let w() =
                     try
-                        v |> deserialize serializationFormat |> Ok
+                        match RunQueueStatus.tryCreate s with
+                        | Some st -> (v |> deserialize serializationFormat, st) |> Ok
+                        | None -> toError (fun x -> TryLoadRunQueueErr (x, $"Invalid status: {s}")) i
                     with
                     | e -> e |> DbExn |> DbErr |> Error
 
                 tryRopFun (fun e -> e |> DbExn |> DbErr) w
-            | None -> toError TryLoadRunQueueErr i
+            | None -> toError (fun x -> TryLoadRunQueueErr (x, "Unable to find run queue")) i
 
         tryDbFun g
 
@@ -127,7 +125,10 @@ module WorkerNodeDatabaseTypes =
             let x =
                 query {
                     for q in ctx.Dbo.RunQueue do
-                    where (q.RunQueueStatusId = RunQueueStatus_NotStarted || q.RunQueueStatusId = RunQueueStatus_InProgress || q.RunQueueStatusId = RunQueueStatus_CancelRequested)
+                    where (q.RunQueueStatusId =
+                        RunQueueStatus.NotStartedRunQueue.value 
+                        || q.RunQueueStatusId = RunQueueStatus.InProgressRunQueue.value 
+                        || q.RunQueueStatusId = RunQueueStatus.CancelRequestedRunQueue.value)
                     select q.RunQueueId
                 }
 
@@ -232,7 +233,7 @@ module WorkerNodeDatabaseTypes =
             let x =
                 query {
                     for x in ctx.Dbo.RunQueue do
-                    where (x.RunQueueId = q.value && x.RunQueueStatusId = RunQueueStatus_CancelRequested)
+                    where (x.RunQueueId = q.value && x.RunQueueStatusId = RunQueueStatus.CancelRequestedRunQueue.value)
                     select (Some x.NotificationTypeId)
                     exactlyOneOrDefault
                 }
@@ -257,7 +258,7 @@ module WorkerNodeDatabaseTypes =
             let x =
                 query {
                     for x in ctx.Dbo.RunQueue do
-                    where (x.RunQueueId = q.value && x.RunQueueStatusId = RunQueueStatus_InProgress)
+                    where (x.RunQueueId = q.value && x.RunQueueStatusId = RunQueueStatus.InProgressRunQueue.value)
                     select (Some x.NotificationTypeId)
                     exactlyOneOrDefault
                 }
@@ -297,6 +298,7 @@ module WorkerNodeDatabaseTypes =
     /// Can modify progress related information when state is InProgress or CancelRequested.
     let tryUpdateProgress c (q : RunQueueId) (td : ProgressData) =
         let g() =
+            printfn $"tryUpdateProgress: RunQueueId: {q}, progress data: %A{td}."
             let ctx = getDbContext c
             let ee = td.eeData
 
