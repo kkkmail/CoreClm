@@ -115,10 +115,10 @@ module ServiceImplementation =
                 | Ok() ->
                     printfn $"    onProcessMessage: saveWorkerNodeRunModelData with runQueueId: {d.runningProcessData.runQueueId} - OK."
                     let result = proxy.onRunModel d.runningProcessData.runQueueId
-                    printfn $"    onProcessMessage: onRunModel with runQueueId: {d.runningProcessData.runQueueId} - {result}."
+                    printfn $"    onProcessMessage: onRunModel with runQueueId: {d.runningProcessData.runQueueId} - %A{result}."
                     result
                 | Error e ->
-                    printfn $"    onProcessMessage: saveWorkerNodeRunModelData with runQueueId: {d.runningProcessData.runQueueId} ERROR: {e}."
+                    printfn $"    onProcessMessage: saveWorkerNodeRunModelData with runQueueId: {d.runningProcessData.runQueueId} ERROR: %A{e}."
                     addError OnProcessMessageErr (CannotSaveModelDataErr (m.messageDataInfo.messageId, d.runningProcessData.runQueueId)) e
             | CancelRunWrkMsg q -> q ||> proxy.requestCancellation
             | RequestResultWrkMsg q -> q ||> proxy.notifyOfResults
