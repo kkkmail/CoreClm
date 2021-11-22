@@ -17,17 +17,27 @@ type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
     inherit BackgroundService()
 
     static let tyGetHost() =
-        let logger =  Logger.defaultValue
+        let wcfLogger =  Logger.defaultValue
+        let clmLogger =  Logger.defaultValue
 
         match serviceAccessInfo with
         | Ok data ->
-            match tryGetServiceData data.workerNodeServiceAccessInfo.value logger data with
+            match tryGetServiceData data.workerNodeServiceAccessInfo.value wcfLogger data with
             | Ok serviceData ->
                 let service = WorkerNodeWcfServiceImpl.tryGetService serviceData
                 let r = tryStartWorkerNodeRunner()
+                
+                match r with
+                | Ok _ -> ignore()
+                | Error e -> clmLogger.logCritData e
+
                 service
-            | Error e -> Error e
+            | Error e ->
+                wcfLogger.logCritData e
+                Error e
         | Error e ->
+            clmLogger.logCritData e
+
             // TODO kk:20201213 - Here we are forced to "downgrade" the error type because there is no conversion.
             e.ToString() |> WcfCriticalErr |> Error
 
@@ -40,7 +50,7 @@ type WorkerNodeWorker(logger: ILogger<WorkerNodeWorker>) =
 
             match hostRes.Value with
             | Ok host -> do! host.runAsync()
-            | Error e -> logger.LogCritical$"Error: %A{e}"
+            | Error e -> logger.LogCritical $"Error: %A{e}"
         }
         |> Async.StartAsTask
         :> Task

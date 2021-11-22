@@ -122,7 +122,7 @@ module SolverProcessProxy =
         match checkRunning (Some (n - 1)) (RunQueueId q) with
         | CanRun -> run()
         | e ->
-            printfn $"Can't run: %A{e}."
+            printfn $"Can't run run queue with id {q}: %A{e}."
             None
 
 
