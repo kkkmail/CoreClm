@@ -250,6 +250,7 @@ module ServiceImplementation =
                             communicationType = NetTcpCommunication
                             msgClientProxy = createMessagingClientProxy j messagingClientAccessInfo.msgClientId
                             expirationTime = MessagingClientData.defaultExpirationTime
+                            logOnError = true
                         }
 
                     let messagingClient = MessagingClient messagingClientData
