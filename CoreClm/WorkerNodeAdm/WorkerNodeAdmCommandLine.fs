@@ -33,6 +33,8 @@ module AdmCommandLine =
         | [<Unique>] [<AltCommandLine("-id")>] WrkAdmMsgCliId of Guid
         | [<Unique>] [<AltCommandLine("-p")>] WrkAdmPartitioner of Guid
         | [<Unique>] [<AltCommandLine("-i")>] WrkAdmInactive of bool
+        | [<Unique>] [<AltCommandLine("-f")>] WrkAdmForce of bool
+
 
         with
         interface IArgParserTemplate with
@@ -54,6 +56,7 @@ module AdmCommandLine =
                 | WrkAdmMsgCliId _ -> "messaging client id of current worker node service."
                 | WrkAdmPartitioner _ -> "messaging client id of a partitioner service."
                 | WrkAdmInactive _ -> "if true then worker node is inactive and it will unregister itself from the cluster."
+                | WrkAdmForce _ -> "if true then forces to accept parameters, which otherwise would've been corrected by the system."
 
 
     let tryGetSaveSettings p = p |> List.tryPick (fun e -> match e with | WrkAdmSaveSettings -> Some () | _ -> None)
@@ -70,6 +73,7 @@ module AdmCommandLine =
             tryGetServicePort = fun p -> p |> List.tryPick (fun e -> match e with | WrkAdmSvcPort p -> p |> ServicePort |> Some | _ -> None)
             tryGetMsgServiceAddress = fun p -> p |> List.tryPick (fun e -> match e with | WrkAdmMsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
             tryGetMsgServicePort = fun p -> p |> List.tryPick (fun e -> match e with | WrkAdmMsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+            tryGetForce = fun p -> p |> List.tryPick (fun e -> match e with | WrkAdmForce p -> Some p | _ -> None)
         }
 
 
