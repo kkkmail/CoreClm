@@ -189,6 +189,12 @@ module Defaults_004_005_000 =
     let data =
             let d = DefaultDataParam.defaultValue
 
+            let d105 = { d with 
+                                acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                                acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                                acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                                acCatDestrSimilarity = d.acCatDestrSimilarity * 0.0 } // 105
+
             [
                 DefaultDataParam.zero               // 0
                 DefaultDataParam.zero01             // 1
@@ -528,10 +534,10 @@ module Defaults_004_005_000 =
 
                 // ===============================================================
 
-                { d with sugarScarcity = d.sugarScarcity * 0.2 }               // 115
-                { d with sugarScarcity = d.sugarScarcity * 0.5 }               // 116
-                { d with sugarScarcity = d.sugarScarcity * 2.0 }               // 117
-                { d with sugarScarcity = d.sugarScarcity * 5.0 }               // 118
+                { d105 with sugarScarcity = d105.sugarScarcity * 0.2 }         // 115
+                { d105 with sugarScarcity = d105.sugarScarcity * 0.5 }         // 116
+                { d105 with sugarScarcity = d105.sugarScarcity * 2.0 }         // 117
+                { d105 with sugarScarcity = d105.sugarScarcity * 5.0 }         // 118
 
                 // ===============================================================
             ]
