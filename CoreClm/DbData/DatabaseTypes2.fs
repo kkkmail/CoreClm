@@ -713,7 +713,7 @@ module DatabaseTypes =
         tryDbFun g
 
 
-    ///Gets the first available worker node to schedule work.
+    /// Gets the first available worker node to schedule work.
     let tryGetAvailableWorkerNode c (LastAllowedNodeErr m) =
         let g() =
             let ctx = getDbContext c
@@ -726,7 +726,7 @@ module DatabaseTypes =
                     thenBy r.WorkLoad
                     thenBy r.OrderId
                     select (Some r)
-                    exactlyOneOrDefault
+                    headOrDefault
                 }
 
             match x with
