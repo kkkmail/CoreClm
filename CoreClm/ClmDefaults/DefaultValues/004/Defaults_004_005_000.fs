@@ -189,7 +189,7 @@ module Defaults_004_005_000 =
     let data =
             let d = DefaultDataParam.defaultValue
 
-            let d105 = { d with 
+            let d105 = { d with
                                 acCatSynthScarcity = d.acCatSynthScarcity * 0.0
                                 acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
                                 acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
@@ -538,6 +538,30 @@ module Defaults_004_005_000 =
                 { d105 with sugarScarcity = d105.sugarScarcity * 0.5 }         // 116
                 { d105 with sugarScarcity = d105.sugarScarcity * 2.0 }         // 117
                 { d105 with sugarScarcity = d105.sugarScarcity * 5.0 }         // 118
+
+                // ===============================================================
+                // 3 pair of parameters (acCatSynth, acFwdCatLig, acBkwCatLig) set to 0.
+                // See 96 - 104 above.
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.1 }   // 119
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.2 }   // 120
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.3 }   // 121
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.4 }   // 122
 
                 // ===============================================================
             ]
