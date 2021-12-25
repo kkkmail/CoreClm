@@ -563,6 +563,18 @@ module Defaults_004_005_000 =
                          acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
                          acCatDestrScarcity = d.acCatDestrScarcity * 0.4 }   // 122
 
+                // acCatDestrScarcity is effectively zero but not exactly zero to distinguish from exact zero
+                // which EXCLUDES generation of relevant reactions.
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.000_000_001 }   // 123
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.05 }  // 124
+
                 // ===============================================================
             ]
             |> withRowNumberUniqueOrFail
