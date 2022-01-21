@@ -187,13 +187,6 @@ integrate[Times[aInp__], b_, c_] :=
     ] /; (hasConstants[{aInp}, b, c] || notNormalized[{aInp}]);
 
 (* ============================================== *)
-(*
-simplify[integrate[a_, b_]] := integrate[Evaluate[Simplify[a]], b];
-simplify[integrate[a_, b_, c_]] := integrate[Evaluate[Simplify[a]], b, c];
-
-simplify[integrate[a_, b_], assum_] := integrate[Evaluate[Simplify[a, assum]], b];
-simplify[integrate[a_, b_, c_], assum_] := integrate[Evaluate[Simplify[a, assum]], b, c];
-*)
 
 simplify[a_, assum___] :=
     Module[{retVal, lst, len, ii, tmp},
@@ -210,13 +203,49 @@ simplify[a_, assum___] := Apply[Plus, simplify[Evaluate[#], assum] & /@ Apply[Li
 simplify[a_, assum___] := Apply[Times, simplify[Evaluate[#], assum] & /@ Apply[List, a]] /; ToString[Head[a]] == "Times";
 simplify[a_, assum___] := Simplify[a, assum] /; (ToString[Head[a]] != "integrate" && ToString[Head[a]] != "Plus" && ToString[Head[a]] != "Times");
 
-(*
-simplify[a_] := Simplify[a];
-simplify[a_, assum_] := Simplify[a, assum];
-*)
+(* ============================================== *)
+
+SetAttributes[derivative, HoldFirst];
+
+derivative[a_, x_] :=
+    Module[{retVal, lst, len, ii, tmp},
+      lst = Apply[List, a];
+      tmp = Table[If[ii == 1, (Evaluate[D[lst[[ii]], x]]), (lst[[ii]])], {ii, 1, Length[lst]}];
+      retVal = Apply[integrate, tmp];
+      Return[retVal];
+    ] /; ToString[Head[a]] == "integrate";
+
+derivative[a_, x_] := Apply[Plus, derivative[Evaluate[#], x] & /@ Apply[List, a]] /; ToString[Head[a]] == "Plus";
+
+derivative[a_, x_] :=
+    Module[{retVal, aLst, len, ii, jj, tmp, h},
+      aLst = Apply[List, Evaluate[a]];
+      len = Length[aLst];
+      (* Print["diff::aLSt = ", aLst//MatrixForm]; *)
+      h = Table[ToString[Head[aLst[[ii]]]], {ii, 1, len}];
+      (* Print["diff::h = ", h//MatrixForm]; *)
+      tmp = Table[Table[If[ii == jj, (derivative[Evaluate[aLst[[jj]]], x]), aLst[[jj]]], {jj, 1, len}], {ii, 1, len}];
+      (* Print["diff::tmp = ", tmp // MatrixForm]; *)
+      retVal = Sum[Apply[Times, tmp[[ii]]], {ii, 1, len}];
+      (* Print["diff::retVal = ", retVal]; *)
+      Return[retVal];
+    ] /; ToString[Head[a]] == "Times";
+
+derivative[a_, x_] := Module[{retval},
+  (*
+  Print["diff[a,x]::a = ", a];
+  Print["diff[a,x]::Head[a] = ", ToString[Head[a]]];
+  Print["diff[a,x]::x = ", x];
+  *)
+  retval = D[a, x];
+  (* Print["diff[a,x]::retval = ", retval]; *)
+  Return[retval];
+] /; (ToString[Head[a]] != "integrate" && ToString[Head[a]] != "Plus" && ToString[Head[a]] != "Times");
+
 (* ============================================== *)
 
 (* All series are first order and around 0. *)
+
 (*
 SetAttributes[series, HoldFirst];
 series[-a_, x_] := -integrate[a, x];
@@ -269,6 +298,35 @@ series[a_, x_, y_] :=
       Return[retVal];
     ];
 *)
+
+SetAttributes[series, HoldFirst];
+series[-a_, x_] := -series[a, x];
+series[-a_, x_, y_] := -series[a, x, y];
+
+(* Performs series expansion by a symbol x. *)
+series[a_, x_] := Apply[Plus, series[Evaluate[#], x] & /@ Apply[List, a]] /; (ToString[Head[a]] == "Plus" && ToString[Head[x]] == "Symbol");
+series[a_, x_, y_] := Apply[Plus, series[Evaluate[#], x, y] & /@ Apply[List, a]] /; (ToString[Head[a]] == "Plus" && ToString[Head[x]] == "Symbol");
+
+series[a_, x_] :=
+    Module[{retVal, lst, tmp, zeroRule},
+      zeroRule := { x -> 0 };
+
+      Print["series /; integrate :: a = ", a];
+      Print["series /; integrate :: x = ", x];
+      Print["series /; integrate :: zeroRule = ", zeroRule];
+
+      lst = Apply[List, a];
+      Print["series /; integrate :: lst = ", lst // MatrixForm];
+
+      tmp = Table[If[ii == 1, ((lst[[ii]] /. zeroRule) + x * (derivative[lst[[ii]], x] /.zeroRule)), (lst[[ii]])], {ii, 1, Length[lst]}];
+      Print["series /; integrate :: tmp = ", tmp // MatrixForm];
+
+      retVal = Apply[integrate, tmp];
+      Print["series /; integrate :: retVal = ", retVal];
+
+      Return[retVal];
+    ] /; (ToString[Head[a]] == "integrate" && ToString[Head[x]] == "Symbol");
+
 (* ============================================== *)
 
 
