@@ -247,36 +247,92 @@ derivative[a_, x_] := Module[{retVal},
 (* All series are first order and around 0. *)
 
 SetAttributes[series, HoldFirst];
-series[-a_, x_] := -series[a, x];
-series[-a_, x_, y_] := -series[a, x, y];
+series[-a_, x__] := -series[a, x];
+(* series[-a_, x_, y_] := -series[a, x, y]; *)
 
-(* Performs series expansion by a symbol x. *)
-series[a_, x_] := Apply[Plus, series[Evaluate[#], x] & /@ Apply[List, a]] /; (ToString[Head[a]] == "Plus" && ToString[Head[x]] == "Symbol");
-series[a_, x_, y_] := Apply[Plus, series[Evaluate[#], x, y] & /@ Apply[List, a]] /; (ToString[Head[a]] == "Plus" && ToString[Head[x]] == "Symbol");
+series[a_, x__] := Apply[Plus, series[Evaluate[#], x] & /@ Apply[List, a]] /; ToString[Head[a]] == "Plus";
+(* series[a_, x_, y_] := Apply[Plus, series[Evaluate[#], x, y] & /@ Apply[List, a]] /; ToString[Head[a]] == "Plus"; *)
 
-series[a_, x_, y_] :=
-    Module[{retVal, lst, tmp, zeroRule, hy},
-      (* zeroRule := { x -> 0, y[any_] :>  0 }; *)
-      zeroRule := { x -> 0 };
+series[a_, x__] :=
+    Module[{retVal, lst, tmp, zeroRule, p, ii, jj, xLst, xAll},
+      Print["series[a, x] /; integrate :: x = ", { x }];
+      Print["series[a, x] /; integrate :: a = ", a];
+      xLst = { x };
 
-      hy = findAll[a, y];
+      lst = Evaluate[Apply[List, a]];
+      Print["series[a, x] /; integrate :: lst = ", lst // MatrixForm];
 
-      Print["series /; integrate :: a = ", a];
-      Print["series /; integrate :: x = ", x];
-      Print["series /; integrate :: x = ", y];
-      Print["series /; integrate :: hy = ", hy];
-      Print["series /; integrate :: zeroRule = ", zeroRule];
+      xAll = (findAll[a, #]) & /@ xLst;
+      Print["series[a, x] /; integrate :: xAll = ", xAll // MatrixForm];
 
-      lst = Apply[List, a];
-      Print["series /; integrate :: lst = ", lst // MatrixForm];
+      p = Apply[Join, Table[If[Length[xAll[[ii]]] == 0, ({ xLst[[ii]]}), (xAll[[ii]])], {ii, 1, Length[xLst]}]];
+      zeroRule := (# :> 0) & /@ p;
+      Print["series[a, x] /; integrate :: p = ", p];
+      Print["series[a, x] /; integrate :: zeroRule = ", zeroRule];
 
-      tmp = Table[If[ii == 1, ((lst[[ii]] /. zeroRule) + x * (derivative[lst[[ii]], x] /.zeroRule)), (lst[[ii]])], {ii, 1, Length[lst]}];
-      Print["series /; integrate :: tmp = ", tmp // MatrixForm];
+      tmp = Table[If[ii == 1, ((lst[[1]] /. zeroRule) + Apply[Plus, Table[(derivative[lst[[1]], p[[jj]]] /.zeroRule) * p[[jj]], {jj, 1, Length[p]}]]), (lst[[ii]])], {ii, 1, Length[lst]}];
+      Print["series[a, x] /; integrate :: tmp = ", tmp // MatrixForm];
 
       retVal = Apply[integrate, tmp];
-      Print["series /; integrate :: retVal = ", retVal];
+      Print["series[a, x] /; integrate :: retVal = ", retVal];
 
       Return[retVal];
-    ] /; (ToString[Head[a]] == "integrate" && ToString[Head[x]] == "Symbol");
+    ] /; ToString[Head[a]] == "integrate";
 
+(*
+series[a_, x_] :=
+    Module[{retVal, lst, tmp, zeroRule, hx, p, ii, jj},
+      Print["series[a, x] /; integrate :: x = ", x];
+      Print["series[a, x] /; integrate :: a = ", a];
+
+      lst = Evaluate[Apply[List, a]];
+      Print["series[a, x] /; integrate :: lst = ", lst // MatrixForm];
+
+      hx = findAll[a, x];
+
+      Print["series[a, x] /; integrate :: hx = ", hx];
+
+      zeroRule := If[Length[hx] == 0, ({ x :> 0 }), ((# :> 0) & /@ hx)];
+      p = If[Length[hx] == 0, ({ x }), (hx)];
+      Print["series[a, x] /; integrate :: zeroRule = ", zeroRule];
+      Print["series[a, x] /; integrate :: p = ", p];
+
+      tmp = Table[If[ii == 1, ((lst[[1]] /. zeroRule) + Apply[Plus, Table[(derivative[lst[[1]], p[[jj]]] /.zeroRule) * p[[jj]], {jj, 1, Length[p]}]]), (lst[[ii]])], {ii, 1, Length[lst]}];
+      Print["series[a, x] /; integrate :: tmp = ", tmp // MatrixForm];
+
+      retVal = Apply[integrate, tmp];
+      Print["series[a, x] /; integrate :: retVal = ", retVal];
+
+      Return[retVal];
+    ] /; ToString[Head[a]] == "integrate";
+*)
+(*
+series[a_, x_, y_] :=
+    Module[{retVal, lst, tmp, zeroRule, hx, hy, p, ii, jj},
+      Print["series[a, x, y] /; integrate :: x = ", x, ", y = ", y];
+      Print["series[a, x, y] /; integrate :: a = ", a];
+
+      lst = Evaluate[Apply[List, a]];
+      Print["series[a, x, y] /; integrate :: lst = ", lst // MatrixForm];
+
+      hx = findAll[a, x];
+      hy = findAll[a, y];
+
+      Print["series[a, x, y] /; integrate :: hx = ", hx];
+      Print["series[a, x, y] /; integrate :: hy = ", hy];
+
+      zeroRule := Join[If[Length[hx] == 0, ({ x :> 0 }), ((# :> 0) & /@ hx)], If[Length[hy] == 0, ({ y :> 0 }), ((# :> 0) & /@ hy)]];
+      p = Join[If[Length[hx] == 0, ({ x }), (hx)], If[Length[hy] == 0, ({ y }), (hy)]];
+      Print["series[a, x, y] /; integrate :: zeroRule = ", zeroRule];
+      Print["series[a, x, y] /; integrate :: p = ", p];
+
+      tmp = Table[If[ii == 1, ((lst[[1]] /. zeroRule) + Apply[Plus, Table[(derivative[lst[[1]], p[[jj]]] /.zeroRule) * p[[jj]], {jj, 1, Length[p]}]]), (lst[[ii]])], {ii, 1, Length[lst]}];
+      Print["series[a, x, y] /; integrate :: tmp = ", tmp // MatrixForm];
+
+      retVal = Apply[integrate, tmp];
+      Print["series[a, x, y] /; integrate :: retVal = ", retVal];
+
+      Return[retVal];
+    ] /; ToString[Head[a]] == "integrate";
+*)
 (* ============================================== *)
