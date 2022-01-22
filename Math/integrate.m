@@ -231,73 +231,20 @@ derivative[a_, x_] :=
       Return[retVal];
     ] /; ToString[Head[a]] == "Times";
 
-derivative[a_, x_] := Module[{retval},
+derivative[a_, x_] := Module[{retVal},
   (*
   Print["diff[a,x]::a = ", a];
   Print["diff[a,x]::Head[a] = ", ToString[Head[a]]];
   Print["diff[a,x]::x = ", x];
   *)
-  retval = D[a, x];
-  (* Print["diff[a,x]::retval = ", retval]; *)
-  Return[retval];
+  retVal = D[a, x];
+  (* Print["diff[a,x]::retVal = ", retVal]; *)
+  Return[retVal];
 ] /; (ToString[Head[a]] != "integrate" && ToString[Head[a]] != "Plus" && ToString[Head[a]] != "Times");
 
 (* ============================================== *)
 
 (* All series are first order and around 0. *)
-
-(*
-SetAttributes[series, HoldFirst];
-series[-a_, x_] := -integrate[a, x];
-series[-a_, x_, y_] := -series[a, x, y];
-
-series[Times[Plus[a__], b__], x_] := Apply[Plus, series[Evaluate[#*b], x] & /@ {a}];
-series[Times[Plus[a__], b__], x_, y_] := Apply[Plus, series[Evaluate[#*b], x, y] & /@ {a}];
-
-series[Plus[a__], x_] := Apply[Plus, series[Evaluate[#], x] & /@ {a}];
-series[Plus[a__], x_, y_] := Apply[Plus, series[Evaluate[#], x, y] & /@ {a}];
-
-series[integrate[a_,b_],x_]:=integrate[series[a,x],b];
-series[integrate[a_,b_,c_],x_]:=integrate[series[a,x],b,c];
-series[integrate[a_,b_,c_,d_],x_]:=integrate[series[a,x],b,c,d];
-
-(* series[Times[Plus[a__], d__], b_] := Apply[Plus, series[Evaluate[#*d], b] & /@ {a}]; *)
-(* series[Times[a__],b_]:=Apply[Plus, series[Evaluate[#], b] & /@ {a}]; *)
-series[Plus[a__],b_]:=Apply[Plus, series[Evaluate[#], b] & /@ {a}];
-
-series[a_,x_]:=Normal[Series[a,{x,0,1}]];
-
-series[a_, x_, y_] :=
-    Module[{retVal, hx, hy},
-      hx = findAll[a, x];
-      hy = findAll[a, y];
-      Print["series::x = ", x, "y = ", y];
-
-      If[Length[hx] == 0 && Length[hy] == 0,
-        (
-          Print["series::Both x and y are symbols."];
-        ),
-        If[Length[hx] == 0 && Length[hy] > 0,
-        (
-          Print["series::x is symbol and y is function:", hy];
-        ),
-          If[Length[hx] > 0 && Length[hy] == 0],
-          (
-
-          ),
-          (
-
-          )]
-      ];
-
-      If[Length[hx] == 0, hx = {x}];
-      If[Length[hy] == 0, hy = {y}];
-      Print["series::hx = ", hx];
-      Print["series::hy = ", hy];
-
-      Return[retVal];
-    ];
-*)
 
 SetAttributes[series, HoldFirst];
 series[-a_, x_] := -series[a, x];
@@ -307,12 +254,17 @@ series[-a_, x_, y_] := -series[a, x, y];
 series[a_, x_] := Apply[Plus, series[Evaluate[#], x] & /@ Apply[List, a]] /; (ToString[Head[a]] == "Plus" && ToString[Head[x]] == "Symbol");
 series[a_, x_, y_] := Apply[Plus, series[Evaluate[#], x, y] & /@ Apply[List, a]] /; (ToString[Head[a]] == "Plus" && ToString[Head[x]] == "Symbol");
 
-series[a_, x_] :=
-    Module[{retVal, lst, tmp, zeroRule},
+series[a_, x_, y_] :=
+    Module[{retVal, lst, tmp, zeroRule, hy},
+      (* zeroRule := { x -> 0, y[any_] :>  0 }; *)
       zeroRule := { x -> 0 };
+
+      hy = findAll[a, y];
 
       Print["series /; integrate :: a = ", a];
       Print["series /; integrate :: x = ", x];
+      Print["series /; integrate :: x = ", y];
+      Print["series /; integrate :: hy = ", hy];
       Print["series /; integrate :: zeroRule = ", zeroRule];
 
       lst = Apply[List, a];
@@ -328,5 +280,3 @@ series[a_, x_] :=
     ] /; (ToString[Head[a]] == "integrate" && ToString[Head[x]] == "Symbol");
 
 (* ============================================== *)
-
-
