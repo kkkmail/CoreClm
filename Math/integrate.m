@@ -15,13 +15,15 @@ purify[expr_,Shortest[patt_.,1],Shortest[levelspec_.,2],opts:OptionsPattern[Repl
 (* ============================================== *)
 
 id[x_] := x;
+
+SetAttributes[freeQ, HoldFirst];
+freeQ[a_, x__] := AllTrue[(FreeQ[a, #]) & /@ { x }, id];
+
 SetAttributes[hasConstants, HoldFirst];
-hasConstants[aLst_?ListQ, b_] := AnyTrue[FreeQ[#, b] & /@ aLst, id];
-hasConstants[aLst_?ListQ, b_, c_] := AnyTrue[(FreeQ[#, b] && FreeQ[#, c]) & /@ aLst, id];
+hasConstants[aLst_?ListQ, x__] := AnyTrue[(freeQ[#, x]) & /@ aLst, id];
 
 SetAttributes[hasNoVars, HoldFirst];
-hasNoVars[a_?ListQ, b_] := AllTrue[FreeQ[#, b] & /@ a, id];
-hasNoVars[a_?ListQ, b_, c_] := AllTrue[FreeQ[#, b] & /@ a, id] && AllTrue[FreeQ[#, c] & /@ a, id];
+hasNoVars[a_?ListQ, x__] := AllTrue[freeQ[#, x] & /@ a, id];
 
 SetAttributes[notNormalized, HoldFirst];
 
@@ -38,100 +40,33 @@ notNormalized[aLst_?ListQ] := Module[{retVal},
 
 notNormalized[a__] := False;
 
-SetAttributes[freeQ, HoldFirst];
-freeQ[a_, b_, c_] := FreeQ[a, b] && FreeQ[a, c];
-
 SetAttributes[partitionConstants, HoldFirst];
-partitionConstants[a_?ListQ, b_] := GatherBy[a, FreeQ[#, b] &];
-partitionConstants[a_?ListQ, b_, c_] := GatherBy[a, freeQ[#, b, c] &];
+partitionConstants[a_?ListQ, x__] := GatherBy[a, freeQ[#, x] &];
 
 (* ============================================== *)
 
 SetAttributes[integrate, HoldFirst];
-integrate[0, b_] := 0;
-integrate[0, b_, c_] := 0;
-integrate[-a_, b_] := -integrate[a, b];
-integrate[-a_, b_, c_] := -integrate[a, b, c];
+integrate[0, x__] := 0;
+integrate[-a_, x__] := -integrate[a, x];
+integrate[Times[Plus[a__], b__], x__] := Apply[Plus, integrate[Evaluate[#*b], x] & /@ { a }];
+integrate[Plus[a__], x__] := Apply[Plus, integrate[Evaluate[#], x] & /@ { a }];
+integrate[a_ * integrate[b_, x__], y__] := Apply[integrate, Join[{ Evaluate[a * b] }, { x }, { y }]];
+integrate[integrate[a_, x__], y__] := Apply[integrate, Join[{ Evaluate[a] }, { x }, { y }]];
 
-integrate[Times[Plus[a__], d__], b_] := Apply[Plus, integrate[Evaluate[#*d], b] & /@ {a}];
-integrate[Times[Plus[a__], d__], b_, c_] := Apply[Plus, integrate[Evaluate[#*d], b, c] & /@ {a}];
-
-integrate[Plus[a__], b_] := Apply[Plus, integrate[Evaluate[#], b] & /@ {a}];
-integrate[Plus[a__], b_, c_] := Apply[Plus, integrate[Evaluate[#], b, c] & /@ {a}];
-
-integrate[a_*integrate[b_, c_], d_] := integrate[Evaluate[a*b], c, d];
-integrate[integrate[a_, b_], c_] := integrate[a, b, c];
-
-integrate[Times[aInp__], b_] :=
+integrate[Times[aInp__], x__] :=
   Module[{retVal, p, v, i1, i2, f, aLst, a, vc, aVal},
     aVal = Evaluate[Times[aInp]];
     If[aVal == 0, Return[0]];
     aLst = Sort[Apply[List, aVal]];
     a = Apply[Times, aLst];
-    p = partitionConstants[aLst, b];
-    v = hasNoVars[aLst, b];
-    vc = hasConstants[aLst, b];
-    f = FreeQ[#, b] & /@ aLst;
-    (*
-    Print["integrate[a,b]::aInp = ", aInp];
-    Print["integrate[a,b]::b = ", b];
-    Print["integrate[a,b]::aVal = ", aVal];
-    Print["integrate[a,b]::aLst = ", aLst];
-    Print["integrate[a,b]::a = ", a];
-    Print["integrate[a,b]::p = ", p];
-    Print["integrate[a,b]::v = ", v];
-    Print["integrate[a,b]::vc = ", vc];
-    Print["integrate[a,b]::FreeQ[a,b] = ",f];
-    *)
-    
-    If[vc && ! v,
-     (
-      (* Print["Has constants and variables."]; *)
-      i1 = If[f[[1]], 1, 2];
-      i2 = 3 - i1;
-      (*
-      Print["integrate[a,b]::i1 = ", i1];
-      Print["integrate[a,b]::i2 = ", i2];
-      *)
-      retVal = Apply[Times, p[[i1]]]*integrate[Evaluate[Apply[Times, p[[i2]]]], b];
-      ),
-     If[vc && v,
-       (
-        (* Print["Has only constants."]; *)
-        retVal = Times[p[[1]]];
-        ),
-       If[! vc && ! v,
-         (
-          (* Print["Has only variables."]; *)
-          retVal = integrate[Evaluate[Apply[Times, p[[1]]]], b];
-          ),
-         (
-          Print["Has NOTHING. This should not happen."];
-          retVal = Indeterminate;
-          )
-         ];
-       ];
-     ];
-    
-    (* Print["integrate[a,b]::retVal = ", retVal]; *)
-    
-    Return[retVal];
-    ] /; (hasConstants[{aInp}, b] || notNormalized[{aInp}]);
-
-integrate[Times[aInp__], b_, c_] := 
-  Module[{retVal, p, v, i1, i2, f, aLst, a, vc, aVal},
-    aVal = Evaluate[Times[aInp]];
-    If[aVal == 0, Return[0]];
-    aLst = Sort[Apply[List, aVal]];
-    a = Apply[Times, aLst];
-    p = partitionConstants[aLst, b, c];
-    v = hasNoVars[aLst, b, c];
-    vc = hasConstants[aLst, b, c];
-    f = freeQ[#, b, c] & /@ aLst;
+    p = partitionConstants[aLst, x];
+    v = hasNoVars[aLst, x];
+    vc = hasConstants[aLst, x];
+    f = freeQ[#, x] & /@ aLst;
 
     (*
     Print["integrate[a,b,c]::aInp = ", aInp];
-    Print["integrate[a,b,c]::b = ", b];
+    Print["integrate[a,b,c]::x = ", { x }];
     Print["integrate[a,b]::aVal = ", aVal];
     Print["integrate[a,b,c]::aLst = ", aLst];
     Print["integrate[a,b,c]::a = ", a];
@@ -150,7 +85,7 @@ integrate[Times[aInp__], b_, c_] :=
       Print["integrate[a,b,c]::i1 = ", i1];
       Print["integrate[a,b,c]::i2 = ", i2];
       *)
-      retVal = Apply[Times, p[[i1]]] * integrate[Evaluate[Apply[Times, p[[i2]]]], b, c];
+      retVal = Apply[Times, p[[i1]]] * integrate[Evaluate[Apply[Times, p[[i2]]]], x];
       ),
      If[vc && v,
        (
@@ -160,7 +95,7 @@ integrate[Times[aInp__], b_, c_] :=
        If[! vc && ! v,
          (
           (* Print["Has only variables."]; *)
-          retVal = integrate[Evaluate[Apply[Times, p[[1]]]], b, c];
+          retVal = integrate[Evaluate[Apply[Times, p[[1]]]], x];
           ),
          (
           Print["Has NOTHING. This should not happen."];
@@ -173,7 +108,7 @@ integrate[Times[aInp__], b_, c_] :=
     (* Print["integrate[a,b,c]::retVal = ", retVal]; *)
     
     Return[retVal];
-    ] /; (hasConstants[{aInp}, b, c] || notNormalized[{aInp}]);
+    ] /; (hasConstants[{aInp}, x] || notNormalized[{aInp}]);
 
 (* ============================================== *)
 
@@ -357,5 +292,12 @@ series[a_, x__] :=
 
       Return[simplify[retVal]];
     ] /; (ToString[Head[a]] != "integrate" && ToString[Head[a]] != "Plus" && ToString[Head[a]] != "Times");
+
+(* ============================================== *)
+
+(* Rules *)
+varRules := { A->\[CapitalDelta]+\[Theta],a->-\[CapitalDelta]+\[Theta], u[x_] :> u0[x] + \[Delta]u[x], n[x_] :> L  (1 + \[CapitalDelta]n[x])/2, m[x_] :> L  (1 - \[CapitalDelta]n[x])/2 };
+zeroRules := { \[Delta]u[x_] :> 0, \[CapitalDelta] :> 0 };
+\[CapitalDelta]nFunc[x_] := (2 L x)/(1 + Sqrt[1 + 4 x^2]);
 
 (* ============================================== *)
