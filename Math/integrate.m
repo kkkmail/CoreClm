@@ -301,3 +301,20 @@ zeroRules := { \[Delta]u[x_] :> 0, \[CapitalDelta] :> 0 };
 \[CapitalDelta]nFunc[x_] := (2 L x)/(1 + Sqrt[1 + 4 x^2]);
 
 (* ============================================== *)
+
+toIntegrate[i_, assum___] := Apply[Plus, toIntegrate[Evaluate[#], assum] & /@ Apply[List, i]] /; ToString[Head[i]] == "Plus";
+toIntegrate[i_, assum___] := Apply[Times, toIntegrate[Evaluate[#], assum] & /@ Apply[List, i]] /; ToString[Head[i]] == "Times";
+
+toIntegrate[i_, assum___] :=
+    Module[{retVal, lst, param},
+      lst = Apply[List, i];
+      param = Join[{ lst[[1]] }, ( { #, -Infinity, Infinity } ) & /@ Drop[lst, 1]];
+      If[Length[{ assum }] > 0, param = Join[param, { Assumptions -> assum }]];
+      (* Print["toIntegrate :: param = ", param]; *)
+      retVal = Apply[Integrate, param];
+      Return[retVal];
+    ] /; ToString[Head[i]] == "integrate";
+
+toIntegrate[i_, assum___] := i /; (ToString[Head[i]] != "integrate" && ToString[Head[i]] != "Plus" && ToString[Head[i]] != "Times");
+
+(* ============================================== *)
