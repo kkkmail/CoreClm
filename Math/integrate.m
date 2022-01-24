@@ -293,11 +293,28 @@ series[a_, x__] :=
       Return[simplify[retVal]];
     ] /; (ToString[Head[a]] != "integrate" && ToString[Head[a]] != "Plus" && ToString[Head[a]] != "Times");
 
+(* Returns true if v is a valid series variable, e.g.: { x, 0 } *)
+seriesVariable[v_?ListQ] := Length[v] == 2 && !NumericQ[v[[1]]];
+seriesVariable[v_] := False /; (!ListQ[v]);
+
+seriesAllVariables[x__] := AllTrue[(seriesVariable[#]) & /@ { x }, id];
+
+(* TODO kk:20220124 - make series above support higher order expansions and then rename this into series. *)
+(* See: https://mathematica.stackexchange.com/questions/15023/multivariable-taylor-expansion-does-not-work-as-expected *)
+series2[a_, order_Integer?NonNegative, x__] :=
+    Module[{retVal, xLst, t, xRules, newA},
+      xLst = { x };
+      xRules = (#[[1]] -> (#[[1]] - #[[2]]) * t + #[[2]]) & /@ xLst;
+      newA = a /. xRules;
+      retVal = Normal[Series[newA, {t, 0, order}]] /. { t -> 1 };
+      Return[retVal];
+    ] /; seriesAllVariables[x];
+
 (* ============================================== *)
 
 (* Rules *)
-varRules := { A->\[CapitalDelta]+\[Theta],a->-\[CapitalDelta]+\[Theta], u[x_] :> u0[x] + \[Delta]u[x], n[x_] :> L  (1 + \[CapitalDelta]n[x])/2, m[x_] :> L  (1 - \[CapitalDelta]n[x])/2 };
-zeroRules := { \[Delta]u[x_] :> 0, \[CapitalDelta] :> 0 };
+varRules := { A->(\[CapitalDelta]+\[Theta]),a->(-\[CapitalDelta]+\[Theta]), u[x_] :> u00*(u0[x] + \[Delta]*u1[x]), n[x_] :> L  (1 + \[CapitalDelta]n[x])/2, m[x_] :> L  (1 - \[CapitalDelta]n[x])/2 };
+zeroRules := { \[Delta]u[x_] :> 0, \[Delta] :> 0, \[CapitalDelta] :> 0 };
 \[CapitalDelta]nFunc[x_] := (2 L x)/(1 + Sqrt[1 + 4 x^2]);
 
 (* ============================================== *)
