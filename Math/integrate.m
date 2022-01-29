@@ -48,10 +48,10 @@ partitionConstants[a_?ListQ, x__] := GatherBy[a, freeQ[#, x] &];
 SetAttributes[integrate, HoldFirst];
 integrate[0, x__] := 0;
 integrate[-a_, x__] := -integrate[a, x];
-integrate[Times[Plus[a__], b__], x__] := Apply[Plus, integrate[Evaluate[#*b], x] & /@ { a }];
+integrate[Times[Plus[a__], b__], x__] := Apply[Plus, integrate[Evaluate[# * b], x] & /@ { a }];
 integrate[Plus[a__], x__] := Apply[Plus, integrate[Evaluate[#], x] & /@ { a }];
-integrate[a_ * integrate[b_, x__], y__] := Apply[integrate, Join[{ Evaluate[a * b] }, { x }, { y }]];
-integrate[integrate[a_, x__], y__] := Apply[integrate, Join[{ Evaluate[a] }, { x }, { y }]];
+integrate[a_ * integrate[b_, x__], y__] := Apply[integrate, Join[{ Evaluate[a * b] }, Sort[Join[{ x }, { y }]]]];
+integrate[integrate[a_, x__], y__] := Apply[integrate, Join[{ Evaluate[a] }, Sort[Join[{ x }, { y }]]]];
 
 integrate[Times[aInp__], x__] :=
   Module[{retVal, p, v, i1, i2, f, aLst, a, vc, aVal},
@@ -333,5 +333,15 @@ toIntegrate[i_, assum___] :=
     ] /; ToString[Head[i]] == "integrate";
 
 toIntegrate[i_, assum___] := i /; (ToString[Head[i]] != "integrate" && ToString[Head[i]] != "Plus" && ToString[Head[i]] != "Times");
+
+(* ============================================== *)
+(* Sqrt simplification *)
+
+(* sqrtNotNormalized[x_] *)
+sqrtFwdRule[sqrtFunc_] := { Sqrt[x_] :>  sqrtFunc[x] }
+sqrtInvRule[sqrtFunc_] := { sqrtFunc[x_] :> Sqrt[x] }
+(* applySqrt[sqrtFunc_, x__] := Apply[Times, (sqrtFunc[#]) & /@  Apply[List, x]] /; ToString[Head[x]] == "Times"; *)
+sqrt[x__] := Apply[Times, (sqrt[#]) & /@  Apply[List, x]] /; ToString[Head[x]] == "Times";
+simplifySqrt[expr_] := ToExpression[ToString[InputForm[expr] /. sqrtFwdRule[sqrt]]] /. sqrtInvRule[sqrt];
 
 (* ============================================== *)
