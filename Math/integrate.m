@@ -384,7 +384,7 @@ fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
         vecNew = Table[
             (
                 vec1 = vec[[ii]];
-                s = Sum[vec1[[jj]], {jj, Floor[(len/2)] + 1, len}];
+                s = Sum[Re[vec1[[jj]]], {jj, Floor[(len/2)] + 1, len}];
                 If[s >= 0, vec1, -vec1]
             ), {ii, len}];
 
