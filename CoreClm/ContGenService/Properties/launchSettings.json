@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ContGenService": {
+      "commandName": "Project",
+      "commandLineArgs": "r"
+    }
+  }
+}

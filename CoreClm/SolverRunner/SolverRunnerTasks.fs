@@ -46,7 +46,7 @@ module SolverRunnerTasks =
             chartDataUpdater : AsyncChartDataUpdater
             progressCallBack : RunQueueStatus option -> ProgressData -> unit
             updateChart : ChartSliceData -> unit
-            getChartSliceData : double -> double[] -> ChartSliceData
+            getChartSliceData : double -> double[] -> EeData -> ChartSliceData
             noOfProgressPoints : int
             minUsefulEe : MinUsefulEe
             checkCancellation : RunQueueId -> CancellationType option
@@ -90,7 +90,7 @@ module SolverRunnerTasks =
                 }
 
             let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
-            let getChartSliceData t x = ChartSliceData.create binaryInfo t x
+            let getChartSliceData t x e = ChartSliceData.create binaryInfo t x e
 
             let createProgressUpdateInfo s p =
                 {
@@ -121,10 +121,10 @@ module SolverRunnerTasks =
         with
         member cd.toEeData() =
             {
-                maxEe = cd.maxEe
-                maxAverageEe = cd.maxAverageEe
-                maxWeightedAverageAbsEe = cd.maxWeightedAverageAbsEe
-                maxLastEe = cd.maxLastEe
+                maxEe = cd.eeData.maxEe
+                maxAverageEe = cd.eeData.maxAverageEe
+                maxWeightedAverageAbsEe = cd.eeData.maxWeightedAverageAbsEe
+                maxLastEe = cd.eeData.maxLastEe
             }
 
 
@@ -200,8 +200,8 @@ module SolverRunnerTasks =
             }
             |> GeneratedCharts
 
-        printfn $"plotAllResults: i.chartData.maxEe = {i.chartData.maxEe}, i.runSolverData.minUsefulEe.value = {i.runSolverData.minUsefulEe.value}"
-        match i.chartData.maxEe >= i.runSolverData.minUsefulEe.value, t with
+        printfn $"plotAllResults: i.chartData.maxEe = {i.chartData.eeData.maxEe}, i.runSolverData.minUsefulEe.value = {i.runSolverData.minUsefulEe.value}"
+        match i.chartData.eeData.maxEe >= i.runSolverData.minUsefulEe.value, t with
         | true, _ -> plotAll ()
         | _, ForceChartGeneration -> plotAll ()
         | _ -> NotGeneratedCharts
@@ -237,11 +237,6 @@ module SolverRunnerTasks =
         }
 
 
-    type private SolverRunnerState =
-        | NotRunningSolver
-        | RunningSolver
-
-
     type SolverRunner(proxy : SolverProxy, q : RunQueueId) =
 
         let logger = Logger.defaultValue
@@ -263,15 +258,28 @@ module SolverRunnerTasks =
             proxy.runSolver()
             printfn "SolverRunner.run - completed."
 
+
+    let getProgress (w : WorkerNodeRunModelData) s p =
+        {
+            runQueueId = w.runningProcessData.runQueueId
+            updatedRunQueueStatus = s
+            progressData = p
+        }
+
+
+    let logIfFailed (proxy : SolverRunnerProxy) q errMessage result =
+        match result with
+        | Ok() -> ()
+        | Error e -> SolverRunnerCriticalError.create q ($"{errMessage} + : + {e}") |> proxy.logCrit |> ignore
+
+
+    let updateFinalProgress (proxy : SolverRunnerProxy) q errMessage = proxy.solverUpdateProxy.updateProgress >> (logIfFailed proxy q errMessage)
+
+
     let runSolver (proxy : SolverRunnerProxy) (w : WorkerNodeRunModelData) =
         let q = w.runningProcessData.runQueueId
-
-        let logIfFailed errMessage result =
-            match result with
-            | Ok() -> ()
-            | Error e -> SolverRunnerCriticalError.create q ($"{errMessage} + : + {e}") |> proxy.logCrit |> ignore
-
-        let updateFinalProgress errMessage = proxy.solverUpdateProxy.updateProgress >> (logIfFailed errMessage)
+        let logIfFailed = logIfFailed proxy q
+        let updateFinalProgress = updateFinalProgress proxy q
         let runSolverData = RunSolverData.create w proxy.solverUpdateProxy
         let data = getNSolveParam runSolverData w
         let getChartData() = runSolverData.chartDataUpdater.getContent()
@@ -292,13 +300,6 @@ module SolverRunnerTasks =
             printfn $"notifyOfResults completed with result: %A{chartResult}"
             chartResult
 
-        let getProgress s p =
-            {
-                runQueueId = w.runningProcessData.runQueueId
-                updatedRunQueueStatus = s
-                progressData = p
-            }
-
         let runSolverImpl() =
             try
                 // Uncomment temporarily when you need to test cancellations.
@@ -310,7 +311,7 @@ module SolverRunnerTasks =
                 let result = notifyOfCharts RegularChartGeneration
 
                 printfn $"runSolver: Notifying of completion for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
-                let completedResult = (Some RunQueueStatus.CompletedRunQueue, nSolveResult.progressData) ||> getProgress |> proxy.solverUpdateProxy.updateProgress
+                let completedResult = (Some RunQueueStatus.CompletedRunQueue, nSolveResult.progressData) ||> getProgress w |> proxy.solverUpdateProxy.updateProgress
                 combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn $"runSolver: All completed for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
             with
@@ -323,13 +324,13 @@ module SolverRunnerTasks =
                 match r with
                 | CancelWithResults e ->
                     notifyOfCharts ForceChartGeneration |> logIfFailed "Unable to send charts."
-                    getProgress (Some CompletedRunQueue) p
+                    getProgress w (Some CompletedRunQueue) p
                 | AbortCalculation e ->
-                    getProgress (Some CancelledRunQueue) p
+                    getProgress w (Some CancelledRunQueue) p
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
             | e ->
                 let p = { ProgressData.defaultValue with errorMessageOpt = $"{e}" |> ErrorMessage |> Some }
-                getProgress (Some FailedRunQueue) p |> (updateFinalProgress "getSolverRunner - Exception occurred.")
+                getProgress w (Some FailedRunQueue) p |> (updateFinalProgress "getSolverRunner - Exception occurred.")
 
         let proxy =
             {

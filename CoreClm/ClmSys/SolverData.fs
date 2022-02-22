@@ -7,9 +7,9 @@ open ClmSys.SolverRunnerPrimitives
 module SolverData =
 
     let estimateEndTime progress (started : DateTime) =
-        if progress >= 0.0 && progress <= 1.0
+        if progress > 0.0m && progress <= 1.0m
         then
-            let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / (decimal progress) |> int64 |> TimeSpan.FromTicks
+            let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / progress |> int64 |> TimeSpan.FromTicks
             started.Add estRunTime |> Some
         else None
 

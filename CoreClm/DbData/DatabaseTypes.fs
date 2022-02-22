@@ -22,7 +22,7 @@ open ClmSys.WorkerNodeData
 open ClmSys.PartitionerData
 
 // ! Must be the last to open !
-open Configuration
+open DbData.Configuration
 
 module DatabaseTypes =
 

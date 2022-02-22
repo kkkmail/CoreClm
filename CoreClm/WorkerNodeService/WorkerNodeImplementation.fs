@@ -20,22 +20,14 @@ open WorkerNodeServiceInfo.ServiceInfo
 open WorkerNodeService.SvcCommandLine
 open ServiceProxy.MsgServiceProxy
 open MessagingServiceInfo.ServiceInfo
-open Clm.ModelParams
 open ServiceProxy.WorkerNodeProxy
 open ServiceProxy.MsgProcessorProxy
 open ClmSys.ClmErrors
-open ClmSys.ContGenPrimitives
-open ClmSys.PartitionerPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeErrors
 open ClmSys.WorkerNodePrimitives
-open ServiceProxy.SolverRunner
-open SolverRunner.SolverRunnerTasks
-open ClmSys.SolverRunnerPrimitives
-open ClmSys.MessagingData
 open ServiceProxy.SolverProcessProxy
 open DbData.Configuration
-open DbData.WorkerNodeDatabaseTypes
 
 module ServiceImplementation =
 
@@ -123,10 +115,10 @@ module ServiceImplementation =
                 | Ok() ->
                     printfn $"    onProcessMessage: saveWorkerNodeRunModelData with runQueueId: {d.runningProcessData.runQueueId} - OK."
                     let result = proxy.onRunModel d.runningProcessData.runQueueId
-                    printfn $"    onProcessMessage: onRunModel with runQueueId: {d.runningProcessData.runQueueId} - {result}."
+                    printfn $"    onProcessMessage: onRunModel with runQueueId: {d.runningProcessData.runQueueId} - %A{result}."
                     result
                 | Error e ->
-                    printfn $"    onProcessMessage: saveWorkerNodeRunModelData with runQueueId: {d.runningProcessData.runQueueId} ERROR: {e}."
+                    printfn $"    onProcessMessage: saveWorkerNodeRunModelData with runQueueId: {d.runningProcessData.runQueueId} ERROR: %A{e}."
                     addError OnProcessMessageErr (CannotSaveModelDataErr (m.messageDataInfo.messageId, d.runningProcessData.runQueueId)) e
             | CancelRunWrkMsg q -> q ||> proxy.requestCancellation
             | RequestResultWrkMsg q -> q ||> proxy.notifyOfResults
@@ -139,27 +131,6 @@ module ServiceImplementation =
 
     let onGetState (s : WorkerNodeRunnerState) =
         failwith "onGetState is not implemented yet."
-
-
-//    let onConfigureWorker (proxy : OnConfigureWorkerProxy) (s : WorkerNodeRunnerState) d =
-//        match d with
-//        | WorkerNumberOfSores c ->
-//            let cores = max 0 (min c (2 * Environment.ProcessorCount))
-//
-//            let send() =
-//                {
-//                    partitionerRecipient = proxy.sendMessageProxy.partitionerId
-//                    deliveryType = GuaranteedDelivery
-//                    messageData = { proxy.workerNodeInfo with noOfCores = cores } |> RegisterWorkerNodePrtMsg
-//                }.getMessageInfo()
-//                |> proxy.sendMessageProxy.sendMessage
-//
-//            let w, result =
-//                match send() with
-//                | Ok() -> { s with numberOfWorkerCores = cores }, Ok()
-//                | Error e -> s, Error e
-//
-//            w, result
 
 
     let sendMessageProxy i =
@@ -182,14 +153,10 @@ module ServiceImplementation =
         | Unregister of AsyncReplyChannel<UnitResult>
         | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
         | GetState of AsyncReplyChannel<WorkerNodeMonitorResponse>
-//        | ConfigureWorker of AsyncReplyChannel<UnitResult> * WorkerNodeConfigParam
 
 
     type WorkerNodeRunner(i : WorkerNodeRunnerData) =
         let onRegisterProxy = onRegisterProxy i
-//        let onUpdateProgressProxy = onUpdateProgressProxy i
-        let onConfigureWorkerProxy = onRegisterProxy
-        let sendMessageProxy = sendMessageProxy i
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->
@@ -202,7 +169,6 @@ module ServiceImplementation =
                             | Unregister r -> return! onUnregister onRegisterProxy s |> (withReply r) |> loop
                             | GetMessages (p, r) -> return! onGetMessages p s |> (withReply r) |> loop
                             | GetState r -> return! onGetState s |> (withReply r) |> loop
-//                            | ConfigureWorker (r, d) -> return! onConfigureWorker onConfigureWorkerProxy s d |> (withReply r) |> loop
                         }
 
                 WorkerNodeRunnerState.defaultValue |> loop
@@ -213,15 +179,14 @@ module ServiceImplementation =
         member _.unregister() = messageLoop.PostAndReply Unregister
         member w.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages (w.onGetMessagesProxy, reply))
         member _.getState() = messageLoop.PostAndReply GetState
-//        member _.configure d = messageLoop.PostAndReply (fun r -> ConfigureWorker (r, d))
 
-        member w.onStartProxy =
+        member _.onStartProxy =
             {
                 loadAllActiveRunQueueId = i.workerNodeProxy.loadAllActiveRunQueueId
                 onRunModel = i.workerNodeProxy.onProcessMessageProxy.onRunModel
             }
 
-        member w.onGetMessagesProxy =
+        member _.onGetMessagesProxy =
             {
                 tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
                 onProcessMessage = fun w m -> w, onProcessMessage i.workerNodeProxy.onProcessMessageProxy m
@@ -285,6 +250,7 @@ module ServiceImplementation =
                             communicationType = NetTcpCommunication
                             msgClientProxy = createMessagingClientProxy j messagingClientAccessInfo.msgClientId
                             expirationTime = MessagingClientData.defaultExpirationTime
+                            logOnError = true
                         }
 
                     let messagingClient = MessagingClient messagingClientData

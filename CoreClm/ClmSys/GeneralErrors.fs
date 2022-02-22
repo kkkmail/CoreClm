@@ -6,6 +6,7 @@ open System.Runtime.InteropServices
 open GeneralPrimitives
 open WorkerNodePrimitives
 open ContGenPrimitives
+open Softellect.Sys.MessagingPrimitives
 
 /// Collection of general errors & related functionality.
 module GeneralErrors =
@@ -100,11 +101,15 @@ module GeneralErrors =
         | TryCancelRunQueueErr of RunQueueId
         | TryFailRunQueueErr of RunQueueId
         | TryPickRunQueueErr
-        | TryLoadRunQueueErr of RunQueueId
+        | TryLoadRunQueueErr of RunQueueId * string
         | TryRequestCancelRunQueueErr of RunQueueId
         | TryNotifyRunQueueErr of RunQueueId
         | TryUpdateProgressRunQueueErr of RunQueueId
         | TryClearNotificationErr of RunQueueId
+        | TryCheckCancellationErr of RunQueueId
+        | TryCheckNotificationErr of RunQueueId
+        | MessagingSvcSaveMessageErr of MessageId
+        | MessagingSvcCannotDeleteMessageErr of MessageId
 
     type ServiceInstallerError =
         | InstallServiceErr of exn

@@ -71,9 +71,10 @@ module ServiceInfo =
         member r.isValid (d : EarlyExitData) =
             match r with
             | ProgressExceeds p -> d.progress > p, $"progress: %A{d.progress} > %A{p}"
-            | MaxWeightedAverageAbsEeExceeds e -> d.maxWeightedAverageAbsEe > e, $"maxWeightedAverageAbsEe: %A{d.maxWeightedAverageAbsEe} > %A{e}"
-            | MaxLastEeExceeds e -> d.maxLastEe > e, $"maxLastEe: %A{d.maxLastEe} > %A{e}"
-            | MaxAverageEeExceeds e -> d.maxAverageEe > e, $"maxAverageEe: %A{d.maxAverageEe} > %A{e}"
+            | MaxWeightedAverageAbsEeExceeds e ->
+                d.eeData.maxWeightedAverageAbsEe > e, $"maxWeightedAverageAbsEe: %A{d.eeData.maxWeightedAverageAbsEe} > %A{e}"
+            | MaxLastEeExceeds e -> d.eeData.maxLastEe > e, $"maxLastEe: %A{d.eeData.maxLastEe} > %A{e}"
+            | MaxAverageEeExceeds e -> d.eeData.maxAverageEe > e, $"maxAverageEe: %A{d.eeData.maxAverageEe} > %A{e}"
             | RunTimeExceeds e -> (DateTime.Now - d.startedOn) > e, $"runTime exceeds: {e}"
             ||> bindBool
 

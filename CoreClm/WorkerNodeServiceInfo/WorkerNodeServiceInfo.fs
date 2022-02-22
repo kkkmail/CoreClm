@@ -260,6 +260,7 @@ module ServiceInfo =
             tryGetServicePort : 'P -> ServicePort option
             tryGetMsgServiceAddress : 'P -> ServiceAddress option
             tryGetMsgServicePort : 'P -> ServicePort option
+            tryGetForce : 'P -> bool option // TODO kk:20211123 - Not yet fully implemented.
         }
 
 
@@ -300,7 +301,7 @@ module ServiceInfo =
 
                             noOfCores =
                                 let n = proxy.tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
-                                max 0 (min n (2 * Environment.ProcessorCount))
+                                max 0 (min n (8 * Environment.ProcessorCount))
 
                             nodePriority =
                                 match w.workerNodeInfo.nodePriority.value with

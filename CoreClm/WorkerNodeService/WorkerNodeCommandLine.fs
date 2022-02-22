@@ -28,6 +28,7 @@ module SvcCommandLine =
         | [<Unique>] [<AltCommandLine("-id")>] WrkMsgCliId of Guid
         | [<Unique>] [<AltCommandLine("-p")>] WrkPartitioner of Guid
         | [<Unique>] [<AltCommandLine("-i")>] WrkInactive of bool
+        | [<Unique>] [<AltCommandLine("-f")>] WrkForce of bool
 
     with
         interface IArgParserTemplate with
@@ -46,6 +47,7 @@ module SvcCommandLine =
                 | WrkMsgCliId _ -> "messaging client id of current worker node service."
                 | WrkPartitioner _ -> "messaging client id of a partitioner service."
                 | WrkInactive _ -> "if true then worker node is inactive and it will unregister itself from the cluster."
+                | WrkForce _ -> "if true then forces to accept parameters, which otherwise would've been corrected by the system."
 
 
     type WorkerNodeServiceArgs = WorkerArguments<WorkerNodeServiceRunArgs>
@@ -84,6 +86,7 @@ module SvcCommandLine =
             tryGetServicePort = fun p -> p |> List.tryPick (fun e -> match e with | WrkSvcPort p -> p |> ServicePort |> Some | _ -> None)
             tryGetMsgServiceAddress = fun p -> p |> List.tryPick (fun e -> match e with | WrkMsgSvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
             tryGetMsgServicePort = fun p -> p |> List.tryPick (fun e -> match e with | WrkMsgSvcPort p -> p |> ServicePort |> Some | _ -> None)
+            tryGetForce = fun p -> p |> List.tryPick (fun e -> match e with | WrkForce p -> Some p | _ -> None)
         }
 
 

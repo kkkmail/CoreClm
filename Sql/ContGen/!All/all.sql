@@ -96,7 +96,7 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL,
 		[errorMessage] nvarchar(max) NULL,
-		[progress] [float] NOT NULL,
+		[progress] [decimal](18, 14) NOT NULL,
 		[callCount] [bigint] NOT NULL,
 		[yRelative] [float] NOT NULL,
 		[maxEe] [float] NOT NULL,
@@ -277,6 +277,15 @@ go
 
 
 
+
+drop view if exists vw_newid
+go
+
+
+create view vw_newid
+as
+select newid() as new_id
+go
 
 --declare @clmDefaultValueId bigint
 --set @clmDefaultValueId = 4005000020
@@ -1094,6 +1103,45 @@ begin
 	return @retval
 end
 go
+drop function if exists dbo.getAvailableWorkerNode
+go
+
+
+create function dbo.getAvailableWorkerNode(@lastAllowedNodeErrInMinutes int)
+returns table
+as
+return
+(
+	with a as
+	(
+	select
+		workerNodeId
+		,nodePriority
+		,cast(
+			case
+				when numberOfCores <= 0 then 1
+				else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
+			end as money) as workLoad
+		,case when lastErrorOn is null or dateadd(minute, @lastAllowedNodeErrInMinutes, lastErrorOn) < getdate() then 0 else 1 end as noErr
+	from WorkerNode w
+	where isInactive = 0
+	),
+	b as
+	(
+		select
+			a.*, 
+			c.new_id
+			from a
+			cross apply (select new_id from vw_newid) c
+	)
+	select top 1
+	workerNodeId
+	from b
+	where noErr = 0 and workLoad < 1
+	order by nodePriority desc, workLoad, new_id
+)
+go
+
 drop function if exists dbo.getCatDestrScarcity
 go
 
@@ -2135,12 +2183,13 @@ begin
 			and c.[key] = 'Fields'
 			and e.[key] = 'Fields'
 
-			-- Can't yet get it better that this:
+			-- Can't yet get it better than this:
 			and b.[key] = 4
 
 			and g.[key] = 'backwardScale'
 			and h.[key] = 'Fields'
 	)
+
 	select @retval = cast(t1.[value] as float)
 	from t1
 
@@ -2177,13 +2226,64 @@ begin
 			and c.[key] = 'Fields'
 			and e.[key] = 'Fields'
 
-			-- Can't yet get it better that this:
+			-- Can't yet get it better than this:
 			and b.[key] = 4
 
 			and g.[key] = 'forwardScale'
 			and h.[key] = 'Fields'
 	)
 
+	select @retval = cast(t1.[value] as float)
+	from t1
+
+	return @retval
+end
+go
+--declare @clmDefaultValueId bigint
+--set @clmDefaultValueId = 4005000110
+
+drop function if exists dbo.getSugarScarcity
+go
+
+create function dbo.getSugarScarcity(@clmDefaultValueId bigint)
+returns float
+as
+begin
+	declare @json nvarchar(max), @retVal float
+	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+
+	;with t1 as
+	(
+		select m.[value] as [value]
+		--select a.[key] as aKey, b.[key] as bKey, g.[key] as gKey, i.[value] as iValue, j.[value] as jValue, k.[key] as kKey, k.[value] as kValue, l.[key] as lKey, l.[value] as lValue, m.[value] as mValue
+		from openjson(@json) a
+			cross apply openjson(a.[value]) as b
+			cross apply openjson(b.[value]) as c
+			cross apply openjson(c.[value]) as d
+			cross apply openjson(d.[value]) as e
+			cross apply openjson(e.[value]) as f
+			cross apply openjson(f.[value]) as g
+			cross apply openjson(g.[value]) as h
+			cross apply openjson(h.[value]) as i
+			cross apply openjson(i.[value]) as j
+			cross apply openjson(j.[value]) as k
+			cross apply openjson(k.[value]) as l
+			cross apply openjson(l.[value]) as m
+		where
+			a.[key] = 'rateParams'
+			and c.[key] = 'Fields'
+			and e.[key] = 'Fields'
+
+			-- Can't yet get it better than this:
+			--and b.[key] = 4
+
+			and g.[key] = 'sugarSynthesisDistribution'
+			and h.[key] = 'Fields'
+			and k.[key] = 'threshold'
+			and l.[key] = 'Fields'
+	)
+
+	--select * from t1
 	select @retval = cast(t1.[value] as float)
 	from t1
 
@@ -2219,6 +2319,184 @@ begin
 	return @retVal
 end
 go
+drop view if exists vw_AvailableWorkerNode
+go
+
+
+create view vw_AvailableWorkerNode
+as
+with a as
+(
+select
+	workerNodeId
+	,nodePriority
+	,isnull(cast(
+		case
+			when numberOfCores <= 0 then 1
+			else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
+		end as money), 0) as workLoad
+	,case when lastErrorOn is null then null else datediff(minute, getdate(), lastErrorOn) end as lastErrMinAgo
+from WorkerNode w
+where isInactive = 0
+)
+select
+	a.*, 
+	c.new_id as OrderId
+	from a
+	cross apply (select new_id from vw_newid) c
+
+go
+
+drop procedure if exists deleteRunQueue
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure deleteRunQueue @runQueueId uniqueidentifier
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+	delete from dbo.RunQueue where runQueueId = @runQueueId
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists tryResetRunQueue
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure tryResetRunQueue @runQueueId uniqueidentifier
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+	update dbo.RunQueue
+	set
+		runQueueStatusId = 0,
+		errorMessage = null,
+		workerNodeId = null,
+		startedOn = null,
+		modifiedOn = getdate()
+	where runQueueId = @runQueueId and runQueueStatusId = 4
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists updateClmTask
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure updateClmTask
+		@clmTaskId uniqueidentifier,
+		@remainingRepetitions int
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    update dbo.ClmTask
+    set remainingRepetitions = @remainingRepetitions
+    where clmTaskId = @clmTaskId
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists upsertClmDefaultValue
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure upsertClmDefaultValue 
+		@clmDefaultValueId bigint,
+		@defaultRateParams nvarchar(max),
+		@description nvarchar(max)
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    merge ClmDefaultValue as target
+    using (select @clmDefaultValueId, @defaultRateParams, @description) as source (clmDefaultValueId, defaultRateParams, description)
+    on (target.clmDefaultValueId = source.clmDefaultValueId)
+    when not matched then
+        insert (clmDefaultValueId, defaultRateParams, description)
+        values (source.clmDefaultValueId, source.defaultRateParams, source.description)
+    when matched then
+        update set defaultRateParams = source.defaultRateParams, description = source.description;
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists upsertModelData
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure upsertModelData 
+		@modelDataId uniqueidentifier, 
+		@clmTaskId uniqueidentifier, 
+		@seedValue int, 
+		@modelDataParams nvarchar(max), 
+		@modelBinaryData varbinary(max), 
+		@createdOn datetime
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    merge ModelData as target
+    using (select @modelDataId, @clmTaskId, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
+    as source (modelDataId, clmTaskId, seedValue, modelDataParams, modelBinaryData, createdOn)
+    on (target.modelDataId = source.modelDataId)
+    when not matched then
+        insert (modelDataId, clmTaskId, seedValue, modelDataParams, modelBinaryData, createdOn)
+        values (source.modelDataId, source.clmTaskId, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
+    when matched then
+        update set clmTaskId = source.clmTaskId, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
 IF OBJECT_ID('[dbo].[DeliveryType]') IS NULL begin
 	print 'Creating table [dbo].[DeliveryType] ...'
 
@@ -2259,6 +2537,87 @@ IF OBJECT_ID('[dbo].[Message]') IS NULL begin
 	ALTER TABLE [dbo].[Message] CHECK CONSTRAINT [FK_Message_DeliveryType]
 end else begin
 	print 'Table [dbo].[Message] already exists ...'
+end
+go
+
+drop procedure if exists deleteExpiredMessages
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure deleteExpiredMessages (@dataVersion int, @createdOn datetime)
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    delete from dbo.Message
+    where
+        deliveryTypeId = 1
+        and dataVersion = @dataVersion
+        and createdOn < @createdOn
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists deleteMessage
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure deleteMessage @messageId uniqueidentifier
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+	delete from dbo.Message where messageId = @messageId
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists saveMessage
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure saveMessage (
+					@messageId uniqueidentifier,
+					@senderId uniqueidentifier,
+					@recipientId uniqueidentifier,
+					@dataVersion int,
+					@deliveryTypeId int,
+					@messageData varbinary(max))
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+	insert into Message (messageId, senderId, recipientId, dataVersion, deliveryTypeId, messageData, createdOn)
+	select @messageId, @senderId, @recipientId, @dataVersion, @deliveryTypeId, @messageData, getdate()
+	where not exists (select 1 from Message where messageId = @messageId)
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
 end
 go
 

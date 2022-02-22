@@ -28,7 +28,7 @@ begin
 			and c.[key] = 'Fields'
 			and e.[key] = 'Fields'
 
-			-- Can't yet get it better that this:
+			-- Can't yet get it better than this:
 			and b.[key] = 4
 
 			and g.[key] = 'forwardScale'

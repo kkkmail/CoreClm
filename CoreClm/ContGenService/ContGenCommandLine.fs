@@ -157,6 +157,7 @@ module SvcCommandLine =
                 communicationType = NetTcpCommunication
                 msgClientProxy = createMessagingClientProxy i d.msgClientId
                 expirationTime = MessagingClientData.defaultExpirationTime
+                logOnError = true
             }
 
         printfn "tryGetContGenServiceData::Calling MessagingClient messagingClientData..."

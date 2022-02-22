@@ -125,7 +125,7 @@ module ContGenAdmTasks =
             | MonitorTask p -> monitor p
             | ModifyRunQueueTask p -> tryModifyRunQueueImpl logger p
 
-        static member private tryCreateUpdateParametersTask p =
+        static member private tryCreateAddClmTaskTask p =
             p |> List.tryPick (fun e -> match e with | AddClmTask q -> q.GetAllResults() |> AddClmTaskTask |> Some | _ -> None)
 
         static member private tryCreateMonitorTask p =
@@ -136,7 +136,7 @@ module ContGenAdmTasks =
 
         static member tryCreate p =
             [
-                ContGenAdmTask.tryCreateUpdateParametersTask
+                ContGenAdmTask.tryCreateAddClmTaskTask
                 ContGenAdmTask.tryCreatModifyRunQueueTask
                 ContGenAdmTask.tryCreateMonitorTask
             ]

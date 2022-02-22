@@ -189,6 +189,12 @@ module Defaults_004_005_000 =
     let data =
             let d = DefaultDataParam.defaultValue
 
+            let d105 = { d with
+                                acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                                acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                                acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                                acCatDestrSimilarity = d.acCatDestrSimilarity * 0.0 } // 105
+
             [
                 DefaultDataParam.zero               // 0
                 DefaultDataParam.zero01             // 1
@@ -528,6 +534,48 @@ module Defaults_004_005_000 =
 
                 // ===============================================================
 
+                { d105 with sugarScarcity = d105.sugarScarcity * 0.2 }         // 115
+                { d105 with sugarScarcity = d105.sugarScarcity * 0.5 }         // 116
+                { d105 with sugarScarcity = d105.sugarScarcity * 2.0 }         // 117
+                { d105 with sugarScarcity = d105.sugarScarcity * 5.0 }         // 118
+
+                // ===============================================================
+                // 3 pair of parameters (acCatSynth, acFwdCatLig, acBkwCatLig) set to 0.
+                // See 96 - 104 above.
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.1 }   // 119
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.2 }   // 120
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.3 }   // 121
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.4 }   // 122
+
+                // acCatDestrScarcity is effectively zero but not exactly zero to distinguish from exact zero
+                // which EXCLUDES generation of relevant reactions.
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.000_000_001 }   // 123
+
+                { d with acCatSynthScarcity = d.acCatSynthScarcity * 0.0
+                         acFwdCatLigScarcity = d.acFwdCatLigScarcity * 0.0
+                         acBkwCatLigScarcity = d.acBkwCatLigScarcity * 0.0
+                         acCatDestrScarcity = d.acCatDestrScarcity * 0.05 }  // 124
+
+                // ===============================================================
             ]
             |> withRowNumberUniqueOrFail
 
@@ -577,7 +625,7 @@ module Defaults_004_005_000 =
                     destrParam |> DestructionRateParam
                     ligParam |> LigationRateParam
 
-                    if e.sugarForward > 0.0
+                    if e.sugarForward > 0.0 && e.sugarScarcity > 0.0
                     then
                         sugParam |> SugarSynthesisRateParam
 

@@ -51,7 +51,7 @@ module SolverRunnerPrimitives =
 
     type ProgressData =
         {
-            progress : double
+            progress : decimal
             callCount : int64
             yRelative : double
             eeData : EeData
@@ -60,7 +60,7 @@ module SolverRunnerPrimitives =
 
         static member defaultValue =
             {
-                progress = 0.0
+                progress = 0.0m
                 callCount = 0L
                 yRelative = 1.0
                 eeData = EeData.defaultValue

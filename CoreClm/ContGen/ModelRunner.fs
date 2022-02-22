@@ -214,12 +214,12 @@ module ModelRunner =
 
     type ProcessMessageProxy
         with
-        static member create c resultLocation =
+        static member create c p resultLocation =
             {
-                updateProgress = updateProgress (UpdateProgressProxy.create c)
+                updateProgress = updateProgress (UpdateProgressProxy.create c p)
                 saveCharts = saveCharts (SaveChartsProxy.create resultLocation)
                 register = register (RegisterProxy.create c)
-                unregister = unregister (UnregisterProxy.create c)
+                unregister = unregister (UnregisterProxy.create c p)
             }
 
 
@@ -269,8 +269,8 @@ module ModelRunner =
             }
 
 
-    let onGetMessagesProxy c resultLocation w : OnGetMessagesProxy<unit> =
-        let proxy = ProcessMessageProxy.create c resultLocation
+    let onGetMessagesProxy c p resultLocation w : OnGetMessagesProxy<unit> =
+        let proxy = ProcessMessageProxy.create c p resultLocation
         let p () m = (), processMessage proxy m
 
         {
@@ -297,7 +297,7 @@ module ModelRunner =
         let tryCancelRunQueueProxy = TryCancelRunQueueProxy.create i.runnerData.getConnectionString i.messageProcessorProxy.sendMessage
         let tryRequestResultsProxy = TryRequestResultsProxy.create i.runnerData.getConnectionString i.messageProcessorProxy.sendMessage
         let tryResetProxy : TryResetProxy = TryResetProxy.create i.runnerData.getConnectionString
-        let proxy = onGetMessagesProxy i.runnerData.getConnectionString c.resultLocation i.messageProcessorProxy
+        let proxy = onGetMessagesProxy i.runnerData.getConnectionString c.partitionerId c.resultLocation i.messageProcessorProxy
 
         let messageLoop =
             MailboxProcessor.Start(fun u ->

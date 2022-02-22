@@ -28,3 +28,9 @@ module ExitErrorCodes =
 
     [<Literal>]
     let TooManySolversRunning = -8
+
+    [<Literal>]
+    let InvalidRunQueueStatus = -9
+
+    [<Literal>]
+    let NotProcessedCancellation = -10

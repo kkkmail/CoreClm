@@ -31,6 +31,16 @@ module WorkerNodeDatabaseTypes =
         | false -> toError f q
 
 
+    type private WorkerNodeDb = SqlDataProvider<
+                    Common.DatabaseProviderTypes.MSSQLSERVER,
+                    ConnectionString = WorkerNodeConnectionStringValue,
+                    UseOptionTypes = true>
+
+
+    type private WorkerNodeContext = WorkerNodeDb.dataContext
+    let private getWorkerNodeContext (c : unit -> ConnectionString) = c().value |> WorkerNodeDb.GetDataContext
+
+
     type WorkerNodeDB = SqlProgrammabilityProvider<WorkerNodeSqlProviderName, ConfigFile = AppConfigFile>
     type RunQueueTable = WorkerNodeDB.dbo.Tables.RunQueue
     type RunQueueTableRow = RunQueueTable.Row
