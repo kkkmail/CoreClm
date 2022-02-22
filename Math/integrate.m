@@ -318,7 +318,7 @@ zeroRules := { \[Delta]u[x_] :> 0, \[Delta] :> 0, \[CapitalDelta] :> 0 };
 \[CapitalDelta]nFunc[x_] := (2 L x)/(1 + Sqrt[1 + 4 x^2]);
 
 (* ============================================== *)
-
+(* Changes integrate into Integrate from -Infinity to Infinity *)
 toIntegrate[i_, assum___] := Apply[Plus, toIntegrate[Evaluate[#], assum] & /@ Apply[List, i]] /; ToString[Head[i]] == "Plus";
 toIntegrate[i_, assum___] := Apply[Times, toIntegrate[Evaluate[#], assum] & /@ Apply[List, i]] /; ToString[Head[i]] == "Times";
 
@@ -335,6 +335,23 @@ toIntegrate[i_, assum___] :=
 toIntegrate[i_, assum___] := i /; (ToString[Head[i]] != "integrate" && ToString[Head[i]] != "Plus" && ToString[Head[i]] != "Times");
 
 (* ============================================== *)
+(* Changes integrate into Integrate from -1 to 1 *)
+toIntegrate2[i_, assum___] := Apply[Plus, toIntegrate2[Evaluate[#], assum] & /@ Apply[List, i]] /; ToString[Head[i]] == "Plus";
+toIntegrate2[i_, assum___] := Apply[Times, toIntegrate2[Evaluate[#], assum] & /@ Apply[List, i]] /; ToString[Head[i]] == "Times";
+
+toIntegrate2[i_, assum___] :=
+    Module[{retVal, lst, param},
+      lst = Apply[List, i];
+      param = Join[{ lst[[1]] }, ( { #, -1, 1 } ) & /@ Drop[lst, 1]];
+      If[Length[{ assum }] > 0, param = Join[param, { Assumptions -> assum }]];
+      (* Print["toIntegrate :: param = ", param]; *)
+      retVal = Apply[Integrate, param];
+      Return[retVal];
+    ] /; ToString[Head[i]] == "integrate";
+
+toIntegrate2[i_, assum___] := i /; (ToString[Head[i]] != "integrate2" && ToString[Head[i]] != "Plus" && ToString[Head[i]] != "Times");
+
+(* ============================================== *)
 (* Sqrt simplification *)
 
 (* sqrtNotNormalized[x_] *)
@@ -343,5 +360,35 @@ sqrtInvRule[sqrtFunc_] := { sqrtFunc[x_] :> Sqrt[x] }
 (* applySqrt[sqrtFunc_, x__] := Apply[Times, (sqrtFunc[#]) & /@  Apply[List, x]] /; ToString[Head[x]] == "Times"; *)
 sqrt[x__] := Apply[Times, (sqrt[#]) & /@  Apply[List, x]] /; ToString[Head[x]] == "Times";
 simplifySqrt[expr_] := ToExpression[ToString[InputForm[expr] /. sqrtFwdRule[sqrt]]] /. sqrtInvRule[sqrt];
+
+(* ============================================== *)
+(* https://mathematica.stackexchange.com/questions/257742/eigenvalue-problem-for-fredholm-integral *)
+
+fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
+    Module[{len, val, vec, nodes, weights, midgrid, mm, vec1, s,vecNew},
+        {nodes, weights} = Most[NIntegrate`GaussRuleData[noOfPoints, MachinePrecision]];
+        midgrid = Rescale[nodes, {0, 1}, domain];
+        len = Length[midgrid];
+        (* Print["midgrid = ", midgrid // MatrixForm]; *)
+        (* Print["integrand[0,0] = ", integrand[0.0, 0.0]]; *)
+        mm = Table[integrand[midgrid[[i]], midgrid[[j]]] * weights[[i]], {i, len}, {j, len}];
+        (* Print["mm = ", mm // MatrixForm]; *)
+        {val, vec} = Eigensystem[mm];
+        (* Print["val = ", val // MatrixForm]; *)
+        (* Print["vec = ", vec // MatrixForm]; *)
+        vec1 = vec[[1]];
+        s = Sum[vec1[[ii]], {ii, Floor[(len / 2)] + 1, len}];
+        (* Print["s = ", s]; *)
+        (* Print["vec1 = ", vec1]; *)
+
+        vecNew = Table[
+            (
+                vec1 = vec[[ii]];
+                s = Sum[vec1[[jj]], {jj, Floor[(len/2)] + 1, len}];
+                If[s >= 0, vec1, -vec1]
+            ), {ii, len}];
+
+        Return[{val, vecNew}];
+    ];
 
 (* ============================================== *)
