@@ -365,7 +365,7 @@ simplifySqrt[expr_] := ToExpression[ToString[InputForm[expr] /. sqrtFwdRule[sqrt
 (* https://mathematica.stackexchange.com/questions/257742/eigenvalue-problem-for-fredholm-integral *)
 
 fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
-    Module[{len, val, vec, nodes, weights, midgrid, mm, vec1, s,vecNew},
+    Module[{len, val, vec, nodes, weights, midgrid, mm, vec1, s1,s2,vecNew},
         {nodes, weights} = Most[NIntegrate`GaussRuleData[noOfPoints, MachinePrecision]];
         midgrid = Rescale[nodes, {0, 1}, domain];
         len = Length[midgrid];
@@ -384,8 +384,9 @@ fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
         vecNew = Table[
             (
                 vec1 = vec[[ii]];
-                s = Sum[Re[vec1[[jj]]], {jj, Floor[(len/2)] + 1, len}];
-                If[s >= 0, vec1, -vec1]
+                s1 = Sum[Re[vec1[[jj]]], {jj, 1, Floor[(len/2)]}];
+                s2 = Sum[Re[vec1[[jj]]], {jj, Floor[(len/2)] + 1, len}];
+                If[Abs[s1] > Abs[s2], If[s1 >= 0, vec1, -vec1], If[s2 >= 0, vec1, -vec1]]
             ), {ii, len}];
 
         Return[{val, vecNew}];
