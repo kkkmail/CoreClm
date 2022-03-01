@@ -364,22 +364,44 @@ simplifySqrt[expr_] := ToExpression[ToString[InputForm[expr] /. sqrtFwdRule[sqrt
 (* ============================================== *)
 (* https://mathematica.stackexchange.com/questions/257742/eigenvalue-problem-for-fredholm-integral *)
 
+fredholmPrecision = 200;
+
+getMidGridAndWeights[noOfPoints_?IntegerQ, domain : {_, _}] :=
+      Module[{nodes, weights, midGrid},
+          {nodes, weights} = Most[NIntegrate`GaussRuleData[noOfPoints, fredholmPrecision]];
+          midGrid = Rescale[nodes, {0, 1}, domain];
+          Return[SetPrecision[{midGrid, weights}, fredholmPrecision]];
+      ];
+
+getMidGridAndWeights1[noOfPoints_?IntegerQ, domain : {_, _}] :=
+    Module[{weights, midGrid, step, start},
+        step = SetPrecision[(domain[[2]] - domain[[1]]) / noOfPoints, fredholmPrecision];
+        start = SetPrecision[domain[[1]] + step / 2, fredholmPrecision];
+        midGrid = SetPrecision[Table[start + step * ii, {ii, 0, noOfPoints - 1}], fredholmPrecision];
+        weights = SetPrecision[Table[step, {ii, 1, noOfPoints}], fredholmPrecision];
+        Return[{midGrid, weights}];
+    ];
+
 fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
-    Module[{len, val, vec, nodes, weights, midgrid, mm, vec1, s1,s2,vecNew},
-        {nodes, weights} = Most[NIntegrate`GaussRuleData[noOfPoints, MachinePrecision]];
-        midgrid = Rescale[nodes, {0, 1}, domain];
-        len = Length[midgrid];
-        (* Print["midgrid = ", midgrid // MatrixForm]; *)
+    Module[{len, val, vec, weights, midGrid, mm, vec1, s1,s2,vecNew},
+        {midGrid, weights} = getMidGridAndWeights[noOfPoints, domain];
+        len = Length[midGrid];
+        (* Print["midGrid = ", midGrid // MatrixForm]; *)
         (* Print["integrand[0,0] = ", integrand[0.0, 0.0]]; *)
-        mm = Table[integrand[midgrid[[i]], midgrid[[j]]] * weights[[i]], {i, len}, {j, len}];
+
+        Print["midGrid[[1]] = ", FullForm[midGrid[[1]]]];
+        Print["weights[[1]] = ", FullForm[weights[[1]]]];
+
+        mm = Table[SetPrecision[integrand[SetPrecision[midGrid[[i]], fredholmPrecision], SetPrecision[midGrid[[j]], fredholmPrecision]] * SetPrecision[weights[[i]], fredholmPrecision], fredholmPrecision], {i, len}, {j, len}];
         (* Print["mm = ", mm // MatrixForm]; *)
+
+        Print["mm[[1, 1]] = ", mm[[1, 1]]];
         {val, vec} = Eigensystem[mm];
         (* Print["val = ", val // MatrixForm]; *)
         (* Print["vec = ", vec // MatrixForm]; *)
         vec1 = vec[[1]];
         s = Sum[vec1[[ii]], {ii, Floor[(len / 2)] + 1, len}];
         (* Print["s = ", s]; *)
-        (* Print["vec1 = ", vec1]; *)
 
         vecNew = Table[
             (
@@ -389,7 +411,77 @@ fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
                 If[Abs[s1] > Abs[s2], If[s1 >= 0, vec1, -vec1], If[s2 >= 0, vec1, -vec1]]
             ), {ii, len}];
 
-        Return[{val, vecNew}];
+        Return[{val, vecNew, mm}];
     ];
+
+(* Gets mu and sigma out of the first two eigenvectors *)
+getMuSigma[noOfPoints_?IntegerQ, domain : {_, _}, vec_] :=
+    Module[{e1, e2, mu1, mu2, s1, s2, mu, s, weights, midgrid, len, ii, norm1, norm2, m1, m2, p1, p2, mp1, mp2},
+        (* Print[sep]; *)
+        {midgrid, weights} = getMidGridAndWeights[noOfPoints, domain];
+        len = Length[midgrid];
+
+        (* Print["len = ", len, ", midgrid = ",midgrid, ", weights = ",
+        weights]; *)
+
+        e1 = Re[vec[[1]]];
+        e2 = Re[vec[[2]]];
+
+        m1 = Sum[e1[[ii]] * weights[[ii]], {ii, 1, Floor[(len / 2)]}];
+        m2 = Sum[e2[[ii]] * weights[[ii]], {ii, 1, Floor[(len / 2)]}];
+        p1 = Sum[e1[[ii]] * weights[[ii]], {ii, Floor[(len / 2)] + 1, len}];
+        p2 = Sum[e2[[ii]] * weights[[ii]], {ii, Floor[(len / 2)] + 1, len}];
+        mp1 = Sqrt[Abs[m1 * p1]];
+        mp2 = Sqrt[Abs[m2 * p2]];
+        Print["m1 = ", m1, ", p1 = ", p1, ", m2 = ", m2, ", p2 = ", p2, ", mp1 = ", mp1, ", mp2 = ", mp2];
+
+        (* Print[ListLinePlot[{Table[{midgrid[[ii]],Re[e1[[ii]]]},{ii,1, len}],Table[{midgrid[[ii]],Re[e2[[ii]]]},{ii,1,len}]}, Frame\[Rule]True, GridLines\[Rule]Automatic, PlotRange\[Rule]All]]; *)
+
+        norm1 = Sum[e1[[ii]] * weights[[ii]], {ii, 1, len}];
+        norm2 = Sum[e2[[ii]] * weights[[ii]], {ii, 1, len}];
+        mu1 = Sum[midgrid[[ii]] * e1[[ii]] * weights[[ii]], {ii, 1, len}]/norm1;
+        mu2 = Sum[midgrid[[ii]] * e2[[ii]] * weights[[ii]], {ii, 1, len}]/norm2;
+
+        s1 = Sqrt[(Sum[midgrid[[ii]]^2 * e1[[ii]]*weights[[ii]], {ii, 1, len}] / norm1) - mu1^2];
+        s2 = Sqrt[(Sum[midgrid[[ii]]^2 * e2[[ii]]*weights[[ii]], {ii, 1, len}] / norm2) - mu2^2];
+
+        Print["L1(weighted): norm1 = ", norm1, ", norm2 = ", norm2];
+        Print["mu1 = ", mu1, ", mu2 = ", mu2, ", s1 = ", s1, ", s2 = ", s2];
+
+        {mu, s} = If[mp1 < mp2, {mu1, s1}, {mu2, s2}];
+        Print["mu = ", mu, ", s = ", s];
+        Return[{mu, s}];
+    ];
+
+(* Fixes a pair of two eigenvectors by symmetrizing and renormalizing them. *)
+fixVec[vec1_, vec2_, weights_] :=
+    Module[{noOfPoints, e1, e2, ep, em, epi, emi, e1n, e2n, n1, n2, e1nn, e2nn, e1New, e2New, mu, sigma, e0n, e0nm1, nnn, l1Norm, ii, jj},
+        noOfPoints = Length[vec1];
+        e1 = Re[vec1];
+        e2 = Re[vec2];
+        ep = e1 + e2;
+        em = e1 - e2;
+        epi = Reverse[ep];
+        emi = Reverse[em];
+        e1n = ep + epi;
+        e2n = em - emi;
+        n1 = Sqrt[Sum[e1n[[ii]]^2 * weights[[ii]], {ii, 1, noOfPoints}]];
+        n2 = Sqrt[Sum[e2n[[ii]]^2 * weights[[ii]], {ii, 1, noOfPoints}]];
+        e1nn = e1n / n1;
+        e2nn = e2n / n2;
+        e1New = (e1nn + e2nn) / 2;
+        e2New = (e1nn - e2nn) / 2;
+        Return[{e1New, e2New}];
+    ];
+
+(* ============================================== *)
+
+gFactor = 0;
+
+delta[x_, y_, e_] := e / ((ArcTan[(1 - y) / e] + ArcTan[(1 + y) / e])*((x - y)^2 + e^2));
+delta1[x_, y_, e_] := 2 * Exp[-(x - y)^2 / e^2]/(e * Sqrt[Pi] * (Erf[(1 - y) / e] + Erf[(1 + y) / e]));
+binomial[nn_, kk_] := Gamma[nn + 1.0] / (Gamma[kk + 1.0]*Gamma[nn - kk + 1.0])
+entropy[x_, nn_, mm_] := Log[mm^nn*binomial[nn, nn * (x + 1) / 2]]/nn;
+rateMultiplier[x_, nn_, mm_] := (1 + gFactor * x) * entropy[0, nn, mm] / entropy[x, nn, mm];
 
 (* ============================================== *)
