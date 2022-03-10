@@ -437,16 +437,16 @@ getMuSigma[noOfPoints_?IntegerQ, domain : {_, _}, vec_] :=
 
         (* Print[ListLinePlot[{Table[{midgrid[[ii]],Re[e1[[ii]]]},{ii,1, len}],Table[{midgrid[[ii]],Re[e2[[ii]]]},{ii,1,len}]}, Frame\[Rule]True, GridLines\[Rule]Automatic, PlotRange\[Rule]All]]; *)
 
-        norm1 = Sum[e1[[ii]] * weights[[ii]], {ii, 1, len}];
-        norm2 = Sum[e2[[ii]] * weights[[ii]], {ii, 1, len}];
-        mu1 = Sum[midgrid[[ii]] * e1[[ii]] * weights[[ii]], {ii, 1, len}]/norm1;
-        mu2 = Sum[midgrid[[ii]] * e2[[ii]] * weights[[ii]], {ii, 1, len}]/norm2;
+        norm1 = Sum[e1[[ii]] * weights[[ii]], {ii, 1, Floor[(len / 2)]}];
+        norm2 = Sum[e2[[ii]] * weights[[ii]], {ii, Floor[(len / 2)] + 1, len}];
+        mu1 = Sum[midgrid[[ii]] * e1[[ii]] * weights[[ii]], {ii, 1, Floor[(len / 2)]}] / norm1;
+        mu2 = Sum[midgrid[[ii]] * e2[[ii]] * weights[[ii]], {ii, Floor[(len / 2)] + 1, len}] / norm2;
 
-        s1 = Sqrt[(Sum[midgrid[[ii]]^2 * e1[[ii]]*weights[[ii]], {ii, 1, len}] / norm1) - mu1^2];
-        s2 = Sqrt[(Sum[midgrid[[ii]]^2 * e2[[ii]]*weights[[ii]], {ii, 1, len}] / norm2) - mu2^2];
+        s1 = Sqrt[(Sum[midgrid[[ii]]^2 * e1[[ii]]*weights[[ii]], {ii, 1, Floor[(len / 2)]}] / norm1) - mu1^2];
+        s2 = Sqrt[(Sum[midgrid[[ii]]^2 * e2[[ii]]*weights[[ii]], {ii, Floor[(len / 2)] + 1, len}] / norm2) - mu2^2];
 
-        Print["L1(weighted): norm1 = ", norm1, ", norm2 = ", norm2];
-        Print["mu1 = ", mu1, ", mu2 = ", mu2, ", s1 = ", s1, ", s2 = ", s2];
+        Print["getMuSigma - L1(weighted): norm1 = ", norm1, ", norm2 = ", norm2];
+        Print["    mu1 = ", mu1, ", mu2 = ", mu2, ", s1 = ", s1, ", s2 = ", s2];
 
         {mu, s} = If[mp1 < mp2, {mu1, s1}, {mu2, s2}];
         Print["mu = ", mu, ", s = ", s];
