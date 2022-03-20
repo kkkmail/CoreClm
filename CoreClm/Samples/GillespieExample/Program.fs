@@ -1,7 +1,6 @@
 ﻿open System
 open Gillespie.SsaSolver
-
-printfn "Hello from F#"
+open Plotly.NET
 
 let fox = Any "fox"
 let hare = Any "hare"
@@ -13,16 +12,17 @@ let hare = Any "hare"
 //let noOfFoxes = 20
 //let noOfHares = 20
 
-let a = 0.1
-let b = 0.1
-let c = 0.1
-let d = 0.1
-let noOfFoxes = 2
-let noOfHares = 1000
+let a = 10.0
+let b = 0.01
+let c = 0.01
+let d = 2.0
+let noOfFoxes = 3
+let noOfHares = 100000
 
 // https://en.wikipedia.org/wiki/Lotka%E2%80%93Volterra_equations
 let reactions =
     [
+        // Hares multiply.
         // dx / dt = a * x
         {
             info = 
@@ -34,6 +34,7 @@ let reactions =
             rate = ReactionRate a
         }
         
+        // Hares got eaten.
         // dx / dt = -b * x * y
         {
             info = 
@@ -45,6 +46,7 @@ let reactions =
             rate = ReactionRate b
         }            
         
+        // Foxes multiply.
         // dy / dt = d * x * y
         {
             info = 
@@ -56,6 +58,7 @@ let reactions =
             rate = ReactionRate d
         }            
         
+        // Foxes die off.
         // dy / dt = -c * x
         {
             info = 
@@ -86,19 +89,49 @@ let r1 = Random(1)
 let r2 = Random(2)
 
 
-let steps = [ for i in 0..1000 -> i ]
-let evolution =
-    steps
+let steps = [ for i in 0..1000000 -> i ]
+
+type LotkaVolterraData =
+    {
+        t : double
+        foxes: int
+        hares : int
+        step: int
+    }
+
+let getData i v =
+    {
+        t = v.time
+        foxes = (v.state |> Map.tryFind fox |> Option.defaultValue NoOfMolecules.defaultValue).value
+        hares = (v.state |> Map.tryFind hare |> Option.defaultValue NoOfMolecules.defaultValue).value
+        step = i
+    }       
     
-printfn $"v0: %A{v0}"
-let v1 = v0.evolve r1.NextDouble r2.NextDouble
-printfn $"v1: %A{v1}"
+//printfn $"v0: %A{v0}"
+//let v1 = v0.evolve r1.NextDouble r2.NextDouble
+//printfn $"v1: %A{v1}"
 
-let evolve (v : StateVector) i =
+let evolve i (v : StateVector) data =
     let vNew = v.evolve r1.NextDouble r2.NextDouble
-    printfn $"{i}, t: {vNew.time}, population: {vNew.state}"
-    vNew
+//    printfn $"{i}, t: {vNew.time}, population: {vNew.state}"
+    vNew, (getData i vNew) :: data
 
-steps
-|> List.fold (fun acc r -> evolve acc r) v0
-|> ignore
+//steps
+//|> List.fold (fun acc r -> evolve acc r) v0
+//|> ignore
+
+let results =
+    steps
+    |> List.fold (fun (v, d) i -> evolve i v d) (v0, [])
+    |> snd
+    
+let foxData = results |> List.map (fun e -> e.t, double e.foxes)
+let foxChart = Chart.Line(foxData, Name = "Foxes")
+
+let hareData = results |> List.map (fun e -> e.t, double e.hares)
+let hareChart = Chart.Line(hareData, Name = "Hares")
+
+printfn "Plotting..."
+foxChart |> Chart.show
+hareChart |> Chart.show
+
