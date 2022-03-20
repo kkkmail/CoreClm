@@ -480,7 +480,11 @@ gFactor = 0;
 
 delta[x_, y_, e_] := e / ((ArcTan[(1 - y) / e] + ArcTan[(1 + y) / e])*((x - y)^2 + e^2));
 delta1[x_, y_, e_] := 2 * Exp[-(x - y)^2 / e^2]/(e * Sqrt[Pi] * (Erf[(1 - y) / e] + Erf[(1 + y) / e]));
-binomial[nn_, kk_] := Gamma[nn + 1.0] / (Gamma[kk + 1.0]*Gamma[nn - kk + 1.0])
+
+(* https://en.wikipedia.org/wiki/Stirling%27s_approximation *)
+stirling[nn_] := Sqrt[2 * Pi * nn] * (nn / E)^nn * E^(1 / (12 * nn + 1 / 2))
+
+binomial[nn_, kk_] := Gamma[nn + 1] / (Gamma[kk + 1] * Gamma[nn - kk + 1])
 entropy[x_, nn_, mm_] := Log[mm^nn*binomial[nn, nn * (x + 1) / 2]]/nn;
 rateMultiplier[x_, nn_, mm_] := (1 + gFactor * x) * entropy[0, nn, mm] / entropy[x, nn, mm];
 
