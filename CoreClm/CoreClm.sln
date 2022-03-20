@@ -47,6 +47,12 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ClmTests", "ClmTests\ClmTes
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "WorkerNodeAdm", "WorkerNodeAdm\WorkerNodeAdm.fsproj", "{4A2113EC-4290-46BA-A5A8-ECE7665361D2}"
 EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Gillespie", "Gillespie\Gillespie.fsproj", "{522AEE69-B682-424D-B490-F51C5CB3DF87}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{A498AEFF-9C98-43E9-95F0-01C9C4699FC0}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "GillespieExample", "Samples\GillespieExample\GillespieExample.fsproj", "{5DA6FF14-89EE-4E44-BF72-312931EE21F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -141,9 +147,20 @@ Global
 		{4A2113EC-4290-46BA-A5A8-ECE7665361D2}.Debug|x64.Build.0 = Debug|x64
 		{4A2113EC-4290-46BA-A5A8-ECE7665361D2}.Release|x64.ActiveCfg = Release|x64
 		{4A2113EC-4290-46BA-A5A8-ECE7665361D2}.Release|x64.Build.0 = Release|x64
+		{522AEE69-B682-424D-B490-F51C5CB3DF87}.Debug|x64.ActiveCfg = Debug|x64
+		{522AEE69-B682-424D-B490-F51C5CB3DF87}.Debug|x64.Build.0 = Debug|x64
+		{522AEE69-B682-424D-B490-F51C5CB3DF87}.Release|x64.ActiveCfg = Release|x64
+		{522AEE69-B682-424D-B490-F51C5CB3DF87}.Release|x64.Build.0 = Release|x64
+		{5DA6FF14-89EE-4E44-BF72-312931EE21F2}.Debug|x64.ActiveCfg = Debug|x64
+		{5DA6FF14-89EE-4E44-BF72-312931EE21F2}.Debug|x64.Build.0 = Debug|x64
+		{5DA6FF14-89EE-4E44-BF72-312931EE21F2}.Release|x64.ActiveCfg = Release|x64
+		{5DA6FF14-89EE-4E44-BF72-312931EE21F2}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5DA6FF14-89EE-4E44-BF72-312931EE21F2} = {A498AEFF-9C98-43E9-95F0-01C9C4699FC0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C712381C-AF49-42FB-A12A-18C521329CBB}

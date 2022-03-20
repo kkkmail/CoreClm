@@ -71,6 +71,8 @@ module Distributions =
 
     type ReactionRate =
         | ReactionRate of double
+        
+        member r.value = let (ReactionRate v) = r in v             
 
 
     [<Literal>]

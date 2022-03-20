@@ -27,13 +27,13 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
-    <PackageReference Include="SQLProvider" Version="1.2.10" />
+    <PackageReference Include="SQLProvider" Version="1.2.11" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
     <PackageReference Include="SQLite.Interop.dll" Version="1.0.103" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5" />
-    <PackageReference Update="FSharp.Core" Version="6.0.1" />
+    <PackageReference Update="FSharp.Core" Version="6.0.3" />
   </ItemGroup>
 
   <ItemGroup>
