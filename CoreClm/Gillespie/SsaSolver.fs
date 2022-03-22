@@ -78,12 +78,13 @@ module SsaSolver =
         {
             info : ReactionNormalizedInfo
             rate : ReactionRate
+            description : string
         }
         
         
     let getPropensity i m =
         match i.info.inputNormalized with
-        | [] -> 0.0
+        | [] -> i.rate.value
         | _ ->
             i.info.inputNormalized
             |> List.map (fun e -> m |> Map.tryFind e |> Option.defaultValue NoOfMolecules.defaultValue)
@@ -133,9 +134,8 @@ module SsaSolver =
                 | h :: t ->
                     let newSum = sum + (getPropensity h s.state)
                     
-                    if newSum >= r2a0 then h.info
+                    if newSum >= r2a0 then h
                     else inner newSum t 
-            
             
             inner 0.0 s.reactions
         
@@ -148,8 +148,9 @@ module SsaSolver =
             then
                 let deltaT = - (log r1) / (a0 / s.volume)
                 let r = s.getReactionRateInfo (r2 * a0)
+                printfn $"t = {s.time}, r1 = {r1}, r2 = {r2}, a0 = {a0}, r = {r.description}."
                 
-                { s with time = s.time + deltaT; state = evolveSubstances s.state r }
+                { s with time = s.time + deltaT; state = evolveSubstances s.state r.info }
             else
                 s
 
