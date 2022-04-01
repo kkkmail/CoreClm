@@ -18,6 +18,7 @@
 
     <ItemGroup>
         <Compile Include="SsaSolver.fs" />
+        <Compile Include="ProtoCells.fs" />
     </ItemGroup>
 
     <ItemGroup>
