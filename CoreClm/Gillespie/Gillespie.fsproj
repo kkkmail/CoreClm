@@ -17,7 +17,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="SsaPrimitives.fs" />
         <Compile Include="SsaSolver.fs" />
+        <Compile Include="SsaSolverMutable.fs" />
         <Compile Include="ProtoCells.fs" />
     </ItemGroup>
 

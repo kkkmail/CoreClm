@@ -1,8 +1,14 @@
 ﻿open System
-open Gillespie.SsaSolver
 open Plotly.NET
 
+open Softellect.Sys.Core
+open Gillespie.SsaPrimitives
+
+//open Gillespie.SsaSolver
+open Gillespie.SsaSolverMutable
+
 let noOfSteps = 1_000_000
+//let noOfSteps = 1_000
 let noOfFoxes = 10
 let noOfHares = 1_000
 
@@ -29,7 +35,7 @@ let reactions =
     [
         {
             description = "Hares multiply: dx / dt = a * x"
-            info = 
+            info =
                 {
                     input = [ hare, 1 ]
                     output = [ hare, 2 ]
@@ -37,21 +43,21 @@ let reactions =
                 |> normalized
             rate = ReactionRate a
         }
-        
+
         {
             description = "Hares got eaten: dx / dt = -b * x * y"
-            info = 
+            info =
                 {
                     input = [ (hare, 1); (fox, 1) ]
                     output = [ (fox, 1) ]
                 }
                 |> normalized
             rate = ReactionRate b
-        }            
-        
+        }
+
         {
             description = "Hares resurrect: dx / dt = e"
-            info = 
+            info =
                 {
                     input = []
                     output = [ hare, 1 ]
@@ -59,10 +65,10 @@ let reactions =
                 |> normalized
             rate = ReactionRate e
         }
-        
+
         {
             description = "Hares die from overpopulation: dx / dt = -g * x * x"
-            info = 
+            info =
                 {
                     input = [ hare, 2 ]
                     output = [ hare, 1 ]
@@ -73,18 +79,18 @@ let reactions =
 
         {
             description = "Foxes multiply: dy / dt = d * x * y"
-            info = 
+            info =
                 {
                     input = [ (fox, 1); (hare, 1) ]
                     output = [ (fox, 2); (hare, 1) ]
                 }
                 |> normalized
             rate = ReactionRate d
-        }            
-        
+        }
+
         {
             description = "Foxes die off: dy / dt = -c * x"
-            info = 
+            info =
                 {
                     input = [ fox, 1 ]
                     output = []
@@ -93,9 +99,9 @@ let reactions =
             rate = ReactionRate c
         }
 
-        {            
+        {
             description = "Foxes resurrect: dx / dt = f"
-            info = 
+            info =
                 {
                     input = []
                     output = [ fox, 1 ]
@@ -104,8 +110,8 @@ let reactions =
             rate = ReactionRate f
         }
     ]
-    
-    
+
+
 let v0 =
     {
         state =
@@ -113,12 +119,12 @@ let v0 =
                 fox, NoOfMolecules noOfFoxes
                 hare, NoOfMolecules noOfHares
             ]
-            |> Map.ofList
+            |> createSubstanceMap
         reactions = reactions
         volume = 1.0
         time = 0.0
     }
-    
+
 let r1 = Random(1)
 let r2 = Random(2)
 
@@ -136,11 +142,11 @@ type LotkaVolterraData =
 let getData i v =
     {
         t = v.time
-        foxes = (v.state |> Map.tryFind fox |> Option.defaultValue NoOfMolecules.defaultValue).value
-        hares = (v.state |> Map.tryFind hare |> Option.defaultValue NoOfMolecules.defaultValue).value
+        foxes = (getValueOrDefault v.state fox NoOfMolecules.zero).value
+        hares = (getValueOrDefault v.state hare NoOfMolecules.zero).value
         step = i
-    }       
-    
+    }
+
 //printfn $"v0: %A{v0}"
 //let v1 = v0.evolve r1.NextDouble r2.NextDouble
 //printfn $"v1: %A{v1}"
@@ -154,11 +160,16 @@ let evolve i (v : StateVector) data =
 //|> List.fold (fun acc r -> evolve acc r) v0
 //|> ignore
 
-let results =
+
+let getResults() =
     steps
     |> List.fold (fun (v, d) i -> evolve i v d) (v0, [])
     |> snd
-    
+
+let results, elapsed = time getResults ()
+
+printfn $"Took: {elapsed}"
+
 let foxData = results |> List.map (fun e -> e.t, double e.foxes)
 let foxChart = Chart.Line(foxData, Name = "Foxes")
 
@@ -168,4 +179,3 @@ let hareChart = Chart.Line(hareData, Name = "Hares")
 printfn "Plotting..."
 foxChart |> Chart.show
 hareChart |> Chart.show
-

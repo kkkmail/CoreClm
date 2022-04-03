@@ -4,16 +4,28 @@
 //open Clm.ReactionTypes
 //open Clm.Substances
 
+open System.Linq
+
 open SsaPrimitives
 
-module SsaSolver =
+module SsaSolverMutable =
 
-    type SubstanceMap = Map<Species, NoOfMolecules>
+    let toDictionary (xs:_ seq) (f:'s -> 'k) (g:'s -> 'v) = xs.ToDictionary(f, g)
+
+    type SubstanceMap = System.Collections.Generic.Dictionary<Species, NoOfMolecules>
 
 
-    let createSubstanceMap d : SubstanceMap = d |> Map.ofList
-    let getValueOrDefault m e d = m |> Map.tryFind e |> Option.defaultValue d
+    type System.Collections.Generic.Dictionary<'K, 'V>
+        with
+            member m.getValueOrDefault k d =
+                match m.TryGetValue k with
+                | true, v -> v
+                | false, _ -> d
 
+
+
+    let createSubstanceMap (d : List<Species * NoOfMolecules>) : SubstanceMap = toDictionary d fst snd
+    let getValueOrDefault (m : SubstanceMap) e d = m.getValueOrDefault e d
 
 
     let getPropensity (i: ReactionRateInfo) (m : SubstanceMap) : double =
@@ -21,21 +33,21 @@ module SsaSolver =
         | [] -> i.rate.value
         | _ ->
             i.info.inputNormalized
-            |> List.map (fun e -> m |> Map.tryFind e |> Option.defaultValue NoOfMolecules.zero)
+            |> List.map (fun e -> m.getValueOrDefault e NoOfMolecules.zero)
             |> List.map (fun e -> double e.value)
             |> List.fold (fun acc r -> acc * r) i.rate.value
 
 
-    let evolveSubstances m r =
-        let remove map e =
-            match map |> Map.tryFind e with
-            | Some v -> map |> Map.add e (v - (NoOfMolecules 1))
-            | None -> failwith $"No substances of type {e} are left. Cannot remove."
 
-        let add map e =
-            match map |> Map.tryFind e with
-            | Some v -> map |> Map.add e (v + (NoOfMolecules 1))
-            | None -> map |> Map.add e (NoOfMolecules 1)
+    let evolveSubstances (m : SubstanceMap) r : SubstanceMap =
+        let remove (map: SubstanceMap) e =
+            map[e] <- map[e] - NoOfMolecules.one
+            map
+
+        let add (map : SubstanceMap) e =
+            let v = m.getValueOrDefault e NoOfMolecules.zero
+            m[e] <- v + NoOfMolecules.one
+            map
 
         let m1 = r.inputNormalized |> List.fold remove m
         let m2 = r.outputNormalized |> List.fold add m1
@@ -51,7 +63,7 @@ module SsaSolver =
             time : double
         }
 
-        member s.totalPropensity =
+        member s.totalPropensity : double =
             let a0 =
                 s.reactions
                 |> List.map (fun e -> getPropensity e s.state)
