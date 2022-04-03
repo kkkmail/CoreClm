@@ -51,6 +51,14 @@ module SsaSolver =
             time : double
         }
 
+        static member create species reactions =
+            {
+                state = createSubstanceMap species
+                reactions = reactions
+                volume = 1.0
+                time = 0.0
+            }
+
         member s.totalPropensity =
             let a0 =
                 s.reactions
