@@ -487,5 +487,6 @@ stirling[nn_] := Sqrt[2 * Pi * nn] * (nn / E)^nn * E^(1 / (12 * nn + 1 / 2))
 binomial[nn_, kk_] := Gamma[nn + 1] / (Gamma[kk + 1] * Gamma[nn - kk + 1])
 entropy[x_, nn_, mm_] := Log[mm^nn*binomial[nn, nn * (x + 1) / 2]]/nn;
 rateMultiplier[x_, nn_, mm_] := (1 + gFactor * x) * entropy[0, nn, mm] / entropy[x, nn, mm];
+rateMultiplierQuadratic[x_, a_, g_] := (1 + g * x) * (1 + a * x^2);
 
 (* ============================================== *)
