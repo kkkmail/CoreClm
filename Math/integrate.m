@@ -1,6 +1,12 @@
 (* ::Package:: *)
 
 (* ============================================== *)
+(* Some standard Plot options *)
+SetOptions[Plot, BaseStyle -> FontSize -> 18];
+legendFontSize = 16;
+tickFontSize = 20;
+
+(* ============================================== *)
 
 (* https://mathematica.stackexchange.com/questions/172302/find-all-the-subexpressions-with-a-given-head-in-an-expression *)
 findAll = DeleteDuplicates@Cases[#, Blank[#2], Infinity] &;
@@ -389,13 +395,13 @@ fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
         (* Print["midGrid = ", midGrid // MatrixForm]; *)
         (* Print["integrand[0,0] = ", integrand[0.0, 0.0]]; *)
 
-        Print["midGrid[[1]] = ", FullForm[midGrid[[1]]]];
-        Print["weights[[1]] = ", FullForm[weights[[1]]]];
+        (* Print["midGrid[[1]] = ", FullForm[midGrid[[1]]]]; *)
+        (* Print["weights[[1]] = ", FullForm[weights[[1]]]]; *)
 
         mm = Table[SetPrecision[integrand[SetPrecision[midGrid[[i]], fredholmPrecision], SetPrecision[midGrid[[j]], fredholmPrecision]] * SetPrecision[weights[[i]], fredholmPrecision], fredholmPrecision], {i, len}, {j, len}];
         (* Print["mm = ", mm // MatrixForm]; *)
 
-        Print["mm[[1, 1]] = ", mm[[1, 1]]];
+        (* Print["mm[[1, 1]] = ", mm[[1, 1]]]; *)
         {val, vec} = Eigensystem[mm];
         (* Print["val = ", val // MatrixForm]; *)
         (* Print["vec = ", vec // MatrixForm]; *)
@@ -415,6 +421,7 @@ fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
     ];
 
 (* Gets mu and sigma out of the first two eigenvectors *)
+(*
 getMuSigma[noOfPoints_?IntegerQ, domain : {_, _}, vec_] :=
     Module[{e1, e2, mu1, mu2, s1, s2, mu, s, weights, midgrid, len, ii, norm1, norm2, m1, m2, p1, p2, mp1, mp2},
         (* Print[sep]; *)
@@ -433,8 +440,8 @@ getMuSigma[noOfPoints_?IntegerQ, domain : {_, _}, vec_] :=
         p2 = Sum[e2[[ii]] * weights[[ii]], {ii, Floor[(len / 2)] + 1, len}];
         mp1 = Sqrt[Abs[m1 * p1]];
         mp2 = Sqrt[Abs[m2 * p2]];
-        Print["m1 = ", m1, ", p1 = ", p1, ", m2 = ", m2, ", p2 = ", p2, ", mp1 = ", mp1, ", mp2 = ", mp2];
 
+        (* Print["m1 = ", m1, ", p1 = ", p1, ", m2 = ", m2, ", p2 = ", p2, ", mp1 = ", mp1, ", mp2 = ", mp2]; *)
         (* Print[ListLinePlot[{Table[{midgrid[[ii]],Re[e1[[ii]]]},{ii,1, len}],Table[{midgrid[[ii]],Re[e2[[ii]]]},{ii,1,len}]}, Frame\[Rule]True, GridLines\[Rule]Automatic, PlotRange\[Rule]All]]; *)
 
         norm1 = Sum[e1[[ii]] * weights[[ii]], {ii, 1, Floor[(len / 2)]}];
@@ -445,13 +452,80 @@ getMuSigma[noOfPoints_?IntegerQ, domain : {_, _}, vec_] :=
         s1 = Sqrt[(Sum[midgrid[[ii]]^2 * e1[[ii]]*weights[[ii]], {ii, 1, Floor[(len / 2)]}] / norm1) - mu1^2];
         s2 = Sqrt[(Sum[midgrid[[ii]]^2 * e2[[ii]]*weights[[ii]], {ii, Floor[(len / 2)] + 1, len}] / norm2) - mu2^2];
 
-        Print["getMuSigma - L1(weighted): norm1 = ", norm1, ", norm2 = ", norm2];
-        Print["    mu1 = ", mu1, ", mu2 = ", mu2, ", s1 = ", s1, ", s2 = ", s2];
+        (* Print["getMuSigma - L1(weighted): norm1 = ", norm1, ", norm2 = ", norm2]; *)
+        (* Print["    mu1 = ", mu1, ", mu2 = ", mu2, ", s1 = ", s1, ", s2 = ", s2]; *)
 
         {mu, s} = If[mp1 < mp2, {mu1, s1}, {mu2, s2}];
-        Print["mu = ", mu, ", s = ", s];
+        (* Print["mu = ", mu, ", s = ", s]; *)
         Return[{mu, s}];
     ];
+*)
+
+getMuSigma[noOfPoints_?IntegerQ, domain : {_, _}, vec_] :=
+  Module[{e1, e2, mu1m, mu2m, s1m, s2m, mu1p, mu2p, s1p, s2p, mu, s, weights, midgrid, len, ii, norm1m, norm2m, norm1p, norm2p, m1, m2, p1, p2, m1p1, m2p2, m1p2, m2p1},
+   (* Print[sep]; *)
+   {midgrid, weights} = SetPrecision[getMidGridAndWeights[noOfPoints, domain], MachinePrecision];
+   len = Length[midgrid];
+
+   (* Print["len = ",len,", midgrid = ",midgrid,", weights = ",
+   weights]; *)
+
+   e1 = Re[vec[[1]]];
+   e2 = Re[vec[[2]]];
+
+   (*
+   Print["e1 = ", Chop[SetPrecision[e1, MachinePrecision],10^-3]];
+   Print[sep];
+   Print["e2 = ", Chop[SetPrecision[e2, MachinePrecision],10^-3]];
+   Print[sep];
+   *)
+
+   m1 = Abs[SetPrecision[Sum[e1[[ii]]*weights[[ii]], {ii, 1, Floor[(len/2)]}],MachinePrecision]];
+   m2 = Abs[SetPrecision[Sum[e2[[ii]]*weights[[ii]], {ii, 1, Floor[(len/2)]}],MachinePrecision]];
+   p1 = Abs[SetPrecision[Sum[e1[[ii]]*weights[[ii]], {ii, Floor[(len/2)] + 1, len}],MachinePrecision]];
+   p2 = Abs[SetPrecision[Sum[e2[[ii]]*weights[[ii]], {ii, Floor[(len/2)] + 1, len}],MachinePrecision]];
+
+   m1p1 = Sqrt[Abs[m1*p1]];
+   m2p2 = Sqrt[Abs[m2*p2]];
+   m1p2 = Sqrt[Abs[m1*p2]];
+   m2p1 = Sqrt[Abs[m2*p1]];
+
+   (* Print["m1 = ",m1,", p1 = ",p1,", m2 = ",m2,", p2 = ",p2, ", m1p1 = ",m1p1,", m2p2 = ",m2p2,", m1p2 = ",m1p2,", m2p1 = ", m2p1]; *)
+   (*Print[ListLinePlot[{Table[{midgrid[[ii]],Re[e1[[ii]]]},{ii,1,len}],Table[{midgrid[[ii]],Re[e2[[ii]]]},{ii,1,len}]},Frame\[Rule]True,GridLines\[Rule]Automatic,PlotRange\[Rule]All]];*)
+
+   norm1m = Sum[e1[[ii]]*weights[[ii]], {ii, 1, Floor[(len/2)]}];
+   norm2p = Sum[e2[[ii]]*weights[[ii]], {ii, Floor[(len/2)] + 1, len}];
+   norm1p = Sum[e1[[ii]]*weights[[ii]], {ii, Floor[(len/2)] + 1, len}];
+   norm2m = Sum[e2[[ii]]*weights[[ii]], {ii, 1, Floor[(len/2)]}];
+
+   mu1m = Sum[midgrid[[ii]]*e1[[ii]]*weights[[ii]], {ii, 1, Floor[(len/2)]}]/norm1m;
+   mu2p = Sum[midgrid[[ii]]*e2[[ii]]*weights[[ii]], {ii, Floor[(len/2)] + 1, len}]/norm2p;
+   mu1p = Sum[midgrid[[ii]]*e1[[ii]]*weights[[ii]], {ii, Floor[(len/2)] + 1, len}]/norm1p;
+   mu2m = Sum[midgrid[[ii]]*e2[[ii]]*weights[[ii]], {ii, 1, Floor[(len/2)]}]/norm2m;
+
+   s1m = Sqrt[(Sum[midgrid[[ii]]^2*e1[[ii]]*weights[[ii]], {ii, 1, Floor[(len/2)]}]/norm1m) - mu1m^2];
+   s2p = Sqrt[(Sum[midgrid[[ii]]^2*e2[[ii]]*weights[[ii]], {ii, Floor[(len/2)] + 1, len}]/norm2p) - mu2p^2];
+   s1p = Sqrt[(Sum[midgrid[[ii]]^2*e1[[ii]]*weights[[ii]], {ii, Floor[(len/2)] + 1, len}]/norm1p) - mu1p^2];
+   s2m = Sqrt[(Sum[midgrid[[ii]]^2*e2[[ii]]*weights[[ii]], {ii, 1, Floor[(len/2)]}]/norm2m) - mu2m^2];
+
+   (*
+   Print["getMuSigma - L1(weighted): norm1m = ",norm1m,", norm2p = ", norm2p", norm1p = ",norm1p", norm2m = ",norm2m];
+   Print["    mu1m = ",mu1m,", mu2p = ",mu2p,", mu1p = ",mu1p, ", mu2m = ",mu2m];
+   Print["    s1m = ",s1m,", s2p = ",s2p,", s1p = ",s1p,", s2m = ", s2m];
+   *)
+
+   {mu, s} = If[m2p1 > (m1p1 + m2p2 + m1p2), {mu1p, s1p}, If[m1p2 > (m1p1 + m2p2 + m2p1), {mu1m, s1m}, If[m1p1 < m2p2, {mu1m, s1m}, {mu2p, s2p}]]];
+   Print["mu = ", mu, ", s = ", s];
+   Return[{mu, s}];
+   ];
+
+getMuSigmaFromData[d_] :=
+  Module[{val, vec, mu1, sigma, k, noOfPoints, mORa, e, useQuadratic, g, mu, s},
+   {val, vec, {mu1, sigma}, k, {noOfPoints, mORa, e, useQuadratic, g}} = d;
+   {mu, s} = getMuSigma[noOfPoints, domain, vec];
+   Return[{mu, s}];
+   ];
+
 
 (* Fixes a pair of two eigenvectors by symmetrizing and renormalizing them. *)
 fixVec[vec1_, vec2_, weights_] :=
@@ -486,7 +560,152 @@ stirling[nn_] := Sqrt[2 * Pi * nn] * (nn / E)^nn * E^(1 / (12 * nn + 1 / 2))
 
 binomial[nn_, kk_] := Gamma[nn + 1] / (Gamma[kk + 1] * Gamma[nn - kk + 1])
 entropy[x_, nn_, mm_] := Log[mm^nn*binomial[nn, nn * (x + 1) / 2]]/nn;
-rateMultiplier[x_, nn_, mm_] := (1 + gFactor * x) * entropy[0, nn, mm] / entropy[x, nn, mm];
+rateMultiplier[x_, nn_, mm_, g_] := (1 + g * x) * entropy[0, nn, mm] / entropy[x, nn, mm];
+rateMultiplier[x_, nn_, mm_] := rateMultiplier[x, nn, mm, gFactor];
 rateMultiplierQuadratic[x_, a_, g_] := (1 + g * x) * (1 + a * x^2);
+
+u00[e_, x_] := Exp[-x^2/e^2]/(e *Sqrt[Pi]* Erf[1/e]);
+
+(* ============================================== *)
+
+runFredholmSolver[noOfPoints_?IntegerQ, mORa_?NumericQ, e_?NumericQ, useQuadratic_?BooleanQ, g_?NumericQ] :=
+  Module[{val, vec, k, kFunc, midGrid, weights, e1, e2, mu, sigma, l1Norm, ii, jj, retVal1},
+   Print["runFredholmSolver::Starting - noOfPoints, = ", noOfPoints, ", mORa = ", mORa, ", e = ", N[e], ", g = ", N[g], ", useQuadratic = ", useQuadratic];
+
+   kFunc[x_, y_] := Module[{xp, yp, ep, mp, retVal, np, ap, gp},
+     xp = SetPrecision[x, fredholmPrecision];
+     yp = SetPrecision[y, fredholmPrecision];
+     ep = SetPrecision[e, fredholmPrecision];
+     mp = SetPrecision[mORa, fredholmPrecision];
+     np = SetPrecision[noOfMolecules, fredholmPrecision];
+     ap = SetPrecision[mORa, fredholmPrecision];
+     gp = SetPrecision[g, fredholmPrecision];
+
+     retVal = SetPrecision[If[useQuadratic, (rateMultiplierQuadratic[yp, ap, gp]), (rateMultiplier[yp, np, mp, gp])] * delta1[xp, yp, ep],fredholmPrecision];
+
+     Return[retVal];
+     ];
+
+   {val, vec, k} = SetPrecision[fredholmSolver[noOfPoints, domain, kFunc], MachinePrecision];
+   {midGrid, weights} = SetPrecision[getMidGridAndWeights[noOfPoints, domain], MachinePrecision];
+   {mu, sigma} = getMuSigma[noOfPoints, domain, vec];
+   retVal1 = {val, vec, {mu, sigma}, k, {noOfPoints, mORa, e, useQuadratic, g}};
+   Print["    runFredholmSolver::Completed - noOfPoints, = ", noOfPoints, ", mORa = ", mORa, ", e = ", N[e], ", g = ", N[g], ", useQuadratic = ", useQuadratic];
+   Return[retVal1];
+   ];
+
+(* ============================================== *)
+
+printResults[data_] :=
+  Module[{val, vec, mu, sigma, k, noOfPoints, mORa, e, useQuadratic, midGrid, weights, g, e1, e2, l1Norm, ii, jj},
+   {val, vec, {mu, sigma}, k, {noOfPoints, mORa, e, useQuadratic, g}} = data;
+   Print[sep];
+   Print["noOfPoints, = ", noOfPoints, ", mORa = ", mORa, ", e = ", N[e], ", g = ", N[g], ", useQuadratic = ", useQuadratic];
+   {midGrid, weights} = getMidGridAndWeights[noOfPoints, domain];
+
+   Print["val[[1]] - val[[2]] = ", (val[[1]] - val[[2]])];
+   Print["val[[3]] - val[[4]] = ", (val[[3]] - val[[4]])];
+   Print["val[[5]] - val[[6]] = ", (val[[5]] - val[[6]])];
+   Print["val[[7]] - val[[8]] = ", (val[[7]] - val[[8]])];
+   Print["val[[9]] - val[[10]] = ", (val[[9]] - val[[10]])];
+   Print["val[[11]] - val[[12]] = ", (val[[11]] - val[[12]])];
+   Print["val[[13]] - val[[14]] = ", (val[[13]] - val[[14]])];
+   Print["val[[15]] - val[[16]] = ", (val[[15]] - val[[16]])];
+   Print["val[[17]] - val[[18]] = ", (val[[17]] - val[[18]])];
+   Print["val[[19]] - val[[20]] = ", (val[[19]] - val[[20]])];
+
+   (*
+   Print["midGrid and weights"];
+   Print[ListLinePlot[midGrid, PlotRange -> All, Frame -> True, GridLines -> Automatic, ImageSize -> Large, PlotStyle -> Thickness[0.005], DataRange -> domain]];
+   Print[ListLinePlot[weights, PlotRange -> All, Frame -> True, GridLines -> Automatic, ImageSize -> Large, PlotStyle -> Thickness[0.005], DataRange -> domain]];
+   *)
+
+   e1 = Re[vec[[1]]];
+   e2 = Re[vec[[2]]];
+   l1Norm = Table[Abs[Sum[Re[vec[[ii]][[jj]]]*weights[[jj]], {jj, 1, noOfPoints}]], {ii, 1, noOfPoints}];
+
+   Print["L1 norms"];
+   Print[ListLinePlot[Take[l1Norm, Min[maxNorms, noOfPoints]],
+     PlotRange -> All, Frame -> True, GridLines -> Automatic,
+     ImageSize -> Large, PlotStyle -> Thickness[0.005]]];
+
+   Print[ListLinePlot[l1Norm, PlotRange -> All, Frame -> True,
+     GridLines -> Automatic, ImageSize -> Large,
+     PlotStyle -> Thickness[0.005]]];
+
+   Print["Eigenvalues"];
+   Print[ListLinePlot[Re[Take[val, Min[maxEigenValues, noOfPoints]]],
+     PlotRange -> All, Frame -> True, GridLines -> Automatic,
+     PlotRange -> {0, Automatic},
+     FrameLabel -> {Style["i", FontSize -> tickFontSize],
+       Style[Subscript["\[Lambda]", "i"], FontSize -> tickFontSize]},
+     ImageSize -> Large, PlotStyle -> Thickness[0.005],
+     FrameTicksStyle ->
+      Directive @@ {tickFontSize, FontColor -> Black},
+     LabelStyle -> Directive[Bold, Black]]];
+
+   Print[ListLinePlot[Re[val], PlotRange -> All, Frame -> True,
+     GridLines -> Automatic, PlotRange -> {0, Automatic},
+     FrameLabel -> {Style["i", FontSize -> tickFontSize],
+       Style[Subscript["\[Lambda]", "i"], FontSize -> tickFontSize]},
+     ImageSize -> Large, PlotStyle -> Thickness[0.005],
+     FrameTicksStyle ->
+      Directive @@ {tickFontSize, FontColor -> Black},
+     LabelStyle -> Directive[Bold, Black]]];
+
+   Print["Eigenvectors"];
+   (* u1 and u2 *)
+   Print[ListLinePlot[{Table[{midGrid[[ii]], e1[[ii]]}, {ii, 1,
+        noOfPoints}],
+      Table[{midGrid[[ii]], e2[[ii]]}, {ii, 1, noOfPoints}]},
+     PlotRange -> All, Frame -> True, GridLines -> Automatic,
+     DataRange -> domain,
+     FrameLabel -> {Style["\[Eta]", FontSize -> tickFontSize],
+       Style["u", FontSize -> tickFontSize]}, ImageSize -> Large,
+     PlotStyle -> Thickness[0.005],
+     FrameTicksStyle ->
+      Directive @@ {tickFontSize, FontColor -> Black},
+     LabelStyle -> Directive[Bold, Black],
+     PlotLegends ->
+      Placed[{Style[Subscript["u", "1"], FontSize -> legendFontSize],
+        Style[Subscript["u", "2"], FontSize -> legendFontSize]}, {0.7,
+         0.7}]]];
+
+   (* u1 *)
+   Print[ListLinePlot[
+     Table[{midGrid[[ii]], e1[[ii]]}, {ii, 1, noOfPoints}],
+     PlotRange -> All, Frame -> True, GridLines -> Automatic,
+     DataRange -> domain,
+     FrameLabel -> {Style["\[Eta]", FontSize -> tickFontSize],
+       Style[Subscript["u", "1"], FontSize -> tickFontSize]},
+     ImageSize -> Large, PlotStyle -> Thickness[0.005],
+     FrameTicksStyle ->
+      Directive @@ {tickFontSize, FontColor -> Black},
+     LabelStyle -> Directive[Bold, Black]]];
+
+   (* u2 *)
+   Print[ListLinePlot[
+     Table[{midGrid[[ii]], e2[[ii]]}, {ii, 1, noOfPoints}],
+     PlotRange -> All, Frame -> True, GridLines -> Automatic,
+     DataRange -> domain,
+     FrameLabel -> {Style["\[Eta]", FontSize -> tickFontSize],
+       Style[Subscript["u", "2"], FontSize -> tickFontSize]},
+     ImageSize -> Large, PlotStyle -> Thickness[0.005],
+     FrameTicksStyle ->
+      Directive @@ {tickFontSize, FontColor -> Black},
+     LabelStyle -> Directive[Bold, Black]]];
+
+   Return[];
+   ];
+
+(* ============================================== *)
+
+renormalize[v_, w_] := Module[{retVal, norm, len, ii, e},
+   len = Length[v];
+   e = Re[v];
+   norm = Sqrt[Sum[e[[ii]]^2*w[[ii]], {ii, 1, len}]];
+   retVal = e/norm;
+   Return[retVal];
+   ];
 
 (* ============================================== *)
