@@ -1,10 +1,15 @@
 (* ::Package:: *)
 
 (* ============================================== *)
+
 (* Some standard Plot options *)
 SetOptions[Plot, BaseStyle -> FontSize -> 18];
 legendFontSize = 16;
 tickFontSize = 20;
+
+(* ============================================== *)
+
+domain = {-1, 1};
 
 (* ============================================== *)
 
@@ -587,10 +592,16 @@ runFredholmSolver[noOfPoints_?IntegerQ, mORa_?NumericQ, e_?NumericQ, useQuadrati
      ];
 
    {val, vec, k} = SetPrecision[fredholmSolver[noOfPoints, domain, kFunc], MachinePrecision];
+
+   (*
    {midGrid, weights} = SetPrecision[getMidGridAndWeights[noOfPoints, domain], MachinePrecision];
    {mu, sigma} = getMuSigma[noOfPoints, domain, vec];
    retVal1 = {val, vec, {mu, sigma}, k, {noOfPoints, mORa, e, useQuadratic, g}};
    Print["    runFredholmSolver::Completed - noOfPoints, = ", noOfPoints, ", mORa = ", mORa, ", e = ", N[e], ", g = ", N[g], ", useQuadratic = ", useQuadratic];
+   *)
+
+   retVal1 = vec[[1]];
+
    Return[retVal1];
    ];
 
