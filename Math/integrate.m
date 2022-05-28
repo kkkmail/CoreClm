@@ -557,8 +557,8 @@ fixVec[vec1_, vec2_, weights_] :=
 
 gFactor = 0;
 
-delta[x_, y_, e_] := e / ((ArcTan[(1 - y) / e] + ArcTan[(1 + y) / e])*((x - y)^2 + e^2));
-delta1[x_, y_, e_] := 2 * Exp[-(x - y)^2 / e^2]/(e * Sqrt[Pi] * (Erf[(1 - y) / e] + Erf[(1 + y) / e]));
+delta[x_, y_, eps_] := eps / ((ArcTan[(1 - y) / eps] + ArcTan[(1 + y) / eps]) * ((x - y)^2 + eps^2));
+delta1[x_, y_, eps_] := 2 * Exp[-(x - y)^2 / eps^2] / (eps * Sqrt[Pi] * (Erf[(1 - y) / eps] + Erf[(1 + y) / eps]));
 
 (* https://en.wikipedia.org/wiki/Stirling%27s_approximation *)
 stirling[nn_] := Sqrt[2 * Pi * nn] * (nn / E)^nn * E^(1 / (12 * nn + 1 / 2))
@@ -569,7 +569,16 @@ rateMultiplier[x_, nn_, mm_, g_] := (1 + g * x) * entropy[0, nn, mm] / entropy[x
 rateMultiplier[x_, nn_, mm_] := rateMultiplier[x, nn, mm, gFactor];
 rateMultiplierQuadratic[x_, a_, g_] := (1 + g * x) * (1 + a * x^2);
 
-u00[e_, x_] := Exp[-x^2/e^2]/(e *Sqrt[Pi]* Erf[1/e]);
+u00[eps_, x_] := Exp[-x^2 / eps^2] / (eps * Sqrt[Pi] * Erf[1 / eps]);
+
+(* ============================================== *)
+
+eeW[ee_, w_] := ee * (1 + (w * (1 - w) * (1 - ee^2)) / (1 - w^2 * ee^2) );
+
+kW[ee_, w_] := 1 + (w * (1 - w) * ee^2) / (1 - w * ee^2);
+
+kFuncW[x_, y_, w_, eps_] := kW[y, w] * delta1[x, eeW[y, w], eps];
+kFuncW1[x_, y_, w_, eps_] := kW[y, w] * delta1[x, y, eps];
 
 (* ============================================== *)
 
@@ -604,6 +613,41 @@ runFredholmSolver[noOfPoints_?IntegerQ, mORa_?NumericQ, e_?NumericQ, useQuadrati
 
    Return[retVal1];
    ];
+
+returnAll = 1;
+returnVec1 = 2;
+returnVec1Vec2 = 3;
+
+(* returnType = 1 - return all *)
+(* returnType = 2 - return vec[[1]] *)
+(* returnType = 3 - return { vec[[1]], vec[[2]] } *)
+
+runFredholmSolver2[noOfPoints_?IntegerQ, kFunc_, returnType_?IntegerQ, description_] :=
+    Module[{val, vec, k, retVal, integrand, midGrid, weights, mu, sigma, domain},
+        domain = { -1, 1 };
+
+        integrand[x_, y_] := Module[{xp, yp, retVal},
+            xp = SetPrecision[x, fredholmPrecision];
+            yp = SetPrecision[y, fredholmPrecision];
+            retVal = SetPrecision[kFunc[xp, yp], fredholmPrecision];
+            Return[retVal];
+        ];
+
+        {val, vec, k} = SetPrecision[fredholmSolver[noOfPoints, domain, integrand], MachinePrecision];
+        { midGrid, weights } = SetPrecision[getMidGridAndWeights[noOfPoints, domain], MachinePrecision],
+        { mu, sigma } = getMuSigma[noOfPoints, domain, vec],
+
+        retVal = Piecewise[
+            {
+                { { { val, vec, k }, { mu, sigma }, { noOfPoints, description } }, returnType == 1 },
+                { vec[[1]], returnType == 2 },
+                { { vec[[1]], vec[[2]] }, returnType == 3 },
+                { Abort[], True }
+            }];
+
+
+        Return[retVal];
+    ];
 
 (* ============================================== *)
 
