@@ -577,8 +577,11 @@ eeW[ee_, w_] := ee * (1 + (w * (1 - w) * (1 - ee^2)) / (1 - w^2 * ee^2) );
 
 kW[ee_, w_] := 1 + (w * (1 - w) * ee^2) / (1 - w * ee^2);
 
-kFuncW[x_, y_, w_, eps_] := kW[y, w] * delta1[x, eeW[y, w], eps];
-kFuncW1[x_, y_, w_, eps_] := kW[y, w] * delta1[x, y, eps];
+kFuncW[x_, y_, w_, eps_, g_] := kW[x, w] * (1 + g * x) * delta1[x, eeW[y, w], eps];
+kFuncW1[x_, y_, w_, eps_, g_] := kW[x, w] * (1 + g * x) * delta1[x, y, eps];
+
+kFuncW[x_, y_, w_, eps_] := kFuncW[x, y, w, eps, 0];
+kFuncW1[x_, y_, w_, eps_] := kFuncW1[x, y, w, eps, 0];
 
 (* ============================================== *)
 
@@ -614,6 +617,8 @@ runFredholmSolver[noOfPoints_?IntegerQ, mORa_?NumericQ, e_?NumericQ, useQuadrati
    Return[retVal1];
    ];
 
+(* ============================================== *)
+
 returnAll = 1;
 returnVec1 = 2;
 returnVec1Vec2 = 3;
@@ -634,17 +639,16 @@ runFredholmSolver2[noOfPoints_?IntegerQ, kFunc_, returnType_?IntegerQ, descripti
         ];
 
         {val, vec, k} = SetPrecision[fredholmSolver[noOfPoints, domain, integrand], MachinePrecision];
-        { midGrid, weights } = SetPrecision[getMidGridAndWeights[noOfPoints, domain], MachinePrecision],
-        { mu, sigma } = getMuSigma[noOfPoints, domain, vec],
+        { midGrid, weights } = SetPrecision[getMidGridAndWeights[noOfPoints, domain], MachinePrecision];
+        { mu, sigma } = getMuSigma[noOfPoints, domain, vec];
 
         retVal = Piecewise[
             {
-                { { { val, vec, k }, { mu, sigma }, { noOfPoints, description } }, returnType == 1 },
-                { vec[[1]], returnType == 2 },
-                { { vec[[1]], vec[[2]] }, returnType == 3 },
+                { { { val, vec, k }, { mu, sigma }, { noOfPoints, description } }, returnType == returnAll },
+                { vec[[1]], returnType == returnVec1 },
+                { { vec[[1]], vec[[2]] }, returnType == returnVec1Vec2 },
                 { Abort[], True }
             }];
-
 
         Return[retVal];
     ];
