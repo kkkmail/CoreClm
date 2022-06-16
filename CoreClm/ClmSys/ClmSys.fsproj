@@ -51,11 +51,11 @@
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
-    <PackageReference Include="Softellect.Messaging" Version="6.0.3.1" />
-    <PackageReference Include="Softellect.Sys" Version="6.0.3.1" />
-    <PackageReference Include="Softellect.Wcf" Version="6.0.3.1" />
+    <PackageReference Include="Softellect.Messaging" Version="6.0.6.1" />
+    <PackageReference Include="Softellect.Sys" Version="6.0.6.1" />
+    <PackageReference Include="Softellect.Wcf" Version="6.0.6.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
-    <PackageReference Update="FSharp.Core" Version="6.0.3" />
+    <PackageReference Update="FSharp.Core" Version="6.0.5" />
   </ItemGroup>
 
 </Project>
