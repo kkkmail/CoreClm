@@ -583,6 +583,10 @@ kFuncW1[x_, y_, w_, eps_, g_] := kW[x, w] * (1 + g * x) * delta1[x, y, eps];
 kFuncW[x_, y_, w_, eps_] := kFuncW[x, y, w, eps, 0];
 kFuncW1[x_, y_, w_, eps_] := kFuncW1[x, y, w, eps, 0];
 
+kA[ee_, a_] := 1 + a * ee^2;
+kFuncA[x_, y_, a_, eps_, g_] := kA[x, a] * (1 + g * x) * delta1[x, y, eps];
+kFuncA[x_, y_, a_, eps_] := kFuncA[x, y, a, eps, 0];
+
 (* ============================================== *)
 
 runFredholmSolver[noOfPoints_?IntegerQ, mORa_?NumericQ, e_?NumericQ, useQuadratic_?BooleanQ, g_?NumericQ] :=
@@ -622,23 +626,25 @@ runFredholmSolver[noOfPoints_?IntegerQ, mORa_?NumericQ, e_?NumericQ, useQuadrati
 returnAll = 1;
 returnVec1 = 2;
 returnVec1Vec2 = 3;
+returnVec1Vec2Val1Val2 = 4;
 
 (* returnType = 1 - return all *)
 (* returnType = 2 - return vec[[1]] *)
 (* returnType = 3 - return { vec[[1]], vec[[2]] } *)
+(* returnType = 4 - return { vec[[1]], vec[[2]], val[[1]], val[[2]] } *)
 
 runFredholmSolver2[noOfPoints_?IntegerQ, kFunc_, returnType_?IntegerQ, description_] :=
     Module[{val, vec, k, retVal, integrand, midGrid, weights, mu, sigma, domain},
         domain = { -1, 1 };
 
-        integrand[x_, y_] := Module[{xp, yp, retVal},
+        integrand[x_, y_] := Module[{ xp, yp, retVal },
             xp = SetPrecision[x, fredholmPrecision];
             yp = SetPrecision[y, fredholmPrecision];
             retVal = SetPrecision[kFunc[xp, yp], fredholmPrecision];
             Return[retVal];
         ];
 
-        {val, vec, k} = SetPrecision[fredholmSolver[noOfPoints, domain, integrand], MachinePrecision];
+        { val, vec, k } = SetPrecision[fredholmSolver[noOfPoints, domain, integrand], MachinePrecision];
         { midGrid, weights } = SetPrecision[getMidGridAndWeights[noOfPoints, domain], MachinePrecision];
         { mu, sigma } = getMuSigma[noOfPoints, domain, vec];
 
@@ -647,6 +653,7 @@ runFredholmSolver2[noOfPoints_?IntegerQ, kFunc_, returnType_?IntegerQ, descripti
                 { { { val, vec, k }, { mu, sigma }, { noOfPoints, description } }, returnType == returnAll },
                 { vec[[1]], returnType == returnVec1 },
                 { { vec[[1]], vec[[2]] }, returnType == returnVec1Vec2 },
+                { { vec[[1]], vec[[2]], val[[1]], val[[2]] }, returnType == returnVec1Vec2Val1Val2 },
                 { Abort[], True }
             }];
 
