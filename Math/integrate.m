@@ -618,6 +618,10 @@ runFredholmSolver[noOfPoints_?IntegerQ, mORa_?NumericQ, e_?NumericQ, useQuadrati
 
    retVal1 = vec[[1]];
 
+   (*
+   retVal1 = vec[[2]];
+   *)
+
    Return[retVal1];
    ];
 
@@ -625,13 +629,15 @@ runFredholmSolver[noOfPoints_?IntegerQ, mORa_?NumericQ, e_?NumericQ, useQuadrati
 
 returnAll = 1;
 returnVec1 = 2;
-returnVec1Vec2 = 3;
-returnVec1Vec2Val1Val2 = 4;
+returnVec2 = 3;
+returnVec1Vec2 = 4;
+returnVec1Vec2Val1Val2 = 5;
 
-(* returnType = 1 - return all *)
-(* returnType = 2 - return vec[[1]] *)
-(* returnType = 3 - return { vec[[1]], vec[[2]] } *)
-(* returnType = 4 - return { vec[[1]], vec[[2]], val[[1]], val[[2]] } *)
+(* returnType = returnAll - return all *)
+(* returnType = returnVec1 - return vec[[1]] *)
+(* returnType = returnVec2 - return vec[[2]] *)
+(* returnType = returnVec1Vec2 - return { vec[[1]], vec[[2]] } *)
+(* returnType = returnVec1Vec2Val1Val2 - return { vec[[1]], vec[[2]], val[[1]], val[[2]] } *)
 
 runFredholmSolver2[noOfPoints_?IntegerQ, kFunc_, returnType_?IntegerQ, description_] :=
     Module[{val, vec, k, retVal, integrand, midGrid, weights, mu, sigma, domain},
@@ -652,6 +658,7 @@ runFredholmSolver2[noOfPoints_?IntegerQ, kFunc_, returnType_?IntegerQ, descripti
             {
                 { { { val, vec, k }, { mu, sigma }, { noOfPoints, description } }, returnType == returnAll },
                 { vec[[1]], returnType == returnVec1 },
+                { vec[[2]], returnType == returnVec2 },
                 { { vec[[1]], vec[[2]] }, returnType == returnVec1Vec2 },
                 { { vec[[1]], vec[[2]], val[[1]], val[[2]] }, returnType == returnVec1Vec2Val1Val2 },
                 { Abort[], True }
