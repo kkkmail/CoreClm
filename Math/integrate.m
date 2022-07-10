@@ -573,9 +573,9 @@ u00[eps_, x_] := Exp[-x^2 / eps^2] / (eps * Sqrt[Pi] * Erf[1 / eps]);
 
 (* ============================================== *)
 
-eeW[ee_, w_] := ee * (1 + (w * (1 - w) * (1 - ee^2)) / (1 - w^2 * ee^2) );
+eeW[x_, w_] := x * (1 + (w * (1 - w) * (1 - x^2)) / (1 - w^2 * x^2) );
 
-kW[ee_, w_] := 1 + (w * (1 - w) * ee^2) / (1 - w * ee^2);
+kW[x_, w_] := 1 + (w * (1 - w) * x^2) / (1 - w * x^2);
 
 kFuncW[x_, y_, w_, eps_, g_] := kW[x, w] * (1 + g * x) * delta1[x, eeW[y, w], eps];
 kFuncW1[x_, y_, w_, eps_, g_] := kW[x, w] * (1 + g * x) * delta1[x, y, eps];
@@ -583,12 +583,12 @@ kFuncW1[x_, y_, w_, eps_, g_] := kW[x, w] * (1 + g * x) * delta1[x, y, eps];
 kFuncW[x_, y_, w_, eps_] := kFuncW[x, y, w, eps, 0];
 kFuncW1[x_, y_, w_, eps_] := kFuncW1[x, y, w, eps, 0];
 
-kA[ee_, a_] := 1 + a * ee^2;
+kA[x_, a_] := 1 + a * x^2;
 kFuncA[x_, y_, a_, eps_, g_] := kA[x, a] * (1 + g * x) * delta1[x, y, eps];
 kFuncA[x_, y_, a_, eps_] := kFuncA[x, y, a, eps, 0];
 
-kAB[ee_, a_, b_] := 1 + a * ee^2 + b * ee^4;
-kFuncAB[x_, y_, a_, b_, eps_, g_] := kAB[x, a, b] * (1 + g * x) * delta1[x, y, eps];
+kGAB[x_, g_, a_, b_] := 1 + g * x + a * x^2 * (1 + b * x);
+kFuncAB[x_, y_, a_, b_, eps_, g_] := kGAB[x, g, a, b] * delta1[x, y, eps];
 kFuncAB[x_, y_, a_, b_, eps_] := kFuncAB[x, y, a, b, eps, 0];
 
 (* ============================================== *)
