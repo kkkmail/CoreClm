@@ -788,4 +788,20 @@ renormalize[v_, w_] := Module[{retVal, norm, len, ii, e},
   Return[retVal];
 ];
 
+renormalizeRe[v_, w_] := Module[{retVal, norm, len, ii, e},
+  len = Length[v];
+  e = Abs[v];
+  norm = Sqrt[Sum[e[[ii]]^2 * w[[ii]], {ii, 1, len}]];
+  retVal = Re[v] / norm;
+  Return[retVal];
+];
+
+renormalizeIm[v_, w_] := Module[{retVal, norm, len, ii, e},
+  len = Length[v];
+  e = Abs[v];
+  norm = Sqrt[Sum[e[[ii]]^2 * w[[ii]], {ii, 1, len}]];
+  retVal = Im[v] / norm;
+  Return[retVal];
+];
+
 (* ============================================== *)
