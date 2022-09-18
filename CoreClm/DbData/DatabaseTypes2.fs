@@ -30,7 +30,7 @@ module DatabaseTypes =
     type private ClmDb = SqlDataProvider<
                     Common.DatabaseProviderTypes.MSSQLSERVER,
                     ConnectionString = ContGenConnectionStringValue,
-                    UseOptionTypes = true>
+                    UseOptionTypes = Common.NullableColumnType.OPTION>
 
 
     type private ClmContext = ClmDb.dataContext
