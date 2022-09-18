@@ -1,3 +1,3 @@
 # Must match values from ClmSys.VersionInfo
-[string] $global:messagingDataVersion = "126"
-[string] $global:versionNumber = "6.0.9"
+[string] $global:messagingDataVersion = "0"
+[string] $global:versionNumber = "7.0.0.0001"
