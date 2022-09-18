@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="Plotly.NET" Version="3.0.1" />
-    <PackageReference Update="FSharp.Core" Version="6.0.6" />
+    <PackageReference Update="FSharp.Core" Version="7.0.0-beta.22427.1" />
   </ItemGroup>
 
 </Project>
