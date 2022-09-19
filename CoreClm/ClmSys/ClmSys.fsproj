@@ -51,9 +51,9 @@
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0-rc.1.22426.10" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0-rc.1.22426.10" />
-    <PackageReference Include="Softellect.Messaging" Version="6.0.8.1" />
-    <PackageReference Include="Softellect.Sys" Version="6.0.8.1" />
-    <PackageReference Include="Softellect.Wcf" Version="6.0.8.1" />
+    <PackageReference Include="Softellect.Messaging" Version="7.0.0-preview-0001" />
+    <PackageReference Include="Softellect.Sys" Version="7.0.0-preview-0001" />
+    <PackageReference Include="Softellect.Wcf" Version="7.0.0-preview-0001" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0-rc.1.22426.10" />
     <PackageReference Update="FSharp.Core" Version="7.0.0-beta.22427.1" />
   </ItemGroup>
