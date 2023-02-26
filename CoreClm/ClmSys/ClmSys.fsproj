@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
@@ -46,16 +46,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FSharp.Data" Version="4.2.5" />
-    <PackageReference Include="log4net" Version="2.0.13" />
+    <PackageReference Include="FSharp.Data" Version="6.0.1-beta001" />
+    <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
-    <PackageReference Include="Softellect.Messaging" Version="6.0.0.1" />
-    <PackageReference Include="Softellect.Sys" Version="6.0.0.1" />
-    <PackageReference Include="Softellect.Wcf" Version="6.0.0.1" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
-    <PackageReference Update="FSharp.Core" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0" />
+    <PackageReference Include="Softellect.Messaging" Version="7.0.0.1" />
+    <PackageReference Include="Softellect.Sys" Version="7.0.0.1" />
+    <PackageReference Include="Softellect.Wcf" Version="7.0.0.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+    <PackageReference Update="FSharp.Core" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

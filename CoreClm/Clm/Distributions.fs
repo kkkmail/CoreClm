@@ -1,15 +1,14 @@
 ﻿namespace Clm
 
 open System
-open ClmSys.DistributionData
 
-/// The distributions that we need fall into the following categories:
-///     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.
-///     2. Unconditional rate distributions (RateDistribution). They must produce values on (0, infinity) with mean of 1.
+// The distributions that we need fall into the following categories:
+//     1. EE distributions. They must produce values on (-1, 1) and usually have mean of 0.
+//     2. Unconditional rate distributions (RateDistribution). They must produce values on (0, infinity) with mean of 1.
 //         This distribution is usually skewed toward 0.
-///     3. Conditional rate distributions (RateDistribution).
-///        They must produce values on (0, infinity) with mean of 1.
-///        This distribution produces value near mean.
+//     3. Conditional rate distributions (RateDistribution).
+//        They must produce values on (0, infinity) with mean of 1.
+//        This distribution produces value near mean.
 module Distributions =
 
     /// https://en.wikipedia.org/wiki/Marsaglia_polar_method
@@ -71,6 +70,8 @@ module Distributions =
 
     type ReactionRate =
         | ReactionRate of double
+        
+        member r.value = let (ReactionRate v) = r in v             
 
 
     [<Literal>]

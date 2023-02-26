@@ -61,7 +61,7 @@ module MsgSvcDatabaseTypes =
     type private MsgSvcDb = SqlDataProvider<
                     Common.DatabaseProviderTypes.MSSQLSERVER,
                     ConnectionString = MessagingConnectionStringValue,
-                    UseOptionTypes = true>
+                    UseOptionTypes = Common.NullableColumnType.OPTION>
 
 
     type private MsgSvcContext = MsgSvcDb.dataContext

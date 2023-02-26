@@ -25,7 +25,7 @@ module WorkerNodeDatabaseTypes =
     type private WorkerNodeDb = SqlDataProvider<
                     Common.DatabaseProviderTypes.MSSQLSERVER,
                     ConnectionString = WorkerNodeConnectionStringValue,
-                    UseOptionTypes = true>
+                    UseOptionTypes = Common.NullableColumnType.OPTION>
 
 
     type private WorkerNodeDbContext = WorkerNodeDb.dataContext
