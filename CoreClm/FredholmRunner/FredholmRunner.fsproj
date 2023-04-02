@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="FredholmData.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
