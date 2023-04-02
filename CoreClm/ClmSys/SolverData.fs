@@ -18,16 +18,16 @@ module SolverData =
         with
 
         member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started
-        
-        
+
+
     type EarlyExitCheckFrequency =
         | EarlyExitCheckFrequency of TimeSpan
 
         member this.value = let (EarlyExitCheckFrequency v) = this in v
 
         static member defaultValue = TimeSpan.FromHours(1.0) |> EarlyExitCheckFrequency
-        
-       
+
+
     /// Collection of "standard" early exit parameters.
     type EarlyExitParam =
         {
@@ -51,9 +51,9 @@ module SolverData =
                 slowProgress = 0.10M
                 slowMinEe = 0.15
                 maxRunTime = TimeSpan.FromDays 20.0
-            }            
+            }
 
-    
+
     type RunnerControlData =
         {
             minUsefulEe : MinUsefulEe
@@ -61,4 +61,3 @@ module SolverData =
             earlyExitParamOpt : EarlyExitParam option
             absoluteTolerance : AbsoluteTolerance
         }
-                    

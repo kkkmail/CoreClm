@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Platforms>x64</Platforms>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Analytics\Analytics.fsproj" />
+    <ProjectReference Include="..\ClmGenerator\ClmGenerator.fsproj" />
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
+    <ProjectReference Include="..\Clm\Clm.fsproj" />
+    <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
+    <ProjectReference Include="..\DbData\DbData.fsproj" />
+    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
+    <ProjectReference Include="..\NoSql\NoSql.fsproj" />
+    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
+    <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
+    <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="7.0.200" />
+  </ItemGroup>
+
+</Project>

@@ -53,7 +53,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{A498
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "GillespieExample", "Samples\GillespieExample\GillespieExample.fsproj", "{5DA6FF14-89EE-4E44-BF72-312931EE21F2}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DnaEvolution", "DnaEvolution\DnaEvolution.fsproj", "{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "DnaEvolution", "DnaEvolution\DnaEvolution.fsproj", "{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}"
+EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FredholmRunner", "FredholmRunner\FredholmRunner.fsproj", "{1C61152F-48AC-4B3F-BAB9-82F7E9140146}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -261,8 +263,16 @@ Global
 		{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}.Debug|x64.Build.0 = Debug|Any CPU
 		{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}.Release|x64.ActiveCfg = Release|Any CPU
-		{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}.Release|x64.Build.0 = Release|Any CPU
+		{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}.Release|x64.ActiveCfg = Release|x64
+		{061C06E9-2AA8-4EBB-AF07-AE483CD15FA1}.Release|x64.Build.0 = Release|x64
+		{1C61152F-48AC-4B3F-BAB9-82F7E9140146}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C61152F-48AC-4B3F-BAB9-82F7E9140146}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C61152F-48AC-4B3F-BAB9-82F7E9140146}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1C61152F-48AC-4B3F-BAB9-82F7E9140146}.Debug|x64.Build.0 = Debug|Any CPU
+		{1C61152F-48AC-4B3F-BAB9-82F7E9140146}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C61152F-48AC-4B3F-BAB9-82F7E9140146}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C61152F-48AC-4B3F-BAB9-82F7E9140146}.Release|x64.ActiveCfg = Release|x64
+		{1C61152F-48AC-4B3F-BAB9-82F7E9140146}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

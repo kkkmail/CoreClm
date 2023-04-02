@@ -213,12 +213,12 @@ module Solver =
             let dtEeSumNew = (csd.enantiomericExcess, dtEeSum) ||> Array.map2 (fun e s -> dt * e + s)
             let tDtEeSumNew = (csd.enantiomericExcess, tDtEeSum) ||> Array.map2 (fun e s -> tDt * e + s)
 
-            let dtEeAbsMax = 
+            let dtEeAbsMax =
                 dtEeSumNew
                 |> Array.map abs
                 |> Array.max
 
-            let tDtEeAbsMax = 
+            let tDtEeAbsMax =
                 tDtEeSumNew
                 |> Array.map abs
                 |> Array.max
@@ -283,7 +283,7 @@ module Solver =
             startTime = solverResult.StartTime
             endTime = solverResult.EndTime
             xEnd = solverResult.X
-            progressData = calculateProgressData { nSolveParam = n; t = solverResult.EndTime; x = solverResult.X }  
+            progressData = calculateProgressData { nSolveParam = n; t = solverResult.EndTime; x = solverResult.X }
         }
 
 
