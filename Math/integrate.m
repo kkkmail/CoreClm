@@ -404,12 +404,13 @@ fredholmSolver[noOfPoints_?IntegerQ, domain : {_, _}, integrand_] :=
       (* Print["weights[[1]] = ", FullForm[weights[[1]]]]; *)
 
       mm = Table[SetPrecision[integrand[SetPrecision[midGrid[[i]], fredholmPrecision], SetPrecision[midGrid[[j]], fredholmPrecision]] * SetPrecision[weights[[i]], fredholmPrecision], fredholmPrecision], {i, len}, {j, len}];
-      (* Print["mm = ", mm // MatrixForm]; *)
+      (* Print["mm = ", Chop[N[mm]] // MatrixForm]; *)
 
       (* Print["mm[[1, 1]] = ", mm[[1, 1]]]; *)
       {val, vec} = Eigensystem[mm];
-      (* Print["val = ", val // MatrixForm]; *)
-      (* Print["vec = ", vec // MatrixForm]; *)
+      Print["val[[1]] = ",  N[val[[1]]]];
+      (* Print["val = ",  Chop[N[val]] // MatrixForm]; *)
+      (* Print["vec = ",  Chop[N[vec]] // MatrixForm]; *)
       vec1 = vec[[1]];
       s = Sum[vec1[[ii]], {ii, Floor[(len / 2)] + 1, len}];
       (* Print["s = ", s]; *)
