@@ -19,9 +19,39 @@ module FredholmData =
     type SparseValue =
         {
             i : int
+            value : double
+        }
+
+        static member createArray z (v : double[]) =
+            v
+            |> Array.mapi (fun i e -> if e >= z then Some { i = i; value = e } else None)
+            |> Array.choose id
+
+
+    type SparseArray = SparseValue[]
+
+
+    type SparseValue2D =
+        {
+            i : int
             j : int
             value : double
         }
+
+        static member createArray2D z (v : double[][]) =
+            v
+            |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> if v >= z then Some { i = i; j = j; value = v } else None))
+            |> Array.concat
+            |> Array.choose id
+
+
+
+    type SparseArray2D = SparseValue2D[]
+
+    type SparseValue2D
+        with
+        static member cartesianMultiply (a : SparseArray) (b : SparseArray) : SparseArray2D =
+            a |> Array.map (fun e -> b |> Array.map (fun f -> { i = e.i; j = f.i; value = e.value * f.value })) |> Array.concat
 
 
     // /// Represents indexes of 2D sparse array.
@@ -78,8 +108,8 @@ module FredholmData =
             let sum = v |> Array.map (fun e -> e |> Array.sum) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
-        member d.integrateValues (a : XY, b : XY) =
-            let sum = b |> Array.mapi (fun i e -> e |> Array.mapi (fun j y -> a[i][j] * y)|> Array.sum) |> Array.sum
+        member d.integrateValues (a : SparseArray2D, b : XY) =
+            let sum = a |> Array.map (fun e -> e.value * b[e.i][e.j]) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
         static member eeMinValue = -1.0
@@ -96,10 +126,10 @@ module FredholmData =
     /// Creates a normalized probability
     type MutationProbability =
         {
-            p : double[]
+            p : SparseArray
         }
 
-        static member create (d : Domain) m e =
+        static member create (d : Domain) z m e =
             let f x = exp (- pown ((x - m) / e) 2)
             let values = d.midPoints |> Array.map f
             let norm = d.integrateValues values
@@ -119,7 +149,8 @@ module FredholmData =
         }
 
 
-    type KernelValue = XY[][]
+    // type KernelValue = XY[][]
+    type KernelValue = SparseArray2D[][]
 
 
     /// Represents K(x, x1, y, y1) 2D Fredholm kernel.
@@ -132,7 +163,7 @@ module FredholmData =
             domainData : DomainData
         }
 
-        member k.integrateValues u =
+        member k.integrateValues u : XY =
             let v =
                 k.kernel
                 |> Array.map (fun e -> e |> Array.map (fun x -> k.domainData.integrateValues (x, u)))
