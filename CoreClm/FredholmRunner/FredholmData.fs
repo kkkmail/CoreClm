@@ -1,5 +1,7 @@
 ﻿namespace FredholmRunner
 
+open FSharp.Collections
+
 module FredholmData =
 
     /// TODO kk:20230402 - Exists in Gillespie.SsaPrimitives - Consolidate.
@@ -10,6 +12,7 @@ module FredholmData =
 
 
     /// Describes a function domain suitable for integral approximation.
+    /// Equidistant grid is used to reduce the number of multiplications.
     type Domain =
         {
             points : double[]
@@ -52,6 +55,21 @@ module FredholmData =
             infDomain : Domain
         }
 
+        member d.integrate f =
+            let x =
+                d.eeDomain.intervals
+                |> Array.map (fun e -> e)
+            0
+
+        member d.integrateValues (v : double[,]) =
+            let mutable sum = 0.0
+
+            for i in 0 .. 10 do
+                for j in 0 .. 10 do
+                    sum <- sum + v[i,j] * d.eeDomain.intervals[i] * d.infDomain.intervals[j]
+
+            sum
+
         static member eeMinValue = -1.0
         static member eeMaxValue = 1.0
         static member infDefaultMinValue = 0.0
@@ -73,9 +91,21 @@ module FredholmData =
 
         static member create (d : Domain) m e =
             let f x = exp (- pown ((x - m) / e) 2)
-            let norm = d.integrate f
-            let p = d.midPoints |> Array.map (fun x -> (f x) / norm)
+            let values = d.midPoints |> Array.map f
+            let norm = d.integrateValues values
+            let p = values |> Array.map (fun v -> v / norm)
 
             {
                 p = p
             }
+
+
+    type X = double[,]
+
+    /// Represents K(x, x1, y, y1) 2D Fredholm kernel.
+    /// It is convenient to store it as 2D arrays in 2D array,
+    /// where the first two indexes are (x, y) and internal ones are (x1, y1)
+    type Kernel =
+        {
+            kernel : X[,]
+        }
