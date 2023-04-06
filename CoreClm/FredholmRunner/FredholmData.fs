@@ -22,13 +22,16 @@ module FredholmData =
             value : double
         }
 
-        static member createArray z (v : double[]) =
+
+    type SparseArray = SparseValue[]
+
+
+    type SparseValue
+        with
+        static member createArray z (v : double[]) : SparseArray =
             v
             |> Array.mapi (fun i e -> if e >= z then Some { i = i; value = e } else None)
             |> Array.choose id
-
-
-    type SparseArray = SparseValue[]
 
 
     type SparseValue2D =
@@ -38,29 +41,20 @@ module FredholmData =
             value : double
         }
 
-        static member createArray2D z (v : double[][]) =
+
+    type SparseArray2D = SparseValue2D[]
+
+
+    type SparseValue2D
+        with
+        static member createArray2D z (v : double[][]) : SparseArray2D =
             v
             |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> if v >= z then Some { i = i; j = j; value = v } else None))
             |> Array.concat
             |> Array.choose id
 
-
-
-    type SparseArray2D = SparseValue2D[]
-
-    type SparseValue2D
-        with
         static member cartesianMultiply (a : SparseArray) (b : SparseArray) : SparseArray2D =
             a |> Array.map (fun e -> b |> Array.map (fun f -> { i = e.i; j = f.i; value = e.value * f.value })) |> Array.concat
-
-
-    // /// Represents indexes of 2D sparse array.
-    // type IJ = int[][]
-    //
-    // type Sparse =
-    //     {
-    //         a : int[][]
-    //     }
 
 
     /// Describes a function domain suitable for integral approximation.
@@ -69,22 +63,14 @@ module FredholmData =
         {
             midPoints : double[]
             step : double
+            range : double
         }
 
-        // member d.minValue = d.points[0]
-        // member d.maxValue = d.points[d.points.Length - 1]
-        // member d.range = (d.minValue, d.maxValue)
-        // member d.noOfPoints = d.points.Length
         member d.noOfIntervals = d.midPoints.Length
 
-        member d.integrateValues v =
-            let sum = v |> Array.sum
+        member d.integrateValues (v : SparseArray) =
+            let sum = v |> Array.map (fun e -> e.value) |> Array.sum
             sum * d.step
-
-
-        // member d.integrate f =
-        //     let values = d.midPoints |> Array.map f
-        //     d.integrateValues values
 
         static member create noOfIntervals minValue maxValue =
             let points = [| for i in 0..noOfIntervals -> minValue + (maxValue - minValue) * (double i) / (double noOfIntervals) |]
@@ -92,10 +78,11 @@ module FredholmData =
             {
                 midPoints = [| for i in 0..noOfIntervals - 1 -> (points[i + 1] + points[i]) / 2.0 |]
                 step =  (maxValue - minValue) / (double noOfIntervals)
+                range = points[noOfIntervals] - points[0]
             }
 
 
-    /// Data that describes a rectangle in ee * information space.
+    /// Data that describes a rectangle in ee * inf space.
     /// ee space is naturally limited to [-1, 1] unless we use a conformal transformation to extend it to [-Infinity, Infinity].
     /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
     type DomainData =
@@ -108,6 +95,10 @@ module FredholmData =
             let sum = v |> Array.map (fun e -> e |> Array.sum) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
+        member d.integrateValues (a : SparseArray2D) =
+            let sum = a |> Array.map (fun e -> e.value) |> Array.sum
+            sum * d.eeDomain.step * d.infDomain.step
+
         member d.integrateValues (a : SparseArray2D, b : XY) =
             let sum = a |> Array.map (fun e -> e.value * b[e.i][e.j]) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
@@ -118,22 +109,26 @@ module FredholmData =
 
         static member create noOfIntervals l2 =
             {
-                eeDomain = Domain.create noOfIntervals DomainData.eeMinValue DomainData.eeMinValue
+                eeDomain = Domain.create noOfIntervals DomainData.eeMinValue DomainData.eeMaxValue
                 infDomain = Domain.create noOfIntervals DomainData.infDefaultMinValue l2
             }
 
 
-    /// Creates a normalized probability
+    /// Creates a normalized probability.
     type MutationProbability =
         {
             p : SparseArray
         }
 
+        static member defaultZeroValue : double = 1.0e-05
+
+        /// m is a real (unscaled) value but e is scaled to the half of the range.
         static member create (d : Domain) z m e =
-            let f x = exp (- pown ((x - m) / e) 2)
-            let values = d.midPoints |> Array.map f
+            let eValue = e * d.range / 2.0
+            let f x = exp (- pown ((x - m) / eValue) 2)
+            let values = d.midPoints |> Array.map f |> SparseValue.createArray z
             let norm = d.integrateValues values
-            let p = values |> Array.map (fun v -> v / norm)
+            let p = values |> Array.map (fun v -> { v with value = v.value / norm })
 
             {
                 p = p
