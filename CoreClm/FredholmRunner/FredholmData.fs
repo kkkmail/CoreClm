@@ -69,17 +69,40 @@ module FredholmData =
             value : double
         }
 
+        /// Uses (i, j) as the first pair of indexes.
+        static member create i j (v : SparseValue2D) =
+            {
+                i = i
+                j = j
+                i1 = v.i
+                j1 = v.j
+                value = v.value
+            }
+
+        /// Uses (i, j) as the second pair of indexes.
+        static member createTransposed i j (v : SparseValue2D) =
+            {
+                i = v.i
+                j = v.j
+                i1 = i
+                j1 = j
+                value = v.value
+            }
+
+        static member createArray i j (x : SparseArray2D) = x.value |> Array.map (SparseValue4D.create i j)
+
 
     type SparseArray4D =
         | SparseArray4D of SparseValue4D[]
 
         member r.value = let (SparseArray4D v) = r in v
 
-        static member create n1 n2 (v : SparseArray2D[][]) =
-            let c i j (x : SparseArray2D) = x.value |> Array.map (fun e -> { i = i; j = j; i1 = e.i; j1 = e.j; value = e.value })
+        static member create (v : SparseArray2D[][]) =
+            let n1 = v.Length
+            let n2 = v[0].Length
 
             let value =
-                [| for i in 0..(n1 - 1) -> [| for j in 0..(n2 - 1) -> c i j (v[i][j]) |] |]
+                [| for i in 0..(n1 - 1) -> [| for j in 0..(n2 - 1) -> SparseValue4D.createArray i j (v[i][j]) |] |]
                 |> Array.concat
                 |> Array.concat
                 |> Array.sortBy (fun e -> e.i, e.j, e.i1, e.j1)
@@ -223,13 +246,25 @@ module FredholmData =
             let x1y1_xy = eeMu |> Array.map(fun a -> infMu |> Array.map (MutationProbability2D.create data a))
 
             // Here we need to swap (x, y) <-> (x1, y1) "indexes".
+            //
+            // let find i j : SparseArray2D =
+            //     x1y1_xy
+            //
+            // let xy_x1y1 =
+            //     eeMu
+            //     |> Array.mapi (fun i _ -> infMu |> Array.mapi (fun j _ -> find i j))
 
-            let find i j : SparseArray2D =
-                x1y1_xy
+            let xy_x1y1_Map =
+                [| for i in 0..(eeMu.Length - 1) -> [| for j in 0..(infMu.Length - 1) -> SparseValue4D.createArray i j (x1y1_xy[i][j]) |] |]
+                |> Array.concat
+                |> Array.concat
+                |> Array.groupBy (fun e -> e.i1, e.j1)
+                |> Array.map (fun (a, b) -> a, b |> Array.map (fun e -> { i = e.i; j = e.j; value = e.value }) |> Array.sortBy (fun e -> e.i, e.j) |> SparseArray2D)
+                |> Map.ofArray
 
             let xy_x1y1 =
                 eeMu
-                |> Array.mapi (fun i _ -> infMu |> Array.mapi (fun j _ -> find i j))
+                |> Array.mapi (fun i _ -> infMu |> Array.mapi (fun j _ -> xy_x1y1_Map[(i, j)]))
 
             {
                 x1y1_xy = x1y1_xy

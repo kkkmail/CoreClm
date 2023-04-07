@@ -51,5 +51,21 @@ printfn $"domain.infDomain: {domain.infDomain}"
 let p = MutationProbability4D.create m2Data
 
 printfn $"{sw.Elapsed.TotalSeconds}."
+// printfn $"p.xy_x1y1 = {SparseArray4D.create p.xy_x1y1}"
+// printfn $"p.x1y1_xy = {SparseArray4D.create p.x1y1_xy}"
+
+let x1 =
+    p.x1y1_xy
+    |> Array.map (fun a -> a |> Array.map domain.integrateValues)
+    |> XY
+
+let x2 =
+    p.xy_x1y1
+    |> Array.map (fun a -> a |> Array.map domain.integrateValues)
+    |> XY
+
+printfn $"integrate(p.x1y1_xy) = {x1}"
+printfn $"integrate(p.xy_x1y1) = {x2}"
+printfn $"{sw.Elapsed.TotalSeconds}."
 
 Console.ReadLine() |> ignore
