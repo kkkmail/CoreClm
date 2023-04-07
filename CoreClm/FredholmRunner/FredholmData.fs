@@ -60,6 +60,36 @@ module FredholmData =
             |> SparseArray2D
 
 
+    type SparseValue4D =
+        {
+            i : int
+            j : int
+            i1 : int
+            j1 : int
+            value : double
+        }
+
+
+    type SparseArray4D =
+        | SparseArray4D of SparseValue4D[]
+
+        member r.value = let (SparseArray4D v) = r in v
+
+        static member create n1 n2 (v : SparseArray2D[][]) =
+            let c i j (x : SparseArray2D) = x.value |> Array.map (fun e -> { i = i; j = j; i1 = e.i; j1 = e.j; value = e.value })
+
+            let value =
+                [| for i in 0..(n1 - 1) -> [| for j in 0..(n2 - 1) -> c i j (v[i][j]) |] |]
+                |> Array.concat
+                |> Array.concat
+                |> Array.sortBy (fun e -> e.i, e.j, e.i1, e.j1)
+                |> SparseArray4D
+            value
+
+        member a.transpose n1 n2 =
+            a.value
+
+
     /// Performs a Cartesian multiplication of two 1D sparse arrays to obtain a 2D sparse array.
     let cartesianMultiply (a : SparseArray) (b : SparseArray) : SparseArray2D =
         let bValue = b.value
@@ -179,19 +209,32 @@ module FredholmData =
     /// Integration by (x, y) is "inconvenient" as normally we'd need to integrate by (x1, y1) and so the structure is
     /// optimized for that.
     type MutationProbability4D =
-        | MutationProbability4D of SparseArray2D[][]
-
-        member r.value = let (MutationProbability4D v) = r in v
+        {
+            x1y1_xy : SparseArray2D[][] // For integration over (x, y)
+            xy_x1y1 : SparseArray2D[][] // For integration over (x1, y1)
+        }
 
         static member create (data : MutationProbabilityData2D) =
             let eeMu = data.domain2D.eeDomain.midPoints
             let infMu = data.domain2D.infDomain.midPoints
 
-            let values =
+            // These are the values where integration by (x, y) should yield 1 for each (x1, y1).
+            // So the SparseArray2D[][] is by (x1, y1) and the underlying SparseArray2D is by (x, y).
+            let x1y1_xy = eeMu |> Array.map(fun a -> infMu |> Array.map (MutationProbability2D.create data a))
+
+            // Here we need to swap (x, y) <-> (x1, y1) "indexes".
+
+            let find i j : SparseArray2D =
+                x1y1_xy
+
+            let xy_x1y1 =
                 eeMu
-                |> Array.map(fun a -> infMu |> Array.map (MutationProbability2D.create data a))
-                |> MutationProbability4D
-            values
+                |> Array.mapi (fun i _ -> infMu |> Array.mapi (fun j _ -> find i j))
+
+            {
+                x1y1_xy = x1y1_xy
+                xy_x1y1 = xy_x1y1
+            }
 
     type KernelData =
         {
