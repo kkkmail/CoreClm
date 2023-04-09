@@ -138,14 +138,6 @@ module Kernel =
             let v = k.domainData.integrateValues (k.kernel.value, u)
             v
 
-        // static member defaultKernelFunc domainData data x1 y1 : XY =
-        //     let v =
-        //         domainData.eeDomain.midPoints
-        //         |> Array.map (fun x -> domainData.infDomain.midPoints |> Array.map (fun y -> 1.0))
-        //         |> XY.create
-        //
-        //     v
-
         static member create data =
             let domainData = Domain2D.create data.noOfIntervals data.l2
 

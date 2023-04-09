@@ -26,30 +26,35 @@ type ModelTests(output : ITestOutputHelper) =
             kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
         }
 
+    let domain data = Domain2D.create data.noOfIntervals data.l2
+
+    let m2Data domain data =
+        {
+            eeMutationProbabilityData =
+                {
+                    domain = domain.eeDomain
+                    zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+                    epsFunc = data.epsEeFunc
+                }
+            infMutationProbabilityData =
+                {
+                    domain = domain.infDomain
+                    zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+                    epsFunc = data.epsInfFunc
+                }
+        }
+
+
+    let normalize data v = v / (double (data.noOfIntervals * data.noOfIntervals))
+
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOne () : unit =
-        let sw = Stopwatch.StartNew()
         let data = defaultKernelData
 
-        let domain = Domain2D.create data.noOfIntervals data.l2
-
-        let m2Data =
-            {
-                eeMutationProbabilityData =
-                    {
-                        domain = domain.eeDomain
-                        zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-                        epsFunc = data.epsEeFunc
-                    }
-                infMutationProbabilityData =
-                    {
-                        domain = domain.infDomain
-                        zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-                        epsFunc = data.epsInfFunc
-                    }
-            }
-
+        let domain = domain data
+        let m2Data = m2Data domain data
+        let sw = Stopwatch.StartNew()
         let p = MutationProbability4D.create m2Data
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
@@ -62,9 +67,36 @@ type ModelTests(output : ITestOutputHelper) =
         diff.Should().BeLessThan(errTolerance, nullString) |> ignore
 
         let x2 = domain.integrateValues p.xy_x1y1
-        let total1 = (x1.value |> Array.concat |> Array.sum) / (double (data.noOfIntervals * data.noOfIntervals))
-        let total2 = (x2.value |> Array.concat |> Array.sum) / (double (data.noOfIntervals * data.noOfIntervals))
+        let total1 = x1.value |> Array.concat |> Array.sum |> (normalize data)
+        let total2 = x2.value |> Array.concat |> Array.sum |> (normalize data)
         total1.Should().BeApproximately(total2, errTolerance, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.defaultKernel_ShouldMatchProbability () : unit =
+        let data = defaultKernelData
+
+        let domain = domain data
+        let m2Data = m2Data domain data
+        let sw = Stopwatch.StartNew()
+        let p = MutationProbability4D.create m2Data
+        let kernel = Kernel.create defaultKernelData
+        writeLine $"{sw.Elapsed.TotalSeconds}."
+
+        let x1 = domain.integrateValues kernel.kernel.value
+        writeLine $"{sw.Elapsed.TotalSeconds}."
+
+        use _ = new AssertionScope()
+        let x2 = domain.integrateValues p.xy_x1y1
+
+        let total =
+            (x1.value |> Array.concat)
+            |> Array.zip (x2.value |> Array.concat)
+            |> Array.map (fun (a, b) -> pown (a - b) 2)
+            |> Array.sum
+            |> (normalize data)
+
+        total.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
 
 
     [<Fact>]
@@ -94,6 +126,6 @@ type ModelTests(output : ITestOutputHelper) =
             |]
             |> SparseArray4D
 
-        let b = a.toSparseArray() |> Array.map (fun e -> e.value4D)
+        let b = a.toSparseValueArray().value |> Array.map (fun e -> e.value4D)
         writeLine $"{a}"
         b.Should().BeEquivalentTo([| 0; 1; 10; 11; 100; 101; 110; 111; 1000; 1001; 1010; 1011; 1100; 1101; 1110; 1111 |], nullString) |> ignore

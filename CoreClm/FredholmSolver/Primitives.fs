@@ -18,7 +18,8 @@ module Primitives =
 
 
     /// A collection of various data (of the same type) packed into an array to be used with FORTRAN DLSODE ODE solver.
-    /// The type is generic to simplify tests.
+    /// The type is generic to simplify tests so that integers can be used for exact comparison.
+    /// Otherwise just double would do fine.
     type LinearData<'K, 'T when 'K : comparison> =
         {
             dataTypes : Map<'K, LinearDataInfo>
@@ -107,16 +108,6 @@ module Primitives =
         member m.toLinearMatrix() = LinearMatrix<'T>.create m.value
 
 
-    // /// Representation of 2D values.
-    // /// It is convenient to store them as [][] rather than as [,] to leverage build in F# array manipulations.
-    // type XY =
-    //     | XY of Matrix<double>
-    //
-    //     member r.value = let (XY v) = r in v.value
-    //
-    //     static member create v = v |> Matrix |> XY
-
-
     /// Representation of non-zero value in a sparse array.
     type SparseValue<'T> =
         {
@@ -146,8 +137,6 @@ module Primitives =
             value2D : 'T
         }
 
-    // let inline multiply (a : 'T) (b : 'T) : 'T = a * b
-
 
     /// See: https://github.com/dotnet/fsharp/issues/3302 for (*) operator.
     [<RequireQualifiedAccess>]
@@ -157,7 +146,6 @@ module Primitives =
         member inline r.value = let (SparseArray2D v) = r in v
 
         /// Multiplies a 2D sparse array by a scalar value.
-        /// This is NOT a matrix multiplication.
         /// Returns a 2D sparse array.
         static member inline (*) (a : SparseArray2D<'T>, b : 'T) : SparseArray2D<'T> =
             let v =
@@ -168,7 +156,6 @@ module Primitives =
             v
 
         /// Multiplies a 2D sparse array by a scalar value.
-        /// This is NOT a matrix multiplication.
         /// Returns a 2D sparse array.
         static member inline (*) (a : 'T, b : SparseArray2D<'T>) : SparseArray2D<'T> =
             let v =
@@ -241,6 +228,12 @@ module Primitives =
         static member inline createArray i j (x : SparseArray2D<'T>) = x.value |> Array.map (SparseValue4D.create i j)
 
 
+    type SparseValueArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
+        | SparseValueArray4D of SparseValue4D<'T>[]
+
+        member inline r.value = let (SparseValueArray4D v) = r in v
+
+
     /// A 4D representation of 4D sparse tensor where the first two indexes are full ([][] is used)
     /// and the last two are in a SparseArray2D.
     type SparseArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
@@ -248,7 +241,7 @@ module Primitives =
 
         member inline r.value = let (SparseArray4D v) = r in v
 
-        // TODO kk:20230409 - Due to whatever reason this does not compile. You need to multiply a 2D array by a number and use it.
+        // TODO kk:20230409 - Due to whatever reason this does not compile.
         // /// Multiplies a 4D sparse array by a scalar value.
         // /// Returns a 4D sparse array.
         // static member inline (*) (a : SparseArray4D<'T>, b : 'T) : SparseArray4D<'T> =
@@ -281,7 +274,7 @@ module Primitives =
 
             v
 
-        member inline a.toSparseArray() =
+        member inline a.toSparseValueArray() : SparseValueArray4D<'T> =
             let n1 = a.value.Length
             let n2 = a.value[0].Length
 
@@ -290,6 +283,7 @@ module Primitives =
                 |> Array.concat
                 |> Array.concat
                 |> Array.sortBy (fun e -> e.i, e.j, e.i1, e.j1)
+                |> SparseValueArray4D
 
             value
 
