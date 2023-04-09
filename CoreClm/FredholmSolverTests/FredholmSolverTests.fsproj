@@ -37,4 +37,8 @@
     <ProjectReference Include="..\FredholmSolver\FredholmSolver.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="PrimitivesTests.fs" />
+  </ItemGroup>
+
 </Project>

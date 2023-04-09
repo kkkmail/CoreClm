@@ -26,7 +26,7 @@ module Primitives =
             x : 'T[] // Array of d1 * d2 length.
         }
 
-        member m.value i j  = m.x[i * m.d1 + j]
+        member m.getValue i j  = m.x[i * m.d1 + j]
 
         static member create (x : 'T[][]) =
             let d1 = x.Length
@@ -38,7 +38,7 @@ module Primitives =
                 x = [| for a in x do for b in a do yield b |]
             }
 
-        member m.toMatrix() = [| for i in 0..(m.d1 - 1) -> [| for j in 0..(m.d2 - 1) -> m.value i j |] |] |> Matrix
+        member m.toMatrix() = [| for i in 0..(m.d1 - 1) -> [| for j in 0..(m.d2 - 1) -> m.getValue i j |] |] |> Matrix
 
 
     type Matrix<'T>
@@ -57,89 +57,134 @@ module Primitives =
 
 
     /// Representation of non-zero value in a sparse array.
-    type SparseValue =
+    type SparseValue<'T> =
         {
             i : int
-            value : double
+            value1D : 'T
         }
 
 
-    type SparseArray =
-        | SparseArray of SparseValue[]
+    [<RequireQualifiedAccess>]
+    type SparseArray<'T> =
+        | SparseArray of SparseValue<'T>[]
 
         member r.value = let (SparseArray v) = r in v
 
         static member create z v =
             v
-            |> Array.mapi (fun i e -> if e >= z then Some { i = i; value = e } else None)
+            |> Array.mapi (fun i e -> if e >= z then Some { i = i; value1D = e } else None)
             |> Array.choose id
             |> SparseArray
 
 
     /// Representation of non-zero value in a sparse 2D array.
-    type SparseValue2D =
+    type SparseValue2D<'T> =
         {
             i : int
             j : int
-            value : double
+            value2D : 'T
         }
 
+    // let inline multiply (a : 'T) (b : 'T) : 'T = a * b
 
-    type SparseArray2D =
-        | SparseArray2D of SparseValue2D[]
 
-        member r.value = let (SparseArray2D v) = r in v
+    /// See: https://github.com/dotnet/fsharp/issues/3302 for (*) operator.
+    type SparseArray2D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
+        | SparseArray2D of SparseValue2D<'T>[]
 
-        static member create z v =
+        member inline r.value = let (SparseArray2D v) = r in v
+
+        /// Multiplies a 2D sparse array by a 2D array (Matrix) element by element.
+        /// This is NOT a matrix multiplication.
+        /// Returns a 2D sparse array.
+        static member inline (*) (a : SparseArray2D<'T>, b : Matrix<'T>) : SparseArray2D<'T> =
+            let v =
+                a.value
+                |> Array.map (fun e -> { e with value2D = e.value2D * b.value[e.i][e.j] })
+                |> SparseArray2D
+
             v
-            |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> if v >= z then Some { i = i; j = j; value = v } else None))
+
+        /// Multiplies a 2D sparse array by a 2D array (LinearMatrix) element by element.
+        /// This is NOT a matrix multiplication.
+        /// Returns a 2D sparse array.
+        static member inline (*) (a : SparseArray2D<'T>, b : LinearMatrix<'T>) : SparseArray2D<'T> =
+            let v =
+                a.value
+                |> Array.map (fun e -> { e with value2D = e.value2D * (b.getValue e.i e.j) })
+                |> SparseArray2D
+
+            v
+
+        static member inline create z v =
+            v
+            |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> if v >= z then Some { i = i; j = j; value2D = v } else None))
             |> Array.concat
             |> Array.choose id
             |> SparseArray2D
 
 
     /// Representation of non-zero value in a sparse 4D array.
-    type SparseValue4D =
+    type SparseValue4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
         {
             i : int
             j : int
             i1 : int
             j1 : int
-            value : double
+            value4D : 'T
         }
 
         /// Uses (i, j) as the first pair of indexes.
-        static member create i j (v : SparseValue2D) =
+        static member inline create i j (v : SparseValue2D<'T>) =
             {
                 i = i
                 j = j
                 i1 = v.i
                 j1 = v.j
-                value = v.value
+                value4D = v.value2D
             }
 
         /// Uses (i, j) as the second pair of indexes.
-        static member createTransposed i j (v : SparseValue2D) =
+        static member inline createTransposed i j (v : SparseValue2D<'T>) =
             {
                 i = v.i
                 j = v.j
                 i1 = i
                 j1 = j
-                value = v.value
+                value4D = v.value2D
             }
 
-        static member createArray i j (x : SparseArray2D) = x.value |> Array.map (SparseValue4D.create i j)
+        static member inline createArray i j (x : SparseArray2D<'T>) = x.value |> Array.map (SparseValue4D.create i j)
 
 
-    type SparseArray4D =
-        | SparseArray4D of SparseArray2D[][]
+    /// A 4D representation of 4D sparse tensor where the first two indexes are full ([][] is used)
+    /// and the last two are in a SparseArray2D.
+    type SparseArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
+        | SparseArray4D of SparseArray2D<'T>[][]
 
-        member r.value = let (SparseArray4D v) = r in v
+        member inline r.value = let (SparseArray4D v) = r in v
 
-        /// Multiplies a 4D [sparse] array by a a 2D array (matrix) using SECOND pair of indexes in 4D array.
+        /// Multiplies a 4D sparse array by a 2D array (matrix) using SECOND pair of indexes in 4D array.
         /// This is NOT a matrix multiplication.
-        static member (*) (a : SparseArray4D, b : LinearMatrix<double>) : SparseArray4D =
-            failwith ""
+        /// Returns a 4D sparse array.
+        static member inline (*) (a : SparseArray4D<'T>, b : LinearMatrix<'T>) : SparseArray4D<'T> =
+            let v =
+                a.value
+                |> Array.map (fun e -> e |> Array.map (fun x -> x * b))
+                |> SparseArray4D
+
+            v
+
+        /// Multiplies a 4D sparse array by a 2D array (matrix) using SECOND pair of indexes in 4D array.
+        /// This is NOT a matrix multiplication.
+        /// Returns a 4D sparse array.
+        static member inline (*) (a : SparseArray4D<'T>, b : Matrix<'T>) : SparseArray4D<'T> =
+            let v =
+                a.value
+                |> Array.map (fun e -> e |> Array.map (fun x -> x * b))
+                |> SparseArray4D
+
+            v
 
 
     // type SparseArray4D =
@@ -164,9 +209,9 @@ module Primitives =
 
 
     /// Performs a Cartesian multiplication of two 1D sparse arrays to obtain a 2D sparse array.
-    let cartesianMultiply (a : SparseArray) (b : SparseArray) : SparseArray2D =
+    let inline cartesianMultiply<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> (a : SparseArray<'T>) (b : SparseArray<'T>) : SparseArray2D<'T> =
         let bValue = b.value
-        a.value |> Array.map (fun e -> bValue |> Array.map (fun f -> { i = e.i; j = f.i; value = e.value * f.value })) |> Array.concat |> SparseArray2D
+        a.value |> Array.map (fun e -> bValue |> Array.map (fun f -> { i = e.i; j = f.i; value2D = e.value1D * f.value1D })) |> Array.concat |> SparseArray2D
 
 
     /// Describes a function domain suitable for integral approximation.
@@ -180,8 +225,8 @@ module Primitives =
 
         member d.noOfIntervals = d.midPoints.Length
 
-        member d.integrateValues (v : SparseArray) =
-            let sum = v.value |> Array.map (fun e -> e.value) |> Array.sum
+        member d.integrateValues (v : SparseArray<double>) =
+            let sum = v.value |> Array.map (fun e -> e.value1D) |> Array.sum
             sum * d.step
 
         static member create noOfIntervals minValue maxValue =
@@ -207,18 +252,18 @@ module Primitives =
             let sum = v |> Array.map (fun e -> e |> Array.sum) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
-        member d.integrateValues (a : SparseArray2D) =
-            let sum = a.value |> Array.map (fun e -> e.value) |> Array.sum
+        member d.integrateValues (a : SparseArray2D<double>) =
+            let sum = a.value |> Array.map (fun e -> e.value2D) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
-        member d.integrateValues (a : SparseArray2D, b : XY) =
+        member d.integrateValues (a : SparseArray2D<double>, b : XY) =
             let bValue = b.value
-            let sum = a.value |> Array.map (fun e -> e.value * bValue[e.i][e.j]) |> Array.sum
+            let sum = a.value |> Array.map (fun e -> e.value2D * bValue[e.i][e.j]) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
-        member d.integrateValues (a : SparseArray2D, b : LinearMatrix<double>) =
-            let bValue = b.value
-            let sum = a.value |> Array.map (fun e -> e.value * (bValue e.i e.j)) |> Array.sum
+        member d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
+            let bValue = b.getValue
+            let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
         static member eeMinValue = -1.0
@@ -244,17 +289,17 @@ module Primitives =
     /// Creates a normalized mutation probability.
     /// The normalization is performed using integral estimate over the domain.
     type MutationProbability =
-        | MutationProbability of SparseArray
+        | MutationProbability of SparseArray<double>
 
         member r.value = let (MutationProbability v) = r in v
 
         /// m is a real (unscaled) value but e is scaled to the half of the range.
         static member create (data : MutationProbabilityData) mean =
             let epsFunc x = (data.epsFunc x) * data.domain.range / 2.0
-            let f x = exp (- pown ((x - mean) / (epsFunc x)) 2)
-            let values = data.domain.midPoints |> Array.map f |> SparseArray.create data.zeroThreshold
+            let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
+            let values = data.domain.midPoints |> Array.map f |> SparseArray<double>.create data.zeroThreshold
             let norm = data.domain.integrateValues values
-            let p = values.value |> Array.map (fun v -> { v with value = v.value / norm }) |> SparseArray |> MutationProbability
+            let p = values.value |> Array.map (fun v -> { v with value1D = v.value1D / norm }) |> SparseArray.SparseArray |> MutationProbability
             p
 
 
@@ -272,7 +317,7 @@ module Primitives =
 
 
     type MutationProbability2D =
-        | MutationProbability2D of SparseArray2D
+        | MutationProbability2D of SparseArray2D<double>
 
         member r.value = let (MutationProbability2D v) = r in v
 
@@ -288,8 +333,8 @@ module Primitives =
     /// optimized for that.
     type MutationProbability4D =
         {
-            x1y1_xy : SparseArray2D[][] // For integration over (x, y)
-            xy_x1y1 : SparseArray2D[][] // For integration over (x1, y1)
+            x1y1_xy : SparseArray2D<double>[][] // For integration over (x, y)
+            xy_x1y1 : SparseArray2D<double>[][] // For integration over (x1, y1)
         }
 
         static member create (data : MutationProbabilityData2D) =
@@ -314,7 +359,7 @@ module Primitives =
                 |> Array.concat
                 |> Array.concat
                 |> Array.groupBy (fun e -> e.i1, e.j1)
-                |> Array.map (fun (a, b) -> a, b |> Array.map (fun e -> { i = e.i; j = e.j; value = e.value }) |> Array.sortBy (fun e -> e.i, e.j) |> SparseArray2D)
+                |> Array.map (fun (a, b) -> a, b |> Array.map (fun e -> { i = e.i; j = e.j; value2D = e.value4D }) |> Array.sortBy (fun e -> e.i, e.j) |> SparseArray2D)
                 |> Map.ofArray
 
             let xy_x1y1 =
@@ -336,7 +381,7 @@ module Primitives =
 
 
     type KernelValue =
-        | KernelValue of SparseArray2D[][]
+        | KernelValue of SparseArray2D<double>[][]
 
         member r.value = let (KernelValue v) = r in v
 
