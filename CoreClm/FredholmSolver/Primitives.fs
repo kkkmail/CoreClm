@@ -1,8 +1,8 @@
-﻿namespace FredholmRunner
+﻿namespace FredholmSolver
 
 open FSharp.Collections
 
-module FredholmData =
+module Primitives =
 
     /// TODO kk:20230402 - Exists in Gillespie.SsaPrimitives - Consolidate.
     type EnantiomericExcess =
@@ -11,12 +11,49 @@ module FredholmData =
         member r.value = let (EnantiomericExcess v) = r in v
 
 
+    /// Rectangular representation of a matrix.
+    type Matrix<'T> =
+        | Matrix of 'T[][]
+
+        member r.value = let (Matrix v) = r in v
+
+
+    /// Linear representation of a matrix to use with FORTRAN DLSODE ODE solver.
+    type LinearMatrix<'T> =
+        {
+            d1 : int // Size of the fist dimension.
+            d2 : int  // Size of the second dimension.
+            x : 'T[] // Array of d1 * d2 length.
+        }
+
+        member m.value i j  = m.x[i * m.d1 + j]
+
+        static member create (x : 'T[][]) =
+            let d1 = x.Length
+            let d2 = x[0].Length
+
+            {
+                d1 = d1
+                d2 = d2
+                x = [| for a in x do for b in a do yield b |]
+            }
+
+        member m.toMatrix() = [| for i in 0..(m.d1 - 1) -> [| for j in 0..(m.d2 - 1) -> m.value i j |] |] |> Matrix
+
+
+    type Matrix<'T>
+        with
+        member m.toLinearMatrix() = LinearMatrix<'T>.create m.value
+
+
     /// Representation of 2D values.
     /// It is convenient to store them as [][] rather than as [,] to leverage build in F# array manipulations.
     type XY =
-        | XY of double[][]
+        | XY of Matrix<double>
 
-        member r.value = let (XY v) = r in v
+        member r.value = let (XY v) = r in v.value
+
+        static member create v = v |> Matrix |> XY
 
 
     /// Representation of non-zero value in a sparse array.
@@ -39,6 +76,7 @@ module FredholmData =
             |> SparseArray
 
 
+    /// Representation of non-zero value in a sparse 2D array.
     type SparseValue2D =
         {
             i : int
@@ -60,6 +98,7 @@ module FredholmData =
             |> SparseArray2D
 
 
+    /// Representation of non-zero value in a sparse 4D array.
     type SparseValue4D =
         {
             i : int
@@ -93,24 +132,35 @@ module FredholmData =
 
 
     type SparseArray4D =
-        | SparseArray4D of SparseValue4D[]
+        | SparseArray4D of SparseArray2D[][]
 
         member r.value = let (SparseArray4D v) = r in v
 
-        static member create (v : SparseArray2D[][]) =
-            let n1 = v.Length
-            let n2 = v[0].Length
+        /// Multiplies a 4D [sparse] array by a a 2D array (matrix) using SECOND pair of indexes in 4D array.
+        /// This is NOT a matrix multiplication.
+        static member (*) (a : SparseArray4D, b : LinearMatrix<double>) : SparseArray4D =
+            failwith ""
 
-            let value =
-                [| for i in 0..(n1 - 1) -> [| for j in 0..(n2 - 1) -> SparseValue4D.createArray i j (v[i][j]) |] |]
-                |> Array.concat
-                |> Array.concat
-                |> Array.sortBy (fun e -> e.i, e.j, e.i1, e.j1)
-                |> SparseArray4D
-            value
 
-        member a.transpose n1 n2 =
-            a.value
+    // type SparseArray4D =
+    //     | SparseArray4D of SparseValue4D[]
+    //
+    //     member r.value = let (SparseArray4D v) = r in v
+    //
+    //     static member create (v : SparseArray2D[][]) =
+    //         let n1 = v.Length
+    //         let n2 = v[0].Length
+    //
+    //         let value =
+    //             [| for i in 0..(n1 - 1) -> [| for j in 0..(n2 - 1) -> SparseValue4D.createArray i j (v[i][j]) |] |]
+    //             |> Array.concat
+    //             |> Array.concat
+    //             |> Array.sortBy (fun e -> e.i, e.j, e.i1, e.j1)
+    //             |> SparseArray4D
+    //         value
+    //
+    //     member a.transpose n1 n2 =
+    //         a.value
 
 
     /// Performs a Cartesian multiplication of two 1D sparse arrays to obtain a 2D sparse array.
@@ -164,6 +214,11 @@ module FredholmData =
         member d.integrateValues (a : SparseArray2D, b : XY) =
             let bValue = b.value
             let sum = a.value |> Array.map (fun e -> e.value * bValue[e.i][e.j]) |> Array.sum
+            sum * d.eeDomain.step * d.infDomain.step
+
+        member d.integrateValues (a : SparseArray2D, b : LinearMatrix<double>) =
+            let bValue = b.value
+            let sum = a.value |> Array.map (fun e -> e.value * (bValue e.i e.j)) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
         static member eeMinValue = -1.0
@@ -307,7 +362,7 @@ module FredholmData =
             let v =
                 domainData.eeDomain.midPoints
                 |> Array.map (fun x -> domainData.infDomain.midPoints |> Array.map (fun y -> 1.0))
-                |> XY
+                |> XY.create
 
             v
 

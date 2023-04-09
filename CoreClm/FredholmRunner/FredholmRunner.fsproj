@@ -23,6 +23,7 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
+    <ProjectReference Include="..\FredholmSolver\FredholmSolver.fsproj" />
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\NoSql\NoSql.fsproj" />
     <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
@@ -31,7 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="FredholmData.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

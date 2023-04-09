@@ -1,6 +1,6 @@
 ﻿open System
 open System.Diagnostics
-open FredholmRunner.FredholmData
+open FredholmSolver.Primitives
 
 printfn "Starting..."
 let sw = Stopwatch.StartNew()
@@ -57,12 +57,12 @@ printfn $"{sw.Elapsed.TotalSeconds}."
 let x1 =
     p.x1y1_xy
     |> Array.map (fun a -> a |> Array.map domain.integrateValues)
-    |> XY
+    |> XY.create
 
 let x2 =
     p.xy_x1y1
     |> Array.map (fun a -> a |> Array.map domain.integrateValues)
-    |> XY
+    |> XY.create
 
 printfn $"integrate(p.x1y1_xy) = {x1}"
 printfn $"integrate(p.xy_x1y1) = {x2}"
