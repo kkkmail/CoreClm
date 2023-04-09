@@ -2,16 +2,19 @@
 
 open System
 open System.Diagnostics
+open FluentAssertions.Execution
 open Microsoft.FSharp.NativeInterop
 open Xunit
 open Xunit.Abstractions
 open FluentAssertions
 open FredholmSolver.Primitives
+open FredholmSolver.Kernel
 
 type ModelTests(output : ITestOutputHelper) =
 
     let writeLine s = output.WriteLine s
     let nullString : string = null
+    let errTolerance = 1.0e-10
 
 
     [<Fact>]
@@ -65,16 +68,17 @@ type ModelTests(output : ITestOutputHelper) =
 
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
-        diff.Should().BeLessThan(1.0e-10, nullString)
-        |> ignore
+        use _ = new AssertionScope()
+        diff.Should().BeLessThan(errTolerance, nullString) |> ignore
 
-        // let x2 =
-        //     p.xy_x1y1
-        //     |> Array.map (fun a -> a |> Array.map domain.integrateValues)
-        //     |> XY.create
+        let x2 =
+            p.xy_x1y1
+            |> Array.map (fun a -> a |> Array.map domain.integrateValues)
+            |> Matrix
 
-        // writeLine $"integrate(p.x1y1_xy) = {x1}"
-        // writeLine $"integrate(p.xy_x1y1) = {x2}"
+        let total1 = (x1.value |> Array.concat |> Array.sum) / (double (data.noOfIntervals * data.noOfIntervals))
+        let total2 = (x2.value |> Array.concat |> Array.sum) / (double (data.noOfIntervals * data.noOfIntervals))
+        total1.Should().BeApproximately(total2, errTolerance, nullString) |> ignore
 
 
     [<Fact>]
@@ -89,3 +93,21 @@ type ModelTests(output : ITestOutputHelper) =
         let lm = [| [| 1; 2 |]; [| 3; 4 |] |] |> LinearMatrix.create
         let m = lm.toMatrix().value
         m.Should().BeEquivalentTo([| [| 1; 2 |]; [| 3; 4 |] |], nullString) |> ignore
+
+
+    [<Fact>]
+    member _.createSparseArray4D_ShouldWork () : unit =
+        let a =
+            [|
+                for i in 0..1 ->
+                    [|
+                        for j in 0..1 ->
+                            [| for k in 0..1 -> [| for l in 0..1 -> 1000 * i + 100 * j + 10 * k + l |] |]
+                            |> SparseArray2D<int>.create 0
+                    |]
+            |]
+            |> SparseArray4D
+
+        let b = a.toSparseArray() |> Array.map (fun e -> e.value4D)
+        writeLine $"{a}"
+        b.Should().BeEquivalentTo([| 0; 1; 10; 11; 100; 101; 110; 111; 1000; 1001; 1010; 1011; 1100; 1101; 1110; 1111 |], nullString) |> ignore

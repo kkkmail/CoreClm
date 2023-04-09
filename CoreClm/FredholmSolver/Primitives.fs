@@ -4,11 +4,70 @@ open FSharp.Collections
 
 module Primitives =
 
-    /// TODO kk:20230402 - Exists in Gillespie.SsaPrimitives - Consolidate.
-    type EnantiomericExcess =
-        | EnantiomericExcess of double
+    type LinearDataType =
+        | ScalarData
+        | VectorData of int
+        | MatrixData of int * int
 
-        member r.value = let (EnantiomericExcess v) = r in v
+
+    type LinearDataInfo =
+        {
+            start : int
+            dataType : LinearDataType
+        }
+
+
+    /// A collection of various data (of the same type) packed into an array to be used with FORTRAN DLSODE ODE solver.
+    /// The type is generic to simplify tests.
+    type LinearData<'K, 'T when 'K : comparison> =
+        {
+            dataTypes : Map<'K, LinearDataInfo>
+            data : 'T[]
+            start : int
+        }
+
+        static member defaultValue : LinearData<'K, 'T> =
+            {
+                dataTypes = Map.empty<'K, LinearDataInfo>
+                data = [||]
+                start = 0
+            }
+
+        member d1.append (k : 'K, d2 : 'T) : LinearData<'K, 'T> =
+            if d1.dataTypes.ContainsKey k
+            then failwith $"Cannot add the same key: '{k}' to the data collection."
+            else
+                {
+                    d1 with
+                        dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = ScalarData }
+                        data = Array.append d1.data [| d2  |]
+                        start = d1.start + 1
+                }
+
+        member d1.append (k : 'K, d2 : 'T[]) : LinearData<'K, 'T> =
+            if d1.dataTypes.ContainsKey k
+            then failwith $"Cannot add the same key: '{k}' to the data collection."
+            else
+                {
+                    d1 with
+                        dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = VectorData d2.Length }
+                        data = Array.append d1.data d2
+                        start = d1.start + d2.Length
+                }
+
+        member d1.append (k : 'K, d2 : 'T[][]) : LinearData<'K, 'T> =
+            if d1.dataTypes.ContainsKey k
+            then failwith $"Cannot add the same key: '{k}' to the data collection."
+            else
+                let n1 = d2.Length
+                let n2 = d2[0].Length
+
+                {
+                    d1 with
+                        dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = MatrixData (n1, n2) }
+                        data = Array.append d1.data (d2 |> Array.concat)
+                        start = d1.start + n1 * n2
+                }
 
 
     /// Rectangular representation of a matrix.
@@ -21,18 +80,20 @@ module Primitives =
     /// Linear representation of a matrix to use with FORTRAN DLSODE ODE solver.
     type LinearMatrix<'T> =
         {
+            start : int // Beginning of the matrix data in the array.
             d1 : int // Size of the fist dimension.
             d2 : int  // Size of the second dimension.
             x : 'T[] // Array of d1 * d2 length.
         }
 
-        member m.getValue i j  = m.x[i * m.d1 + j]
+        member m.getValue i j  = m.x[m.start + i * m.d1 + j]
 
         static member create (x : 'T[][]) =
             let d1 = x.Length
             let d2 = x[0].Length
 
             {
+                start = 0
                 d1 = d1
                 d2 = d2
                 x = [| for a in x do for b in a do yield b |]
@@ -89,6 +150,7 @@ module Primitives =
 
 
     /// See: https://github.com/dotnet/fsharp/issues/3302 for (*) operator.
+    [<RequireQualifiedAccess>]
     type SparseArray2D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
         | SparseArray2D of SparseValue2D<'T>[]
 
@@ -164,7 +226,7 @@ module Primitives =
 
         member inline r.value = let (SparseArray4D v) = r in v
 
-        /// Multiplies a 4D sparse array by a 2D array (matrix) using SECOND pair of indexes in 4D array.
+        /// Multiplies a 4D sparse array by a 2D array (LinearMatrix) using SECOND pair of indexes in 4D array.
         /// This is NOT a matrix multiplication.
         /// Returns a 4D sparse array.
         static member inline (*) (a : SparseArray4D<'T>, b : LinearMatrix<'T>) : SparseArray4D<'T> =
@@ -175,7 +237,7 @@ module Primitives =
 
             v
 
-        /// Multiplies a 4D sparse array by a 2D array (matrix) using SECOND pair of indexes in 4D array.
+        /// Multiplies a 4D sparse array by a 2D array (Matrix) using SECOND pair of indexes in 4D array.
         /// This is NOT a matrix multiplication.
         /// Returns a 4D sparse array.
         static member inline (*) (a : SparseArray4D<'T>, b : Matrix<'T>) : SparseArray4D<'T> =
@@ -186,32 +248,23 @@ module Primitives =
 
             v
 
+        member inline a.toSparseArray() =
+            let n1 = a.value.Length
+            let n2 = a.value[0].Length
 
-    // type SparseArray4D =
-    //     | SparseArray4D of SparseValue4D[]
-    //
-    //     member r.value = let (SparseArray4D v) = r in v
-    //
-    //     static member create (v : SparseArray2D[][]) =
-    //         let n1 = v.Length
-    //         let n2 = v[0].Length
-    //
-    //         let value =
-    //             [| for i in 0..(n1 - 1) -> [| for j in 0..(n2 - 1) -> SparseValue4D.createArray i j (v[i][j]) |] |]
-    //             |> Array.concat
-    //             |> Array.concat
-    //             |> Array.sortBy (fun e -> e.i, e.j, e.i1, e.j1)
-    //             |> SparseArray4D
-    //         value
-    //
-    //     member a.transpose n1 n2 =
-    //         a.value
+            let value =
+                [| for i in 0..(n1 - 1) -> [| for j in 0..(n2 - 1) -> SparseValue4D.createArray i j (a.value[i][j]) |] |]
+                |> Array.concat
+                |> Array.concat
+                |> Array.sortBy (fun e -> e.i, e.j, e.i1, e.j1)
+
+            value
 
 
     /// Performs a Cartesian multiplication of two 1D sparse arrays to obtain a 2D sparse array.
     let inline cartesianMultiply<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> (a : SparseArray<'T>) (b : SparseArray<'T>) : SparseArray2D<'T> =
         let bValue = b.value
-        a.value |> Array.map (fun e -> bValue |> Array.map (fun f -> { i = e.i; j = f.i; value2D = e.value1D * f.value1D })) |> Array.concat |> SparseArray2D
+        a.value |> Array.map (fun e -> bValue |> Array.map (fun f -> { i = e.i; j = f.i; value2D = e.value1D * f.value1D })) |> Array.concat |> SparseArray2D<'T>.SparseArray2D
 
 
     /// Describes a function domain suitable for integral approximation.
@@ -266,6 +319,10 @@ module Primitives =
             let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum
             sum * d.eeDomain.step * d.infDomain.step
 
+        member d.integrateValues (a : SparseArray4D<double>, b : LinearMatrix<double>) =
+            a.value
+            |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b)))
+
         static member eeMinValue = -1.0
         static member eeMaxValue = 1.0
         static member infDefaultMinValue = 0.0
@@ -274,154 +331,4 @@ module Primitives =
             {
                 eeDomain = Domain.create noOfIntervals Domain2D.eeMinValue Domain2D.eeMaxValue
                 infDomain = Domain.create noOfIntervals Domain2D.infDefaultMinValue l2
-            }
-
-    type MutationProbabilityData =
-        {
-            domain : Domain
-            zeroThreshold : double
-            epsFunc : double -> double
-        }
-
-        static member defaultZeroThreshold : double = 1.0e-05
-
-
-    /// Creates a normalized mutation probability.
-    /// The normalization is performed using integral estimate over the domain.
-    type MutationProbability =
-        | MutationProbability of SparseArray<double>
-
-        member r.value = let (MutationProbability v) = r in v
-
-        /// m is a real (unscaled) value but e is scaled to the half of the range.
-        static member create (data : MutationProbabilityData) mean =
-            let epsFunc x = (data.epsFunc x) * data.domain.range / 2.0
-            let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
-            let values = data.domain.midPoints |> Array.map f |> SparseArray<double>.create data.zeroThreshold
-            let norm = data.domain.integrateValues values
-            let p = values.value |> Array.map (fun v -> { v with value1D = v.value1D / norm }) |> SparseArray.SparseArray |> MutationProbability
-            p
-
-
-    type MutationProbabilityData2D =
-        {
-            eeMutationProbabilityData : MutationProbabilityData
-            infMutationProbabilityData : MutationProbabilityData
-        }
-
-        member d.domain2D =
-            {
-                eeDomain = d.eeMutationProbabilityData.domain
-                infDomain = d.infMutationProbabilityData.domain
-            }
-
-
-    type MutationProbability2D =
-        | MutationProbability2D of SparseArray2D<double>
-
-        member r.value = let (MutationProbability2D v) = r in v
-
-        static member create (data : MutationProbabilityData2D) eeMean infMean =
-            let p1 = MutationProbability.create data.eeMutationProbabilityData eeMean
-            let p2 = MutationProbability.create data.infMutationProbabilityData infMean
-            let p = cartesianMultiply p1.value p2.value // |> MutationProbability2D
-            p
-
-
-    /// Constructs p(x, y, x1, y1) sparse array where each numerical integral by (x, y) for each of (x1, y1) should be 1.
-    /// Integration by (x, y) is "inconvenient" as normally we'd need to integrate by (x1, y1) and so the structure is
-    /// optimized for that.
-    type MutationProbability4D =
-        {
-            x1y1_xy : SparseArray2D<double>[][] // For integration over (x, y)
-            xy_x1y1 : SparseArray2D<double>[][] // For integration over (x1, y1)
-        }
-
-        static member create (data : MutationProbabilityData2D) =
-            let eeMu = data.domain2D.eeDomain.midPoints
-            let infMu = data.domain2D.infDomain.midPoints
-
-            // These are the values where integration by (x, y) should yield 1 for each (x1, y1).
-            // So the SparseArray2D[][] is by (x1, y1) and the underlying SparseArray2D is by (x, y).
-            let x1y1_xy = eeMu |> Array.map(fun a -> infMu |> Array.map (MutationProbability2D.create data a))
-
-            // Here we need to swap (x, y) <-> (x1, y1) "indexes".
-            //
-            // let find i j : SparseArray2D =
-            //     x1y1_xy
-            //
-            // let xy_x1y1 =
-            //     eeMu
-            //     |> Array.mapi (fun i _ -> infMu |> Array.mapi (fun j _ -> find i j))
-
-            let xy_x1y1_Map =
-                [| for i in 0..(eeMu.Length - 1) -> [| for j in 0..(infMu.Length - 1) -> SparseValue4D.createArray i j (x1y1_xy[i][j]) |] |]
-                |> Array.concat
-                |> Array.concat
-                |> Array.groupBy (fun e -> e.i1, e.j1)
-                |> Array.map (fun (a, b) -> a, b |> Array.map (fun e -> { i = e.i; j = e.j; value2D = e.value4D }) |> Array.sortBy (fun e -> e.i, e.j) |> SparseArray2D)
-                |> Map.ofArray
-
-            let xy_x1y1 =
-                eeMu
-                |> Array.mapi (fun i _ -> infMu |> Array.mapi (fun j _ -> xy_x1y1_Map[(i, j)]))
-
-            {
-                x1y1_xy = x1y1_xy
-                xy_x1y1 = xy_x1y1
-            }
-
-    type KernelData =
-        {
-            noOfIntervals : int
-            l2 : double
-            epsEe : double -> double
-            epsInf : double -> double
-        }
-
-
-    type KernelValue =
-        | KernelValue of SparseArray2D<double>[][]
-
-        member r.value = let (KernelValue v) = r in v
-
-
-    /// Represents K(x, x1, y, y1) 2D Fredholm kernel.
-    /// It is convenient to store it as [][] arrays in [][] array,
-    /// where the first two indexes are (x, y) and last ones are (x1, y1).
-    /// So the actual indexes here are K(x, y, x1, y1)
-    type Kernel =
-        {
-            kernel : KernelValue
-            domainData : Domain2D
-        }
-
-        member k.integrateValues (u : XY) =
-            let v =
-                k.kernel.value
-                |> Array.map (fun e -> e |> Array.map (fun x -> k.domainData.integrateValues (x, u)))
-
-            v
-
-        static member defaultKernelFunc domainData data x1 y1 : XY =
-            let v =
-                domainData.eeDomain.midPoints
-                |> Array.map (fun x -> domainData.infDomain.midPoints |> Array.map (fun y -> 1.0))
-                |> XY.create
-
-            v
-
-        static member create data kernelFunc =
-            let domainData = Domain2D.create data.noOfIntervals data.l2
-
-            let kernel =
-                domainData.eeDomain.midPoints
-                |> Array.map (fun x -> domainData.infDomain.midPoints |> Array.map (kernelFunc domainData data x))
-                |> KernelValue
-
-            // let kernelData = kernelFunc data
-
-            {
-                kernel = kernel
-                domainData = domainData
             }

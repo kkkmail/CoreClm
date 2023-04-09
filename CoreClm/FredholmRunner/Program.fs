@@ -1,6 +1,7 @@
 ﻿open System
 open System.Diagnostics
 open FredholmSolver.Primitives
+open FredholmSolver.Kernel
 
 printfn "Starting..."
 let sw = Stopwatch.StartNew()

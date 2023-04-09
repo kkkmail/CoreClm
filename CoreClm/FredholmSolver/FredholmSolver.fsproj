@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Compile Include="Primitives.fs" />
+    <Compile Include="Kernel.fs" />
   </ItemGroup>
 
 </Project>
