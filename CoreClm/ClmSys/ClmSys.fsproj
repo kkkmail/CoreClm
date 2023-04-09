@@ -58,4 +58,8 @@
     <PackageReference Update="FSharp.Core" Version="7.0.200" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GenericOdeSolverPrimitives\GenericOdeSolverPrimitives.fsproj" />
+  </ItemGroup>
+
 </Project>

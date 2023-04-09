@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <Platforms>x64</Platforms>
-    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -17,15 +16,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FredholmSolver\FredholmSolver.fsproj" />
+    <Compile Include="GenericSolver.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Program.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="alglib.net" Version="3.19.0" />
     <PackageReference Update="FSharp.Core" Version="7.0.200" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
+    <ProjectReference Include="..\Clm\Clm.fsproj" />
   </ItemGroup>
 
 </Project>

@@ -17,11 +17,17 @@
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="7.0.200" />
+    <PackageReference Include="Softellect.OdePackInterop" Version="7.0.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Primitives.fs" />
     <Compile Include="Kernel.fs" />
+    <Compile Include="OdeInterop.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
   </ItemGroup>
 
 </Project>
