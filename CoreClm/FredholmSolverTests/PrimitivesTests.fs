@@ -16,18 +16,21 @@ type ModelTests(output : ITestOutputHelper) =
     let nullString : string = null
     let errTolerance = 1.0e-10
 
+    let defaultKernelData =
+        {
+            noOfIntervals = 100
+            l2 = 25
+            zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+            epsEeFunc = (fun _ -> 0.02) |> EpsFunc
+            epsInfFunc = (fun _ -> 0.02) |> EpsFunc
+            kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
+        }
+
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOne () : unit =
         let sw = Stopwatch.StartNew()
-
-        let data =
-            {
-                noOfIntervals = 100
-                l2 = 25
-                epsEe = fun _ -> 0.02
-                epsInf = fun _ -> 0.02
-            }
+        let data = defaultKernelData
 
         let domain = Domain2D.create data.noOfIntervals data.l2
 
@@ -37,45 +40,28 @@ type ModelTests(output : ITestOutputHelper) =
                     {
                         domain = domain.eeDomain
                         zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-                        epsFunc = data.epsEe
+                        epsFunc = data.epsEeFunc
                     }
                 infMutationProbabilityData =
                     {
                         domain = domain.infDomain
                         zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-                        epsFunc = data.epsInf
+                        epsFunc = data.epsInfFunc
                     }
             }
 
-        // writeLine $"domain.eeDomain: {domain.eeDomain}"
-        // writeLine $"domain.infDomain: {domain.infDomain}"
-
         let p = MutationProbability4D.create m2Data
-
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
-        let x1 =
-            p.x1y1_xy
-            |> Array.map (fun a -> a |> Array.map domain.integrateValues)
-            |> Matrix
-
+        let x1 = domain.integrateValues p.x1y1_xy
         let x1Linear = x1.toLinearMatrix()
-
-        let diff =
-            x1Linear.x
-            |> Array.map (fun e -> pown (e - 1.0) 2)
-            |> Array.sum
-
+        let diff = x1Linear.x |> Array.map (fun e -> pown (e - 1.0) 2) |> Array.sum
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
         use _ = new AssertionScope()
         diff.Should().BeLessThan(errTolerance, nullString) |> ignore
 
-        let x2 =
-            p.xy_x1y1
-            |> Array.map (fun a -> a |> Array.map domain.integrateValues)
-            |> Matrix
-
+        let x2 = domain.integrateValues p.xy_x1y1
         let total1 = (x1.value |> Array.concat |> Array.sum) / (double (data.noOfIntervals * data.noOfIntervals))
         let total2 = (x2.value |> Array.concat |> Array.sum) / (double (data.noOfIntervals * data.noOfIntervals))
         total1.Should().BeApproximately(total2, errTolerance, nullString) |> ignore

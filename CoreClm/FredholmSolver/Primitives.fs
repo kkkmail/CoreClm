@@ -22,15 +22,15 @@ module Primitives =
     type LinearData<'K, 'T when 'K : comparison> =
         {
             dataTypes : Map<'K, LinearDataInfo>
-            data : 'T[]
             start : int
+            data : 'T[]
         }
 
         static member defaultValue : LinearData<'K, 'T> =
             {
                 dataTypes = Map.empty<'K, LinearDataInfo>
-                data = [||]
                 start = 0
+                data = [||]
             }
 
         member d1.append (k : 'K, d2 : 'T) : LinearData<'K, 'T> =
@@ -40,8 +40,8 @@ module Primitives =
                 {
                     d1 with
                         dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = ScalarData }
-                        data = Array.append d1.data [| d2  |]
                         start = d1.start + 1
+                        data = Array.append d1.data [| d2 |]
                 }
 
         member d1.append (k : 'K, d2 : 'T[]) : LinearData<'K, 'T> =
@@ -51,8 +51,8 @@ module Primitives =
                 {
                     d1 with
                         dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = VectorData d2.Length }
-                        data = Array.append d1.data d2
                         start = d1.start + d2.Length
+                        data = Array.append d1.data d2
                 }
 
         member d1.append (k : 'K, d2 : 'T[][]) : LinearData<'K, 'T> =
@@ -65,8 +65,8 @@ module Primitives =
                 {
                     d1 with
                         dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = MatrixData (n1, n2) }
-                        data = Array.append d1.data (d2 |> Array.concat)
                         start = d1.start + n1 * n2
+                        data = Array.append d1.data (d2 |> Array.concat)
                 }
 
 
@@ -107,14 +107,14 @@ module Primitives =
         member m.toLinearMatrix() = LinearMatrix<'T>.create m.value
 
 
-    /// Representation of 2D values.
-    /// It is convenient to store them as [][] rather than as [,] to leverage build in F# array manipulations.
-    type XY =
-        | XY of Matrix<double>
-
-        member r.value = let (XY v) = r in v.value
-
-        static member create v = v |> Matrix |> XY
+    // /// Representation of 2D values.
+    // /// It is convenient to store them as [][] rather than as [,] to leverage build in F# array manipulations.
+    // type XY =
+    //     | XY of Matrix<double>
+    //
+    //     member r.value = let (XY v) = r in v.value
+    //
+    //     static member create v = v |> Matrix |> XY
 
 
     /// Representation of non-zero value in a sparse array.
@@ -156,13 +156,24 @@ module Primitives =
 
         member inline r.value = let (SparseArray2D v) = r in v
 
-        /// Multiplies a 2D sparse array by a 2D array (Matrix) element by element.
+        /// Multiplies a 2D sparse array by a scalar value.
         /// This is NOT a matrix multiplication.
         /// Returns a 2D sparse array.
-        static member inline (*) (a : SparseArray2D<'T>, b : Matrix<'T>) : SparseArray2D<'T> =
+        static member inline (*) (a : SparseArray2D<'T>, b : 'T) : SparseArray2D<'T> =
             let v =
                 a.value
-                |> Array.map (fun e -> { e with value2D = e.value2D * b.value[e.i][e.j] })
+                |> Array.map (fun e -> { e with value2D = e.value2D * b })
+                |> SparseArray2D
+
+            v
+
+        /// Multiplies a 2D sparse array by a scalar value.
+        /// This is NOT a matrix multiplication.
+        /// Returns a 2D sparse array.
+        static member inline (*) (a : 'T, b : SparseArray2D<'T>) : SparseArray2D<'T> =
+            let v =
+                b.value
+                |> Array.map (fun e -> { e with value2D = a * e.value2D })
                 |> SparseArray2D
 
             v
@@ -174,6 +185,17 @@ module Primitives =
             let v =
                 a.value
                 |> Array.map (fun e -> { e with value2D = e.value2D * (b.getValue e.i e.j) })
+                |> SparseArray2D
+
+            v
+
+        /// Multiplies a 2D sparse array by a 2D array (Matrix) element by element.
+        /// This is NOT a matrix multiplication.
+        /// Returns a 2D sparse array.
+        static member inline (*) (a : SparseArray2D<'T>, b : Matrix<'T>) : SparseArray2D<'T> =
+            let v =
+                a.value
+                |> Array.map (fun e -> { e with value2D = e.value2D * b.value[e.i][e.j] })
                 |> SparseArray2D
 
             v
@@ -225,6 +247,17 @@ module Primitives =
         | SparseArray4D of SparseArray2D<'T>[][]
 
         member inline r.value = let (SparseArray4D v) = r in v
+
+        // TODO kk:20230409 - Due to whatever reason this does not compile. You need to multiply a 2D array by a number and use it.
+        // /// Multiplies a 4D sparse array by a scalar value.
+        // /// Returns a 4D sparse array.
+        // static member inline (*) (a : SparseArray4D<'T>, b : 'T) : SparseArray4D<'T> =
+        //     let v =
+        //         a.value
+        //         |> Array.map (fun e -> e |> Array.map (fun x -> x * b))
+        //         |> SparseArray4D
+        //
+        //     v
 
         /// Multiplies a 4D sparse array by a 2D array (LinearMatrix) using SECOND pair of indexes in 4D array.
         /// This is NOT a matrix multiplication.
@@ -301,27 +334,24 @@ module Primitives =
             infDomain : Domain
         }
 
-        member d.integrateValues v =
-            let sum = v |> Array.map (fun e -> e |> Array.sum) |> Array.sum
-            sum * d.eeDomain.step * d.infDomain.step
+        member private d.normalize v = v * d.eeDomain.step * d.infDomain.step
+        member private d.integrateValues v = v |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
+        member private d.integrateValues (a : SparseArray2D<double>) = a.value |> Array.map (fun e -> e.value2D) |> Array.sum |> d.normalize
 
-        member d.integrateValues (a : SparseArray2D<double>) =
-            let sum = a.value |> Array.map (fun e -> e.value2D) |> Array.sum
-            sum * d.eeDomain.step * d.infDomain.step
+        // member d.integrateValues (a : SparseArray2D<double>, b : XY) =
+        //     let bValue = b.value
+        //     let sum = a.value |> Array.map (fun e -> e.value2D * bValue[e.i][e.j]) |> Array.sum |> d.normalize
+        //     sum
 
-        member d.integrateValues (a : SparseArray2D<double>, b : XY) =
-            let bValue = b.value
-            let sum = a.value |> Array.map (fun e -> e.value2D * bValue[e.i][e.j]) |> Array.sum
-            sum * d.eeDomain.step * d.infDomain.step
-
-        member d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
+        member private d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
             let bValue = b.getValue
-            let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum
-            sum * d.eeDomain.step * d.infDomain.step
+            let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum |> d.normalize
+            sum
 
         member d.integrateValues (a : SparseArray4D<double>, b : LinearMatrix<double>) =
-            a.value
-            |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b)))
+            a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b))) |> Matrix
+
+        member d.integrateValues (a : SparseArray4D<double>) = a.value |> Array.map (fun v -> v |> Array.map d.integrateValues) |> Matrix
 
         static member eeMinValue = -1.0
         static member eeMaxValue = 1.0

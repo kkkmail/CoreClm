@@ -10,8 +10,10 @@ let data =
     {
         noOfIntervals = 100
         l2 = 25
-        epsEe = fun _ -> 0.02
-        epsInf = fun _ -> 0.02
+        zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+        epsEeFunc = (fun _ -> 0.02) |> EpsFunc
+        epsInfFunc = (fun _ -> 0.02) |> EpsFunc
+        kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
     }
 
 let domain = Domain2D.create data.noOfIntervals data.l2
@@ -22,13 +24,13 @@ let m2Data =
             {
                 domain = domain.eeDomain
                 zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-                epsFunc = data.epsEe
+                epsFunc = data.epsEeFunc
             }
         infMutationProbabilityData =
             {
                 domain = domain.infDomain
                 zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-                epsFunc = data.epsInf
+                epsFunc = data.epsInfFunc
             }
     }
 
@@ -55,15 +57,9 @@ printfn $"{sw.Elapsed.TotalSeconds}."
 // printfn $"p.xy_x1y1 = {SparseArray4D.create p.xy_x1y1}"
 // printfn $"p.x1y1_xy = {SparseArray4D.create p.x1y1_xy}"
 
-let x1 =
-    p.x1y1_xy
-    |> Array.map (fun a -> a |> Array.map domain.integrateValues)
-    |> XY.create
+let x1 = domain.integrateValues p.x1y1_xy
 
-let x2 =
-    p.xy_x1y1
-    |> Array.map (fun a -> a |> Array.map domain.integrateValues)
-    |> XY.create
+let x2 = domain.integrateValues p.xy_x1y1
 
 printfn $"integrate(p.x1y1_xy) = {x1}"
 printfn $"integrate(p.xy_x1y1) = {x2}"
