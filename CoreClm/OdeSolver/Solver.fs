@@ -2,6 +2,8 @@
 
 open System
 open ClmSys.ContGenPrimitives
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.OdePackInterop
 open Microsoft.FSharp.Core
 open Clm.ChartData
@@ -11,6 +13,7 @@ open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.SolverData
 open Clm.CalculationData
+open Primitives.GeneralData
 
 module Solver =
 

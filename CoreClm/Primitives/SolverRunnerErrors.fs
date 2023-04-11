@@ -1,7 +1,7 @@
-﻿namespace ClmSys
+﻿namespace Primitives
 
-open ClmSys.GeneralPrimitives
-open ClmSys.SolverRunnerPrimitives
+open GeneralPrimitives
+open SolverPrimitives
 open GeneralErrors
 open Softellect.Sys.MessagingPrimitives
 

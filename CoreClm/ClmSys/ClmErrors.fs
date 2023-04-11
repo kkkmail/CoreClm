@@ -1,5 +1,7 @@
 ﻿namespace ClmSys
 
+open Primitives.GeneralErrors
+open Primitives.SolverPrimitives
 open Softellect.Sys.WcfErrors
 open Softellect.Sys.TimerErrors
 open Softellect.Sys.Rop
@@ -11,8 +13,7 @@ open WorkerNodeErrors
 open ModelGeneratorErrors
 open ModelRunnerErrors
 open ContGenErrors
-open SolverRunnerPrimitives
-open SolverRunnerErrors
+open Primitives.SolverRunnerErrors
 
 module ClmErrors =
 

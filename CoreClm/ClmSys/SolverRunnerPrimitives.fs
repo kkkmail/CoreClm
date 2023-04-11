@@ -1,7 +1,7 @@
 ﻿namespace ClmSys
 
 open ClmSys.GeneralPrimitives
-open GenericOdeSolverPrimitives
+open Primitives.SolverPrimitives
 
 module SolverRunnerPrimitives =
 //
@@ -50,26 +50,23 @@ module SolverRunnerPrimitives =
              }
 
 
-    open SolverRunnerPrimitives
+    type ProgressData = ProgressData<SolverRunnerPrimitives.EeData>
 
-    type ProgressData = SolverRunnerPrimitives.ProgressData<EeData, ErrorMessage>
-//
-//
-//     type ProgressData =
-//         {
-//             progress : decimal
-//             callCount : int64
-//             yRelative : double
-//             eeData : EeData
-//             errorMessageOpt : ErrorMessage option
-//         }
-//
-//         static member defaultValue =
-//             {
-//                 progress = 0.0m
-//                 callCount = 0L
-//                 yRelative = 1.0
-//                 eeData = EeData.defaultValue
-//                 errorMessageOpt = None
-//             }
-//
+
+     // type ProgressData =
+     //     {
+     //         progress : decimal
+     //         callCount : int64
+     //         yRelative : double
+     //         eeData : EeData
+     //         errorMessageOpt : ErrorMessage option
+     //     }
+     //
+     //     static member defaultValue =
+     //         {
+     //             progress = 0.0m
+     //             callCount = 0L
+     //             yRelative = 1.0
+     //             eeData = EeData.defaultValue
+     //             errorMessageOpt = None
+     //         }

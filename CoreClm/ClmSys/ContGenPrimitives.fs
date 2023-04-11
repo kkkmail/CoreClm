@@ -2,6 +2,7 @@
 
 open System
 
+open Primitives.GeneralPrimitives
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.Primitives
 
@@ -12,10 +13,6 @@ module ContGenPrimitives =
 
     [<Literal>]
     let DefaultMinEe = 0.000_1
-
-
-    [<Literal>]
-    let DefaultAbsoluteTolerance = 1.0e-08
 
 
     type ContGenServiceName =
@@ -33,13 +30,6 @@ module ContGenPrimitives =
         static member defaultValue = MinUsefulEe DefaultMinEe
 
 
-    type AbsoluteTolerance =
-        | AbsoluteTolerance of double
-
-        member this.value = let (AbsoluteTolerance v) = this in v
-        static member defaultValue = AbsoluteTolerance DefaultAbsoluteTolerance
-
-
     type ModelDataId =
         | ModelDataId of Guid
 
@@ -52,15 +42,15 @@ module ContGenPrimitives =
 
         member df.value = let (ClmDefaultValueId v) = df in v
         override df.ToString() = df.value.ToString().PadLeft(9, '0') + "L"
-        
-        
+
+
     type ClmTaskPriority =
         | ClmTaskPriority of int
 
         member df.value = let (ClmTaskPriority v) = df in v
         static member defaultValue = ClmTaskPriority 1_000
 
-    
+
     type ClmTaskStatus =
         | ActiveClmTask
         | InactiveClmTask

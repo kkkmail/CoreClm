@@ -4,9 +4,12 @@ open System
 open System.ServiceModel
 open System.Threading
 
+open ClmSys
 open ClmSys.ContGenPrimitives
 open ClmSys.DistributionData
 open ClmSys.SolverData
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.Sys
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.AppSettings
@@ -165,7 +168,7 @@ module ServiceInfo =
     let acCatRacemCollKey = ConfigKey "AcCatRacemColl"
     let sedDirCollKey = ConfigKey "SedDirColl"
     let acCollKey = ConfigKey "AcColl"
-    
+
 
     let earlyExitCheckFreqKey = ConfigKey "EarlyExitCheckFrequencyInMinutes"
     let quickProgressKey = ConfigKey "QuickProgress"
@@ -175,7 +178,7 @@ module ServiceInfo =
     let slowProgressKey = ConfigKey "SlowProgress"
     let slowMinEeKey = ConfigKey "SlowMinEe"
     let maxRunTimeKey = ConfigKey "MaxRunTimeInDays"
-    
+
     let resultLocationKey = ConfigKey "ResultLocation"
     let noOfProgressPointsKey = ConfigKey "NoOfProgressPoints"
 
@@ -209,8 +212,8 @@ module ServiceInfo =
                 provider.trySetPairCollisionResolution sedDirCollKey d.sedDirColl
                 provider.trySetPairCollisionResolution acCollKey d.acColl
             ]
-            
-            
+
+
         member provider.trySetEarlyExitParam(d : EarlyExitParam) =
             [
                 provider.trySet earlyExitCheckFreqKey (int d.earlyExitCheckFreq.value.TotalMinutes)
@@ -245,7 +248,7 @@ module ServiceInfo =
                     provider.trySet minUsefulEe w.contGenInfo.controlData.minUsefulEe.value |> ignore
                     provider.trySet absoluteTolerance w.contGenInfo.controlData.absoluteTolerance.value |> ignore
                     provider.trySet noOfProgressPointsKey w.contGenInfo.controlData.noOfProgressPoints |> ignore
-                    
+
                     w.contGenInfo.controlData.earlyExitParamOpt
                     |> Option.defaultValue EarlyExitParam.defaultValue
                     |> provider.trySetEarlyExitParam
@@ -365,33 +368,33 @@ module ServiceInfo =
         let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort WcfSecurityMode.defaultValue
 
         (contGenSvcInfo, contGenServiceCommunicationType)
-        
-        
-    /// Gets the value out of provider's result or default.        
+
+
+    /// Gets the value out of provider's result or default.
     let toValueOrDefault m d v =
-        v                    
+        v
         |> Rop.toOption
         |> Option.flatten
         |> Option.map m
-        |> Option.defaultValue d         
-        
-        
+        |> Option.defaultValue d
+
+
     let loadEarlyExitParam (provider : AppSettingsProvider) =
         let getProgress key defaultValue = provider.tryGetDecimal key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
         let getEe key defaultValue = provider.tryGetDouble key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
         let d = EarlyExitParam.defaultValue
-        
+
         {
             earlyExitCheckFreq =
                 provider.tryGetInt earlyExitCheckFreqKey
                 |> toValueOrDefault (fun e -> TimeSpan.FromMinutes(double e) |> EarlyExitCheckFrequency) EarlyExitCheckFrequency.defaultValue
-                
+
             quickProgress = getProgress quickProgressKey d.quickProgress
             quickMinEe = getEe quickMinEeKey d.quickMinEe
             standardProgress = getProgress standardProgressKey d.standardProgress
             standardMinEe = getEe standardMinEeKey d.standardMinEe
             slowProgress = getProgress slowProgressKey d.slowProgress
-            slowMinEe = getEe slowMinEeKey d.slowMinEe            
+            slowMinEe = getEe slowMinEeKey d.slowMinEe
             maxRunTime =provider.tryGetDouble maxRunTimeKey|> toValueOrDefault TimeSpan.FromDays d.maxRunTime
         }
 
@@ -410,14 +413,14 @@ module ServiceInfo =
                         match provider.tryGetInt lastAllowedNodeErrInMinutes with
                         | Ok (Some p) when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
                         | _ -> LastAllowedNodeErr.defaultValue
-                        
+
                     collisionData = getCollisionData provider
 
                     dictionaryUpdateType =
                         match provider.tryGet DictionaryUpdateType.tryDeserialize dictionaryUpdateType with
                         | Ok (Some v) -> v
                         | _ -> AllRateData
-                        
+
                     controlData =
                         {
                             minUsefulEe =
@@ -425,8 +428,8 @@ module ServiceInfo =
                                 | Ok (Some ee) -> ee |> double |> MinUsefulEe
                                 | _ -> MinUsefulEe.defaultValue
 
-                            noOfProgressPoints = provider.tryGetInt noOfProgressPointsKey |> toValueOrDefault id defaultNoOfProgressPoints                           
-                            earlyExitParamOpt = loadEarlyExitParam provider |> Some                       
+                            noOfProgressPoints = provider.tryGetInt noOfProgressPointsKey |> toValueOrDefault id defaultNoOfProgressPoints
+                            earlyExitParamOpt = loadEarlyExitParam provider |> Some
 
                             absoluteTolerance =
                                 match provider.tryGetDouble absoluteTolerance with
@@ -444,13 +447,13 @@ module ServiceInfo =
                     lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
                     collisionData = CollisionData.defaultValue
                     dictionaryUpdateType = AllRateData
-                    
+
                     controlData =
                         {
                             minUsefulEe = MinUsefulEe.defaultValue
-                            noOfProgressPoints = defaultNoOfProgressPoints                          
+                            noOfProgressPoints = defaultNoOfProgressPoints
                             earlyExitParamOpt = Some EarlyExitParam.defaultValue
-                            absoluteTolerance = AbsoluteTolerance.defaultValue                            
+                            absoluteTolerance = AbsoluteTolerance.defaultValue
                         }
                 }
 

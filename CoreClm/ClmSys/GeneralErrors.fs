@@ -4,19 +4,12 @@ open System
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open GeneralPrimitives
+open Primitives.GeneralPrimitives
 open WorkerNodePrimitives
-open ContGenPrimitives
 open Softellect.Sys.MessagingPrimitives
 
 /// Collection of general errors & related functionality.
 module GeneralErrors =
-
-    type ErrorId =
-        | ErrorId of Guid
-
-        static member getNewId() = Guid.NewGuid() |> ErrorId
-        member this.value = let (ErrorId v) = this in v
-
 
     type TraceInfo =
         {

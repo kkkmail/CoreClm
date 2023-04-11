@@ -1,5 +1,6 @@
 ﻿namespace ClmSys
 
+open Primitives.GeneralPrimitives
 open Softellect.Sys.MessagingPrimitives
 open Softellect.Sys.MessagingClientErrors
 

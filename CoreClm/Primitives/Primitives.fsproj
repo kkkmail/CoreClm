@@ -16,35 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="VersionInfo.fs" />
-    <Compile Include="ExitErrorCodes.fs" />
-    <Compile Include="GeneralPrimitives.fs" />
-    <Compile Include="MessagingPrimitives.fs" />
-    <Compile Include="WorkerNodePrimitives.fs" />
-    <Compile Include="PartitionerPrimitives.fs" />
-    <Compile Include="ContGenPrimitives.fs" />
-    <Compile Include="SolverRunnerPrimitives.fs" />
-    <Compile Include="GeneralErrors.fs" />
-    <Compile Include="ContGenErrors.fs" />
-    <Compile Include="ModelGeneratorErrors.fs" />
-    <Compile Include="ModelRunnerErrors.fs" />
-    <Compile Include="WorkerNodeErrors.fs" />
-    <Compile Include="ClmErrors.fs" />
-    <Compile Include="Logging.fs" />
-    <Compile Include="GeneralData.fs" />
-    <Compile Include="TimerEvents.fs" />
-    <Compile Include="DistributionData.fs" />
-    <Compile Include="ModelData.fs" />
-    <Compile Include="MessagingData.fs" />
-    <Compile Include="PartitionerData.fs" />
-    <Compile Include="SolverData.fs" />
-    <Compile Include="WorkerNodeData.fs" />
-    <Compile Include="ContGenData.fs" />
-    <Compile Include="ContGenAdmData.fs" />
-    <Compile Include="ClmWorker.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="FSharp.Data" Version="6.0.1-beta001" />
     <PackageReference Include="log4net" Version="2.0.15" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
@@ -58,7 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Primitives\Primitives.fsproj" />
+    <Compile Include="GeneralPrimitives.fs" />
+    <Compile Include="GeneralErrors.fs" />
+    <Compile Include="GeneralData.fs" />
+    <Compile Include="SolverPrimitives.fs" />
+    <Compile Include="SolverRunnerErrors.fs" />
   </ItemGroup>
 
 </Project>

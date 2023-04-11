@@ -1,22 +1,22 @@
-﻿namespace GenericOdeSolverPrimitives
+﻿namespace Primitives
 
 open System
-// open ClmSys.ContGenPrimitives
-// open Softellect.OdePackInterop
 open Microsoft.FSharp.Core
-// open Clm.ChartData
-// open ClmSys.GeneralPrimitives
-// open ClmSys.GeneralData
-// open ClmSys.SolverRunnerPrimitives
-// open ClmSys.ClmErrors
-// open ClmSys.SolverData
-// open Clm.CalculationData
 
-// module SolverPrimitives =
-module SolverRunnerPrimitives =
+module SolverPrimitives =
+
+    [<Literal>]
+    let DefaultAbsoluteTolerance = 1.0e-08
 
     let defaultNoOfOutputPoints = 1000
     let defaultNoOfProgressPoints = 100
+
+
+    type AbsoluteTolerance =
+        | AbsoluteTolerance of double
+
+        member this.value = let (AbsoluteTolerance v) = this in v
+        static member defaultValue = AbsoluteTolerance DefaultAbsoluteTolerance
 
 
     type ResultNotificationType =
@@ -49,21 +49,12 @@ module SolverRunnerPrimitives =
         member this.value = let (ErrorMessage v) = this in v
 
 
-    // type EeData =
-    //     {
-    //         maxEe : double
-    //         maxAverageEe : double
-    //         maxWeightedAverageAbsEe : double
-    //         maxLastEe : double
-    //     }
-    //
-    //     static member defaultValue =
-    //         {
-    //             maxEe = 0.0
-    //             maxAverageEe = 0.0
-    //             maxWeightedAverageAbsEe = 0.0
-    //             maxLastEe = 0.0
-    //         }
+    let estimateEndTime progress (started : DateTime) =
+        if progress > 0.0m && progress <= 1.0m
+        then
+            let estRunTime = (decimal (DateTime.Now.Subtract(started).Ticks)) / progress |> int64 |> TimeSpan.FromTicks
+            started.Add estRunTime |> Some
+        else None
 
 
     type ProgressData<'PD> =
@@ -83,3 +74,5 @@ module SolverRunnerPrimitives =
                 progressData = pd
                 errorMessageOpt = None
             }
+
+        member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started

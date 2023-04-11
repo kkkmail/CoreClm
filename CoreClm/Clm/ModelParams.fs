@@ -1,18 +1,19 @@
 ﻿namespace Clm
 
 open System
+open ClmSys
 open FSharp.Collections
 open ClmSys.VersionInfo
 open ClmSys.GeneralData
 open ClmSys.ContGenPrimitives
-open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open Clm.Substances
 open Clm.ReactionTypes
 open ClmSys.ModelData
 open Clm.ReactionRates
-open ClmSys.SolverData
 open ClmSys.SolverRunnerPrimitives
+open Primitives.GeneralPrimitives
+open Primitives.GeneralData
 
 module ModelParams =
 
@@ -222,7 +223,7 @@ module ModelParams =
 
                 runQueueStatus = NotStartedRunQueue
                 workerNodeIdOpt = None
-                progressData = ProgressData.defaultValue
+                progressData = ProgressData.defaultValue EeData.defaultValue
                 createdOn = DateTime.Now
             }
 
@@ -251,8 +252,8 @@ module ModelParams =
                 resultLocation = DefaultResultLocationFolder
                 separator = "_"
             }
-            
-            
+
+
     type ClmTaskDetails =
         {
             clmDefaultValueId : ClmDefaultValueId

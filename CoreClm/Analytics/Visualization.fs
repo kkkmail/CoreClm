@@ -8,6 +8,7 @@ open ClmSys.GeneralData
 open Clm.ChartData
 open Plotly.NET
 open ChartExt
+open Primitives.GeneralData
 
 module Visualization =
 

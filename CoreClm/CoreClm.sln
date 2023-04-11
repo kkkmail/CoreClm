@@ -63,7 +63,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FredholmSolver", "FredholmS
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "GenericOdeSolver", "GenericOdeSolver\GenericOdeSolver.fsproj", "{26ACFED0-C7B8-43E4-B42C-DB4AE5F9FF2E}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "GenericOdeSolverPrimitives", "GenericOdeSolverPrimitives\GenericOdeSolverPrimitives.fsproj", "{E23721B7-C532-4B5E-A755-91D084D5B019}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Primitives", "Primitives\Primitives.fsproj", "{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -305,14 +305,14 @@ Global
 		{26ACFED0-C7B8-43E4-B42C-DB4AE5F9FF2E}.Release|Any CPU.Build.0 = Release|x64
 		{26ACFED0-C7B8-43E4-B42C-DB4AE5F9FF2E}.Release|x64.ActiveCfg = Release|x64
 		{26ACFED0-C7B8-43E4-B42C-DB4AE5F9FF2E}.Release|x64.Build.0 = Release|x64
-		{E23721B7-C532-4B5E-A755-91D084D5B019}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{E23721B7-C532-4B5E-A755-91D084D5B019}.Debug|Any CPU.Build.0 = Debug|x64
-		{E23721B7-C532-4B5E-A755-91D084D5B019}.Debug|x64.ActiveCfg = Debug|x64
-		{E23721B7-C532-4B5E-A755-91D084D5B019}.Debug|x64.Build.0 = Debug|x64
-		{E23721B7-C532-4B5E-A755-91D084D5B019}.Release|Any CPU.ActiveCfg = Release|x64
-		{E23721B7-C532-4B5E-A755-91D084D5B019}.Release|Any CPU.Build.0 = Release|x64
-		{E23721B7-C532-4B5E-A755-91D084D5B019}.Release|x64.ActiveCfg = Release|x64
-		{E23721B7-C532-4B5E-A755-91D084D5B019}.Release|x64.Build.0 = Release|x64
+		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Debug|Any CPU.Build.0 = Debug|x64
+		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Debug|x64.ActiveCfg = Debug|x64
+		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Debug|x64.Build.0 = Debug|x64
+		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Release|Any CPU.ActiveCfg = Release|x64
+		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Release|Any CPU.Build.0 = Release|x64
+		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Release|x64.ActiveCfg = Release|x64
+		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

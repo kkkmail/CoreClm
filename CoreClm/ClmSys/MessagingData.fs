@@ -5,8 +5,7 @@ open Softellect.Wcf.Common
 open Softellect.Sys.MessagingServiceErrors
 open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
-
-open GeneralData
+open Primitives.GeneralData
 open ClmSys.ClmErrors
 
 module MessagingData =
@@ -14,7 +13,7 @@ module MessagingData =
     [<Literal>]
     let MsgDatabase = "MsgClient.db"
 
-    
+
     type MsgSettings =
         {
             messagingInfo : MessagingServiceInfo

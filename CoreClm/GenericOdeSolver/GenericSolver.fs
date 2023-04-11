@@ -1,16 +1,19 @@
 ﻿namespace GenericOdeSolver
 
 open System
-open ClmSys.ContGenPrimitives
+// open ClmSys.ContGenPrimitives
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.OdePackInterop
 open Microsoft.FSharp.Core
-open Clm.ChartData
-open ClmSys.GeneralPrimitives
-open ClmSys.GeneralData
-open ClmSys.SolverRunnerPrimitives
-open ClmSys.ClmErrors
-open ClmSys.SolverData
-open Clm.CalculationData
+open Primitives.GeneralData
+// open Clm.ChartData
+// open ClmSys.GeneralPrimitives
+// open ClmSys.GeneralData
+// open ClmSys.SolverRunnerPrimitives
+// open ClmSys.ClmErrors
+// open ClmSys.SolverData
+// open Clm.CalculationData
 
 module Solver =
 
@@ -30,12 +33,12 @@ module Solver =
         }
 
 
-    type OdeResult =
+    type OdeResult<'PD> =
         {
             startTime : double
             endTime : double
             xEnd : double[]
-            progressData : ProgressData
+            progressData : ProgressData<'PD>
         }
 
 
@@ -78,25 +81,28 @@ module Solver =
         | OdePack of OdePackMethod * CorrectorIteratorType * NegativeValuesCorrectorType
 
 
-    type NSolveParam =
+    type NSolveParam<'CD, 'PD, 'CSD, 'ED> =
         {
             odeParams : OdeParams
             solverType : SolverType
             modelDataId : Guid
             runQueueId : RunQueueId
-            calculationData : ModelCalculationData
+            calculationData : 'CD
             initialValues : double[]
-            progressCallBack : RunQueueStatus option -> ProgressData -> unit
-            chartCallBack : ChartSliceData -> unit
-            getChartSliceData : double -> double[] -> EeData -> ChartSliceData
+            progressCallBack : RunQueueStatus option -> ProgressData<'PD> -> unit
+            defaultProgressData : 'PD
+            chartCallBack : 'CSD -> unit
+            getChartSliceData : double -> double[] -> 'PD -> 'CSD
+            defaultChartSliceData : 'CSD
             checkCancellation : RunQueueId -> CancellationType option
             checkFreq : TimeSpan
+            getExtraData : unit -> 'ED
         }
 
 
-    type StatUpdateData =
+    type StatUpdateData<'CD, 'PD, 'CSD, 'ED> =
         {
-            nSolveParam : NSolveParam
+            nSolveParam : NSolveParam<'CD, 'PD, 'CSD, 'ED>
             t : double
             x : double[]
         }
@@ -120,57 +126,84 @@ module Solver =
         | None -> EmptyString
 
 
-    let mutable private lastNotifiedT = 0.0
-    let mutable private progress = 0.0m
-    let mutable private nextProgress = 0.0m
-    let mutable private nextChartProgress = 0.0m
-    let mutable private callCount = 0L
-    let mutable private lastCheck = DateTime.Now
-    let mutable private firstChartSliceData = ChartSliceData.defaultValue
-    let mutable private lastChartSliceData = ChartSliceData.defaultValue
-    let mutable private lastEeData = EeData.defaultValue
-    let mutable private tPrev = 0.0
-    let mutable private tDtSum = 0.0
-    let mutable private dtEeSum = [| 0.0 |]
-    let mutable private tDtEeSum = [| 0.0 |]
-    let mutable private eeCount = 0
-    let mutable calculated = false
+    type private ProgressStateData<'PD, 'CSD, 'ED> =
+        {
+            lastNotifiedT : double
+            progress : decimal
+            nextProgress : decimal
+            nextChartProgress : decimal
+            callCount : int64
+            lastCheck  : DateTime
 
-    let printProgressInfo t =
-        printfn $"printProgressInfo: t = {t}, progress = {progress}, eeData = %0A{lastEeData}."
+            firstChartSliceData : 'CSD
+            lastChartSliceData : 'CSD
+            lastProgressData : 'PD
+            extraData : 'ED
+
+            tPrev : double
+            tDtSum : double
+            calculated : bool
+        }
 
 
-    let shouldNotifyByCallCount() =
+    // let mutable private lastNotifiedT = 0.0
+    // let mutable private progress = 0.0m
+    // let mutable private nextProgress = 0.0m
+    // let mutable private nextChartProgress = 0.0m
+    // let mutable private callCount = 0L
+    // let mutable private lastCheck = DateTime.Now
+    // let mutable private tPrev = 0.0
+    // let mutable private tDtSum = 0.0
+    // let mutable calculated = false
+
+    // 'CSD and 'CSD
+    // let mutable private firstChartSliceData = ChartSliceData.defaultValue
+    // let mutable private lastChartSliceData = ChartSliceData.defaultValue
+
+    // 'PD
+    // let mutable private lastEeData = EeData.defaultValue
+
+    // 'ED
+    // let mutable private dtEeSum = [| 0.0 |]
+    // let mutable private tDtEeSum = [| 0.0 |]
+    // let mutable private eeCount = 0
+
+
+    let printProgressInfo psd t =
+        printfn $"printProgressInfo: t = {t}, progress = {psd.progress}, lastProgressData = %0A{psd.lastProgressData}."
+
+
+    let shouldNotifyByCallCount psd =
         let r =
             [
-                callCount <= 10L
-                callCount > 10L && callCount <= 100L && callCount % 5L = 0L
-                callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
-                callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
-                callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
-                callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
-                callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
-                callCount > 10_000_000L && callCount <= 100_000_000L && callCount % 5_000_000L = 0L
-                callCount > 100_000_000L && callCount % 50_000_000L = 0L
+                psd.callCount <= 10L
+                psd.callCount > 10L && psd.callCount <= 100L && psd.callCount % 5L = 0L
+                psd.callCount > 100L && psd.callCount <= 1_000L && psd.callCount % 50L = 0L
+                psd.callCount > 1_000L && psd.callCount <= 10_000L && psd.callCount % 500L = 0L
+                psd.callCount > 10_000L && psd.callCount <= 100_000L && psd.callCount % 5_000L = 0L
+                psd.callCount > 100_000L && psd.callCount <= 1_000_000L && psd.callCount % 50_000L = 0L
+                psd.callCount > 1_000_000L && psd.callCount <= 10_000_000L && psd.callCount % 500_000L = 0L
+                psd.callCount > 10_000_000L && psd.callCount <= 100_000_000L && psd.callCount % 5_000_000L = 0L
+                psd.callCount > 100_000_000L && psd.callCount % 50_000_000L = 0L
             ]
             |> List.tryFind id
             |> Option.defaultValue false
 
-        printDebug $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
+        printDebug $"shouldNotifyByCallCount: callCount = {psd.callCount}, r = {r}."
         r
 
 
-    let shouldNotifyByNextProgress (n : NSolveParam) t =
+    let shouldNotifyByNextProgress psd n t =
         let p = calculateProgress n t
-        let r = p >= nextProgress
-        printDebug $"shouldNotifyByNextProgress: p = {p}, nextProgress = {nextProgress}, r = {r}."
+        let r = p >= psd.nextProgress
+        printDebug $"shouldNotifyByNextProgress: p = {p}, nextProgress = {psd.nextProgress}, r = {r}."
         r
 
 
-    let shouldNotifyByNextChartProgress (n : NSolveParam) t =
+    let shouldNotifyByNextChartProgress psd n t =
         let p = calculateProgress n t
-        let r = p >= nextChartProgress
-        printDebug $"shouldNotifyByNextChart: p = {p}, nextChartProgress = {nextChartProgress}, r = {r}."
+        let r = p >= psd.nextChartProgress
+        printDebug $"shouldNotifyByNextChart: p = {p}, nextChartProgress = {psd.nextChartProgress}, r = {r}."
         r
 
 
@@ -190,81 +223,96 @@ module Solver =
         printDebug $"calculateNextChartProgress: r = {r}."
         r
 
-    let shouldNotifyProgress n t = shouldNotifyByCallCount() || shouldNotifyByNextProgress n t
-    let shouldNotifyChart n t = shouldNotifyByCallCount() || shouldNotifyByNextChartProgress n t
+    let shouldNotifyProgress psd n t = shouldNotifyByCallCount psd || shouldNotifyByNextProgress psd n t
+    let shouldNotifyChart psd n t = shouldNotifyByCallCount psd || shouldNotifyByNextChartProgress psd n t
 
 
     /// Don't notify twice for the same value of t. This could happen during diagonal Jacobian evaluation.
-    let shouldNotify n t = (shouldNotifyProgress n t || shouldNotifyChart n t) && (lastNotifiedT <> t)
+    let shouldNotify psd n t = (shouldNotifyProgress psd n t || shouldNotifyChart psd n t) && (psd.lastNotifiedT <> t)
 
 
-    let calculateChartSliceData (d : StatUpdateData) =
+    let calculateChartSliceData psd d = //(d : StatUpdateData) =
         let n = d.nSolveParam
         printDebug $"calculateChartSliceData: Called with t = {d.t}."
 
-        if calculated
-        then lastChartSliceData
+        if psd.calculated
+        then psd.lastChartSliceData
         else
-            let dt = d.t - tPrev
+            let dt = d.t - psd.tPrev
             let tDt = d.t * dt
-            let csd = n.getChartSliceData d.t d.x EeData.defaultValue
+            let csd = n.getChartSliceData d.t d.x n.defaultProgressData
 
-            let tDtSumNew = tDtSum + tDt
-            let dtEeSumNew = (csd.enantiomericExcess, dtEeSum) ||> Array.map2 (fun e s -> dt * e + s)
-            let tDtEeSumNew = (csd.enantiomericExcess, tDtEeSum) ||> Array.map2 (fun e s -> tDt * e + s)
+            let tDtSumNew = psd.tDtSum + tDt
+            let extraData = n.getExtraData ()
+            // let dtEeSumNew = (csd.enantiomericExcess, dtEeSum) ||> Array.map2 (fun e s -> dt * e + s)
+            // let tDtEeSumNew = (csd.enantiomericExcess, tDtEeSum) ||> Array.map2 (fun e s -> tDt * e + s)
+            //
+            // let dtEeAbsMax =
+            //     dtEeSumNew
+            //     |> Array.map abs
+            //     |> Array.max
+            //
+            // let tDtEeAbsMax =
+            //     tDtEeSumNew
+            //     |> Array.map abs
+            //     |> Array.max
+            //
+            // let eeData =
+            //     {
+            //         maxEe = max lastEeData.maxEe csd.maxEe
+            //         maxAverageEe = if d.t > 0.0 then dtEeAbsMax / d.t else 0.0
+            //         maxWeightedAverageAbsEe = if tDtSumNew > 0.0 then tDtEeAbsMax / tDtSumNew else 0.0
+            //         maxLastEe = csd.maxEe
+            //     }
 
-            let dtEeAbsMax =
-                dtEeSumNew
-                |> Array.map abs
-                |> Array.max
-
-            let tDtEeAbsMax =
-                tDtEeSumNew
-                |> Array.map abs
-                |> Array.max
-
-            let eeData =
+            let psdNew =
                 {
-                    maxEe = max lastEeData.maxEe csd.maxEe
-                    maxAverageEe = if d.t > 0.0 then dtEeAbsMax / d.t else 0.0
-                    maxWeightedAverageAbsEe = if tDtSumNew > 0.0 then tDtEeAbsMax / tDtSumNew else 0.0
-                    maxLastEe = csd.maxEe
+                    psd
+                        with
+                        tPrev = d.t
+                        tDtSum = tDtSumNew
+                        // dtEeSum <- dtEeSumNew
+                        // tDtEeSum = tDtEeSumNew
+                        // eeCount <- eeCount + 1
+                        // lastEeData <- eeData
+                        // lastChartSliceData = { csd with eeData = eeData }
+                        progress = calculateProgress d.nSolveParam d.t
+                        calculated = true
                 }
 
-            tPrev <- d.t
-            tDtSum <- tDtSumNew
-            dtEeSum <- dtEeSumNew
-            tDtEeSum <- tDtEeSumNew
-            eeCount <- eeCount + 1
-            lastEeData <- eeData
-            lastChartSliceData <- { csd with eeData = eeData }
-            progress <- calculateProgress d.nSolveParam d.t
-            calculated <- true
-            csd
+            // dtEeSum <- dtEeSumNew
+            // tDtEeSum <- tDtEeSumNew
+            // eeCount <- eeCount + 1
+            // lastEeData <- eeData
+            // lastChartSliceData <- { csd with eeData = eeData }
+            // progress <- calculateProgress d.nSolveParam d.t
+            // calculated <- true
+            (csd, psdNew)
 
 
-    let notifyChart (d : StatUpdateData) =
+    let notifyChart psd d =
 //        Thread.Sleep(30_000)
         printDebug $"notifyChart: Calling chartCallBack with t = {d.t}."
-        calculateChartSliceData d |> d.nSolveParam.chartCallBack
+        let csd, psdNew = calculateChartSliceData psd d
+        csd |> d.nSolveParam.chartCallBack
 
 
-    let calculateProgressData (d : StatUpdateData) =
+    let calculateProgressData psd d =
         printDebug $"calculateProgressData: Called with t = {d.t}."
-        let csd = calculateChartSliceData d
+        let csd, psdNew = calculateChartSliceData psd d
 
         {
             progress = calculateProgress d.nSolveParam d.t
-            callCount = callCount
-            eeData = lastEeData
+            callCount = psd.callCount
+            progressData = psd.lastProgressData
             yRelative = csd.totalSubst.totalData / firstChartSliceData.totalSubst.totalData
             errorMessageOpt = None
         }
 
 
-    let calculateProgressDataWithErr (d : StatUpdateData) v =
+    let calculateProgressDataWithErr psd d v =
         printDebug $"calculateProgressDataWithErr: Called with t = {d.t}, v = {v}."
-        let p = calculateProgressData d
+        let p = calculateProgressData psd d
 
         let withMessage s m =
             match s with
@@ -278,12 +326,12 @@ module Solver =
             |> withMessage s
 
 
-    let mapResults n (solverResult : SolverResult) (elapsed : TimeSpan) =
+    let mapResults psd n (solverResult : SolverResult) (elapsed : TimeSpan) =
         {
             startTime = solverResult.StartTime
             endTime = solverResult.EndTime
             xEnd = solverResult.X
-            progressData = calculateProgressData { nSolveParam = n; t = solverResult.EndTime; x = solverResult.X }
+            progressData = calculateProgressData psd { nSolveParam = n; t = solverResult.EndTime; x = solverResult.X }
         }
 
 
@@ -293,19 +341,19 @@ module Solver =
         n.progressCallBack s p
 
 
-    let checkCancellation n =
-        let fromLastCheck = DateTime.Now - lastCheck
+    let checkCancellation psd n =
+        let fromLastCheck = DateTime.Now - psd.lastCheck
         printDebug $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
 
         if fromLastCheck > n.checkFreq
         then
-            lastCheck <- DateTime.Now
+            let psdNew = { psd with lastCheck = DateTime.Now }
             let cancel = n.checkCancellation n.runQueueId
-            cancel
-        else None
+            psdNew, cancel
+        else psd, None
 
 
-    let callBack (d : StatUpdateData) : unit =
+    let callBack d : unit =
         let n = d.nSolveParam
         printDebug $"callBack: Called with t = {d.t}."
         calculated <- false
@@ -342,7 +390,7 @@ module Solver =
         r
 
 
-    let callBackUseNonNegative (d : StatUpdateData) =
+    let callBackUseNonNegative d =
         printDebug $"callBackUseNonNegative: Called with t = {d.t}."
         callCount <- callCount + 1L
 
@@ -353,7 +401,7 @@ module Solver =
         if shouldNotify d.nSolveParam d.t then callBack d
 
 
-    let callBackDoNotCorrect c (d : StatUpdateData) =
+    let callBackDoNotCorrect c d =
         printDebug $"callBackDoNotCorrect: Called with t = {d.t}."
 
         match c with
