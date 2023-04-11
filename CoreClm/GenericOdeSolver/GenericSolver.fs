@@ -87,53 +87,50 @@ module Solver =
             solverType : SolverType
             modelDataId : Guid
             runQueueId : RunQueueId
-            calculationData : 'CD
             initialValues : double[]
-            progressCallBack : RunQueueStatus option -> ProgressData<'PD> -> unit
+
+            calculationData : 'CD
             defaultProgressData : 'PD
+            defaultChartSliceData : 'CSD
+            defaultExtraData : 'ED
+
+            checkFreq : TimeSpan
+            progressCallBack : RunQueueStatus option -> ProgressData<'PD> -> unit
             chartCallBack : 'CSD -> unit
             getChartSliceData : double -> double[] -> 'PD -> 'CSD
-            defaultChartSliceData : 'CSD
             checkCancellation : RunQueueId -> CancellationType option
-            checkFreq : TimeSpan
             getExtraData : unit -> 'ED
         }
 
 
-    type StatUpdateData<'CD, 'PD, 'CSD, 'ED> =
+    // type StatUpdateData<'CD, 'PD, 'CSD, 'ED> =
+    //     {
+    //         nSolveParam : NSolveParam<'CD, 'PD, 'CSD, 'ED>
+    //         t : double
+    //         x : double[]
+    //     }
+    //
+    //     static member create n =
+    //         {
+    //             nSolveParam = n
+    //             t = 0.0
+    //             x = n.initialValues
+    //         }
+
+
+    type private ProgressStateData<'CD, 'PD, 'CSD, 'ED> =
         {
             nSolveParam : NSolveParam<'CD, 'PD, 'CSD, 'ED>
             t : double
             x : double[]
-        }
 
-        static member create n =
-            {
-                nSolveParam = n
-                t = 0.0
-                x = n.initialValues
-            }
-
-
-    let calculateProgress n t =
-        (t - n.odeParams.startTime) / (n.odeParams.endTime - n.odeParams.startTime)
-        |> decimal
-
-
-    let estCompl n t s =
-        match estimateEndTime (calculateProgress n t) s with
-        | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
-        | None -> EmptyString
-
-
-    type private ProgressStateData<'PD, 'CSD, 'ED> =
-        {
             lastNotifiedT : double
             progress : decimal
             nextProgress : decimal
             nextChartProgress : decimal
             callCount : int64
             lastCheck  : DateTime
+            started : DateTime
 
             firstChartSliceData : 'CSD
             lastChartSliceData : 'CSD
@@ -144,6 +141,42 @@ module Solver =
             tDtSum : double
             calculated : bool
         }
+
+        static member create n =
+            {
+                nSolveParam = n
+                t = 0.0
+                x =  n.initialValues
+
+                lastNotifiedT = 0.0
+                progress = 0.0m
+                nextProgress = 0.0m
+                nextChartProgress = 0.0m
+                callCount = 0L
+                lastCheck = DateTime.Now
+                started = DateTime.Now
+
+                firstChartSliceData = n.defaultChartSliceData
+                lastChartSliceData = n.defaultChartSliceData
+                lastProgressData = n.defaultProgressData
+                extraData = n.defaultExtraData
+
+                tPrev = 0.0
+                tDtSum = 0.0
+                calculated = false
+            }
+
+
+
+    let calculateProgress psd =
+        (psd.t - psd.nSolveParam.odeParams.startTime) / (psd.nSolveParam.odeParams.endTime - psd.nSolveParam.odeParams.startTime)
+        |> decimal
+
+
+    let estCompl psd =
+        match estimateEndTime (calculateProgress psd) psd.started with
+        | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
+        | None -> EmptyString
 
 
     // let mutable private lastNotifiedT = 0.0
@@ -169,8 +202,8 @@ module Solver =
     // let mutable private eeCount = 0
 
 
-    let printProgressInfo psd t =
-        printfn $"printProgressInfo: t = {t}, progress = {psd.progress}, lastProgressData = %0A{psd.lastProgressData}."
+    let printProgressInfo psd =
+        printfn $"printProgressInfo: t = {psd.t}, progress = {psd.progress}, lastProgressData = %0A{psd.lastProgressData}."
 
 
     let shouldNotifyByCallCount psd =
@@ -193,54 +226,56 @@ module Solver =
         r
 
 
-    let shouldNotifyByNextProgress psd n t =
-        let p = calculateProgress n t
+    let shouldNotifyByNextProgress psd =
+        let p = calculateProgress psd
         let r = p >= psd.nextProgress
         printDebug $"shouldNotifyByNextProgress: p = {p}, nextProgress = {psd.nextProgress}, r = {r}."
         r
 
 
-    let shouldNotifyByNextChartProgress psd n t =
-        let p = calculateProgress n t
+    let shouldNotifyByNextChartProgress psd =
+        let p = calculateProgress psd
         let r = p >= psd.nextChartProgress
         printDebug $"shouldNotifyByNextChart: p = {p}, nextChartProgress = {psd.nextChartProgress}, r = {r}."
         r
 
 
-    let calculateNextProgress n t =
+    let calculateNextProgress psd =
         let r =
-            match n.odeParams.noOfProgressPoints with
+            match psd.nSolveParam.odeParams.noOfProgressPoints with
             | np when np <= 0 -> 1.0m
-            | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+            | np -> min 1.0m ((((calculateProgress psd) * (decimal np) |> floor) + 1.0m) / (decimal np))
+
         printDebug $"calculateNextProgress: r = {r}."
         r
 
-    let calculateNextChartProgress n t =
+    let calculateNextChartProgress psd =
         let r =
-            match n.odeParams.noOfOutputPoints with
+            match psd.nSolveParam.odeParams.noOfOutputPoints with
             | np when np <= 0 -> 1.0m
-            | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+            | np -> min 1.0m ((((calculateProgress psd) * (decimal np) |> floor) + 1.0m) / (decimal np))
+
         printDebug $"calculateNextChartProgress: r = {r}."
         r
 
-    let shouldNotifyProgress psd n t = shouldNotifyByCallCount psd || shouldNotifyByNextProgress psd n t
-    let shouldNotifyChart psd n t = shouldNotifyByCallCount psd || shouldNotifyByNextChartProgress psd n t
+    let shouldNotifyProgress psd = shouldNotifyByCallCount psd || shouldNotifyByNextProgress psd
+    let shouldNotifyChart psd = shouldNotifyByCallCount psd || shouldNotifyByNextChartProgress psd
 
 
     /// Don't notify twice for the same value of t. This could happen during diagonal Jacobian evaluation.
-    let shouldNotify psd n t = (shouldNotifyProgress psd n t || shouldNotifyChart psd n t) && (psd.lastNotifiedT <> t)
+    let shouldNotify psd = (shouldNotifyProgress psd || shouldNotifyChart psd) && (psd.lastNotifiedT <> psd.t)
 
 
-    let calculateChartSliceData psd d = //(d : StatUpdateData) =
-        let n = d.nSolveParam
-        printDebug $"calculateChartSliceData: Called with t = {d.t}."
+    let calculateChartSliceData psd =
+        let n = psd.nSolveParam
+        printDebug $"calculateChartSliceData: Called with t = {psd.t}."
 
         if psd.calculated
         then psd.lastChartSliceData
         else
-            let dt = d.t - psd.tPrev
-            let tDt = d.t * dt
-            let csd = n.getChartSliceData d.t d.x n.defaultProgressData
+            let dt = psd.t - psd.tPrev
+            let tDt = psd.t * dt
+            let csd = n.getChartSliceData psd.t psd.x n.defaultProgressData
 
             let tDtSumNew = psd.tDtSum + tDt
             let extraData = n.getExtraData ()
@@ -269,14 +304,14 @@ module Solver =
                 {
                     psd
                         with
-                        tPrev = d.t
+                        // tPrev = d.t
                         tDtSum = tDtSumNew
                         // dtEeSum <- dtEeSumNew
                         // tDtEeSum = tDtEeSumNew
                         // eeCount <- eeCount + 1
                         // lastEeData <- eeData
                         // lastChartSliceData = { csd with eeData = eeData }
-                        progress = calculateProgress d.nSolveParam d.t
+                        progress = calculateProgress psd
                         calculated = true
                 }
 
@@ -287,22 +322,24 @@ module Solver =
             // lastChartSliceData <- { csd with eeData = eeData }
             // progress <- calculateProgress d.nSolveParam d.t
             // calculated <- true
-            (csd, psdNew)
+
+            // (csd, psdNew)
+            psdNew
 
 
-    let notifyChart psd d =
+    let notifyChart psd =
 //        Thread.Sleep(30_000)
-        printDebug $"notifyChart: Calling chartCallBack with t = {d.t}."
-        let csd, psdNew = calculateChartSliceData psd d
-        csd |> d.nSolveParam.chartCallBack
+        printDebug $"notifyChart: Calling chartCallBack with t = {psd.t}."
+        let psdNew = calculateChartSliceData psd
+        psd.lastChartSliceData |> psd.nSolveParam.chartCallBack
 
 
-    let calculateProgressData psd d =
-        printDebug $"calculateProgressData: Called with t = {d.t}."
-        let csd, psdNew = calculateChartSliceData psd d
+    let calculateProgressData psd =
+        printDebug $"calculateProgressData: Called with t = {psd.t}."
+        let psdNew = calculateChartSliceData psd
 
         {
-            progress = calculateProgress d.nSolveParam d.t
+            progress = calculateProgress psd
             callCount = psd.callCount
             progressData = psd.lastProgressData
             yRelative = csd.totalSubst.totalData / firstChartSliceData.totalSubst.totalData
@@ -310,9 +347,9 @@ module Solver =
         }
 
 
-    let calculateProgressDataWithErr psd d v =
-        printDebug $"calculateProgressDataWithErr: Called with t = {d.t}, v = {v}."
-        let p = calculateProgressData psd d
+    let calculateProgressDataWithErr psd v =
+        printDebug $"calculateProgressDataWithErr: Called with t = {psd.t}, v = {v}."
+        let p = calculateProgressData psd
 
         let withMessage s m =
             match s with
@@ -322,16 +359,18 @@ module Solver =
         match v with
         | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progress * 100.0m}%% progress." |> withMessage s
         | CancelWithResults s ->
-            $"The run queue was cancelled at: %.2f{p.progress * 100.0m}%% progress. Absolute tolerance: {d.nSolveParam.odeParams.absoluteTolerance}."
+            $"The run queue was cancelled at: %.2f{p.progress * 100.0m}%% progress. Absolute tolerance: {psd.nSolveParam.odeParams.absoluteTolerance}."
             |> withMessage s
 
 
-    let mapResults psd n (solverResult : SolverResult) (elapsed : TimeSpan) =
+    let mapResults psd (solverResult : SolverResult) (elapsed : TimeSpan) =
+        let psd1 = { psd with tPrev = psd.t; t = solverResult.EndTime; x = solverResult.X }
+
         {
             startTime = solverResult.StartTime
             endTime = solverResult.EndTime
             xEnd = solverResult.X
-            progressData = calculateProgressData psd { nSolveParam = n; t = solverResult.EndTime; x = solverResult.X }
+            progressData = calculateProgressData psd1
         }
 
 
@@ -341,35 +380,33 @@ module Solver =
         n.progressCallBack s p
 
 
-    let checkCancellation psd n =
+    let checkCancellation psd =
         let fromLastCheck = DateTime.Now - psd.lastCheck
         printDebug $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
 
-        if fromLastCheck > n.checkFreq
+        if fromLastCheck > psd.nSolveParam.checkFreq
         then
             let psdNew = { psd with lastCheck = DateTime.Now }
-            let cancel = n.checkCancellation n.runQueueId
+            let cancel = psd.nSolveParam.checkCancellation psd.nSolveParam.runQueueId
             psdNew, cancel
         else psd, None
 
 
-    let callBack d : unit =
-        let n = d.nSolveParam
-        printDebug $"callBack: Called with t = {d.t}."
-        calculated <- false
+    let callBack psd =
+        printDebug $"callBack: Called with t = {psd.t}."
+        let psd1 = { psd with calculated = false }
 
-        let g() =
-            progress <- calculateProgress d.nSolveParam d.t
-            lastNotifiedT <- d.t
-            printProgressInfo d.t
+        let g p =
+            let p1 = { p with progress = calculateProgress psd; lastNotifiedT = psd.t }
+            printProgressInfo p1
+            p1
 
-        match shouldNotifyProgress n d.t, shouldNotifyChart n d.t with
+        match shouldNotifyProgress psd1, shouldNotifyChart psd1 with
         | true, true ->
-            calculateProgressData d |> notifyProgress n None
-            notifyChart d
-            nextProgress <- calculateNextProgress n d.t
-            nextChartProgress <- calculateNextChartProgress n d.t
-            g()
+            calculateProgressData psd1 |> notifyProgress psd1.nSolveParam None
+            notifyChart psd1
+            let psd2 = { psd1 with nextProgress = calculateNextProgress psd1; nextChartProgress = calculateNextChartProgress psd1 }
+            g psd2
         | true, false ->
             calculateProgressData d |> notifyProgress n None
             nextProgress <- calculateNextProgress n d.t
@@ -378,7 +415,7 @@ module Solver =
             notifyChart d
             nextChartProgress <- calculateNextChartProgress n d.t
             g()
-        | false, false -> ()
+        | false, false -> psd1
 
 
     let needsCallBack n t =
