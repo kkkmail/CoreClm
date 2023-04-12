@@ -6,8 +6,10 @@ open ClmSys.ClmErrors
 open ClmSys.SolverData
 open ClmSys.SolverRunnerPrimitives
 open ContGenServiceInfo.ServiceInfo
-open ClmSys.SolverRunnerErrors
 open ClmSys.GeneralPrimitives
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
+open Primitives.SolverRunnerErrors
 
 module SolverRunner =
 

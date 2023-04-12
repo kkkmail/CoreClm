@@ -6,6 +6,7 @@ open Newtonsoft.Json
 open FSharp.Data.Sql
 open System
 
+open Primitives.GeneralPrimitives
 open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
@@ -350,7 +351,7 @@ module DatabaseTypes =
                         callCount = r.runQueue.CallCount
                         yRelative = r.runQueue.YRelative
 
-                        eeData =
+                        progressData =
                             {
                                 maxEe = r.runQueue.MaxEe
                                 maxAverageEe = r.runQueue.MaxAverageEe
@@ -480,10 +481,10 @@ module DatabaseTypes =
                             Progress = r.progressData.progress,
                             CallCount = r.progressData.callCount,
                             YRelative = r.progressData.yRelative,
-                            MaxEe = r.progressData.eeData.maxEe,
-                            MaxAverageEe = r.progressData.eeData.maxAverageEe,
-                            MaxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
-                            MaxLastEe = r.progressData.eeData.maxLastEe,
+                            MaxEe = r.progressData.progressData.maxEe,
+                            MaxAverageEe = r.progressData.progressData.maxAverageEe,
+                            MaxWeightedAverageAbsEe = r.progressData.progressData.maxWeightedAverageAbsEe,
+                            MaxLastEe = r.progressData.progressData.maxLastEe,
                             WorkerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
                             ModifiedOn = DateTime.Now,
                             ErrorMessage = (r.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)))
@@ -548,10 +549,10 @@ module DatabaseTypes =
             r.Progress <- q.progressData.progress
             r.CallCount <- q.progressData.callCount
             r.YRelative <- q.progressData.yRelative
-            r.MaxEe <- q.progressData.eeData.maxEe
-            r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
-            r.MaxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
-            r.MaxLastEe <- q.progressData.eeData.maxLastEe
+            r.MaxEe <- q.progressData.progressData.maxEe
+            r.MaxAverageEe <- q.progressData.progressData.maxAverageEe
+            r.MaxWeightedAverageAbsEe <- q.progressData.progressData.maxWeightedAverageAbsEe
+            r.MaxLastEe <- q.progressData.progressData.maxLastEe
             r.ErrorMessage <- q.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
 
             match s with

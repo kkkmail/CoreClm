@@ -11,6 +11,7 @@ open ClmSys.DistributionData
 open ClmSys.GeneralData
 open ClmSys.ContGenPrimitives
 open ClmSys.ModelData
+open Primitives.GeneralData
 
 
 module FSharpCodeExt =

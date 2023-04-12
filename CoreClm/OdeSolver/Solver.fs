@@ -1,9 +1,11 @@
 ﻿namespace OdeSolver
 
 open System
+open ClmSys
 open ClmSys.ContGenPrimitives
 open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
+open Primitives.SolverRunnerErrors
 open Softellect.OdePackInterop
 open Microsoft.FSharp.Core
 open Clm.ChartData
@@ -259,7 +261,7 @@ module Solver =
         {
             progress = calculateProgress d.nSolveParam d.t
             callCount = callCount
-            eeData = lastEeData
+            progressData = lastEeData
             yRelative = csd.totalSubst.totalData / firstChartSliceData.totalSubst.totalData
             errorMessageOpt = None
         }

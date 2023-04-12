@@ -40,3 +40,14 @@ module SolverRunnerErrors =
     type SolverRunnerError =
         | OnSaveChartsErr of OnSaveChartsError
         | OnUpdateProgressErr of OnUpdateProgressError
+
+
+    /// See: https://stackoverflow.com/questions/49974736/how-to-declare-a-generic-exception-types-in-f
+    /// We have to resort to throwing a specific exception in order
+    /// to perform early termination from deep inside C# ODE solver.
+    /// There seems to be no other easy and clean way. Revisit if that changes.
+    type ComputationAbortedException<'PD> (pd : ProgressData<'PD>, ct : CancellationType) =
+        inherit System.Exception ()
+
+        member e.progressData = pd
+        member e.cancellationType = ct

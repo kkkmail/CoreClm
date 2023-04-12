@@ -3,6 +3,7 @@
 open System
 open System.Threading
 
+open ClmSys
 open ClmSys.SolverData
 open ClmSys.SolverRunnerPrimitives
 open Softellect.Sys
@@ -47,7 +48,7 @@ module ServiceInfo =
 
         static member defaultValue =
             {
-                progressData = ProgressData.defaultValue
+                progressData = ProgressData.defaultValue EeData.defaultValue
                 started = DateTime.Now
                 lastUpdated = DateTime.Now
             }

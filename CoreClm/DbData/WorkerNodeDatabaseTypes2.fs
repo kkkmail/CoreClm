@@ -5,6 +5,8 @@ namespace DbData
 open ClmSys.WorkerNodeData
 open System
 open FSharp.Data.Sql
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.Retry
@@ -40,7 +42,7 @@ module WorkerNodeDatabaseTypes =
         let g() =
             let ctx = getDbContext c
 
-            let x = 
+            let x =
                 query {
                     for q in ctx.Dbo.RunQueue do
                     where (q.RunQueueStatusId = RunQueueStatus.InProgressRunQueue.value || q.RunQueueStatusId = RunQueueStatus.CancelRequestedRunQueue.value)
@@ -126,8 +128,8 @@ module WorkerNodeDatabaseTypes =
                 query {
                     for q in ctx.Dbo.RunQueue do
                     where (q.RunQueueStatusId =
-                        RunQueueStatus.NotStartedRunQueue.value 
-                        || q.RunQueueStatusId = RunQueueStatus.InProgressRunQueue.value 
+                        RunQueueStatus.NotStartedRunQueue.value
+                        || q.RunQueueStatusId = RunQueueStatus.InProgressRunQueue.value
                         || q.RunQueueStatusId = RunQueueStatus.CancelRequestedRunQueue.value)
                     select q.RunQueueId
                 }
@@ -239,7 +241,7 @@ module WorkerNodeDatabaseTypes =
                 }
 
             match x with
-            | Some v -> 
+            | Some v ->
                 match v with
                 | 0 -> AbortCalculation None
                 | _ -> CancelWithResults None
@@ -264,7 +266,7 @@ module WorkerNodeDatabaseTypes =
                 }
 
             match x with
-            | Some v -> 
+            | Some v ->
                 match v with
                 | 0 -> None
                 | 1 -> Some RegularChartGeneration
@@ -296,11 +298,11 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Can modify progress related information when state is InProgress or CancelRequested.
-    let tryUpdateProgress c (q : RunQueueId) (td : ProgressData) =
+    let tryUpdateProgress c (q : RunQueueId) (td : ProgressData<EeData>) =
         let g() =
             printfn $"tryUpdateProgress: RunQueueId: {q}, progress data: %A{td}."
             let ctx = getDbContext c
-            let ee = td.eeData
+            let ee = td.progressData
 
             let r = ctx.Procedures.TryUpdateProgressRunQueue.Invoke(
                                         ``@runQueueId`` = q.value,

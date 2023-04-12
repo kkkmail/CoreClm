@@ -19,6 +19,7 @@ open ClmImpure.RateProvider
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
+open Primitives.GeneralData
 
 module ClmModel =
 

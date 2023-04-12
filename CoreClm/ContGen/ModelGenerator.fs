@@ -1,7 +1,9 @@
 ﻿namespace ContGen
 
 open System
+open ClmSys
 open ClmSys.SolverRunnerPrimitives
+open Primitives.GeneralPrimitives
 open Softellect.Sys.Rop
 
 open Clm.ModelParams
@@ -56,7 +58,7 @@ module ModelGenerator =
                                                 }
                                             runQueueStatus = NotStartedRunQueue
                                             workerNodeIdOpt = None
-                                            progressData = ProgressData.defaultValue
+                                            progressData = ProgressData.defaultValue EeData.defaultValue
                                             createdOn = DateTime.Now
                                         })
                         |> List.map proxy.upsertRunQueue

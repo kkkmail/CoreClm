@@ -3,12 +3,15 @@ namespace ServiceProxy
 open System
 open System.Diagnostics
 open System.Management
+open ClmSys
 open ClmSys.GeneralPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.SolverRunnerErrors
 open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
+open Primitives.SolverRunnerErrors
 
 module SolverProcessProxy =
 

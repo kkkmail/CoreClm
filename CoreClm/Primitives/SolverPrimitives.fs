@@ -2,6 +2,7 @@
 
 open System
 open Microsoft.FSharp.Core
+open Primitives.GeneralPrimitives
 
 module SolverPrimitives =
 
@@ -43,10 +44,10 @@ module SolverPrimitives =
         | ProcessId of int
 
 
-    type ErrorMessage =
-        | ErrorMessage of string
-
-        member this.value = let (ErrorMessage v) = this in v
+    // type ErrorMessage =
+    //     | ErrorMessage of string
+    //
+    //     member this.value = let (ErrorMessage v) = this in v
 
 
     let estimateEndTime progress (started : DateTime) =

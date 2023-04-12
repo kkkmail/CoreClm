@@ -1,16 +1,16 @@
 ﻿namespace ContGen
 
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.Sys.Rop
 open Softellect.Messaging.Primitives
 open Softellect.Messaging.Client
 
 open Clm.ModelParams
-open ClmSys.SolverRunnerPrimitives
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.TimerEvents
-open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
 open ServiceProxy.ModelRunnerProxy
 open ClmSys.ModelRunnerErrors

@@ -3,6 +3,8 @@
 open System
 open System.IO
 
+open Primitives.GeneralPrimitives
+open Primitives.SolverRunnerErrors
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Sys.Retry
@@ -18,7 +20,6 @@ open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
-open ClmSys.SolverRunnerErrors
 
 module FileSystemTypes =
 
