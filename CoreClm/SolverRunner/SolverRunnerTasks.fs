@@ -1,7 +1,11 @@
 ﻿namespace SolverRunner
 
+open ClmSys
 open Microsoft.FSharp.Core
 
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
+open Primitives.SolverRunnerErrors
 open Softellect.Sys.Core
 open Clm.ModelInit
 open Clm.ModelParams
@@ -17,7 +21,6 @@ open System.IO
 open ClmSys.ContGenPrimitives
 open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo
-open ClmSys.SolverRunnerErrors
 open ClmSys.GeneralPrimitives
 open System.Threading
 open ClmSys.SolverRunnerPrimitives
@@ -225,7 +228,7 @@ module SolverRunnerTasks =
         // Note that we mimic the exception raised by the real solver when cancellation is requested.
         // See comments to the exception type below for reasoning.
         let m = $"testCancellation - Aborted at counter = %i{counter}." |> Some
-        raise(ComputationAbortedException (ProgressData.defaultValue, cancel |> Option.defaultValue (AbortCalculation None)))
+        raise(ComputationAbortedException (ProgressData.defaultValue EeData.defaultValue, cancel |> Option.defaultValue (AbortCalculation None)))
 
 
     type SolverProxy =
@@ -315,21 +318,22 @@ module SolverRunnerTasks =
                 combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
                 printfn $"runSolver: All completed for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
             with
+            // See: https://stackoverflow.com/questions/49974736/how-to-declare-a-generic-exception-types-in-f
             // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
             // There seems to be no other easy and clean way. Revisit if that changes.
             // Follow the trail of that date stamp to find other related places.
-            | ComputationAbortedException (p, r) ->
+            | :? ComputationAbortedException<EeData> as ex ->
                 printfn $"getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A{w.runningProcessData.runQueueId}"
 
-                match r with
+                match ex.cancellationType with
                 | CancelWithResults e ->
                     notifyOfCharts ForceChartGeneration |> logIfFailed "Unable to send charts."
-                    getProgress w (Some CompletedRunQueue) p
+                    getProgress w (Some CompletedRunQueue) ex.progressData
                 | AbortCalculation e ->
-                    getProgress w (Some CancelledRunQueue) p
+                    getProgress w (Some CancelledRunQueue) ex.progressData
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
             | e ->
-                let p = { ProgressData.defaultValue with errorMessageOpt = $"{e}" |> ErrorMessage |> Some }
+                let p = { (ProgressData.defaultValue EeData.defaultValue) with errorMessageOpt = $"{e}" |> ErrorMessage |> Some }
                 getProgress w (Some FailedRunQueue) p |> (updateFinalProgress "getSolverRunner - Exception occurred.")
 
         let proxy =
@@ -341,4 +345,3 @@ module SolverRunnerTasks =
             }
 
         SolverRunner(proxy, w.runningProcessData.runQueueId)
-

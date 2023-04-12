@@ -16,6 +16,7 @@ open ClmSys.ClmErrors
 open ClmSys.SolverData
 open Clm.CalculationData
 open Primitives.GeneralData
+open GenericOdeSolver.Solver
 
 module Solver =
 
@@ -407,10 +408,12 @@ module Solver =
             }
         | OdePack (m, i, nc) ->
             printfn $"nSolve: Using {m} / {i} DLSODE solver."
+            let calculateDerivative t x = n.calculationData.getDerivative x
+            let dc : DerivativeCalculator = calculateDerivative |> FullArray
 
             match nc with
             | UseNonNegative ->
-                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.calculationData.modelIndices)
+                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, dc)
 
                 OdeSolver.RunFSharp(
                         (fun() -> interop()),
@@ -425,7 +428,7 @@ module Solver =
             | DoNotCorrect ->
                 let needsCallBack t = needsCallBack n t
                 let callBack c t x = callBackDoNotCorrect c { nSolveParam = n; t = t; x = x }
-                let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.calculationData.modelIndices)
+                let interop() = createDoNotCorrectInterop(needsCallBack, callBack, dc)
 
                 OdeSolver.RunFSharp(
                         (fun() -> interop()),

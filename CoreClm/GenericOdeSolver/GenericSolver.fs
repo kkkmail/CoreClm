@@ -21,6 +21,16 @@ open Primitives.GeneralData
 
 module Solver =
 
+    type DerivativeCalculator =
+        | OneByOne of (double -> double[] -> int -> double)
+        | FullArray of (double -> double[] -> double[])
+
+        member d.calculateArray t x =
+            match d with
+            | OneByOne f -> x |> Array.mapi (fun i _ -> f t x i)
+            | FullArray f -> f t x
+
+
     let makeNonNegative (x: double[]) = x |> Array.map (max 0.0)
     let makeNonNegativeByRef (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0.. neq - 1 -> max 0.0 (NativePtr.get x i) |]
 
@@ -30,7 +40,7 @@ module Solver =
 
     let private fUseNonNegative (
                                 callBack : double -> double[] -> unit,
-                                calculateDerivative : double -> double[] -> double[],
+                                derivativeCalculator : DerivativeCalculator,
                                 neq : byref<int>,
                                 t : byref<double>,
                                 x : nativeptr<double>,
@@ -38,8 +48,13 @@ module Solver =
 
         let x1 = makeNonNegativeByRef neq x
         callBack t x1
-        let d = calculateDerivative t x1
-        for i in 0 .. (neq - 1) do NativePtr.set dx i d[i]
+
+        match derivativeCalculator with
+        | OneByOne f ->
+            for i in 0 .. (neq - 1) do NativePtr.set dx i (f t x1 i)
+        | FullArray f ->
+            let d = f t x1
+            for i in 0 .. (neq - 1) do NativePtr.set dx i d[i]
 
 
     // let calculateByRefDerivativeValue (x : nativeptr<double>) (indices : ModelIndices)  : double[] =
@@ -49,7 +64,7 @@ module Solver =
     let private fDoNotCorrect (
                                 needsCallBack: double -> CancellationType option * bool,
                                 callBack: CancellationType option -> double -> double[] -> unit,
-                                calculateDerivative : double -> double[] -> double[],
+                                derivativeCalculator : DerivativeCalculator,
                                 neq : byref<int>,
                                 t : byref<double>,
                                 x : nativeptr<double>,
@@ -65,17 +80,17 @@ module Solver =
         failwith "fDoNotCorrect is not implemented yet."
 
 
-    let createUseNonNegativeInterop (callaBack: double -> double[] -> unit, calculateDerivative : double -> double[] -> double[]) =
-        Interop.F(fun n t y dy -> fUseNonNegative(callaBack, calculateDerivative, &n, &t, y, dy))
+    let createUseNonNegativeInterop (callaBack: double -> double[] -> unit, derivativeCalculator : DerivativeCalculator) =
+        Interop.F(fun n t y dy -> fUseNonNegative(callaBack, derivativeCalculator, &n, &t, y, dy))
 
 
     let createDoNotCorrectInterop (
                                     needsCallBack: double -> CancellationType option * bool,
                                     callaBack: CancellationType option -> double -> double[] -> unit,
-                                    calculateDerivative : double -> double[] -> double[]
+                                    derivativeCalculator : DerivativeCalculator
                                     // calculateByRefDerivative : byref<double> -> nativeptr<double> -> double[]
                                     ) =
-        Interop.F(fun n t y dy -> fDoNotCorrect(needsCallBack, callaBack, calculateDerivative, &n, &t, y, dy))
+        Interop.F(fun n t y dy -> fDoNotCorrect(needsCallBack, callaBack, derivativeCalculator, &n, &t, y, dy))
 
 
     // ================================================================ //
@@ -152,7 +167,7 @@ module Solver =
             runQueueId : RunQueueId
             initialValues : double[]
 
-            getDerivative : double -> double[] -> double[]
+            getDerivative : DerivativeCalculator
             // getByRefDerivative : byref<double> -> nativeptr<double> -> double[]
             defaultProgressData : ProgressData<'PD>
             defaultChartSliceData : 'CSD
@@ -557,10 +572,10 @@ module Solver =
 
             let cashCarpDerivative (x : double[]) (t : double) : double[] =
                 callBackUseNonNegative t x
-                n.getDerivative t x
+                n.getDerivative.calculateArray t x
 
             let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
-            let d = alglib.ndimensional_ode_rp (fun x t y _ -> cashCarpDerivative x t |> Array.mapi(fun i e -> y.[i] <- e) |> ignore)
+            let d = alglib.ndimensional_ode_rp (fun x t y _ -> cashCarpDerivative x t |> Array.mapi(fun i e -> y[i] <- e) |> ignore)
             let mutable s = alglib.odesolverrkck(n.initialValues, x, p.absoluteTolerance.value, p.stepSize)
             do alglib.odesolversolve(s, d, null)
             let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)

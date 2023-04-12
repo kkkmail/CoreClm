@@ -3,6 +3,7 @@
 #nowarn "9"
 
 open System
+open GenericOdeSolver.Solver
 open Microsoft.FSharp.NativeInterop
 open Softellect.OdePackInterop
 open Xunit
@@ -110,14 +111,16 @@ type ModelTests(output : ITestOutputHelper) =
     [<Fact>]
     member _.ModelDataShouldMatchGeneratedCodeForPointerDerivative () : unit =
         let mdUpdate (md : ModelData) (x : double[]) : double[] =
-            let indices = md.modelData.modelBinaryData.calculationData.modelIndices
             let neq = x.Length
             let t = 0.0
             let callaBack _ _ = ()
             let (dx : double[]) = Array.zeroCreate x.Length
             use px = fixed &x.[0]
             use pdx = fixed &dx.[0]
-            let interop = createUseNonNegativeInterop (callaBack, indices)
+            let calculateDerivative t x = md.modelData.modelBinaryData.calculationData.getDerivative x
+            let dc : DerivativeCalculator = calculateDerivative |> FullArray
+
+            let interop = createUseNonNegativeInterop (callaBack, dc)
             do interop.Invoke(ref neq, ref t, px, pdx)
             dx
 

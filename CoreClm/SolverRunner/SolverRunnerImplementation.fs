@@ -4,6 +4,9 @@ open Argu
 open ClmSys.ClmErrors
 open ClmSys.ExitErrorCodes
 open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerPrimitives
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open ServiceProxy.SolverProcessProxy
 open SolverRunner.SolverRunnerCommandLine
 open NoSql.FileSystemTypes
@@ -20,11 +23,10 @@ open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodePrimitives
 open ServiceProxy.SolverRunner
 open SolverRunner.SolverRunnerTasks
-open ClmSys.SolverRunnerPrimitives
-open ClmSys.SolverRunnerErrors
 open DbData.MsgSvcDatabaseTypes
 open System.Diagnostics
 open ClmSys.VersionInfo
+open Primitives.SolverRunnerErrors
 
 module SolverRunnerImplementation =
 
@@ -193,9 +195,9 @@ module SolverRunnerImplementation =
                         | Error e -> exitWithLogCrit e UnknownException
                     | CancelRequestedRunQueue ->
                         // If we got here that means that the solver was terminated before it had a chance to process cancellation.
-                        // At this point we have no choice but abort the calculation because there is no data availalbe to continue.
-                        let errMessage = "The solver was terminated before processing cancallation. Aborting."
-                        let p = { ProgressData.defaultValue with errorMessageOpt = errMessage |> ErrorMessage |> Some }
+                        // At this point we have no choice but abort the calculation because there is no data available to continue.
+                        let errMessage = "The solver was terminated before processing cancellation. Aborting."
+                        let p = { (ProgressData<EeData>.defaultValue EeData.defaultValue) with errorMessageOpt = errMessage |> ErrorMessage |> Some }
                         getProgress w (Some FailedRunQueue) p |> (updateFinalProgress solverProxy q errMessage)
                         exitWithLogCrit errMessage NotProcessedCancellation
                     | _ -> exitWithLogCrit ($"Invalid run queue status: {st}") InvalidRunQueueStatus

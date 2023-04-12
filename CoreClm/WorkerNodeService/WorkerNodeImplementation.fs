@@ -3,6 +3,7 @@
 open System
 open Argu
 
+open Primitives.GeneralPrimitives
 open Softellect.Sys.Core
 open Softellect.Sys
 open Softellect.Messaging.ServiceInfo
