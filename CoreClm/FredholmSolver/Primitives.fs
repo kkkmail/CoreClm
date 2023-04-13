@@ -10,11 +10,23 @@ module Primitives =
         | MatrixData of int * int
 
 
-    type LinearDataInfo =
+    type LinearDataElement =
         {
             start : int
             dataType : LinearDataType
         }
+
+    type LinearDataInfo<'K when 'K : comparison> =
+        {
+            dataTypes : Map<'K, LinearDataElement>
+            start : int
+        }
+
+        static member defaultValue : LinearDataInfo<'K> =
+            {
+                dataTypes = Map.empty<'K, LinearDataElement>
+                start = 0
+            }
 
 
     /// A collection of various data (of the same type) packed into an array to be used with FORTRAN DLSODE ODE solver.
@@ -22,42 +34,51 @@ module Primitives =
     /// Otherwise just double would do fine.
     type LinearData<'K, 'T when 'K : comparison> =
         {
-            dataTypes : Map<'K, LinearDataInfo>
-            start : int
+            dataInfo : LinearDataInfo<'K>
             data : 'T[]
         }
 
         static member defaultValue : LinearData<'K, 'T> =
             {
-                dataTypes = Map.empty<'K, LinearDataInfo>
-                start = 0
+                dataInfo = LinearDataInfo<'K>.defaultValue
                 data = [||]
             }
 
+        member d.Item
+            with get i = d.dataInfo.dataTypes[i]
+
         member d1.append (k : 'K, d2 : 'T) : LinearData<'K, 'T> =
-            if d1.dataTypes.ContainsKey k
+            if d1.dataInfo.dataTypes.ContainsKey k
             then failwith $"Cannot add the same key: '{k}' to the data collection."
             else
                 {
                     d1 with
-                        dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = ScalarData }
-                        start = d1.start + 1
+                        dataInfo =
+                            {
+                                d1.dataInfo with
+                                    dataTypes = d1.dataInfo.dataTypes |> Map.add k { start = d1.dataInfo.start; dataType = ScalarData }
+                                    start = d1.dataInfo.start + 1
+                            }
                         data = Array.append d1.data [| d2 |]
                 }
 
         member d1.append (k : 'K, d2 : 'T[]) : LinearData<'K, 'T> =
-            if d1.dataTypes.ContainsKey k
+            if d1.dataInfo.dataTypes.ContainsKey k
             then failwith $"Cannot add the same key: '{k}' to the data collection."
             else
                 {
                     d1 with
-                        dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = VectorData d2.Length }
-                        start = d1.start + d2.Length
+                        dataInfo =
+                            {
+                                d1.dataInfo with
+                                    dataTypes = d1.dataInfo.dataTypes |> Map.add k { start = d1.dataInfo.start; dataType = VectorData d2.Length }
+                                    start = d1.dataInfo.start + d2.Length
+                            }
                         data = Array.append d1.data d2
                 }
 
         member d1.append (k : 'K, d2 : 'T[][]) : LinearData<'K, 'T> =
-            if d1.dataTypes.ContainsKey k
+            if d1.dataInfo.dataTypes.ContainsKey k
             then failwith $"Cannot add the same key: '{k}' to the data collection."
             else
                 let n1 = d2.Length
@@ -65,31 +86,70 @@ module Primitives =
 
                 {
                     d1 with
-                        dataTypes = d1.dataTypes |> Map.add k { start = d1.start; dataType = MatrixData (n1, n2) }
-                        start = d1.start + n1 * n2
+                        dataInfo =
+                            {
+                                d1.dataInfo with
+                                    dataTypes = d1.dataInfo.dataTypes |> Map.add k { start = d1.dataInfo.start; dataType = MatrixData (n1, n2) }
+                                    start = d1.dataInfo.start + n1 * n2
+                            }
                         data = Array.append d1.data (d2 |> Array.concat)
                 }
 
+        static member create i d =
+            {
+                dataInfo = i
+                data = d
+            }
+
 
     /// Rectangular representation of a matrix.
-    type Matrix<'T> =
+    type Matrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         | Matrix of 'T[][]
 
-        member r.value = let (Matrix v) = r in v
+        member inline r.value = let (Matrix v) = r in v
+
+        /// This is NOT a matrix multiplication but element by element multiplication.
+        static member inline (*) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
+            let aValue = a.value
+            let bValue = b.value
+            let retVal = [| for i in 0..aValue.Length -> [| for j in 0..1 -> aValue[i][j] * bValue[i][j] |] |] |> Matrix
+            retVal
+
+        static member inline (*) (a : 'T, b : Matrix<'T>) : Matrix<'T> =
+            let bValue = b.value
+            let retVal = [| for i in 0..bValue.Length -> [| for j in 0..1 -> a * bValue[i][j] |] |] |> Matrix
+            retVal
+
+        static member inline (*) (a : Matrix<'T>, b : 'T) : Matrix<'T> =
+            let aValue = a.value
+            let retVal = [| for i in 0..aValue.Length -> [| for j in 0..1 -> aValue[i][j] * b |] |] |> Matrix
+            retVal
+
+        static member inline (+) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
+            let aValue = a.value
+            let bValue = b.value
+            let retVal = [| for i in 0..aValue.Length -> [| for j in 0..1 -> aValue[i][j] + bValue[i][j] |] |] |> Matrix
+            retVal
+
+        static member inline (-) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
+            let aValue = a.value
+            let bValue = b.value
+            let retVal = [| for i in 0..aValue.Length -> [| for j in 0..1 -> aValue[i][j] - bValue[i][j] |] |] |> Matrix
+            retVal
 
 
     /// Linear representation of a matrix to use with FORTRAN DLSODE ODE solver.
-    type LinearMatrix<'T> =
+    type LinearMatrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         {
             start : int // Beginning of the matrix data in the array.
             d1 : int // Size of the fist dimension.
             d2 : int  // Size of the second dimension.
-            x : 'T[] // Array of d1 * d2 length.
+            x : 'T[] // Array of at least (start + d1 * d2) length.
         }
 
-        member m.getValue i j  = m.x[m.start + i * m.d1 + j]
+        member inline m.getValue i j  = m.x[m.start + i * m.d1 + j]
 
-        static member create (x : 'T[][]) =
+        static member inline create (x : 'T[][]) =
             let d1 = x.Length
             let d2 = x[0].Length
 
@@ -100,12 +160,12 @@ module Primitives =
                 x = [| for a in x do for b in a do yield b |]
             }
 
-        member m.toMatrix() = [| for i in 0..(m.d1 - 1) -> [| for j in 0..(m.d2 - 1) -> m.getValue i j |] |] |> Matrix
+        member inline m.toMatrix() = [| for i in 0..(m.d1 - 1) -> [| for j in 0..(m.d2 - 1) -> m.getValue i j |] |] |> Matrix
 
 
-    type Matrix<'T>
+    type Matrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)>
         with
-        member m.toLinearMatrix() = LinearMatrix<'T>.create m.value
+        member inline m.toLinearMatrix() = LinearMatrix<'T>.create m.value
 
 
     /// Representation of non-zero value in a sparse array.
@@ -140,7 +200,7 @@ module Primitives =
 
     /// See: https://github.com/dotnet/fsharp/issues/3302 for (*) operator.
     [<RequireQualifiedAccess>]
-    type SparseArray2D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
+    type SparseArray2D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         | SparseArray2D of SparseValue2D<'T>[]
 
         member inline r.value = let (SparseArray2D v) = r in v
@@ -196,7 +256,7 @@ module Primitives =
 
 
     /// Representation of non-zero value in a sparse 4D array.
-    type SparseValue4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
+    type SparseValue4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         {
             i : int
             j : int
@@ -228,7 +288,7 @@ module Primitives =
         static member inline createArray i j (x : SparseArray2D<'T>) = x.value |> Array.map (SparseValue4D.create i j)
 
 
-    type SparseValueArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
+    type SparseValueArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         | SparseValueArray4D of SparseValue4D<'T>[]
 
         member inline r.value = let (SparseValueArray4D v) = r in v
@@ -236,7 +296,7 @@ module Primitives =
 
     /// A 4D representation of 4D sparse tensor where the first two indexes are full ([][] is used)
     /// and the last two are in a SparseArray2D.
-    type SparseArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> =
+    type SparseArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         | SparseArray4D of SparseArray2D<'T>[][]
 
         member inline r.value = let (SparseArray4D v) = r in v
@@ -289,7 +349,7 @@ module Primitives =
 
 
     /// Performs a Cartesian multiplication of two 1D sparse arrays to obtain a 2D sparse array.
-    let inline cartesianMultiply<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T)> (a : SparseArray<'T>) (b : SparseArray<'T>) : SparseArray2D<'T> =
+    let inline cartesianMultiply<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> (a : SparseArray<'T>) (b : SparseArray<'T>) : SparseArray2D<'T> =
         let bValue = b.value
         a.value |> Array.map (fun e -> bValue |> Array.map (fun f -> { i = e.i; j = f.i; value2D = e.value1D * f.value1D })) |> Array.concat |> SparseArray2D<'T>.SparseArray2D
 

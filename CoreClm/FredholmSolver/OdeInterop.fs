@@ -1,7 +1,6 @@
 ﻿namespace FredholmSolver
 
 open Softellect.OdePackInterop
-open ClmSys.SolverRunnerPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 
@@ -10,13 +9,25 @@ module OdeInterop =
     type SubstanceType =
         | Food
         | Waste
-        | Protocell of int * int
+        | Protocell
 
-        member t.linearDataType =
-            match t with
-            | Food -> ScalarData
-            | Waste -> ScalarData
-            | Protocell (n1, n2) -> MatrixData (n1, n2)
+
+    type FoodData =
+        | FoodData of double
+
+        member r.value = let (FoodData v) = r in v
+
+
+    type WasteData =
+        | WasteData of double
+
+        member r.value = let (WasteData v) = r in v
+
+
+    type ProtocellData =
+        | ProtocellData of Matrix<double>
+
+        member r.value = let (ProtocellData v) = r in v.value
 
 
     type SubstanceData =
@@ -24,8 +35,53 @@ module OdeInterop =
 
         member r.value = let (SubstanceData v) = r in v
 
-        member d.create (x : double) (w: double) (p : Matrix<double>) =
-            let data = LinearData<SubstanceType, double>.defaultValue
-            let pValue = p.value
-            let retVal = data.append(Food, x).append(Waste, w).append(Protocell (pValue.Length, pValue.[0].Length), pValue)
+        static member create (x : FoodData) (w: WasteData) (p : ProtocellData) =
+            let retVal =
+                LinearData<SubstanceType, double>.defaultValue
+                    .append(Food, x.value)
+                    .append(Waste, w.value)
+                    .append(Protocell, p.value)
+
+            retVal
+
+        member d.food =
+            let v = d.value[Food]
+
+            match v.dataType with
+            | ScalarData -> d.value.data[v.start]
+            | _ -> failwith $"Incorrect data type: {v.dataType} for scalar data."
+
+        member d.waste =
+            let v = d.value[Waste]
+
+            match v.dataType with
+            | ScalarData -> d.value.data[v.start]
+            | _ -> failwith $"Incorrect data type: {v.dataType} for scalar data."
+
+        member d.protocell =
+            let v = d.value[Protocell]
+
+            match v.dataType with
+            | MatrixData (d1, d2) ->
+                {
+                    start = v.start
+                    d1 = d1
+                    d2 = d2
+                    x = d.value.data
+                }
+            | _ -> failwith $"Incorrect data type: {v.dataType} for matrix data."
+
+
+    type ModelData =
+        {
+            kernel : Kernel
+            gamma : int
+            initialData : SubstanceData
+        }
+
+        member md.derivative (x : SubstanceData) =
+            let df = 0.0 |> FoodData
+            let dw = 0.0 |> WasteData
+            let du = (md.kernel.integrateValues x.protocell) |> ProtocellData
+            let retVal = SubstanceData.create df dw du
             retVal
