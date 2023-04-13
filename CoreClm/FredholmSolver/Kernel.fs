@@ -31,7 +31,7 @@ module Kernel =
         static member create (data : MutationProbabilityData) mean =
             let epsFunc x = (data.epsFunc.value x) * data.domain.range / 2.0
             let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
-            let values = data.domain.midPoints |> Array.map f |> SparseArray<double>.create data.zeroThreshold
+            let values = data.domain.midPoints.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
             let norm = data.domain.integrateValues values
             let p = values.value |> Array.map (fun v -> { v with value1D = v.value1D / norm }) |> SparseArray.SparseArray |> MutationProbability
             p
@@ -75,12 +75,12 @@ module Kernel =
         }
 
         static member create (data : MutationProbabilityData2D) =
-            let eeMu = data.domain2D.eeDomain.midPoints
-            let infMu = data.domain2D.infDomain.midPoints
+            let eeMu = data.domain2D.eeDomain.midPoints.value
+            let infMu = data.domain2D.infDomain.midPoints.value
 
             // These are the values where integration by (x, y) should yield 1 for each (x1, y1).
             // So [][] is by (x1, y1) and the underlying SparseArray2D is by (x, y).
-            let x1y1_xy = eeMu |> Array.map(fun a -> infMu |> Array.map (MutationProbability2D.create data a))
+            let x1y1_xy = eeMu |> Array.map (fun a -> infMu |> Array.map (MutationProbability2D.create data a))
 
             let xy_x1y1_Map =
                 [| for i in 0..(eeMu.Length - 1) -> [| for j in 0..(infMu.Length - 1) -> SparseValue4D.createArray i j (x1y1_xy[i][j]) |] |]
@@ -161,8 +161,8 @@ module Kernel =
             let mp = MutationProbability4D.create mpData
 
             let ka =
-                domainData.eeDomain.midPoints
-                |> Array.map (fun x -> domainData.infDomain.midPoints |> Array.map (fun y -> data.kaFunc.value domainData x y))
+                domainData.eeDomain.midPoints.value
+                |> Array.map (fun x -> domainData.infDomain.midPoints.value |> Array.map (fun y -> data.kaFunc.value domainData x y))
                 |> Matrix
 
             let kernel = mp.xy_x1y1 * ka |> KernelValue

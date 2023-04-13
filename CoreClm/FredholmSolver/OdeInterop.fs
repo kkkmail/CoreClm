@@ -1,6 +1,5 @@
 ﻿namespace FredholmSolver
 
-open Softellect.OdePackInterop
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open GenericOdeSolver.Solver
@@ -28,7 +27,7 @@ module OdeInterop =
     type ProtocellData =
         | ProtocellData of Matrix<double>
 
-        member r.value = let (ProtocellData v) = r in v.value
+        member r.value = let (ProtocellData v) = r in v
 
 
     type SubstanceData =
@@ -51,14 +50,14 @@ module OdeInterop =
 
             match v.dataType with
             | ScalarData -> d.value.data[v.start]
-            | _ -> failwith $"Incorrect data type: {v.dataType} for scalar data."
+            | _ -> failwith $"Incorrect data type: {v.dataType} for scalar data Food."
 
         member d.waste =
             let v = d.value[Waste]
 
             match v.dataType with
             | ScalarData -> d.value.data[v.start]
-            | _ -> failwith $"Incorrect data type: {v.dataType} for scalar data."
+            | _ -> failwith $"Incorrect data type: {v.dataType} for scalar data Waste."
 
         member d.protocell =
             let v = d.value[Protocell]
@@ -71,7 +70,7 @@ module OdeInterop =
                     d2 = d2
                     x = d.value.data
                 }
-            | _ -> failwith $"Incorrect data type: {v.dataType} for matrix data."
+            | _ -> failwith $"Incorrect data type: {v.dataType} for matrix data Protocell."
 
 
     type ModelData =
