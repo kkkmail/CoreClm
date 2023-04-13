@@ -3,6 +3,7 @@
 open Softellect.OdePackInterop
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
+open GenericOdeSolver.Solver
 
 module OdeInterop =
 
@@ -41,6 +42,7 @@ module OdeInterop =
                     .append(Food, x.value)
                     .append(Waste, w.value)
                     .append(Protocell, p.value)
+                |> SubstanceData
 
             retVal
 
@@ -75,13 +77,38 @@ module OdeInterop =
     type ModelData =
         {
             kernel : Kernel
-            gamma : int
-            initialData : SubstanceData
+            gamma : Matrix<double>
+            n : int
+            s : double
         }
 
         member md.derivative (x : SubstanceData) =
-            let df = 0.0 |> FoodData
-            let dw = 0.0 |> WasteData
-            let du = (md.kernel.integrateValues x.protocell) |> ProtocellData
+            let f = x.food
+            let w = x.waste
+            let u = x.protocell
+
+            let n = md.n
+            let s = md.s
+
+            let gamma_u = md.gamma * u
+            let int_k_u = md.kernel.integrateValues u
+            let int_int_k_u = md.kernel.domainData.integrateValues int_k_u
+            let f_n = (pown f n)
+
+            let df = - (double n) * f_n * int_int_k_u + s * w |> FoodData
+            let dw = - s * w + (md.kernel.domainData.integrateValues gamma_u) |> WasteData
+            let du = (f_n * int_k_u - gamma_u) |> ProtocellData
+
             let retVal = SubstanceData.create df dw du
             retVal
+
+        member md.derivativeCalculator (i : LinearDataInfo<SubstanceType>) =
+            let d _ x =
+                let v = LinearData<SubstanceType, double>.create i x |> SubstanceData
+                let dx = md.derivative v
+                dx.value.data
+
+            FullArray d
+
+
+    type NSolveParam = NSolveParam<int, int, int>

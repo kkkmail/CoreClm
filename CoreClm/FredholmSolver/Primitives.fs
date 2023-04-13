@@ -108,6 +108,10 @@ module Primitives =
 
         member inline r.value = let (Matrix v) = r in v
 
+        /// Matrix multiplication (not implemented yet as it is not needed).
+        static member inline ( ** ) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
+            failwith "Matrix multiplication is not implemented yet."
+
         /// This is NOT a matrix multiplication but element by element multiplication.
         static member inline (*) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
             let aValue = a.value
@@ -161,6 +165,13 @@ module Primitives =
             }
 
         member inline m.toMatrix() = [| for i in 0..(m.d1 - 1) -> [| for j in 0..(m.d2 - 1) -> m.getValue i j |] |] |> Matrix
+
+        /// This is NOT a matrix multiplication but element by element multiplication.
+        static member inline (*) (a : Matrix<'T>, b : LinearMatrix<'T>) : Matrix<'T> =
+            let aValue = a.value
+            let bValue = b.getValue
+            let retVal = [| for i in 0..aValue.Length -> [| for j in 0..1 -> aValue[i][j] * (bValue i j) |] |] |> Matrix
+            retVal
 
 
     type Matrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)>
@@ -392,10 +403,9 @@ module Primitives =
         member private d.integrateValues v = v |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
         member private d.integrateValues (a : SparseArray2D<double>) = a.value |> Array.map (fun e -> e.value2D) |> Array.sum |> d.normalize
 
-        // member d.integrateValues (a : SparseArray2D<double>, b : XY) =
-        //     let bValue = b.value
-        //     let sum = a.value |> Array.map (fun e -> e.value2D * bValue[e.i][e.j]) |> Array.sum |> d.normalize
-        //     sum
+        member d.integrateValues (a : Matrix<double>) =
+            let sum = a.value |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
+            sum
 
         member private d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
             let bValue = b.getValue

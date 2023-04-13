@@ -26,4 +26,8 @@
     <Compile Include="OdeInterop.fs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GenericOdeSolver\GenericOdeSolver.fsproj" />
+  </ItemGroup>
+
 </Project>

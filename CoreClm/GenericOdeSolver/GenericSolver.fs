@@ -159,25 +159,30 @@ module Solver =
         | OdePack of OdePackMethod * CorrectorIteratorType * NegativeValuesCorrectorType
 
 
-    type NSolveParam<'PD, 'CSD, 'ED> =
+    type NSolveData =
         {
             odeParams : OdeParams
             solverType : SolverType
             modelDataId : Guid
             runQueueId : RunQueueId
             initialValues : double[]
-
             getDerivative : DerivativeCalculator
+            checkFreq : TimeSpan
+            checkCancellation : RunQueueId -> CancellationType option
+        }
+
+    type NSolveParam<'PD, 'CSD, 'ED> =
+        {
+            nSolveData : NSolveData
+
             // getByRefDerivative : byref<double> -> nativeptr<double> -> double[]
             defaultProgressData : ProgressData<'PD>
             defaultChartSliceData : 'CSD
             defaultExtraData : 'ED
 
-            checkFreq : TimeSpan
             progressCallBack : RunQueueStatus option -> ProgressData<'PD> -> unit
             chartCallBack : 'CSD -> unit
             getChartSliceData : double -> double[] -> 'PD -> 'CSD
-            checkCancellation : RunQueueId -> CancellationType option
             getExtraData : unit -> 'ED
         }
 
@@ -225,7 +230,7 @@ module Solver =
         {
             nSolveParam = n
             t = 0.0
-            x =  n.initialValues
+            x =  n.nSolveData.initialValues
 
             lastNotifiedT = 0.0
             progress = 0.0m
@@ -248,7 +253,7 @@ module Solver =
 
 
     let private calculateProgress psd =
-        (psd.t - psd.nSolveParam.odeParams.startTime) / (psd.nSolveParam.odeParams.endTime - psd.nSolveParam.odeParams.startTime)
+        (psd.t - psd.nSolveParam.nSolveData.odeParams.startTime) / (psd.nSolveParam.nSolveData.odeParams.endTime - psd.nSolveParam.nSolveData.odeParams.startTime)
         |> decimal
 
 
@@ -321,7 +326,7 @@ module Solver =
 
     let private calculateNextProgress psd =
         let r =
-            match psd.nSolveParam.odeParams.noOfProgressPoints with
+            match psd.nSolveParam.nSolveData.odeParams.noOfProgressPoints with
             | np when np <= 0 -> 1.0m
             | np -> min 1.0m ((((calculateProgress psd) * (decimal np) |> floor) + 1.0m) / (decimal np))
 
@@ -330,7 +335,7 @@ module Solver =
 
     let private calculateNextChartProgress psd =
         let r =
-            match psd.nSolveParam.odeParams.noOfOutputPoints with
+            match psd.nSolveParam.nSolveData.odeParams.noOfOutputPoints with
             | np when np <= 0 -> 1.0m
             | np -> min 1.0m ((((calculateProgress psd) * (decimal np) |> floor) + 1.0m) / (decimal np))
 
@@ -452,7 +457,7 @@ module Solver =
         match v with
         | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progress * 100.0m}%% progress." |> withMessage s
         | CancelWithResults s ->
-            $"The run queue was cancelled at: %.2f{p.progress * 100.0m}%% progress. Absolute tolerance: {psd.nSolveParam.odeParams.absoluteTolerance}."
+            $"The run queue was cancelled at: %.2f{p.progress * 100.0m}%% progress. Absolute tolerance: {psd.nSolveParam.nSolveData.odeParams.absoluteTolerance}."
             |> withMessage s
 
 
@@ -475,12 +480,12 @@ module Solver =
 
     let private checkCancellation psd =
         let fromLastCheck = DateTime.Now - psd.lastCheck
-        printDebug $"checkCancellation: runQueueId = %A{psd.nSolveParam.runQueueId}, time interval from last check = %A{fromLastCheck}."
+        printDebug $"checkCancellation: runQueueId = %A{psd.nSolveParam.nSolveData.runQueueId}, time interval from last check = %A{fromLastCheck}."
 
-        if fromLastCheck > psd.nSolveParam.checkFreq
+        if fromLastCheck > psd.nSolveParam.nSolveData.checkFreq
         then
             let psdNew = { psd with lastCheck = DateTime.Now }
-            let cancel = psd.nSolveParam.checkCancellation psd.nSolveParam.runQueueId
+            let cancel = psd.nSolveParam.nSolveData.checkCancellation psd.nSolveParam.nSolveData.runQueueId
             psdNew, cancel
         else psd, None
 
@@ -549,7 +554,7 @@ module Solver =
     /// F# wrapper around various ODE solvers.
     let nSolve n = //(n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
-        let p = n.odeParams
+        let p = n.nSolveData.odeParams
         let mutable psd = createProgressStateData n
 
         let callBackUseNonNegative t x =
@@ -565,18 +570,18 @@ module Solver =
         // firstChartSliceData <- calculateChartSliceData d
         // calculateProgressData d |> notifyProgress n (Some InProgressRunQueue)
 
-        match n.solverType with
+        match n.nSolveData.solverType with
         | AlgLib CashCarp ->
             printfn "nSolve: Using Cash - Carp Alglib solver."
             let nt = 2
 
             let cashCarpDerivative (x : double[]) (t : double) : double[] =
                 callBackUseNonNegative t x
-                n.getDerivative.calculateArray t x
+                n.nSolveData.getDerivative.calculateArray t x
 
             let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
             let d = alglib.ndimensional_ode_rp (fun x t y _ -> cashCarpDerivative x t |> Array.mapi(fun i e -> y[i] <- e) |> ignore)
-            let mutable s = alglib.odesolverrkck(n.initialValues, x, p.absoluteTolerance.value, p.stepSize)
+            let mutable s = alglib.odesolverrkck(n.nSolveData.initialValues, x, p.absoluteTolerance.value, p.stepSize)
             do alglib.odesolversolve(s, d, null)
             let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)
             let xEnd = yTbl[nt - 1, *]
@@ -593,7 +598,7 @@ module Solver =
 
             match nc with
             | UseNonNegative ->
-                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.getDerivative)
+                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.nSolveData.getDerivative)
 
                 OdeSolver.RunFSharp(
                         (fun() -> interop()),
@@ -601,7 +606,7 @@ module Solver =
                         i.value,
                         p.startTime,
                         p.endTime,
-                        n.initialValues,
+                        n.nSolveData.initialValues,
                         (fun r e -> mapResults psd r e),
                         p.absoluteTolerance.value)
 
@@ -615,7 +620,7 @@ module Solver =
                     psd <- callBackDoNotCorrect c { psd with t = t; x = x }
                     ()
 
-                let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.getDerivative)
+                let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.nSolveData.getDerivative)
 
                 OdeSolver.RunFSharp(
                         (fun() -> interop()),
@@ -623,6 +628,6 @@ module Solver =
                         i.value,
                         p.startTime,
                         p.endTime,
-                        n.initialValues,
+                        n.nSolveData.initialValues,
                         (fun r e -> mapResults psd r e),
                         p.absoluteTolerance.value)
