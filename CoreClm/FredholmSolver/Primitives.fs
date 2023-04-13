@@ -487,7 +487,7 @@ module Primitives =
                 let mx, my = d.mean a
                 let m2x = (d.integrateValues (d.eeDomain.midPoints * (d.eeDomain.midPoints * a))) / norm
                 let m2y = (d.integrateValues ((a * d.infDomain.midPoints) * d.infDomain.midPoints)) / norm
-                (Math.Sqrt (m2x - mx * mx), Math.Sqrt (m2y - my * my))
+                (Math.Max(m2x - mx * mx, 0.0) |> Math.Sqrt, Math.Max(m2y - my * my, 0.0) |> Math.Sqrt)
             else (0.0, 0.0)
 
         static member eeMinValue = -1.0

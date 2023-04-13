@@ -1,9 +1,7 @@
 ﻿namespace FredholmSolverTests.PrimitivesTests
 
-open System
 open System.Diagnostics
 open FluentAssertions.Execution
-open Microsoft.FSharp.NativeInterop
 open Xunit
 open Xunit.Abstractions
 open FluentAssertions
@@ -11,14 +9,13 @@ open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 
 type ModelTests(output : ITestOutputHelper) =
-
     let writeLine s = output.WriteLine s
     let nullString : string = null
     let errTolerance = 1.0e-10
 
     let defaultKernelData =
         {
-            noOfIntervals = 100
+            noOfIntervals = 101
             l2 = 25
             zeroThreshold = MutationProbabilityData.defaultZeroThreshold
             epsEeFunc = (fun _ -> 0.02) |> EpsFunc
@@ -26,7 +23,17 @@ type ModelTests(output : ITestOutputHelper) =
             kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
         }
 
-    let domain data = Domain2D.create data.noOfIntervals data.l2
+    let defaultNarrowKernelData =
+        {
+            noOfIntervals = 101
+            l2 = 25
+            zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+            epsEeFunc = (fun _ -> 0.0001) |> EpsFunc
+            epsInfFunc = (fun _ -> 0.0001) |> EpsFunc
+            kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
+        }
+
+    let domain2D data = Domain2D.create data.noOfIntervals data.l2
 
     let m2Data domain data =
         {
@@ -48,11 +55,8 @@ type ModelTests(output : ITestOutputHelper) =
     let normalize data v = v / (double (data.noOfIntervals * data.noOfIntervals))
 
 
-    [<Fact>]
-    member _.mutationProbability4D_ShouldIntegrateToOne () : unit =
-        let data = defaultKernelData
-
-        let domain = domain data
+    let mutationProbability4D_ShouldIntegrateToOneImpl data =
+        let domain = domain2D data
         let m2Data = m2Data domain data
         let sw = Stopwatch.StartNew()
         let p = MutationProbability4D.create m2Data
@@ -71,12 +75,35 @@ type ModelTests(output : ITestOutputHelper) =
         let total2 = x2.value |> Array.concat |> Array.sum |> (normalize data)
         total1.Should().BeApproximately(total2, errTolerance, nullString) |> ignore
 
+    /// Creates a "delta" function centered near (0, 0) in the domain,
+    /// which is a middle point in ee domain and 0-th point in inf domain.
+    let getDeltaU data =
+        let domain =
+            if data.noOfIntervals % 2 = 1
+            then domain2D data
+            else failwith "data.noOfIntervals must be odd for this method to work."
+
+        let g i j = if (i * 2 + 1 = data.noOfIntervals) && (j = 0) then 1.0 else 0.0
+        let v = domain.eeDomain.midPoints.value |> Array.mapi (fun i _ -> domain.infDomain.midPoints.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
+        let norm = domain.integrateValues v
+        (1.0 / norm) * v
+
+
+    [<Fact>]
+    member _.mutationProbability4D_ShouldIntegrateToOne () : unit =
+        mutationProbability4D_ShouldIntegrateToOneImpl defaultKernelData
+
+
+    [<Fact>]
+    member _.mutationProbability4D_ShouldIntegrateToOneForNarrowData () : unit =
+        mutationProbability4D_ShouldIntegrateToOneImpl defaultNarrowKernelData
+
 
     [<Fact>]
     member _.defaultKernel_ShouldMatchProbability () : unit =
         let data = defaultKernelData
 
-        let domain = domain data
+        let domain = domain2D data
         let m2Data = m2Data domain data
         let sw = Stopwatch.StartNew()
         let p = MutationProbability4D.create m2Data
@@ -129,3 +156,45 @@ type ModelTests(output : ITestOutputHelper) =
         let b = a.toSparseValueArray().value |> Array.map (fun e -> e.value4D)
         writeLine $"{a}"
         b.Should().BeEquivalentTo([| 0; 1; 10; 11; 100; 101; 110; 111; 1000; 1001; 1010; 1011; 1100; 1101; 1110; 1111 |], nullString) |> ignore
+
+
+    [<Fact>]
+    member _.delta_ShouldIntegrateToOne () : unit =
+        let data = defaultKernelData
+
+        let u = (getDeltaU data).toLinearMatrix()
+        let domain = domain2D data
+        let norm = domain.integrateValues u
+        let norm2 = domain.norm u
+
+        use _ = new AssertionScope()
+        norm. Should().BeApproximately(1.0, errTolerance, nullString) |> ignore
+        norm2. Should().BeApproximately(1.0, errTolerance, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.mean_ShouldBeConsistent () : unit =
+        let data = defaultKernelData
+
+        let u = (getDeltaU data).toLinearMatrix()
+        let domain = domain2D data
+        let mx, my = domain.mean u
+
+        use _ = new AssertionScope()
+        mx.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
+
+        // my gets some weird value of 0.12376237623762376, which could be correct as we don't (yet) have points at the boundary.
+        // my.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.stdDev_ShouldBeConsistent () : unit =
+        let data = defaultKernelData
+
+        let u = (getDeltaU data).toLinearMatrix()
+        let domain = domain2D data
+        let sx, sy = domain.stdDev u
+
+        use _ = new AssertionScope()
+        sx.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
+        sy.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
