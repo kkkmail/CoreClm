@@ -110,4 +110,4 @@ module OdeInterop =
             FullArray d
 
 
-    type NSolveParam = NSolveParam<int, int, int>
+    type FredholmNSolveParam = NSolveParam<int, int, int>

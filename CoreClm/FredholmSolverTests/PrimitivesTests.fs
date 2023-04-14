@@ -1,4 +1,4 @@
-﻿namespace FredholmSolverTests.PrimitivesTests
+﻿namespace FredholmSolverTests
 
 open System.Diagnostics
 open FluentAssertions.Execution
@@ -8,7 +8,7 @@ open FluentAssertions
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 
-type ModelTests(output : ITestOutputHelper) =
+type PrimitivesTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
     let errTolerance = 1.0e-10
@@ -107,7 +107,7 @@ type ModelTests(output : ITestOutputHelper) =
         let m2Data = m2Data domain data
         let sw = Stopwatch.StartNew()
         let p = MutationProbability4D.create m2Data
-        let kernel = Kernel.create defaultKernelData
+        let kernel = Kernel.create data
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
         let x1 = domain.integrateValues kernel.kernel.value

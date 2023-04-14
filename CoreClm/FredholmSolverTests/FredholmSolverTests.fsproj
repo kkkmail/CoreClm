@@ -39,6 +39,7 @@
 
   <ItemGroup>
     <Compile Include="PrimitivesTests.fs" />
+    <Compile Include="OdeTests.fs" />
   </ItemGroup>
 
 </Project>

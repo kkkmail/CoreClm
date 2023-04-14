@@ -175,7 +175,6 @@ module Solver =
         {
             nSolveData : NSolveData
 
-            // getByRefDerivative : byref<double> -> nativeptr<double> -> double[]
             defaultProgressData : ProgressData<'PD>
             defaultChartSliceData : 'CSD
             defaultExtraData : 'ED
@@ -409,7 +408,7 @@ module Solver =
 
             // (csd, psdNew)
             // psdNew
-            failwith ""
+            psd.lastChartSliceData
 
 
     let private notifyChart psd =
@@ -426,7 +425,7 @@ module Solver =
                 psd
                 with
                     lastChartSliceData = calculateChartSliceData psd
-                    lastProgressData = failwith ""
+                    lastProgressData = psd.lastProgressData
             }
 
 
@@ -490,7 +489,7 @@ module Solver =
         else psd, None
 
     let callBack psd =
-        failwith "callBack psd is nto implemented yet."
+        // failwith "callBack not is not implemented yet."
         psd
 
     // let callBack psd =
@@ -541,7 +540,7 @@ module Solver =
         if shouldNotify psd then callBack psd else psd
 
 
-    let private callBackDoNotCorrect<'PD> c psd =
+    let private callBackDoNotCorrect<'PD, 'CSD, 'ED> c (psd : ProgressStateData<'PD, 'CSD, 'ED>) =
         printDebug $"callBackDoNotCorrect: Called with t = {psd.t}."
 
         match c with
@@ -552,7 +551,7 @@ module Solver =
 
 
     /// F# wrapper around various ODE solvers.
-    let nSolve n = //(n : NSolveParam) : OdeResult =
+    let nSolve<'PD, 'CSD, 'ED> (n : NSolveParam<'PD, 'CSD, 'ED>) : OdeResult<'PD> = //(n : NSolveParam) : OdeResult =
         printfn "nSolve::Starting."
         let p = n.nSolveData.odeParams
         let mutable psd = createProgressStateData n
