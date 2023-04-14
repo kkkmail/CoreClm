@@ -72,6 +72,8 @@ module OdeInterop =
                 }
             | _ -> failwith $"Incorrect data type: {v.dataType} for matrix data Protocell."
 
+        member d.unpack() = d.food, d.waste, d.protocell
+
 
     type ModelData =
         {
@@ -81,35 +83,42 @@ module OdeInterop =
             s : RecyclingRate
         }
 
+        member md.unpack() = md.kernel, md.gamma.value, md.n.value, md.s.value
+
         member md.derivative (x : SubstanceData) =
-            let f = x.food
-            let w = x.waste
-            let u = x.protocell
+            let f, w, u = x.unpack()
+            let k, g, n, s = md.unpack()
 
-            let n = md.n.value
-            let s = md.s.value
-            let gamma = md.gamma.value
-
-            let gamma_u = gamma * u
-            let int_k_u = md.kernel.integrateValues u
-            let int_int_k_u = md.kernel.domainData.integrateValues int_k_u
+            let gamma_u = g * u
+            let int_k_u = k.integrateValues u
+            let int_int_k_u = k.domainData.integrateValues int_k_u
             let f_n = (pown f n)
 
-            let df = - (double n) * f_n * int_int_k_u + s * w |> FoodData
-            let dw = - s * w + (md.kernel.domainData.integrateValues gamma_u) |> WasteData
+            let df = (double n) * (s * w - f_n * int_int_k_u)  |> FoodData
+            let dw = - s * w + (k.domainData.integrateValues gamma_u) |> WasteData
             let du = (f_n * int_k_u - gamma_u) |> ProtocellData
 
             let retVal = SubstanceData.create df dw du
             retVal
 
+        member md.substanceData i x = LinearData<SubstanceType, double>.create i x |> SubstanceData
+
         member md.derivativeCalculator f (i : LinearDataInfo<SubstanceType>) =
             let d t x =
-                let v = LinearData<SubstanceType, double>.create i x |> SubstanceData
+                let v = md.substanceData i x
                 f t v
                 let dx = md.derivative v
                 dx.value.data
 
             FullArray d
+
+        member md.invariant (v : SubstanceData) =
+            let f, w, u = v.unpack()
+            let k, g, n, s = md.unpack()
+
+            let int_u = k.domainData.integrateValues u
+            let inv = (double n) * (int_u + w) + f
+            inv
 
 
     type FredholmNSolveParam = NSolveParam<int, int, int>

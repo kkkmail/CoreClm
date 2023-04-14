@@ -82,9 +82,10 @@ type OdeTests (output : ITestOutputHelper) =
     let outputResult md t (v : SubstanceData) =
         let u = v.protocell
         let total = md.kernel.domainData.integrateValues u
+        let inv = md.invariant v
         let m = md.kernel.domainData.mean u
         let s = md.kernel.domainData.stdDev u
-        writeLine $"t: {t}, total: {total}, mean: {m}, stdDev: {s}."
+        writeLine $"t: {t}, inv: {inv}, total: {total}, mean: {m}, stdDev: {s}."
 
     let nSolveData data =
         let i = initialValues data
