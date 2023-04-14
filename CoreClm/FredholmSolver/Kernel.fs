@@ -171,3 +171,21 @@ module Kernel =
                 kernel = kernel
                 domainData = domainData
             }
+
+    type Gamma =
+        | Gamma of Matrix<double>
+
+        member r.value = let (Gamma v) = r in v
+
+
+    /// Number of "molecules" or building blocks used in a protocell.
+    type NumberOfMolecules =
+        | NumberOfMolecules of int
+
+        member r.value = let (NumberOfMolecules v) = r in v
+
+
+    type RecyclingRate =
+        | RecyclingRate of double
+
+        member r.value = let (RecyclingRate v) = r in v

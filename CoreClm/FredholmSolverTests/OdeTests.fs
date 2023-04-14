@@ -7,6 +7,7 @@ open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
+open FredholmSolver.OdeInterop
 open FluentAssertions
 open Xunit
 open Xunit.Abstractions
@@ -43,7 +44,7 @@ type OdeTests (output : ITestOutputHelper) =
         (1.0 / norm) * v
 
     let initialValues data =
-        let f = FoodData 0.0
+        let f = FoodData 10.0
         let w = WasteData 0.0
         let u = getDeltaU data |> ProtocellData
         let sd = SubstanceData.create f w u
@@ -55,21 +56,22 @@ type OdeTests (output : ITestOutputHelper) =
 
         let gamma =
             kernel.domainData.eeDomain.midPoints.value
-            |> Array.map (fun a -> kernel.domainData.infDomain.midPoints.value |> Array.map (fun b -> 0.0))
+            |> Array.map (fun a -> kernel.domainData.infDomain.midPoints.value |> Array.map (fun b -> 0.01))
             |> Matrix
+            |> Gamma
 
         {
             kernel = kernel
             gamma = gamma
-            n = 0
-            s = 0.01
+            n = NumberOfMolecules 100
+            s = RecyclingRate 0.1
         }
 
 
     let odeParams =
         {
             startTime = 0.0
-            endTime = 1.0
+            endTime = 100.0
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             noOfOutputPoints = 1
@@ -77,37 +79,60 @@ type OdeTests (output : ITestOutputHelper) =
             noOfChartDetailedPoints = None
         }
 
+    let outputResult md t (v : SubstanceData) =
+        let u = v.protocell
+        let total = md.kernel.domainData.integrateValues u
+        let m = md.kernel.domainData.mean u
+        let s = md.kernel.domainData.stdDev u
+        writeLine $"t: {t}, total: {total}, mean: {m}, stdDev: {s}."
+
     let nSolveData data =
         let i = initialValues data
         let md = modelData data
+        let f t v = outputResult md t v
+        let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
 
-        {
-            odeParams = odeParams
-            solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
-            modelDataId = Guid()
-            runQueueId = Guid() |> RunQueueId
-            initialValues = i.value.data
-            getDerivative = md.derivativeCalculator i.value.dataInfo
-            checkFreq = TimeSpan.MaxValue
-            checkCancellation = fun _ -> "Calculation aborted" |> Some |> CancellationType.AbortCalculation |> Some
-        }
+        let n =
+            {
+                odeParams = odeParams
+                solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
+                modelDataId = Guid()
+                runQueueId = Guid() |> RunQueueId
+                initialValues = i.value.data
+                getDerivative = md.derivativeCalculator f i.value.dataInfo
+                checkFreq = TimeSpan.MaxValue
+                checkCancellation = fun _ -> "Calculation aborted" |> Some |> CancellationType.AbortCalculation |> Some
+            }
+
+        n, v
+
+
     let nSolveParam data =
-        {
-            nSolveData = nSolveData data
+        let n, v = nSolveData data
+        let d =
+            {
+                nSolveData = n
 
-            defaultProgressData = ProgressData<int>.defaultValue 0
-            defaultChartSliceData = 0
-            defaultExtraData = 0
+                defaultProgressData = ProgressData<int>.defaultValue 0
+                defaultChartSliceData = 0
+                defaultExtraData = 0
 
-            progressCallBack = fun _ _ -> ()
-            chartCallBack = fun _ -> ()
-            getChartSliceData = fun _ _ _ -> 0
-            getExtraData = fun () -> 0
-        }
+                progressCallBack = fun _ _ -> ()
+                chartCallBack = fun _ -> ()
+                getChartSliceData = fun _ _ _ -> 0
+                getExtraData = fun () -> 0
+            }
+
+        d, v
 
 
     [<Fact>]
     member _.ode_ShouldRun () : unit =
-        let nSolveParam = nSolveParam defaultKernelData
+        let data = defaultKernelData
+        let md = modelData data
+        let nSolveParam, getData = nSolveParam data
         let result = nSolve nSolveParam
+        let v = getData result.xEnd
+        outputResult md result.endTime v
+        writeLine $"result: {result}."
         result.Should().NotBeNull(nullString) |> ignore

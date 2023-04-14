@@ -76,9 +76,9 @@ module OdeInterop =
     type ModelData =
         {
             kernel : Kernel
-            gamma : Matrix<double>
-            n : int
-            s : double
+            gamma : Gamma
+            n : NumberOfMolecules
+            s : RecyclingRate
         }
 
         member md.derivative (x : SubstanceData) =
@@ -86,10 +86,11 @@ module OdeInterop =
             let w = x.waste
             let u = x.protocell
 
-            let n = md.n
-            let s = md.s
+            let n = md.n.value
+            let s = md.s.value
+            let gamma = md.gamma.value
 
-            let gamma_u = md.gamma * u
+            let gamma_u = gamma * u
             let int_k_u = md.kernel.integrateValues u
             let int_int_k_u = md.kernel.domainData.integrateValues int_k_u
             let f_n = (pown f n)
@@ -101,9 +102,10 @@ module OdeInterop =
             let retVal = SubstanceData.create df dw du
             retVal
 
-        member md.derivativeCalculator (i : LinearDataInfo<SubstanceType>) =
-            let d _ x =
+        member md.derivativeCalculator f (i : LinearDataInfo<SubstanceType>) =
+            let d t x =
                 let v = LinearData<SubstanceType, double>.create i x |> SubstanceData
+                f t v
                 let dx = md.derivative v
                 dx.value.data
 
