@@ -58,22 +58,42 @@ module SolverPrimitives =
         else None
 
 
-    type ProgressData<'PD> =
+    // type ProgressData<'PD> =
+    //     {
+    //         progress : decimal
+    //         callCount : int64
+    //         yRelative : double
+    //         progressData : 'PD
+    //         errorMessageOpt : ErrorMessage option
+    //     }
+    //
+    //     static member defaultValue pd =
+    //         {
+    //             progress = 0.0m
+    //             callCount = 0L
+    //             yRelative = 1.0
+    //             progressData = pd
+    //             errorMessageOpt = None
+    //         }
+    //
+    //     member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started
+
+    type ProgressData<'T> =
         {
             progress : decimal
             callCount : int64
-            yRelative : double
-            progressData : 'PD
             errorMessageOpt : ErrorMessage option
+            tx : (double * double[]) option
+            data : 'T
         }
 
-        static member defaultValue pd =
+        static member defaultValue d =
             {
                 progress = 0.0m
                 callCount = 0L
-                yRelative = 1.0
-                progressData = pd
                 errorMessageOpt = None
+                tx = None
+                data = d
             }
 
         member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started

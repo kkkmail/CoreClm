@@ -298,17 +298,17 @@ module WorkerNodeDatabaseTypes =
 
 
     /// Can modify progress related information when state is InProgress or CancelRequested.
-    let tryUpdateProgress c (q : RunQueueId) (td : ProgressData<EeData>) =
+    let tryUpdateProgress c (q : RunQueueId) (td : ClmProgressData) =
         let g() =
             printfn $"tryUpdateProgress: RunQueueId: {q}, progress data: %A{td}."
             let ctx = getDbContext c
-            let ee = td.progressData
+            let ee = td.data.eeData
 
             let r = ctx.Procedures.TryUpdateProgressRunQueue.Invoke(
                                         ``@runQueueId`` = q.value,
                                         ``@progress`` = td.progress,
                                         ``@callCount`` = td.callCount,
-                                        ``@yRelative`` = td.yRelative,
+                                        ``@yRelative`` = td.data.yRelative,
                                         ``@maxEe`` = ee.maxEe,
                                         ``@maxAverageEe`` = ee.maxAverageEe,
                                         ``@maxWeightedAverageAbsEe`` = ee.maxWeightedAverageAbsEe,

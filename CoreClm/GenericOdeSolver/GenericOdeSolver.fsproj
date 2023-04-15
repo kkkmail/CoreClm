@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Primitives.fs" />
     <Compile Include="GenericSolver.fs" />
   </ItemGroup>
 

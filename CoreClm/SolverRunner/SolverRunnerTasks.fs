@@ -47,7 +47,7 @@ module SolverRunnerTasks =
             useAbundant : bool
             chartInitData : ChartInitData
             chartDataUpdater : AsyncChartDataUpdater
-            progressCallBack : RunQueueStatus option -> ProgressData -> unit
+            progressCallBack : RunQueueStatus option -> ClmProgressData -> unit
             updateChart : ChartSliceData -> unit
             getChartSliceData : double -> double[] -> EeData -> ChartSliceData
             noOfProgressPoints : int
@@ -228,7 +228,7 @@ module SolverRunnerTasks =
         // Note that we mimic the exception raised by the real solver when cancellation is requested.
         // See comments to the exception type below for reasoning.
         let m = $"testCancellation - Aborted at counter = %i{counter}." |> Some
-        raise(ComputationAbortedException (ProgressData.defaultValue EeData.defaultValue, cancel |> Option.defaultValue (AbortCalculation None)))
+        raise(ComputationAbortedException (ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue, cancel |> Option.defaultValue (AbortCalculation None)))
 
 
     type SolverProxy =
@@ -322,7 +322,7 @@ module SolverRunnerTasks =
             // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
             // There seems to be no other easy and clean way. Revisit if that changes.
             // Follow the trail of that date stamp to find other related places.
-            | :? ComputationAbortedException<EeData> as ex ->
+            | :? ComputationAbortedException<ClmProgressAdditionalData> as ex ->
                 printfn $"getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A{w.runningProcessData.runQueueId}"
 
                 match ex.cancellationType with
@@ -333,7 +333,8 @@ module SolverRunnerTasks =
                     getProgress w (Some CancelledRunQueue) ex.progressData
                 |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
             | e ->
-                let p = { (ProgressData.defaultValue EeData.defaultValue) with errorMessageOpt = $"{e}" |> ErrorMessage |> Some }
+                let p0 = ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue
+                let p = { p0 with errorMessageOpt = $"{e}" |> ErrorMessage |> Some }
                 getProgress w (Some FailedRunQueue) p |> (updateFinalProgress "getSolverRunner - Exception occurred.")
 
         let proxy =

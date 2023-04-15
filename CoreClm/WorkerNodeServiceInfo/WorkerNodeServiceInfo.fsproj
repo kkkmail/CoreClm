@@ -20,6 +20,7 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
+    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

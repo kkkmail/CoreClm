@@ -42,6 +42,7 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\GenericOdeSolver\GenericOdeSolver.fsproj" />
     <ProjectReference Include="..\Model\Model.fsproj" />
+    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
   </ItemGroup>
 
 </Project>

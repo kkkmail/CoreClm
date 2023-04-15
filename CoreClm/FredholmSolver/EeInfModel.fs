@@ -3,8 +3,9 @@
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open GenericOdeSolver.Solver
+open GenericOdeSolver.Primitives
 
-module OdeInterop =
+module EeInfModel =
 
     type SubstanceType =
         | Food
@@ -119,6 +120,3 @@ module OdeInterop =
             let int_u = k.domainData.integrateValues u
             let inv = (double n) * (int_u + w) + f
             inv
-
-
-    type FredholmNSolveParam = NSolveParam<int, int, int>

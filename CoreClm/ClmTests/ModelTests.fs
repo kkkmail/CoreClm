@@ -13,6 +13,8 @@ open DbData.DatabaseTypes
 open DbData.Configuration
 open Clm.Model.ModelData
 open Clm.CalculationData
+open GenericOdeSolver.Primitives
+open OdeSolver.Solver
 
 /// Use
 ///     "ContGenAdm.exe add -i 4005000004 -n 9 -m 3 -y 10 -t 250000 -r 1 -g"

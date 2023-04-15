@@ -204,7 +204,7 @@ module ModelParams =
             info : RunQueueInfo
             runQueueStatus : RunQueueStatus
             workerNodeIdOpt : WorkerNodeId option
-            progressData : ProgressData
+            progressData : ClmProgressData
             createdOn : DateTime
         }
 
@@ -223,7 +223,7 @@ module ModelParams =
 
                 runQueueStatus = NotStartedRunQueue
                 workerNodeIdOpt = None
-                progressData = ProgressData.defaultValue EeData.defaultValue
+                progressData = ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue
                 createdOn = DateTime.Now
             }
 

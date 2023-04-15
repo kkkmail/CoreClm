@@ -6,6 +6,7 @@ open System.Threading
 open ClmSys
 open ClmSys.SolverData
 open ClmSys.SolverRunnerPrimitives
+open OdeSolver.Solver
 open Softellect.Sys
 open Softellect.Sys.Primitives
 open Softellect.Sys.MessagingPrimitives
@@ -41,14 +42,14 @@ module ServiceInfo =
 
     type RunnerState =
         {
-            progressData : ProgressData
+            progressData : ClmProgressData
             started : DateTime
             lastUpdated : DateTime
         }
 
         static member defaultValue =
             {
-                progressData = ProgressData.defaultValue EeData.defaultValue
+                progressData = ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue
                 started = DateTime.Now
                 lastUpdated = DateTime.Now
             }

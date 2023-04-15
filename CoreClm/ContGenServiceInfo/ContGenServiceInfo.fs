@@ -54,7 +54,7 @@ module ServiceInfo =
         {
             runQueueId : RunQueueId
             updatedRunQueueStatus : RunQueueStatus option
-            progressData : ProgressData
+            progressData : ClmProgressData
         }
 
 
