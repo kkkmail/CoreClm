@@ -17,6 +17,7 @@ type OdeTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
     let errTolerance = 1.0e-10
+    let errInvTolerance = 1.0e-3
 
     let defaultKernelData =
         {
@@ -132,8 +133,12 @@ type OdeTests (output : ITestOutputHelper) =
         let data = defaultKernelData
         let md = modelData data
         let nSolveParam, getData = nSolveParam data
+        let inv_tStart = getData nSolveParam.nSolveData.initialValues |> md.invariant
         let result = nSolve nSolveParam
         let v = getData result.xEnd
+        let inv_tEnd = md.invariant v
+        let diff = (inv_tEnd - inv_tStart) / inv_tStart
         outputResult md result.endTime v
         writeLine $"result: {result}."
         result.Should().NotBeNull(nullString) |> ignore
+        diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
