@@ -140,9 +140,6 @@ module Solver =
             cancel
         else None
 
-    // let callBack psd =
-    //     // failwith "callBack not is not implemented yet."
-    //     psd
 
     let private callBack n =
         let f t x =
@@ -159,24 +156,12 @@ module Solver =
         // if shouldNotify psd then callBack psd else psd
 
 
-    // let private callBackDoNotCorrect n t x =
-    //     printDebug $"callBackDoNotCorrect: Called with t = {t}."
-    //     callCount <- callCount + 1L
-    //
-    //     // match c with
-    //     // | Some v -> raise(ComputationAbortedException ((calculateProgressDataWithErr psd v).lastProgressData, v))
-    //     // | None -> ()
-    //     //
-    //     // if shouldNotify psd then callBack psd else psd
-    //     failwith "callBackDoNotCorrect is not implemented yet."
-    //     ()
-
-
     /// F# wrapper around various ODE solvers.
     let nSolve<'T> (n : NSolveParam<'T>) : OdeResult<'T> =
         printfn "nSolve::Starting."
         let p = n.odeParams
         let callBack = callBack n
+        n.callBack.invoke n.odeParams.startTime n.initialValues
 
         let mapResults (r : SolverResult) _ =
             {
@@ -185,22 +170,6 @@ module Solver =
                 xEnd = r.X
                 data = n.getData r.EndTime r.X
             }
-
-        // let mutable psd = createProgressStateData n
-
-        // let callBackUseNonNegative t x =
-        //     // let a = callBackUseNonNegative { nSolveParam = n; t = t; x = x }
-        //     // psd <- callBackUseNonNegative { psd with t = t; x = x }
-        //     failwith "callBackUseNonNegative is not implemented yet."
-        //     ()
-
-        // let d = StatUpdateData.create n
-        // let csd = n.getChartSliceData d.t d.x EeData.defaultValue
-        // lastChartSliceData <- csd
-        // dtEeSum <- csd.enantiomericExcess |> Array.map (fun _ -> 0.0)
-        // tDtEeSum <- csd.enantiomericExcess |> Array.map (fun _ -> 0.0)
-        // firstChartSliceData <- calculateChartSliceData d
-        // calculateProgressData d |> notifyProgress n (Some InProgressRunQueue)
 
         match n.odeParams.solverType with
         | AlgLib CashCarp ->
@@ -242,15 +211,6 @@ module Solver =
                         p.absoluteTolerance.value)
 
             | DoNotCorrect ->
-                // let needsCallBack t =
-                //     let a, b, c = needsCallBack psd t
-                //     psd <- a
-                //     (b, c)
-                //
-                // let callBack c t x =
-                //     psd <- callBackDoNotCorrect c { psd with t = t; x = x }
-                //     ()
-
                 let interop() = createDoNotCorrectInterop(n.derivative, callBack, n.needsCallBack)
 
                 OdeSolver.RunFSharp(

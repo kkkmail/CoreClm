@@ -44,12 +44,6 @@ module SolverPrimitives =
         | ProcessId of int
 
 
-    // type ErrorMessage =
-    //     | ErrorMessage of string
-    //
-    //     member this.value = let (ErrorMessage v) = this in v
-
-
     let estimateEndTime progress (started : DateTime) =
         if progress > 0.0m && progress <= 1.0m
         then
@@ -57,26 +51,6 @@ module SolverPrimitives =
             started.Add estRunTime |> Some
         else None
 
-
-    // type ProgressData<'PD> =
-    //     {
-    //         progress : decimal
-    //         callCount : int64
-    //         yRelative : double
-    //         progressData : 'PD
-    //         errorMessageOpt : ErrorMessage option
-    //     }
-    //
-    //     static member defaultValue pd =
-    //         {
-    //             progress = 0.0m
-    //             callCount = 0L
-    //             yRelative = 1.0
-    //             progressData = pd
-    //             errorMessageOpt = None
-    //         }
-    //
-    //     member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started
 
     type ProgressData<'T> =
         {

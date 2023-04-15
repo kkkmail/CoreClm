@@ -72,7 +72,7 @@ type OdeTests (output : ITestOutputHelper) =
     let odeParams =
         {
             startTime = 0.0
-            endTime = 10_000.0
+            endTime = 100.0
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
@@ -86,34 +86,12 @@ type OdeTests (output : ITestOutputHelper) =
         let s = md.kernel.domainData.stdDev u
         writeLine $"t: {t}, inv: {inv}, total: {total}, mean: {m}, stdDev: {s}."
 
-    // let nSolveData data =
-    //     let i = initialValues data
-    //     let md = modelData data
-    //     let f t v = outputResult md t v
-    //     let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
-    //
-    //     let n =
-    //         {
-    //             odeParams = odeParams
-    //             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
-    //             modelDataId = Guid()
-    //             runQueueId = Guid() |> RunQueueId
-    //             initialValues = i.value.data
-    //             getDerivative = md.derivativeCalculator f i.value.dataInfo
-    //             checkFreq = TimeSpan.MaxValue
-    //             checkCancellation = fun _ -> "Calculation aborted" |> Some |> CancellationType.AbortCalculation |> Some
-    //         }
-    //
-    //     n, v
-
-
     let nSolveParam data =
         let i = initialValues data
         let md = modelData data
         let f t v = outputResult md t v
         let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
 
-        // let n, v = nSolveData data
         let n =
             {
                 odeParams = odeParams
@@ -126,17 +104,6 @@ type OdeTests (output : ITestOutputHelper) =
                 needsCallBack = NeedsCallBackChecker (fun _ -> None, false)
                 started = DateTime.Now
                 getData = fun _ _ -> ()
-
-                // nSolveData = n
-                //
-                // defaultProgressData = ProgressData<int>.defaultValue 0
-                // defaultChartSliceData = 0
-                // defaultExtraData = 0
-                //
-                // progressCallBack = fun _ _ -> ()
-                // chartCallBack = fun _ -> ()
-                // getChartSliceData = fun _ _ _ -> 0
-                // getExtraData = fun () -> 0
             }
 
         n, v
