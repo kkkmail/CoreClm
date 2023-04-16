@@ -83,7 +83,7 @@ module ServiceInfo =
             try
                 printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
                 let q, _ = getState()
-                let r0 = q |> List.sortBy (fun e -> e.progressData.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
+                let r0 = q |> List.sortBy (fun e -> e.progressData.progressData.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
                 let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
                 printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
             with

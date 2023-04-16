@@ -347,21 +347,20 @@ module DatabaseTypes =
 
                 progressData =
                     {
-                        progress = r.runQueue.Progress
-                        callCount = r.runQueue.CallCount
-                        errorMessageOpt = r.runQueue.ErrorMessage |> Option.map ErrorMessage
-                        tx = None
-                        data =
+                        progressData =
                             {
-                                yRelative = r.runQueue.YRelative
+                                progress = r.runQueue.Progress
+                                callCount = r.runQueue.CallCount
+                                errorMessageOpt = r.runQueue.ErrorMessage |> Option.map ErrorMessage
+                            }
+                        yRelative = r.runQueue.YRelative
 
-                                eeData =
-                                    {
-                                        maxEe = r.runQueue.MaxEe
-                                        maxAverageEe = r.runQueue.MaxAverageEe
-                                        maxWeightedAverageAbsEe = r.runQueue.MaxWeightedAverageAbsEe
-                                        maxLastEe = r.runQueue.MaxLastEe
-                                    }
+                        eeData =
+                            {
+                                maxEe = r.runQueue.MaxEe
+                                maxAverageEe = r.runQueue.MaxAverageEe
+                                maxWeightedAverageAbsEe = r.runQueue.MaxWeightedAverageAbsEe
+                                maxLastEe = r.runQueue.MaxLastEe
                             }
                     }
 
@@ -481,16 +480,16 @@ module DatabaseTypes =
                             Y0 = r.modelCommandLineParam.y0,
                             TEnd = r.modelCommandLineParam.tEnd,
                             UseAbundant = r.modelCommandLineParam.useAbundant,
-                            Progress = r.progressData.progress,
-                            CallCount = r.progressData.callCount,
-                            YRelative = r.progressData.data.yRelative,
-                            MaxEe = r.progressData.data.eeData.maxEe,
-                            MaxAverageEe = r.progressData.data.eeData.maxAverageEe,
-                            MaxWeightedAverageAbsEe = r.progressData.data.eeData.maxWeightedAverageAbsEe,
-                            MaxLastEe = r.progressData.data.eeData.maxLastEe,
+                            Progress = r.progressData.progressData.progress,
+                            CallCount = r.progressData.progressData.callCount,
+                            YRelative = r.progressData.yRelative,
+                            MaxEe = r.progressData.eeData.maxEe,
+                            MaxAverageEe = r.progressData.eeData.maxAverageEe,
+                            MaxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
+                            MaxLastEe = r.progressData.eeData.maxLastEe,
                             WorkerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
                             ModifiedOn = DateTime.Now,
-                            ErrorMessage = (r.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)))
+                            ErrorMessage = (r.progressData.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)))
 
         row
 
@@ -549,14 +548,14 @@ module DatabaseTypes =
         let g s u =
             //r.RunQueueId <- q.runQueueId.value
             r.WorkerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
-            r.Progress <- q.progressData.progress
-            r.CallCount <- q.progressData.callCount
-            r.YRelative <- q.progressData.data.yRelative
-            r.MaxEe <- q.progressData.data.eeData.maxEe
-            r.MaxAverageEe <- q.progressData.data.eeData.maxAverageEe
-            r.MaxWeightedAverageAbsEe <- q.progressData.data.eeData.maxWeightedAverageAbsEe
-            r.MaxLastEe <- q.progressData.data.eeData.maxLastEe
-            r.ErrorMessage <- q.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
+            r.Progress <- q.progressData.progressData.progress
+            r.CallCount <- q.progressData.progressData.callCount
+            r.YRelative <- q.progressData.yRelative
+            r.MaxEe <- q.progressData.eeData.maxEe
+            r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
+            r.MaxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
+            r.MaxLastEe <- q.progressData.eeData.maxLastEe
+            r.ErrorMessage <- q.progressData.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
 
             match s with
             | Some (Some v) -> r.StartedOn <- Some v

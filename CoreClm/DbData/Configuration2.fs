@@ -14,6 +14,7 @@ open System.Data.SqlClient
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.GeneralData
+open Primitives.GeneralData
 
 module Configuration =
 

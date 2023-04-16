@@ -46,7 +46,8 @@ module SolverRunnerErrors =
     /// We have to resort to throwing a specific exception in order
     /// to perform early termination from deep inside C# ODE solver.
     /// There seems to be no other easy and clean way. Revisit if that changes.
-    type ComputationAbortedException<'T> (pd : ProgressData<'T>, ct : CancellationType) =
+    // type ComputationAbortedException<'T> (pd : ProgressData<'T>, ct : CancellationType) =
+    type ComputationAbortedException (pd : ProgressData, ct : CancellationType) =
         inherit System.Exception ()
 
         member e.progressData = pd

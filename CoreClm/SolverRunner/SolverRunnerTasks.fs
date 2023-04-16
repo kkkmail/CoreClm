@@ -228,7 +228,7 @@ module SolverRunnerTasks =
         // Note that we mimic the exception raised by the real solver when cancellation is requested.
         // See comments to the exception type below for reasoning.
         let m = $"testCancellation - Aborted at counter = %i{counter}." |> Some
-        raise(ComputationAbortedException (ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue, cancel |> Option.defaultValue (AbortCalculation None)))
+        raise(ComputationAbortedException (ClmProgressData.defaultValue.progressData, cancel |> Option.defaultValue (AbortCalculation None)))
 
 
     type SolverProxy =
@@ -304,38 +304,39 @@ module SolverRunnerTasks =
             chartResult
 
         let runSolverImpl() =
-            try
-                // Uncomment temporarily when you need to test cancellations.
-                //testCancellation proxy w
-
-                printfn $"runSolver: Calling nSolve for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
-                let nSolveResult = nSolve data
-                printfn $"runSolver: ...call to nSolve for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
-                let result = notifyOfCharts RegularChartGeneration
-
-                printfn $"runSolver: Notifying of completion for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
-                let completedResult = (Some RunQueueStatus.CompletedRunQueue, nSolveResult.progressData) ||> getProgress w |> proxy.solverUpdateProxy.updateProgress
-                combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
-                printfn $"runSolver: All completed for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
-            with
-            // See: https://stackoverflow.com/questions/49974736/how-to-declare-a-generic-exception-types-in-f
-            // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
-            // There seems to be no other easy and clean way. Revisit if that changes.
-            // Follow the trail of that date stamp to find other related places.
-            | :? ComputationAbortedException<ClmProgressAdditionalData> as ex ->
-                printfn $"getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A{w.runningProcessData.runQueueId}"
-
-                match ex.cancellationType with
-                | CancelWithResults e ->
-                    notifyOfCharts ForceChartGeneration |> logIfFailed "Unable to send charts."
-                    getProgress w (Some CompletedRunQueue) ex.progressData
-                | AbortCalculation e ->
-                    getProgress w (Some CancelledRunQueue) ex.progressData
-                |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
-            | e ->
-                let p0 = ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue
-                let p = { p0 with errorMessageOpt = $"{e}" |> ErrorMessage |> Some }
-                getProgress w (Some FailedRunQueue) p |> (updateFinalProgress "getSolverRunner - Exception occurred.")
+            // try
+            //     // Uncomment temporarily when you need to test cancellations.
+            //     //testCancellation proxy w
+            //
+            //     printfn $"runSolver: Calling nSolve for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
+            //     let nSolveResult = nSolve data
+            //     printfn $"runSolver: ...call to nSolve for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
+            //     let result = notifyOfCharts RegularChartGeneration
+            //
+            //     printfn $"runSolver: Notifying of completion for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId}..."
+            //     let completedResult = (Some RunQueueStatus.CompletedRunQueue, nSolveResult.progressData) ||> getProgress w |> proxy.solverUpdateProxy.updateProgress
+            //     combineUnitResults result completedResult |> (logIfFailed "getSolverRunner - runSolver failed on transmitting Completed")
+            //     printfn $"runSolver: All completed for runQueueId = %A{w.runningProcessData.runQueueId}, modelDataId = %A{w.runningProcessData.modelDataId} is completed."
+            // with
+            // // See: https://stackoverflow.com/questions/49974736/how-to-declare-a-generic-exception-types-in-f
+            // // kk:20200410 - Note that we have to resort to using exceptions for flow control here.
+            // // There seems to be no other easy and clean way. Revisit if that changes.
+            // // Follow the trail of that date stamp to find other related places.
+            // | :? ComputationAbortedException as ex ->
+            //     printfn $"getSolverRunner - runSolver: Cancellation was requested for runQueueId = %A{w.runningProcessData.runQueueId}"
+            //
+            //     match ex.cancellationType with
+            //     | CancelWithResults e ->
+            //         notifyOfCharts ForceChartGeneration |> logIfFailed "Unable to send charts."
+            //         getProgress w (Some CompletedRunQueue) ex.progressData
+            //     | AbortCalculation e ->
+            //         getProgress w (Some CancelledRunQueue) ex.progressData
+            //     |> updateFinalProgress "getSolverRunner - ComputationAborted failed."
+            // | e ->
+            //     let p0 = ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue
+            //     let p = { p0 with errorMessageOpt = $"{e}" |> ErrorMessage |> Some }
+            //     getProgress w (Some FailedRunQueue) p |> (updateFinalProgress "getSolverRunner - Exception occurred.")
+            failwith "runSolverImpl needs to be updated for new generic solver engine."
 
         let proxy =
             {

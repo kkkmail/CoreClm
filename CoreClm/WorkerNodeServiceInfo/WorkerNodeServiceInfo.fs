@@ -49,7 +49,7 @@ module ServiceInfo =
 
         static member defaultValue =
             {
-                progressData = ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue
+                progressData = ClmProgressData.defaultValue
                 started = DateTime.Now
                 lastUpdated = DateTime.Now
             }
@@ -62,7 +62,7 @@ module ServiceInfo =
                 | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
-            $"T: %s{s};%s{estCompl} %A{r.progressData.progress}"
+            $"T: %s{s};%s{estCompl} %A{r.progressData.progressData.progress}"
 
 
     type WorkerNodeState =

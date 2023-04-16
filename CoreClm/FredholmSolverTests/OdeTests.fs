@@ -76,6 +76,9 @@ type OdeTests (output : ITestOutputHelper) =
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
+            noOfOutputPoints = 100
+            noOfProgressPoints = 2
+            noOfChartDetailedPoints = None
         }
 
     let outputResult md t (v : SubstanceData) =
@@ -98,12 +101,16 @@ type OdeTests (output : ITestOutputHelper) =
                 runQueueId = Guid() |> RunQueueId
                 initialValues = i.value.data
                 derivative = md.derivativeCalculator f i.value.dataInfo
-                callBack = CallBack (fun _ _ -> ())
-                checkFreq = TimeSpan.MaxValue
-                checkCancellation = CancellationChecker (fun _ -> "Calculation aborted" |> Some |> CancellationType.AbortCalculation |> Some)
-                needsCallBack = NeedsCallBackChecker (fun _ -> None, false)
+                callBackInfo =
+                    {
+                        checkFreq = TimeSpan.MaxValue
+                        needsCallBack = NeedsCallBack (fun c _ -> c, None)
+                        progressCallBack = ProgressCallBack (fun _ _ _ -> ())
+                        chartCallBack = ChartCallBack (fun _ _ _ -> ())
+                        checkCancellation = CheckCancellation (fun _ -> None)
+                    }
+
                 started = DateTime.Now
-                getData = fun _ _ -> ()
             }
 
         n, v

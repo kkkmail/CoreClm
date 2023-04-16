@@ -73,6 +73,7 @@ module Solver =
                                     derivativeCalculator : DerivativeCalculator) =
         Interop.F(fun n t y dy -> fDoNotCorrect(needsCallBack, callaBack, derivativeCalculator, &n, &t, y, dy))
 
+    // ================================================================ //
 
     //let private printDebug s = printfn $"{s}"
     let private printDebug s = ()
@@ -309,20 +310,19 @@ module Solver =
         calculateChartSliceData d |> d.nSolveParam.chartCallBack
 
 
-    let calculateProgressData (d : StatUpdateData) =
+    let calculateProgressData (d : StatUpdateData) : ClmProgressData =
         printDebug $"calculateProgressData: Called with t = {d.t}."
         let csd = calculateChartSliceData d
 
         {
-            progress = calculateProgress d.nSolveParam d.t
-            callCount = callCount
-            errorMessageOpt = None
-            tx = None
-            data =
+            progressData =
                 {
-                    eeData = lastEeData
-                    yRelative = csd.totalSubst.totalData / firstChartSliceData.totalSubst.totalData
+                    progress = calculateProgress d.nSolveParam d.t
+                    callCount = callCount
+                    errorMessageOpt = None
                 }
+            eeData = lastEeData
+            yRelative = csd.totalSubst.totalData / firstChartSliceData.totalSubst.totalData
         }
 
 
@@ -332,13 +332,13 @@ module Solver =
 
         let withMessage s m =
             match s with
-            | Some v -> { p with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some }
-            | None ->   { p with errorMessageOpt = m |> ErrorMessage |> Some }
+            | Some v -> { p with progressData = { p.progressData with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some } }
+            | None ->   { p with progressData = { p.progressData with errorMessageOpt = m |> ErrorMessage |> Some } }
 
         match v with
-        | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progress * 100.0m}%% progress." |> withMessage s
+        | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progressData.progress * 100.0m}%% progress." |> withMessage s
         | CancelWithResults s ->
-            $"The run queue was cancelled at: %.2f{p.progress * 100.0m}%% progress. Absolute tolerance: {d.nSolveParam.odeParams.absoluteTolerance}."
+            $"The run queue was cancelled at: %.2f{p.progressData.progress * 100.0m}%% progress. Absolute tolerance: {d.nSolveParam.odeParams.absoluteTolerance}."
             |> withMessage s
 
 
@@ -413,7 +413,7 @@ module Solver =
         match checkCancellation d.nSolveParam with
         | Some v ->
             let p = calculateProgressDataWithErr d v
-            raise(ComputationAbortedException<ClmProgressAdditionalData> (p, v))
+            raise(ComputationAbortedException (p.progressData, v))
         | None -> ()
 
         if shouldNotify d.nSolveParam d.t then callBack d
@@ -425,7 +425,7 @@ module Solver =
         match c with
         | Some v ->
             let p = calculateProgressDataWithErr d v
-            raise(ComputationAbortedException<ClmProgressAdditionalData> (p, v))
+            raise(ComputationAbortedException (p.progressData, v))
         | None -> ()
 
         if shouldNotify d.nSolveParam d.t then callBack d

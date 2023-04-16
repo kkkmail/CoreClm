@@ -302,13 +302,13 @@ module WorkerNodeDatabaseTypes =
         let g() =
             printfn $"tryUpdateProgress: RunQueueId: {q}, progress data: %A{td}."
             let ctx = getDbContext c
-            let ee = td.data.eeData
+            let ee = td.eeData
 
             let r = ctx.Procedures.TryUpdateProgressRunQueue.Invoke(
                                         ``@runQueueId`` = q.value,
-                                        ``@progress`` = td.progress,
-                                        ``@callCount`` = td.callCount,
-                                        ``@yRelative`` = td.data.yRelative,
+                                        ``@progress`` = td.progressData.progress,
+                                        ``@callCount`` = td.progressData.callCount,
+                                        ``@yRelative`` = td.yRelative,
                                         ``@maxEe`` = ee.maxEe,
                                         ``@maxAverageEe`` = ee.maxAverageEe,
                                         ``@maxWeightedAverageAbsEe`` = ee.maxWeightedAverageAbsEe,

@@ -6,22 +6,70 @@ open Primitives.SolverPrimitives
 
 module Primitives =
 
-    type CallBack =
-        | CallBack of (double -> double[] -> unit)
-
-        member r.invoke = let (CallBack v) = r in v
-
-
-    type NeedsCallBackChecker =
-        | NeedsCallBackChecker of (double -> CancellationType option * bool)
-
-        member r.invoke = let (NeedsCallBackChecker v) = r in v
+    type CalculationCompletionType =
+        | CompletedCalculation
+        | CancelledCalculation of CancellationType
 
 
-    type CancellationChecker =
-        | CancellationChecker of (RunQueueId -> CancellationType option)
+    type CallBackNotificationType =
+        | ProgressNotification
+        | ChartNotification
+        | ProgressAndChartNotification
 
-        member r.invoke = let (CancellationChecker v) = r in v
+
+    type CallBackType =
+        | RegularCallBack
+        | FinalCallBack of CalculationCompletionType
+
+
+    /// A function to call in order to notify about progress.
+    type ProgressCallBack =
+        | ProgressCallBack of (CallBackType -> double -> double[] -> unit)
+
+        member r.invoke = let (ProgressCallBack v) = r in v
+
+
+    /// A function to call in order to generate a chart data point.
+    type ChartCallBack =
+        | ChartCallBack of (CallBackType -> double -> double[] -> unit)
+
+        member r.invoke = let (ChartCallBack v) = r in v
+
+
+    /// A function to call to check if cancellation is requested.
+    type CheckCancellation =
+        | CheckCancellation of (RunQueueId -> CancellationType option)
+
+        member r.invoke = let (CheckCancellation v) = r in v
+
+
+    /// An addition [past] data needed to determine if a call back is needed.
+    type CallBackData =
+        {
+            dummy : int
+        }
+
+        static member defaultValue =
+            {
+                dummy = 0
+            }
+
+
+    /// A function to call in order to determine if a call back is needed.
+    type NeedsCallBack =
+        | NeedsCallBack of (CallBackData -> double -> CallBackData * CallBackNotificationType option)
+
+        member r.invoke = let (NeedsCallBack v) = r in v
+
+
+    type CallBackInfo =
+        {
+            checkFreq : TimeSpan
+            needsCallBack : NeedsCallBack
+            progressCallBack : ProgressCallBack
+            chartCallBack : ChartCallBack
+            checkCancellation : CheckCancellation
+        }
 
 
     type DerivativeCalculator =
@@ -79,32 +127,26 @@ module Primitives =
             stepSize : double
             absoluteTolerance : AbsoluteTolerance
             solverType : SolverType
-
-            // noOfOutputPoints : int
-            // noOfProgressPoints : int
-            // noOfChartDetailedPoints : int option
+            noOfOutputPoints : int
+            noOfProgressPoints : int
+            noOfChartDetailedPoints : int option
         }
 
 
-    type OdeResult<'T> =
+    type OdeResult =
         {
             startTime : double
             endTime : double
             xEnd : double[]
-            data : 'T
         }
 
 
-    type NSolveParam<'T> =
+    type NSolveParam =
         {
             odeParams : OdeParams
             runQueueId : RunQueueId
             initialValues : double[]
             derivative : DerivativeCalculator
-            callBack : CallBack
-            checkFreq : TimeSpan
-            checkCancellation : CancellationChecker
-            needsCallBack : NeedsCallBackChecker
-            getData : double -> double[] -> 'T
+            callBackInfo : CallBackInfo
             started : DateTime
         }

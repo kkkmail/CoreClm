@@ -52,9 +52,6 @@ module SolverRunnerPrimitives =
             }
 
 
-// type ProgressData = ProgressData<SolverRunnerPrimitives.EeData>
-
-
     // type ProgressData =
     //     {
     //         progress : decimal
@@ -76,32 +73,32 @@ module SolverRunnerPrimitives =
     //     member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started
 
 
-    type ClmProgressAdditionalData =
-        {
-            yRelative : double
-            eeData : EeData
-        }
-
-        static member defaultValue =
-            {
-                yRelative = 1.0
-                eeData = EeData.defaultValue
-            }
-
-    type ClmProgressData = ProgressData<ClmProgressAdditionalData>
-
-    // type ClmProgressData =
+    // type ClmProgressAdditionalData =
     //     {
-    //         progressData : ProgressData
     //         yRelative : double
     //         eeData : EeData
     //     }
     //
     //     static member defaultValue =
     //         {
-    //             progressData = ProgressData.defaultValue
     //             yRelative = 1.0
     //             eeData = EeData.defaultValue
     //         }
-    //
-    //     member data.estimateEndTime (started : DateTime) = estimateEndTime data.progressData.progress started
+
+    // type ClmProgressData = ProgressData<ClmProgressAdditionalData>
+
+    type ClmProgressData =
+        {
+            progressData : ProgressData
+            yRelative : double
+            eeData : EeData
+        }
+
+        static member defaultValue =
+            {
+                progressData = ProgressData.defaultValue
+                yRelative = 1.0
+                eeData = EeData.defaultValue
+            }
+
+        member data.estimateEndTime (started : DateTime) = estimateEndTime data.progressData.progress started

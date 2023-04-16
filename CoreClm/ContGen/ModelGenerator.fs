@@ -58,7 +58,7 @@ module ModelGenerator =
                                                 }
                                             runQueueStatus = NotStartedRunQueue
                                             workerNodeIdOpt = None
-                                            progressData = ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue
+                                            progressData = ClmProgressData.defaultValue
                                             createdOn = DateTime.Now
                                         })
                         |> List.map proxy.upsertRunQueue

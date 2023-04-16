@@ -52,22 +52,18 @@ module SolverPrimitives =
         else None
 
 
-    type ProgressData<'T> =
+    type ProgressData =
         {
             progress : decimal
             callCount : int64
             errorMessageOpt : ErrorMessage option
-            tx : (double * double[]) option
-            data : 'T
         }
 
-        static member defaultValue d =
+        static member defaultValue =
             {
                 progress = 0.0m
                 callCount = 0L
                 errorMessageOpt = None
-                tx = None
-                data = d
             }
 
         member data.estimateEndTime (started : DateTime) = estimateEndTime data.progress started

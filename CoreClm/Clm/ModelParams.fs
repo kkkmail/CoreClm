@@ -223,7 +223,7 @@ module ModelParams =
 
                 runQueueStatus = NotStartedRunQueue
                 workerNodeIdOpt = None
-                progressData = ClmProgressData.defaultValue ClmProgressAdditionalData.defaultValue
+                progressData = ClmProgressData.defaultValue
                 createdOn = DateTime.Now
             }
 
@@ -238,7 +238,7 @@ module ModelParams =
                 | InProgressRunQueue, Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | _ -> EmptyString
 
-            $"{{ T: %s{s};%s{estCompl} DF: %A{defaultValueId}; MDID: %A{modelDataId}; PID: %A{runQueueId}; %A{r.progressData.progress} }}"
+            $"{{ T: %s{s};%s{estCompl} DF: %A{defaultValueId}; MDID: %A{modelDataId}; PID: %A{runQueueId}; %A{r.progressData.progressData.progress} }}"
 
 
     type ResultInfo =
