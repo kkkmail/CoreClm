@@ -33,6 +33,21 @@ type private CallBackResults =
         }
 
 
+type EeInfModelData =
+    {
+        numberOfMolecules : int
+        eps : double
+        total : double
+    }
+
+    static member defaultValue =
+        {
+            numberOfMolecules = 100
+            eps = 1.0e-2
+            total = 10.0
+        }
+
+
 /// TODO kk:20230413 - Consolidate data creation into some common place.
 type OdeTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
@@ -40,10 +55,11 @@ type OdeTests (output : ITestOutputHelper) =
     let errTolerance = 1.0e-10
     let errInvTolerance = 1.0e-3
 
+
     let defaultKernelData =
         {
             noOfIntervals = 101
-            l2 = 25
+            l2 = 2
             zeroThreshold = MutationProbabilityData.defaultZeroThreshold
             epsEeFunc = (fun _ -> 0.02) |> EpsFunc
             epsInfFunc = (fun _ -> 0.02) |> EpsFunc
@@ -52,9 +68,20 @@ type OdeTests (output : ITestOutputHelper) =
 
     let domain2D data = Domain2D.create data.noOfIntervals data.l2
 
+
+    let defaultGamma domainData =
+        let gamma =
+            domainData.eeDomain.midPoints.value
+            |> Array.map (fun a -> domainData.infDomain.midPoints.value |> Array.map (fun b -> 0.01))
+            |> Matrix
+            |> Gamma
+
+        gamma
+
+
     /// Creates a "delta" function centered near (0, 0) in the domain,
     /// which is a middle point in ee domain and 0-th point in inf domain.
-    let getDeltaU data =
+    let getDeltaU data eps =
         let domain =
             if data.noOfIntervals % 2 = 1
             then domain2D data
@@ -63,12 +90,12 @@ type OdeTests (output : ITestOutputHelper) =
         let g i j = if (i * 2 + 1 = data.noOfIntervals) && (j = 0) then 1.0 else 0.0
         let v = domain.eeDomain.midPoints.value |> Array.mapi (fun i _ -> domain.infDomain.midPoints.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
         let norm = domain.integrateValues v
-        (1.0 / norm) * v
+        (eps / norm) * v
 
-    let initialValues data =
-        let f = FoodData 10.0
+    let initialValues data eid =
+        let f = FoodData (eid.total - (double eid.numberOfMolecules) * eid.eps)
         let w = WasteData 0.0
-        let u = getDeltaU data |> ProtocellData
+        let u = getDeltaU data eid.eps |> ProtocellData
         let sd = SubstanceData.create f w u
         sd
 
@@ -76,24 +103,18 @@ type OdeTests (output : ITestOutputHelper) =
     let modelData data : ModelData =
         let kernel = Kernel.create data
 
-        let gamma =
-            kernel.domainData.eeDomain.midPoints.value
-            |> Array.map (fun a -> kernel.domainData.infDomain.midPoints.value |> Array.map (fun b -> 0.01))
-            |> Matrix
-            |> Gamma
-
         {
             kernel = kernel
-            gamma = gamma
+            gamma = defaultGamma kernel.domainData
             n = NumberOfMolecules 100
-            s = RecyclingRate 0.1
+            s = RecyclingRate 1.0
         }
 
 
     let odeParams =
         {
             startTime = 0.0
-            endTime = 10.0
+            endTime = 1_000.0
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
@@ -113,10 +134,12 @@ type OdeTests (output : ITestOutputHelper) =
         let s = md.kernel.domainData.stdDev u
         writeLine $"t: {t}, inv: {inv}, total: {total}, mean: {m}, stdDev: {s}."
 
-    let nSolveParam data =
-        let i = initialValues data
+
+    let nSolveParam data eid =
+        let i = initialValues data eid
         let md = modelData data
-        let f t v = outputResult md t v
+        // let f t v = outputResult md t v
+        let f t v = ()
         let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
 
         let n =
@@ -140,19 +163,23 @@ type OdeTests (output : ITestOutputHelper) =
         n, v
 
 
-    let callBack cr c _ _ =
+    let callBack cr outputResult c t x =
         match c with
-        | RegularCallBack -> { cr with progressCallBackCount = cr.progressCallBackCount + 1 }
+        | RegularCallBack ->
+            outputResult t x
+            { cr with progressCallBackCount = cr.progressCallBackCount + 1 }
         | FinalCallBack ct ->
             match ct with
-            | CompletedCalculation -> { cr with completedCallBackCount = cr.completedCallBackCount + 1 }
+            | CompletedCalculation ->
+                outputResult t x
+                { cr with completedCallBackCount = cr.completedCallBackCount + 1 }
             | CancelledCalculation c ->
                 match c with
                 | CancelWithResults _  -> { cr with cancelledCallBackCount = cr.cancelledCallBackCount + 1 }
                 | AbortCalculation _ -> { cr with abortedCallBackCount = cr.abortedCallBackCount + 1 }
 
 
-    let charCallBack cr _ _ _ = { cr with chartCallBackCount = cr.chartCallBackCount + 1 }
+    let chartCallBack cr _ _ _ = { cr with chartCallBackCount = cr.chartCallBackCount + 1 }
 
 
     let calLBackInfo n callBack charCallBack checkCancellation =
@@ -168,15 +195,18 @@ type OdeTests (output : ITestOutputHelper) =
     [<Fact>]
     member _.odePack_ShouldRun () : unit =
         let data = defaultKernelData
+        let eid = EeInfModelData.defaultValue
         let md = modelData data
-        let nSolveParam, getData = nSolveParam data
-        let inv_tStart = getData nSolveParam.initialValues |> md.invariant
+        let nSolveParam, getData = nSolveParam data eid
+        let iv = getData nSolveParam.initialValues
+        let inv_tStart = iv |> md.invariant
+        outputResult md nSolveParam.odeParams.startTime iv
         let result = nSolve nSolveParam
         let v = getData result.xEnd
         let inv_tEnd = md.invariant v
         let diff = (inv_tEnd - inv_tStart) / inv_tStart
         outputResult md result.endTime v
-        writeLine $"result: {result}."
+        // writeLine $"result: {result}."
         result.Should().NotBeNull(nullString) |> ignore
         diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
 
@@ -186,11 +216,15 @@ type OdeTests (output : ITestOutputHelper) =
         let mutable cr = CallBackResults.defaultValue
 
         let data = defaultKernelData
-        let n, _ = nSolveParam data
+        let eid = EeInfModelData.defaultValue
 
-        let callBack c t x = cr <- callBack cr c t x
-        let charCallBack c t x = cr <- charCallBack cr c t x
-        let c = calLBackInfo n callBack charCallBack (fun _ -> None)
+        let md = modelData data
+        let n, getData = nSolveParam data eid
+        let outputResult t x = outputResult md t (getData x)
+
+        let callBack c t x = cr <- callBack cr outputResult c t x
+        let chartCallBack c t x = cr <- chartCallBack cr c t x
+        let c = calLBackInfo n callBack chartCallBack (fun _ -> None)
 
         let nSolveParam = { n with callBackInfo = c }
         let result = nSolve nSolveParam
@@ -208,12 +242,16 @@ type OdeTests (output : ITestOutputHelper) =
         let mutable cr = CallBackResults.defaultValue
 
         let data = defaultKernelData
-        let n, _ = nSolveParam data
+        let eid = EeInfModelData.defaultValue
 
-        let callBack c t x = cr <- callBack cr c t x
-        let charCallBack c t x = cr <- charCallBack cr c t x
+        let md = modelData data
+        let n, getData = nSolveParam data eid
+        let outputResult t x = outputResult md t (getData x)
+
+        let callBack c t x = cr <- callBack cr outputResult c t x
+        let chartCallBack c t x = cr <- chartCallBack cr c t x
         let checkCancellation _ = CancelWithResults None |> Some
-        let c = calLBackInfo n callBack charCallBack checkCancellation
+        let c = calLBackInfo n callBack chartCallBack checkCancellation
 
         let nSolveParam = { n with callBackInfo = c }
 
@@ -230,12 +268,16 @@ type OdeTests (output : ITestOutputHelper) =
         let mutable cr = CallBackResults.defaultValue
 
         let data = defaultKernelData
-        let n, _ = nSolveParam data
+        let eid = EeInfModelData.defaultValue
 
-        let callBack c t x = cr <- callBack cr c t x
-        let charCallBack c t x = cr <- charCallBack cr c t x
+        let md = modelData data
+        let n, getData = nSolveParam data eid
+        let outputResult t x = outputResult md t (getData x)
+
+        let callBack c t x = cr <- callBack cr outputResult c t x
+        let chartCallBack c t x = cr <- chartCallBack cr c t x
         let checkCancellation _ = AbortCalculation None |> Some
-        let c = calLBackInfo n callBack charCallBack checkCancellation
+        let c = calLBackInfo n callBack chartCallBack checkCancellation
 
         let nSolveParam = { n with callBackInfo = c }
 

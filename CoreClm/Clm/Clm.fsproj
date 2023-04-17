@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Softellect.OdePackInterop" Version="7.0.0.1" />
+    <PackageReference Include="Softellect.OdePackInterop" Version="7.0.5.1" />
   </ItemGroup>
 
   <ItemGroup>

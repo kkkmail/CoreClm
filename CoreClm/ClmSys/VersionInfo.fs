@@ -9,7 +9,7 @@ module VersionInfo =
     /// Increment BY TWO when:
     ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
     ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
-    ///     3. Version number (below) is increased.
+    ///     3. Version number (below) was increased.
     ///     4. Reset to 0 as needed.
     let messagingDataVersion = MessagingDataVersion 0
 
@@ -18,13 +18,13 @@ module VersionInfo =
     ///
     /// This is an overall system version.
     [<Literal>]
-    let VersionNumberValue = "7.0.0.0001"
+    let VersionNumberValue = "7.0.5.01"
 
 
     /// !!! Update all non empty appsettings.json files to match this value !!!
     /// The same as above but without the dots in order to use in database and folder names.
     [<Literal>]
-    let private VersionNumberNumericalValue = "700_0001"
+    let private VersionNumberNumericalValue = "705_01"
 
 
     /// A base name, which controls the database name and a working folder name.
@@ -45,7 +45,7 @@ module VersionInfo =
 
 
     [<Literal>]
-    let CopyrightInfo = "MIT License - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2022."
+    let CopyrightInfo = "MIT License - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2023."
 
 
     type VersionNumber =
