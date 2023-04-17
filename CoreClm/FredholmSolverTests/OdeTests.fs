@@ -76,9 +76,12 @@ type OdeTests (output : ITestOutputHelper) =
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
-            noOfOutputPoints = 100
-            noOfProgressPoints = 2
-            noOfChartDetailedPoints = None
+            outputParams =
+                {
+                    noOfOutputPoints = 100
+                    noOfProgressPoints = 2
+                    noOfChartDetailedPoints = None
+                }
         }
 
     let outputResult md t (v : SubstanceData) =

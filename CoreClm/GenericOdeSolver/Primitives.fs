@@ -46,12 +46,20 @@ module Primitives =
     /// An addition [past] data needed to determine if a call back is needed.
     type CallBackData =
         {
-            dummy : int
+            callCount : int64
+            lastCheck : DateTime
+            progress : decimal
+            nextProgress : decimal
+            nextChartProgress : decimal
         }
 
         static member defaultValue =
             {
-                dummy = 0
+                callCount = 0L
+                lastCheck = DateTime.Now
+                progress = 0.0M
+                nextProgress = 0.0M
+                nextChartProgress = 0.0M
             }
 
 
@@ -120,6 +128,14 @@ module Primitives =
         | OdePack of OdePackMethod * CorrectorIteratorType * NegativeValuesCorrectorType
 
 
+    type OdeOutputParams =
+        {
+            noOfOutputPoints : int
+            noOfProgressPoints : int
+            noOfChartDetailedPoints : int option
+        }
+
+
     type OdeParams =
         {
             startTime : double
@@ -127,9 +143,7 @@ module Primitives =
             stepSize : double
             absoluteTolerance : AbsoluteTolerance
             solverType : SolverType
-            noOfOutputPoints : int
-            noOfProgressPoints : int
-            noOfChartDetailedPoints : int option
+            outputParams : OdeOutputParams
         }
 
 

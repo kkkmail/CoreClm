@@ -14,34 +14,108 @@ open GenericOdeSolver.Primitives
 
 module Solver =
 
-    let mutable private callCount = 0L
-    let mutable private progress = 0.0m
-    let mutable private lastCheck = DateTime.Now
     let mutable private callBackData = CallBackData.defaultValue
 
     // ================================================================ //
-
     //let private printDebug s = printfn $"{s}"
     let private printDebug _ = ()
+    // ================================================================ //
+
     let private makeNonNegativeByRef (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> max 0.0 (NativePtr.get x i) |]
     let private toArray (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> NativePtr.get x i |]
 
 
-    let private checkCancellation n =
-        let fromLastCheck = DateTime.Now - lastCheck
+    let calculateProgress n t =
+        (t - n.odeParams.startTime) / (n.odeParams.endTime - n.odeParams.startTime)
+        |> decimal
+
+
+    let shouldNotifyByCallCount d =
+        let callCount = d.callCount
+
+        let r =
+            [
+                callCount <= 10L
+                callCount > 10L && callCount <= 100L && callCount % 5L = 0L
+                callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
+                callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
+                callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
+                callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
+                callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
+                callCount > 10_000_000L && callCount <= 100_000_000L && callCount % 5_000_000L = 0L
+                callCount > 100_000_000L && callCount % 50_000_000L = 0L
+            ]
+            |> List.tryFind id
+            |> Option.defaultValue false
+
+        printDebug $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
+        r
+
+
+    let shouldNotifyByNextProgress (n : NSolveParam) d t =
+        let p = calculateProgress n t
+        let r = p >= d.nextProgress
+        printDebug $"shouldNotifyByNextProgress: p = {p}, nextProgress = {d.nextProgress}, r = {r}."
+        r
+
+
+    let shouldNotifyByNextChartProgress (n : NSolveParam) d t =
+        let p = calculateProgress n t
+        let r = p >= d.nextChartProgress
+        printDebug $"shouldNotifyByNextChart: p = {p}, nextChartProgress = {d.nextChartProgress}, r = {r}."
+        r
+
+
+    let calculateNextProgress n t =
+        let r =
+            match n.odeParams.outputParams.noOfProgressPoints with
+            | np when np <= 0 -> 1.0m
+            | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+        printDebug $"calculateNextProgress: r = {r}."
+        r
+
+    let calculateNextChartProgress n t =
+        let r =
+            match n.odeParams.outputParams.noOfOutputPoints with
+            | np when np <= 0 -> 1.0m
+            | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+        printDebug $"calculateNextChartProgress: r = {r}."
+        r
+
+    let shouldNotifyProgress n d t = shouldNotifyByCallCount d || shouldNotifyByNextProgress n d t
+    let shouldNotifyChart n d t = shouldNotifyByCallCount d || shouldNotifyByNextChartProgress n d t
+
+
+    type OdeOutputParams
+        with
+        member op.needsCallBack n =
+            // let f (d0 : CallBackData) t =
+            let f d t =
+                // let d = { d0 with callCount = d0.callCount + 1L }
+                let shouldNotifyProgress = shouldNotifyProgress n d t
+                let shouldNotifyChart = shouldNotifyChart n d t
+
+                match (shouldNotifyProgress, shouldNotifyChart) with
+                | false, false -> (d, None)
+                | false, true -> ( { d with nextChartProgress = calculateNextChartProgress n t }, Some ChartNotification)
+                | true, false -> ( { d with nextProgress = calculateNextProgress n t }, Some ProgressNotification)
+                | true, true ->
+                    let nextProgress = calculateNextProgress n t
+                    let nextChartProgress = calculateNextChartProgress n t
+                    ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
+
+            NeedsCallBack f
+
+
+    let private checkCancellation n d =
+        let fromLastCheck = DateTime.Now - d.lastCheck
         printDebug $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
 
         if fromLastCheck > n.callBackInfo.checkFreq
         then
-            lastCheck <- DateTime.Now
             let cancel = n.callBackInfo.checkCancellation.invoke n.runQueueId
-            cancel
-        else None
-
-
-    let private calculateProgress n t =
-        (t - n.odeParams.startTime) / (n.odeParams.endTime - n.odeParams.startTime)
-        |> decimal
+            { d with lastCheck = DateTime.Now}, cancel
+        else d, None
 
 
     let private estCompl n t =
@@ -50,9 +124,8 @@ module Solver =
         | None -> EmptyString
 
 
-    let private calculateProgressDataWithErr n t v =
+    let private calculateProgressDataWithErr n d t v =
         printDebug $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
-        progress <- calculateProgress n t
 
         let withMessage s m =
             let eo =
@@ -62,16 +135,19 @@ module Solver =
                 |> ErrorMessage
                 |> Some
 
-            {
-                progress = progress
-                callCount = callCount
-                errorMessageOpt = eo
-            }
+            let pd =
+                {
+                    progress = d.progress
+                    callCount = d. callCount
+                    errorMessageOpt = eo
+                }
+
+            pd
 
         match v with
-        | AbortCalculation s -> $"The run queue was aborted at: %.2f{progress * 100.0m}%% progress." |> withMessage s
+        | AbortCalculation s -> $"The run queue was aborted at: %.2f{d.progress * 100.0m}%% progress." |> withMessage s
         | CancelWithResults s ->
-            $"The run queue was cancelled at: %.2f{progress * 100.0m}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
+            $"The run queue was cancelled at: %.2f{d.progress * 100.0m}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
             |> withMessage s
 
 
@@ -81,14 +157,15 @@ module Solver =
 
 
     let private tryCallBack n t x =
-        callCount <- callCount + 1L
+        let d0 = callBackData
+        let d, ct = { d0 with callCount = d0.callCount + 1L; progress = calculateProgress n t } |> checkCancellation n
 
-        match checkCancellation n with
+        match ct with
         | Some v ->
             notifyAll n (v |> CancelledCalculation |> FinalCallBack) t x
-            raise(ComputationAbortedException (calculateProgressDataWithErr n t v, v))
+            raise(ComputationAbortedException (calculateProgressDataWithErr n d t v, v))
         | None ->
-            let c, v = n.callBackInfo.needsCallBack.invoke callBackData t
+            let c, v = n.callBackInfo.needsCallBack.invoke d t
             callBackData <- c
 
             match v with
