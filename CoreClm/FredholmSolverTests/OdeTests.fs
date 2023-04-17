@@ -10,7 +10,6 @@ open Primitives.SolverPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfModel
-open FluentAssertions
 open Primitives.SolverRunnerErrors
 open Xunit
 open Xunit.Abstractions
