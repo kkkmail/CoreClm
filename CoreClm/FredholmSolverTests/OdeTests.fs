@@ -1,6 +1,8 @@
 ﻿namespace FredholmSolverTests
 
 open System
+open FluentAssertions.Execution
+open FluentAssertions
 open GenericOdeSolver.Primitives
 open GenericOdeSolver.Solver
 open Primitives.GeneralPrimitives
@@ -9,8 +11,28 @@ open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfModel
 open FluentAssertions
+open Primitives.SolverRunnerErrors
 open Xunit
 open Xunit.Abstractions
+
+type private CallBackResults =
+    {
+        progressCallBackCount : int
+        completedCallBackCount : int
+        cancelledCallBackCount : int
+        abortedCallBackCount : int
+        chartCallBackCount : int
+    }
+
+    static member defaultValue =
+        {
+            progressCallBackCount = 0
+            completedCallBackCount = 0
+            cancelledCallBackCount = 0
+            abortedCallBackCount = 0
+            chartCallBackCount = 0
+        }
+
 
 /// TODO kk:20230413 - Consolidate data creation into some common place.
 type OdeTests (output : ITestOutputHelper) =
@@ -72,7 +94,7 @@ type OdeTests (output : ITestOutputHelper) =
     let odeParams =
         {
             startTime = 0.0
-            endTime = 100.0
+            endTime = 10.0
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
@@ -119,8 +141,33 @@ type OdeTests (output : ITestOutputHelper) =
         n, v
 
 
+    let callBack cr c _ _ =
+        match c with
+        | RegularCallBack -> { cr with progressCallBackCount = cr.progressCallBackCount + 1 }
+        | FinalCallBack ct ->
+            match ct with
+            | CompletedCalculation -> { cr with completedCallBackCount = cr.completedCallBackCount + 1 }
+            | CancelledCalculation c ->
+                match c with
+                | CancelWithResults _  -> { cr with cancelledCallBackCount = cr.cancelledCallBackCount + 1 }
+                | AbortCalculation _ -> { cr with abortedCallBackCount = cr.abortedCallBackCount + 1 }
+
+
+    let charCallBack cr _ _ _ = { cr with chartCallBackCount = cr.chartCallBackCount + 1 }
+
+
+    let calLBackInfo n callBack charCallBack checkCancellation =
+        {
+            checkFreq = TimeSpan.FromMilliseconds(10.0)
+            needsCallBack = n.odeParams.outputParams.needsCallBack n
+            progressCallBack = ProgressCallBack callBack
+            chartCallBack = ChartCallBack charCallBack
+            checkCancellation = CheckCancellation checkCancellation
+        }
+
+
     [<Fact>]
-    member _.ode_ShouldRun () : unit =
+    member _.odePack_ShouldRun () : unit =
         let data = defaultKernelData
         let md = modelData data
         let nSolveParam, getData = nSolveParam data
@@ -133,3 +180,69 @@ type OdeTests (output : ITestOutputHelper) =
         writeLine $"result: {result}."
         result.Should().NotBeNull(nullString) |> ignore
         diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.odePack_ShouldCallBack () : unit =
+        let mutable cr = CallBackResults.defaultValue
+
+        let data = defaultKernelData
+        let n, _ = nSolveParam data
+
+        let callBack c t x = cr <- callBack cr c t x
+        let charCallBack c t x = cr <- charCallBack cr c t x
+        let c = calLBackInfo n callBack charCallBack (fun _ -> None)
+
+        let nSolveParam = { n with callBackInfo = c }
+        let result = nSolve nSolveParam
+
+        use _ = new AssertionScope()
+        result.Should().NotBeNull(nullString) |> ignore
+        cr.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        cr.completedCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        cr.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
+        cr.chartCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.odePack_ShouldCancel () : unit =
+        let mutable cr = CallBackResults.defaultValue
+
+        let data = defaultKernelData
+        let n, _ = nSolveParam data
+
+        let callBack c t x = cr <- callBack cr c t x
+        let charCallBack c t x = cr <- charCallBack cr c t x
+        let checkCancellation _ = CancelWithResults None |> Some
+        let c = calLBackInfo n callBack charCallBack checkCancellation
+
+        let nSolveParam = { n with callBackInfo = c }
+
+        use _ = new AssertionScope()
+        FluentActions.Invoking(fun () -> nSolve nSolveParam |> ignore).Should().Throw<ComputationAbortedException>(nullString) |> ignore
+        cr.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        cr.completedCallBackCount.Should().Be(0, nullString) |> ignore
+        cr.cancelledCallBackCount.Should().Be(1, nullString) |> ignore
+        cr.abortedCallBackCount.Should().Be(0, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.odePack_ShouldAbort () : unit =
+        let mutable cr = CallBackResults.defaultValue
+
+        let data = defaultKernelData
+        let n, _ = nSolveParam data
+
+        let callBack c t x = cr <- callBack cr c t x
+        let charCallBack c t x = cr <- charCallBack cr c t x
+        let checkCancellation _ = AbortCalculation None |> Some
+        let c = calLBackInfo n callBack charCallBack checkCancellation
+
+        let nSolveParam = { n with callBackInfo = c }
+
+        use _ = new AssertionScope()
+        FluentActions.Invoking(fun () -> nSolve nSolveParam |> ignore).Should().Throw<ComputationAbortedException>(nullString) |> ignore
+        cr.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        cr.completedCallBackCount.Should().Be(0, nullString) |> ignore
+        cr.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
+        cr.abortedCallBackCount.Should().Be(1, nullString) |> ignore

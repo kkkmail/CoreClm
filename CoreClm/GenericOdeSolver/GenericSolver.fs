@@ -254,25 +254,29 @@ module Solver =
         | OdePack (m, i, nc) ->
             printfn $"nSolve: Using {m} / {i} DLSODE solver."
 
-            match nc with
-            | UseNonNegative ->
-                OdeSolver.RunFSharp(
-                        (fun() -> createUseNonNegativeInterop n),
-                        m.value,
-                        i.value,
-                        p.startTime,
-                        p.endTime,
-                        n.initialValues,
-                        mapResults,
-                        p.absoluteTolerance.value)
+            let result =
+                match nc with
+                | UseNonNegative ->
+                    OdeSolver.RunFSharp(
+                            (fun() -> createUseNonNegativeInterop n),
+                            m.value,
+                            i.value,
+                            p.startTime,
+                            p.endTime,
+                            n.initialValues,
+                            mapResults,
+                            p.absoluteTolerance.value)
 
-            | DoNotCorrect ->
-                OdeSolver.RunFSharp(
-                        (fun() -> createDoNotCorrectInterop n),
-                        m.value,
-                        i.value,
-                        p.startTime,
-                        p.endTime,
-                        n.initialValues,
-                        mapResults,
-                        p.absoluteTolerance.value)
+                | DoNotCorrect ->
+                    OdeSolver.RunFSharp(
+                            (fun() -> createDoNotCorrectInterop n),
+                            m.value,
+                            i.value,
+                            p.startTime,
+                            p.endTime,
+                            n.initialValues,
+                            mapResults,
+                            p.absoluteTolerance.value)
+
+            notifyAll n (FinalCallBack CompletedCalculation) result.endTime result.xEnd
+            result
