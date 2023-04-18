@@ -14,7 +14,7 @@ open Primitives.SolverRunnerErrors
 open Xunit
 open Xunit.Abstractions
 
-type private CallBackResults =
+type CallBackResults =
     {
         progressCallBackCount : int
         completedCallBackCount : int
@@ -46,6 +46,17 @@ type EeInfModelData =
             eps = 1.0e-2
             total = 10.0
         }
+
+
+type odeResultData =
+    {
+        modelData : ModelData
+        callBackResults : CallBackResults
+        result : OdeResult
+        getData : double[] -> SubstanceData
+        invStart : double
+    }
+
 
 
 /// TODO kk:20230413 - Consolidate data creation into some common place.
@@ -192,31 +203,8 @@ type OdeTests (output : ITestOutputHelper) =
         }
 
 
-    [<Fact>]
-    member _.odePack_ShouldRun () : unit =
-        let data = defaultKernelData
-        let eid = EeInfModelData.defaultValue
-        let md = modelData data
-        let nSolveParam, getData = nSolveParam data eid
-        let iv = getData nSolveParam.initialValues
-        let inv_tStart = iv |> md.invariant
-        outputResult md nSolveParam.odeParams.startTime iv
-        let result = nSolve nSolveParam
-        let v = getData result.xEnd
-        let inv_tEnd = md.invariant v
-        let diff = (inv_tEnd - inv_tStart) / inv_tStart
-        outputResult md result.endTime v
-        // writeLine $"result: {result}."
-        result.Should().NotBeNull(nullString) |> ignore
-        diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
-
-
-    [<Fact>]
-    member _.odePack_ShouldCallBack () : unit =
+    let odePackRun data eid cc =
         let mutable cr = CallBackResults.defaultValue
-
-        let data = defaultKernelData
-        let eid = EeInfModelData.defaultValue
 
         let md = modelData data
         let n, getData = nSolveParam data eid
@@ -224,21 +212,53 @@ type OdeTests (output : ITestOutputHelper) =
 
         let callBack c t x = cr <- callBack cr outputResult c t x
         let chartCallBack c t x = cr <- chartCallBack cr c t x
-        let c = calLBackInfo n callBack chartCallBack (fun _ -> None)
+        let c = calLBackInfo n callBack chartCallBack cc
 
         let nSolveParam = { n with callBackInfo = c }
+        let invStart = getData nSolveParam.initialValues |> md.invariant
+        outputResult nSolveParam.odeParams.startTime nSolveParam.initialValues
+
         let result = nSolve nSolveParam
+        outputResult result.endTime result.xEnd
+
+        {
+            modelData = md
+            callBackResults = cr
+            result = result
+            getData = getData
+            invStart = invStart
+        }
+
+
+    [<Fact>]
+    member _.odePack_ShouldRun () : unit =
+        let r = odePackRun defaultKernelData EeInfModelData.defaultValue (fun _ -> None)
+
+        let v = r.getData r.result.xEnd
+        let inv_tEnd = r.modelData.invariant v
+        let diff = (inv_tEnd - r.invStart) / r.invStart
+        outputResult r.modelData r.result.endTime v
 
         use _ = new AssertionScope()
-        result.Should().NotBeNull(nullString) |> ignore
-        cr.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
-        cr.completedCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
-        cr.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
-        cr.chartCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        r.result.Should().NotBeNull(nullString) |> ignore
+        diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.odePack_ShouldCallBack () : unit =
+        let r = odePackRun defaultKernelData EeInfModelData.defaultValue (fun _ -> None)
+
+        use _ = new AssertionScope()
+        r.result.Should().NotBeNull(nullString) |> ignore
+        r.callBackResults.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        r.callBackResults.completedCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        r.callBackResults.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
+        r.callBackResults.chartCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
 
 
     [<Fact>]
     member _.odePack_ShouldCancel () : unit =
+        let r = odePackRun defaultKernelData EeInfModelData.defaultValue (fun _ -> None)
         let mutable cr = CallBackResults.defaultValue
 
         let data = defaultKernelData
