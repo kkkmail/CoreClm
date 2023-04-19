@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Conventions.fs" />
     <Compile Include="GeneralPrimitives.fs" />
     <Compile Include="GeneralErrors.fs" />
     <Compile Include="GeneralData.fs" />

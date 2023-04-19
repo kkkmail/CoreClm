@@ -93,7 +93,7 @@ module EeInfModel =
         }
 
 
-    type ModelData =
+    type EeInfModel =
         {
             kernel : Kernel
             gamma : Gamma
@@ -108,11 +108,11 @@ module EeInfModel =
 
             let gamma_u = g * u
             let int_k_u = k.integrateValues u
-            let int_int_k_u = k.domainData.integrateValues int_k_u
+            let int_int_k_u = k.domain2D.integrateValues int_k_u
             let f_n = (pown f n)
 
             let df = (double n) * (s * w - f_n * int_int_k_u)  |> FoodData
-            let dw = - s * w + (k.domainData.integrateValues gamma_u) |> WasteData
+            let dw = - s * w + (k.domain2D.integrateValues gamma_u) |> WasteData
             let du = (f_n * int_k_u - gamma_u) |> ProtocellData
 
             let retVal = SubstanceData.create df dw du
@@ -133,7 +133,7 @@ module EeInfModel =
             let f, w, u = v.unpack()
             let k, g, n, s = md.unpack()
 
-            let int_u = k.domainData.integrateValues u
+            let int_u = k.domain2D.integrateValues u
             let inv = (double n) * (int_u + w) + f
             inv
 
