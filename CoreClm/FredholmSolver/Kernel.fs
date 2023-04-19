@@ -32,6 +32,23 @@ module Kernel =
         static member defaultValue = DomainIntervals 101
 
 
+    type DomainRange =
+        {
+            minValue : double
+            maxValue : double
+        }
+
+
+    type DomainData =
+        {
+            domainIntervals : DomainIntervals
+            domainRange : DomainRange
+        }
+
+        member dd.domain() =
+            Domain.create dd.domainIntervals.value dd.domainRange.minValue dd.domainRange.maxValue
+
+
     type EpsFuncData =
         | ScalarEps of double
 
@@ -63,7 +80,7 @@ module Kernel =
 
     type MutationProbabilityData =
         {
-            domain : Domain
+            domainData : DomainData
             zeroThreshold : double
             epsFuncData : EpsFuncData
         }
@@ -80,11 +97,12 @@ module Kernel =
 
         /// m is a real (unscaled) value but e is scaled to the half of the range.
         static member create (data : MutationProbabilityData) mean =
-            let ef = data.epsFuncData.epsFunc data.domain
-            let epsFunc x = (ef.invoke data.domain x) * data.domain.range / 2.0
+            let domain = data.domainData.domain()
+            let ef = data.epsFuncData.epsFunc domain
+            let epsFunc x = (ef.invoke domain x) * domain.range / 2.0
             let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
-            let values = data.domain.midPoints.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
-            let norm = data.domain.integrateValues values
+            let values = domain.midPoints.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
+            let norm = domain.integrateValues values
             let p = values.value |> Array.map (fun v -> { v with value1D = v.value1D / norm }) |> SparseArray.SparseArray |> MutationProbability
             p
 
@@ -95,10 +113,10 @@ module Kernel =
             infMutationProbabilityData : MutationProbabilityData
         }
 
-        member d.domain2D =
+        member d.domain2D() =
             {
-                eeDomain = d.eeMutationProbabilityData.domain
-                infDomain = d.infMutationProbabilityData.domain
+                eeDomain = d.eeMutationProbabilityData.domainData.domain()
+                infDomain = d.infMutationProbabilityData.domainData.domain()
             }
 
 
@@ -127,8 +145,9 @@ module Kernel =
         }
 
         static member create (data : MutationProbabilityData2D) =
-            let eeMu = data.domain2D.eeDomain.midPoints.value
-            let infMu = data.domain2D.infDomain.midPoints.value
+            let domain2D = data.domain2D()
+            let eeMu = domain2D.eeDomain.midPoints.value
+            let infMu = domain2D.infDomain.midPoints.value
 
             // These are the values where integration by (x, y) should yield 1 for each (x1, y1).
             // So [][] is by (x1, y1) and the underlying SparseArray2D is by (x, y).
@@ -162,6 +181,26 @@ module Kernel =
             kaFuncData : KaFuncData
         }
 
+        member kd.eeDomainData =
+            {
+                domainIntervals = kd.domainIntervals
+                domainRange =
+                    {
+                        minValue = Domain2D.eeMinValue
+                        maxValue = Domain2D.eeMaxValue
+                    }
+            }
+
+        member kd.infDomainData =
+            {
+                domainIntervals = kd.domainIntervals
+                domainRange =
+                    {
+                        minValue = Domain2D.infDefaultMinValue
+                        maxValue = kd.l2
+                    }
+            }
+
 
     type KernelValue =
         | KernelValue of SparseArray4D<double>
@@ -176,45 +215,46 @@ module Kernel =
     type Kernel =
         {
             kernel : KernelValue
-            domainData : Domain2D
+            domain2D : Domain2D
         }
 
         member k.integrateValues (u : LinearMatrix<double>) =
-            let v = k.domainData.integrateValues (k.kernel.value, u)
+            let v = k.domain2D.integrateValues (k.kernel.value, u)
             v
 
         static member create data =
-            let domainData = Domain2D.create data.noOfIntervals data.l2
+            let domain2D = Domain2D.create data.domainIntervals.value data.l2
 
             let mpData =
                 {
                     eeMutationProbabilityData =
                         {
-                            domain = domainData.eeDomain
+                            domainData = data.eeDomainData
                             zeroThreshold = data.zeroThreshold
                             epsFuncData = data.epsEeFuncData
                         }
 
                     infMutationProbabilityData =
                         {
-                            domain = domainData.infDomain
+                            domainData = data.infDomainData
                             zeroThreshold = data.zeroThreshold
                             epsFuncData = data.epsInfFuncData
                         }
                 }
 
             let mp = MutationProbability4D.create mpData
+            let kaFunc = data.kaFuncData.kaFunc domain2D
 
             let ka =
-                domainData.eeDomain.midPoints.value
-                |> Array.map (fun x -> domainData.infDomain.midPoints.value |> Array.map (fun y -> data.kaFunc.invoke domainData x y))
+                domain2D.eeDomain.midPoints.value
+                |> Array.map (fun x -> domain2D.infDomain.midPoints.value |> Array.map (fun y -> kaFunc.invoke domain2D x y))
                 |> Matrix
 
             let kernel = mp.xy_x1y1 * ka |> KernelValue
 
             {
                 kernel = kernel
-                domainData = domainData
+                domain2D = domain2D
             }
 
     type Gamma =
