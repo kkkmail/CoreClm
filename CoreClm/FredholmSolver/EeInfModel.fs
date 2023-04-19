@@ -76,15 +76,31 @@ module EeInfModel =
         member d.unpack() = d.food, d.waste, d.protocell
 
 
+    type ModelDataScalarParams =
+        {
+            domainIntervals : DomainIntervals
+            numberOfMolecules : NumberOfMolecules
+            recyclingRate : RecyclingRate
+        }
+
+
+    type ModelParams =
+        {
+            kaFuncData : KaFuncData
+            mutationProbabilityData : MutationProbabilityData2D
+            gammaFuncData : GammaFuncData
+            scalarParams : ModelDataScalarParams
+        }
+
+
     type ModelData =
         {
             kernel : Kernel
             gamma : Gamma
-            n : NumberOfMolecules
-            s : RecyclingRate
+            scalarData : ModelDataScalarParams
         }
 
-        member md.unpack() = md.kernel, md.gamma.value, md.n.value, md.s.value
+        member private md.unpack() = md.kernel, md.gamma.value, md.scalarData.numberOfMolecules.value, md.scalarData.recyclingRate.value
 
         member md.derivative (x : SubstanceData) =
             let f, w, u = x.unpack()
@@ -120,3 +136,7 @@ module EeInfModel =
             let int_u = k.domainData.integrateValues u
             let inv = (double n) * (int_u + w) + f
             inv
+
+
+        static member create (mp : ModelParams) : ModelData =
+            0

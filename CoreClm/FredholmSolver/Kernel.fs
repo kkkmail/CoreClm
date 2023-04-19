@@ -5,16 +5,67 @@ open FredholmSolver.Primitives
 module Kernel =
 
     type EpsFunc =
-        | EpsFunc of (double -> double)
+        | EpsFunc of (Domain -> double -> double)
 
-        member r.value = let (EpsFunc v) = r in v
+        member r.invoke = let (EpsFunc v) = r in v
+
+
+    /// ka portion of the kernel.
+    type KaFunc =
+        | KaFunc of (Domain2D -> double -> double -> double)
+
+        member r.invoke = let (KaFunc v) = r in v
+
+
+    type GammaFunc =
+        | GammaFunc of (Domain2D -> double -> double -> double)
+
+        member r.invoke = let (GammaFunc v) = r in v
+
+
+    /// Number of intervals in the domain.
+    type DomainIntervals =
+        | DomainIntervals of int
+
+        member r.value = let (DomainIntervals v) = r in v
+
+        static member defaultValue = DomainIntervals 101
+
+
+    type EpsFuncData =
+        | ScalarEps of double
+
+        member ef.epsFunc (d : Domain) : EpsFunc =
+            match ef with
+            | ScalarEps e -> EpsFunc (fun _ _ -> e)
+
+
+    type KaFuncData =
+        | IdentityKa
+        | QuadraticSeparableKa
+        | QuadraticInseparableKa
+
+        member k.kaFunc (d : Domain2D) : KaFunc =
+            match k with
+            | IdentityKa -> (fun _ _ _ -> 1.0)
+            | QuadraticSeparableKa -> (fun _ _ _ -> 1.0)
+            | QuadraticInseparableKa -> (fun _ _ _ -> 1.0)
+            |> KaFunc
+
+
+    type GammaFuncData =
+        | ScalarGamma of double
+
+        member g.gammaFunc (d : Domain2D) : GammaFunc =
+            match g with
+            | ScalarGamma e -> GammaFunc (fun _ _ _ -> e)
 
 
     type MutationProbabilityData =
         {
             domain : Domain
             zeroThreshold : double
-            epsFunc : EpsFunc
+            epsFuncData : EpsFuncData
         }
 
         static member defaultZeroThreshold : double = 1.0e-05
@@ -29,7 +80,8 @@ module Kernel =
 
         /// m is a real (unscaled) value but e is scaled to the half of the range.
         static member create (data : MutationProbabilityData) mean =
-            let epsFunc x = (data.epsFunc.value x) * data.domain.range / 2.0
+            let ef = data.epsFuncData.epsFunc data.domain
+            let epsFunc x = (ef.invoke data.domain x) * data.domain.range / 2.0
             let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
             let values = data.domain.midPoints.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
             let norm = data.domain.integrateValues values
@@ -100,21 +152,14 @@ module Kernel =
             }
 
 
-    /// ka portion of the kernel.
-    type KaFunc =
-        | KaFunc of (Domain2D -> double -> double -> double)
-
-        member r.value = let (KaFunc v) = r in v
-
-
     type KernelData =
         {
-            noOfIntervals : int
+            domainIntervals : DomainIntervals
             l2 : double
             zeroThreshold : double
-            epsEeFunc : EpsFunc
-            epsInfFunc : EpsFunc
-            kaFunc : KaFunc
+            epsEeFuncData : EpsFuncData
+            epsInfFuncData : EpsFuncData
+            kaFuncData : KaFuncData
         }
 
 
@@ -147,14 +192,14 @@ module Kernel =
                         {
                             domain = domainData.eeDomain
                             zeroThreshold = data.zeroThreshold
-                            epsFunc = data.epsEeFunc
+                            epsFuncData = data.epsEeFuncData
                         }
 
                     infMutationProbabilityData =
                         {
                             domain = domainData.infDomain
                             zeroThreshold = data.zeroThreshold
-                            epsFunc = data.epsInfFunc
+                            epsFuncData = data.epsInfFuncData
                         }
                 }
 
@@ -162,7 +207,7 @@ module Kernel =
 
             let ka =
                 domainData.eeDomain.midPoints.value
-                |> Array.map (fun x -> domainData.infDomain.midPoints.value |> Array.map (fun y -> data.kaFunc.value domainData x y))
+                |> Array.map (fun x -> domainData.infDomain.midPoints.value |> Array.map (fun y -> data.kaFunc.invoke domainData x y))
                 |> Matrix
 
             let kernel = mp.xy_x1y1 * ka |> KernelValue

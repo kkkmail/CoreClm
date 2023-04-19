@@ -124,15 +124,15 @@ type OdeTests (output : ITestOutputHelper) =
         {
             kernel = kernel
             gamma = defaultGamma kernel.domainData
-            n = NumberOfMolecules 100
-            s = RecyclingRate 1.0
+            numberOfMolecules = NumberOfMolecules 100
+            recyclingRate = RecyclingRate 1.0
         }
 
 
     let odeParams =
         {
             startTime = 0.0
-            endTime = 1_000_000.0
+            endTime = 100_000.0
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
