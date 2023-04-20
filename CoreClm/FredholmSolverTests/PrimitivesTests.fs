@@ -13,53 +13,53 @@ type PrimitivesTests (output : ITestOutputHelper) =
     let nullString : string = null
     let errTolerance = 1.0e-10
 
-    let defaultKernelData =
-        {
-            noOfIntervals = 101
-            l2 = 25
-            zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-            epsEeFunc = (fun _ -> 0.02) |> EpsFunc
-            epsInfFunc = (fun _ -> 0.02) |> EpsFunc
-            kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
-        }
+    // let defaultKernelData =
+    //     {
+    //         noOfIntervals = 101
+    //         l2 = 25
+    //         zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+    //         epsEeFunc = (fun _ -> 0.02) |> EpsFunc
+    //         epsInfFunc = (fun _ -> 0.02) |> EpsFunc
+    //         kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
+    //     }
+    //
+    // let defaultNarrowKernelData =
+    //     {
+    //         noOfIntervals = 101
+    //         l2 = 25
+    //         zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+    //         epsEeFunc = (fun _ -> 0.0001) |> EpsFunc
+    //         epsInfFunc = (fun _ -> 0.0001) |> EpsFunc
+    //         kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
+    //     }
 
-    let defaultNarrowKernelData =
-        {
-            noOfIntervals = 101
-            l2 = 25
-            zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-            epsEeFunc = (fun _ -> 0.0001) |> EpsFunc
-            epsInfFunc = (fun _ -> 0.0001) |> EpsFunc
-            kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
-        }
+    // let domain2D data = Domain2D.create data.noOfIntervals data.l2
+    let domain2D (data : KernelData) = Domain2D.create data.domainIntervals.value data.infMaxValue.value
 
-    let domain2D data = Domain2D.create data.noOfIntervals data.l2
-
-    let m2Data domain data =
-        {
-            eeMutationProbabilityData =
-                {
-                    domain = domain.eeDomain
-                    zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-                    epsFunc = data.epsEeFunc
-                }
-            infMutationProbabilityData =
-                {
-                    domain = domain.infDomain
-                    zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-                    epsFunc = data.epsInfFunc
-                }
-        }
+    // let m2Data domain data =
+    //     {
+    //         eeMutationProbabilityData =
+    //             {
+    //                 domain = domain.eeDomain
+    //                 zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+    //                 epsFunc = data.epsEeFunc
+    //             }
+    //         infMutationProbabilityData =
+    //             {
+    //                 domain = domain.infDomain
+    //                 zeroThreshold = MutationProbabilityData.defaultZeroThreshold
+    //                 epsFunc = data.epsInfFunc
+    //             }
+    //     }
 
 
-    let normalize data v = v / (double (data.noOfIntervals * data.noOfIntervals))
+    let normalize data v = v / (double (data.domainIntervals.value * data.domainIntervals.value))
 
 
     let mutationProbability4D_ShouldIntegrateToOneImpl data =
         let domain = domain2D data
-        let m2Data = m2Data domain data
         let sw = Stopwatch.StartNew()
-        let p = MutationProbability4D.create m2Data
+        let p = MutationProbability4D.create data.mutationProbabilityData2D
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
         let x1 = domain.integrateValues p.x1y1_xy
@@ -79,11 +79,11 @@ type PrimitivesTests (output : ITestOutputHelper) =
     /// which is a middle point in ee domain and 0-th point in inf domain.
     let getDeltaU data =
         let domain =
-            if data.noOfIntervals % 2 = 1
+            if data.domainIntervals.value % 2 = 1
             then domain2D data
             else failwith "data.noOfIntervals must be odd for this method to work."
 
-        let g i j = if (i * 2 + 1 = data.noOfIntervals) && (j = 0) then 1.0 else 0.0
+        let g i j = if (i * 2 + 1 = data.domainIntervals.value) && (j = 0) then 1.0 else 0.0
         let v = domain.eeDomain.midPoints.value |> Array.mapi (fun i _ -> domain.infDomain.midPoints.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
         let norm = domain.integrateValues v
         (1.0 / norm) * v
@@ -91,22 +91,21 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOne () : unit =
-        mutationProbability4D_ShouldIntegrateToOneImpl defaultKernelData
+        mutationProbability4D_ShouldIntegrateToOneImpl KernelData.defaultValue
 
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOneForNarrowData () : unit =
-        mutationProbability4D_ShouldIntegrateToOneImpl defaultNarrowKernelData
+        mutationProbability4D_ShouldIntegrateToOneImpl KernelData.defaultNarrowValue
 
 
     [<Fact>]
     member _.defaultKernel_ShouldMatchProbability () : unit =
-        let data = defaultKernelData
+        let data = KernelData.defaultValue
 
         let domain = domain2D data
-        let m2Data = m2Data domain data
         let sw = Stopwatch.StartNew()
-        let p = MutationProbability4D.create m2Data
+        let p = MutationProbability4D.create data.mutationProbabilityData2D
         let kernel = Kernel.create data
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
@@ -160,7 +159,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.delta_ShouldIntegrateToOne () : unit =
-        let data = defaultKernelData
+        let data = KernelData.defaultValue
 
         let u = (getDeltaU data).toLinearMatrix()
         let domain = domain2D data
@@ -174,7 +173,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.mean_ShouldBeConsistent () : unit =
-        let data = defaultKernelData
+        let data = KernelData.defaultValue
 
         let u = (getDeltaU data).toLinearMatrix()
         let domain = domain2D data
@@ -189,7 +188,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.stdDev_ShouldBeConsistent () : unit =
-        let data = defaultKernelData
+        let data = KernelData.defaultValue
 
         let u = (getDeltaU data).toLinearMatrix()
         let domain = domain2D data

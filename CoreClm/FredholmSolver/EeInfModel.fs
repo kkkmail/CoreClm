@@ -76,31 +76,41 @@ module EeInfModel =
         member d.unpack() = d.food, d.waste, d.protocell
 
 
-    type ModelDataScalarParams =
+    type EeInfModelParams =
         {
-            domainIntervals : DomainIntervals
+            kernelData : KernelData
+            gammaFuncValue : GammaFuncValue
             numberOfMolecules : NumberOfMolecules
             recyclingRate : RecyclingRate
         }
 
+        static member defaultValue =
+            {
+                kernelData = KernelData.defaultValue
+                gammaFuncValue = GammaFuncValue.defaultValue
+                numberOfMolecules = NumberOfMolecules.defaultValue
+                recyclingRate = RecyclingRate.defaultValue
+            }
 
-    type ModelParams =
-        {
-            kaFuncData : KaFuncData
-            mutationProbabilityData : MutationProbabilityData2D
-            gammaFuncData : GammaFuncData
-            scalarParams : ModelDataScalarParams
-        }
+        static member defaultNarrowValue =
+            {
+                kernelData = KernelData.defaultNarrowValue
+                gammaFuncValue = GammaFuncValue.defaultValue
+                numberOfMolecules = NumberOfMolecules.defaultValue
+                recyclingRate = RecyclingRate.defaultValue
+            }
 
 
     type EeInfModel =
         {
             kernel : Kernel
             gamma : Gamma
-            scalarData : ModelDataScalarParams
+            modelParams : EeInfModelParams // To keep all params used to create a model.
         }
 
-        member private md.unpack() = md.kernel, md.gamma.value, md.scalarData.numberOfMolecules.value, md.scalarData.recyclingRate.value
+        member private md.unpack() =
+            let p = md.modelParams
+            md.kernel, md.gamma.value, p.numberOfMolecules.value, p.recyclingRate.value
 
         member md.derivative (x : SubstanceData) =
             let f, w, u = x.unpack()
@@ -137,6 +147,11 @@ module EeInfModel =
             let inv = (double n) * (int_u + w) + f
             inv
 
+        static member create (mp : EeInfModelParams) : EeInfModel =
+            let kernel = Kernel.create mp.kernelData
 
-        static member create (mp : ModelParams) : ModelData =
-            0
+            {
+                kernel = kernel
+                gamma = Gamma.create kernel.domain2D mp.gammaFuncValue
+                modelParams = mp
+            }

@@ -33,33 +33,32 @@ type CallBackResults =
             chartCallBackCount = 0
         }
 
+type EeInfInitParams =
+    {
+        eps : double
+        total : double
+    }
 
 type EeInfModelData =
     {
-        noOfIntervals : int
-        numberOfMolecules : int
-        eps : double
-        total : double
-        l2 : double
-        epsEe : double
-        epsInf : double
+        modelParams : EeInfModelParams
+        initParams : EeInfInitParams
     }
 
     static member defaultValue =
         {
-            noOfIntervals = 101
-            numberOfMolecules = 100
-            eps = 1.0e-2
-            total = 10.0
-            l2 = 25.0
-            epsEe = 0.02
-            epsInf = 0.02
+            modelParams = EeInfModelParams.defaultValue
+            initParams =
+                {
+                    eps = 1.0e-2
+                    total = 10.0
+                }
         }
 
 
 type OdeResultData =
     {
-        modelData : ModelData
+        modelData : EeInfModel
         callBackResults : CallBackResults
         result : OdeResult
         getData : double[] -> SubstanceData
@@ -72,67 +71,35 @@ type OdeTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
     let errInvTolerance = 1.0e-3
-
-
-    let defaultKernelData (data : EeInfModelData) =
-        {
-            noOfIntervals = data.noOfIntervals
-            l2 = data.l2
-            zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-            epsEeFunc = (fun _ -> data.epsEe) |> EpsFunc
-            epsInfFunc = (fun _ -> data.epsInf) |> EpsFunc
-            kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
-        }
-
-    let domain2D (data : KernelData) = Domain2D.create data.noOfIntervals data.l2
-
-
-    let defaultGamma domainData =
-        let gamma =
-            domainData.eeDomain.midPoints.value
-            |> Array.map (fun a -> domainData.infDomain.midPoints.value |> Array.map (fun b -> 0.01))
-            |> Matrix
-            |> Gamma
-
-        gamma
+    let domain2D (data : KernelData) = Domain2D.create data.domainIntervals.value data.infMaxValue.value
 
 
     /// Creates a "delta" function centered near (0, 0) in the domain,
     /// which is a middle point in ee domain and 0-th point in inf domain.
     let getDeltaU (data : KernelData) eps =
         let domain =
-            if data.noOfIntervals % 2 = 1
+            if data.domainIntervals.value % 2 = 1
             then domain2D data
             else failwith "data.noOfIntervals must be odd for this method to work."
 
-        let g i j = if (i * 2 + 1 = data.noOfIntervals) && (j = 0) then 1.0 else 0.0
+        let g i j = if (i * 2 + 1 = data.domainIntervals.value) && (j = 0) then 1.0 else 0.0
         let v = domain.eeDomain.midPoints.value |> Array.mapi (fun i _ -> domain.infDomain.midPoints.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
         let norm = domain.integrateValues v
         (eps / norm) * v
 
-    let initialValues (data : KernelData) eid =
-        let f = FoodData (eid.total - (double eid.numberOfMolecules) * eid.eps)
+
+    let initialValues (md : EeInfModelData) = // (data : KernelData) eid =
+        let f = FoodData (md.initParams.total - (double md.modelParams.numberOfMolecules.value) * md.initParams.eps)
         let w = WasteData 0.0
-        let u = getDeltaU data eid.eps |> ProtocellData
+        let u = getDeltaU md.modelParams.kernelData md.initParams.eps |> ProtocellData
         let sd = SubstanceData.create f w u
         sd
-
-
-    let modelData data : ModelData =
-        let kernel = Kernel.create data
-
-        {
-            kernel = kernel
-            gamma = defaultGamma kernel.domainData
-            numberOfMolecules = NumberOfMolecules 100
-            recyclingRate = RecyclingRate 1.0
-        }
 
 
     let odeParams =
         {
             startTime = 0.0
-            endTime = 100_000.0
+            endTime = 10.0
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
@@ -146,10 +113,10 @@ type OdeTests (output : ITestOutputHelper) =
 
     let outputResult md t (v : SubstanceData) r =
         let u = v.protocell
-        let total = md.kernel.domainData.integrateValues u
+        let total = md.kernel.domain2D.integrateValues u
         let inv = md.invariant v
-        let m = md.kernel.domainData.mean u
-        let s = md.kernel.domainData.stdDev u
+        let m = md.kernel.domain2D.mean u
+        let s = md.kernel.domain2D.stdDev u
         let um = u.toMatrix()
         writeLine $"t: {t}, inv: {inv}, total: {total}, mean: {m}, stdDev: {s}."
 
@@ -161,9 +128,9 @@ type OdeTests (output : ITestOutputHelper) =
             |> ignore
 
 
-    let nSolveParam (data : KernelData) eid =
-        let i = initialValues data eid
-        let md = modelData data
+    let nSolveParam (data : EeInfModelData) =
+        let md = EeInfModel.create data.modelParams
+        let i = initialValues data
         // let f t v = outputResult md t v
         let f t v = ()
         let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
@@ -218,11 +185,11 @@ type OdeTests (output : ITestOutputHelper) =
         }
 
 
-    let odePackRun data eid cc =
+    let odePackRun (data : EeInfModelData) cc =
         let mutable cr = CallBackResults.defaultValue
 
-        let md = modelData data
-        let n, getData = nSolveParam data eid
+        let md = EeInfModel.create data.modelParams
+        let n, getData = nSolveParam data
         let outputResult b t x = outputResult md t (getData x) b
 
         let callBack c t x = cr <- callBack cr (outputResult false) c t x
@@ -247,8 +214,7 @@ type OdeTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.odePack_ShouldRun () : unit =
-        let kernelData = defaultKernelData EeInfModelData.defaultValue
-        let r = odePackRun kernelData EeInfModelData.defaultValue (fun _ -> None)
+        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None)
 
         let v = r.getData r.result.xEnd
         let inv_tEnd = r.modelData.invariant v
@@ -261,8 +227,7 @@ type OdeTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.odePack_ShouldCallBack () : unit =
-        let kernelData = defaultKernelData EeInfModelData.defaultValue
-        let r = odePackRun kernelData EeInfModelData.defaultValue (fun _ -> None)
+        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None)
 
         use _ = new AssertionScope()
         r.result.Should().NotBeNull(nullString) |> ignore
@@ -275,14 +240,13 @@ type OdeTests (output : ITestOutputHelper) =
     [<Fact>]
     member _.odePack_ShouldCancel () : unit =
         let mutable cr = CallBackResults.defaultValue
-        let kernelData = defaultKernelData EeInfModelData.defaultValue
-        let r = odePackRun kernelData EeInfModelData.defaultValue (fun _ -> None)
 
-        let eid = EeInfModelData.defaultValue
+        let md = EeInfModelData.defaultValue
+        let model = EeInfModel.create md.modelParams
+        let r = odePackRun md (fun _ -> None)
 
-        let md = modelData kernelData
-        let n, getData = nSolveParam kernelData eid
-        let outputResult b t x = outputResult md t (getData x) b
+        let n, getData = nSolveParam md
+        let outputResult b t x = outputResult model t (getData x) b
 
         let callBack c t x = cr <- callBack cr (outputResult false) c t x
         let chartCallBack c t x = cr <- chartCallBack cr c t x
@@ -303,12 +267,11 @@ type OdeTests (output : ITestOutputHelper) =
     member _.odePack_ShouldAbort () : unit =
         let mutable cr = CallBackResults.defaultValue
 
-        let kernelData = defaultKernelData EeInfModelData.defaultValue
-        let eid = EeInfModelData.defaultValue
+        let md = EeInfModelData.defaultValue
+        let model = EeInfModel.create md.modelParams
 
-        let md = modelData kernelData
-        let n, getData = nSolveParam kernelData eid
-        let outputResult b t x = outputResult md t (getData x) b
+        let n, getData = nSolveParam md
+        let outputResult b t x = outputResult model t (getData x) b
 
         let callBack c t x = cr <- callBack cr (outputResult false) c t x
         let chartCallBack c t x = cr <- chartCallBack cr c t x

@@ -1,26 +1,34 @@
 ﻿namespace FredholmSolver
 
+open System
 open FredholmSolver.Primitives
 
 module Kernel =
 
-    type EpsFunc =
-        | EpsFunc of (Domain -> double -> double)
 
-        member r.invoke = let (EpsFunc v) = r in v
+    /// Describes a function domain suitable for integral approximation.
+    /// Equidistant grid is used to reduce the number of multiplications.
+    type Domain =
+        {
+            midPoints : Vector<double>
+            step : double
+            range : double
+        }
 
+        member d.noOfIntervals = d.midPoints.value.Length
 
-    /// ka portion of the kernel.
-    type KaFunc =
-        | KaFunc of (Domain2D -> double -> double -> double)
+        member d.integrateValues (v : SparseArray<double>) =
+            let sum = v.value |> Array.map (fun e -> e.value1D) |> Array.sum
+            sum * d.step
 
-        member r.invoke = let (KaFunc v) = r in v
+        static member create noOfIntervals minValue maxValue =
+            let points = [| for i in 0..noOfIntervals -> minValue + (maxValue - minValue) * (double i) / (double noOfIntervals) |]
 
-
-    type GammaFunc =
-        | GammaFunc of (Domain2D -> double -> double -> double)
-
-        member r.invoke = let (GammaFunc v) = r in v
+            {
+                midPoints = [| for i in 0..noOfIntervals - 1 -> (points[i + 1] + points[i]) / 2.0 |] |> Vector
+                step =  (maxValue - minValue) / (double noOfIntervals)
+                range = points[noOfIntervals] - points[0]
+            }
 
 
     /// Number of intervals in the domain.
@@ -49,7 +57,98 @@ module Kernel =
             Domain.create dd.domainIntervals.value dd.domainRange.minValue dd.domainRange.maxValue
 
 
-    type EpsFuncData =
+    /// Data that describes a rectangle in ee * inf space.
+    /// ee space is naturally limited to [-1, 1] unless we use a conformal transformation to extend it to [-Infinity, Infinity].
+    /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
+    type Domain2D =
+        {
+            eeDomain : Domain
+            infDomain : Domain
+        }
+
+        member private d.normalize v = v * d.eeDomain.step * d.infDomain.step
+        member private d.integrateValues (a : double[][]) = a |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
+        member private d.integrateValues (a : SparseArray2D<double>) = a.value |> Array.map (fun e -> e.value2D) |> Array.sum |> d.normalize
+
+        member d.integrateValues (a : Matrix<double>) =
+            let sum = a.value |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
+            sum
+
+        member d.integrateValues (a : LinearMatrix<double>) =
+            let sum = a.d1Range |> Array.map (fun i -> a.d2Range |> Array.map (fun j -> a.getValue i j) |> Array.sum) |> Array.sum |> d.normalize
+            sum
+
+        member private d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
+            let bValue = b.getValue
+            let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum |> d.normalize
+            sum
+
+        member d.integrateValues (a : SparseArray4D<double>, b : LinearMatrix<double>) =
+            a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b))) |> Matrix
+
+        member d.integrateValues (a : SparseArray4D<double>) =
+            a.value |> Array.map (fun v -> v |> Array.map d.integrateValues) |> Matrix
+
+        member d.norm (a : LinearMatrix<double>) = d.integrateValues a
+
+        member d.mean (a : LinearMatrix<double>) =
+            let norm = d.norm a
+
+            if norm > 0.0
+            then
+                let mx = (d.integrateValues (d.eeDomain.midPoints * a)) / norm
+                let my = (d.integrateValues (a * d.infDomain.midPoints)) / norm
+                (mx, my)
+            else (0.0, 0.0)
+
+        member d.stdDev (a : LinearMatrix<double>) =
+            let norm = d.norm a
+
+            if norm > 0.0
+            then
+                let mx, my = d.mean a
+                let m2x = (d.integrateValues (d.eeDomain.midPoints * (d.eeDomain.midPoints * a))) / norm
+                let m2y = (d.integrateValues ((a * d.infDomain.midPoints) * d.infDomain.midPoints)) / norm
+                (Math.Max(m2x - mx * mx, 0.0) |> Math.Sqrt, Math.Max(m2y - my * my, 0.0) |> Math.Sqrt)
+            else (0.0, 0.0)
+
+        static member eeMinValue = -1.0
+        static member eeMaxValue = 1.0
+        static member infDefaultMinValue = 0.0
+
+        static member create noOfIntervals l2 =
+            let eeDomain = Domain.create noOfIntervals Domain2D.eeMinValue Domain2D.eeMaxValue
+            let infDomain = Domain.create noOfIntervals Domain2D.infDefaultMinValue l2
+
+            {
+                eeDomain = eeDomain
+                infDomain = infDomain
+                // midPoints = cartesianMultiply eeDomain infDomain
+            }
+
+
+    /// Type to describe a function used to calculate eps in mutation probability calculations.
+    type EpsFunc =
+        | EpsFunc of (Domain -> double -> double)
+
+        member r.invoke = let (EpsFunc v) = r in v
+
+
+    /// ka portion of the kernel.
+    type KaFunc =
+        | KaFunc of (Domain2D -> double -> double -> double)
+
+        member r.invoke = let (KaFunc v) = r in v
+
+
+    /// Decay function.
+    type GammaFunc =
+        | GammaFunc of (Domain2D -> double -> double -> double)
+
+        member r.invoke = let (GammaFunc v) = r in v
+
+
+    type EpsFuncValue =
         | ScalarEps of double
 
         member ef.epsFunc (d : Domain) : EpsFunc =
@@ -57,7 +156,7 @@ module Kernel =
             | ScalarEps e -> EpsFunc (fun _ _ -> e)
 
 
-    type KaFuncData =
+    type KaFuncValue =
         | IdentityKa
         | QuadraticSeparableKa
         | QuadraticInseparableKa
@@ -70,22 +169,22 @@ module Kernel =
             |> KaFunc
 
 
-    type GammaFuncData =
+    type GammaFuncValue =
         | ScalarGamma of double
 
         member g.gammaFunc (d : Domain2D) : GammaFunc =
             match g with
             | ScalarGamma e -> GammaFunc (fun _ _ _ -> e)
 
+        static member defaultValue = ScalarGamma 0.01
+
 
     type MutationProbabilityData =
         {
             domainData : DomainData
-            zeroThreshold : double
-            epsFuncData : EpsFuncData
+            zeroThreshold : ZeroThreshold
+            epsFuncValue : EpsFuncValue
         }
-
-        static member defaultZeroThreshold : double = 1.0e-05
 
 
     /// Creates a normalized mutation probability.
@@ -98,7 +197,7 @@ module Kernel =
         /// m is a real (unscaled) value but e is scaled to the half of the range.
         static member create (data : MutationProbabilityData) mean =
             let domain = data.domainData.domain()
-            let ef = data.epsFuncData.epsFunc domain
+            let ef = data.epsFuncValue.epsFunc domain
             let epsFunc x = (ef.invoke domain x) * domain.range / 2.0
             let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
             let values = domain.midPoints.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
@@ -171,14 +270,22 @@ module Kernel =
             }
 
 
+    /// Max value of the range in inf space.
+    type InfMaxValue =
+        | InfMaxValue of double
+
+        member r.value = let (InfMaxValue v) = r in v
+        static member defaultValue = InfMaxValue 25.0
+
+
     type KernelData =
         {
             domainIntervals : DomainIntervals
-            l2 : double
-            zeroThreshold : double
-            epsEeFuncData : EpsFuncData
-            epsInfFuncData : EpsFuncData
-            kaFuncData : KaFuncData
+            infMaxValue : InfMaxValue
+            zeroThreshold : ZeroThreshold
+            epsEeFuncValue : EpsFuncValue
+            epsInfFuncValue : EpsFuncValue
+            kaFuncValue : KaFuncValue
         }
 
         member kd.eeDomainData =
@@ -197,8 +304,45 @@ module Kernel =
                 domainRange =
                     {
                         minValue = Domain2D.infDefaultMinValue
-                        maxValue = kd.l2
+                        maxValue = kd.infMaxValue.value
                     }
+            }
+
+        member kd.mutationProbabilityData2D =
+            {
+                eeMutationProbabilityData =
+                    {
+                        domainData = kd.eeDomainData
+                        zeroThreshold = ZeroThreshold.defaultValue
+                        epsFuncValue = kd.epsEeFuncValue
+                    }
+                infMutationProbabilityData =
+                    {
+                        domainData = kd.infDomainData
+                        zeroThreshold = ZeroThreshold.defaultValue
+                        epsFuncValue = kd.epsInfFuncValue
+                    }
+            }
+
+
+        static member defaultValue =
+            {
+                domainIntervals = DomainIntervals.defaultValue
+                infMaxValue = InfMaxValue.defaultValue
+                zeroThreshold = ZeroThreshold.defaultValue
+                epsEeFuncValue = EpsFuncValue.ScalarEps 0.02
+                epsInfFuncValue = EpsFuncValue.ScalarEps 0.02
+                kaFuncValue = KaFuncValue.IdentityKa
+            }
+
+        static member defaultNarrowValue =
+            {
+                domainIntervals = DomainIntervals.defaultValue
+                infMaxValue = InfMaxValue.defaultValue
+                zeroThreshold = ZeroThreshold.defaultValue
+                epsEeFuncValue = EpsFuncValue.ScalarEps 0.0001
+                epsInfFuncValue = EpsFuncValue.ScalarEps 0.0001
+                kaFuncValue = KaFuncValue.IdentityKa
             }
 
 
@@ -223,7 +367,7 @@ module Kernel =
             v
 
         static member create data =
-            let domain2D = Domain2D.create data.domainIntervals.value data.l2
+            let domain2D = Domain2D.create data.domainIntervals.value data.infMaxValue.value
 
             let mpData =
                 {
@@ -231,19 +375,19 @@ module Kernel =
                         {
                             domainData = data.eeDomainData
                             zeroThreshold = data.zeroThreshold
-                            epsFuncData = data.epsEeFuncData
+                            epsFuncValue = data.epsEeFuncValue
                         }
 
                     infMutationProbabilityData =
                         {
                             domainData = data.infDomainData
                             zeroThreshold = data.zeroThreshold
-                            epsFuncData = data.epsInfFuncData
+                            epsFuncValue = data.epsInfFuncValue
                         }
                 }
 
             let mp = MutationProbability4D.create mpData
-            let kaFunc = data.kaFuncData.kaFunc domain2D
+            let kaFunc = data.kaFuncValue.kaFunc domain2D
 
             let ka =
                 domain2D.eeDomain.midPoints.value
@@ -262,15 +406,26 @@ module Kernel =
 
         member r.value = let (Gamma v) = r in v
 
+        static member create (d : Domain2D) (g : GammaFuncValue) : Gamma =
+            let gamma =
+                d.eeDomain.midPoints.value
+                |> Array.map (fun a -> d.infDomain.midPoints.value |> Array.map (fun b -> (g.gammaFunc d).invoke d a b))
+                |> Matrix
+                |> Gamma
+
+            gamma
+
 
     /// Number of "molecules" or building blocks used in a protocell.
     type NumberOfMolecules =
         | NumberOfMolecules of int
 
         member r.value = let (NumberOfMolecules v) = r in v
+        static member defaultValue = NumberOfMolecules 100
 
 
     type RecyclingRate =
         | RecyclingRate of double
 
         member r.value = let (RecyclingRate v) = r in v
+        static member defaultValue = RecyclingRate 1.0

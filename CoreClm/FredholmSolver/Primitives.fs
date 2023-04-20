@@ -1,10 +1,10 @@
 ﻿namespace FredholmSolver
 
-open System
 open FSharp.Collections
 
 module Primitives =
 
+    /// Linear representation of a vector (array).
     type Vector<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         | Vector of 'T[]
 
@@ -138,6 +138,7 @@ module Primitives =
             dataType : LinearDataType
         }
 
+
     type LinearDataInfo<'K when 'K : comparison> =
         {
             dataTypes : Map<'K, LinearDataElement>
@@ -224,6 +225,14 @@ module Primitives =
             }
 
 
+    /// A parameter to control when a value in a sparse array should be treated as exact zero (and ignored).
+    type ZeroThreshold =
+        | ZeroThreshold of double
+
+        member r.value = let (ZeroThreshold v) = r in v
+        static member defaultValue = ZeroThreshold 1.0e-05
+
+
     /// Representation of non-zero value in a sparse array.
     type SparseValue<'T> =
         {
@@ -238,7 +247,7 @@ module Primitives =
 
         member r.value = let (SparseArray v) = r in v
 
-        static member create z v =
+        static member create (ZeroThreshold z) v =
             v
             |> Array.mapi (fun i e -> if e >= z then Some { i = i; value1D = e } else None)
             |> Array.choose id
@@ -408,98 +417,3 @@ module Primitives =
     let inline cartesianMultiply<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> (a : SparseArray<'T>) (b : SparseArray<'T>) : SparseArray2D<'T> =
         let bValue = b.value
         a.value |> Array.map (fun e -> bValue |> Array.map (fun f -> { i = e.i; j = f.i; value2D = e.value1D * f.value1D })) |> Array.concat |> SparseArray2D<'T>.SparseArray2D
-
-
-    /// Describes a function domain suitable for integral approximation.
-    /// Equidistant grid is used to reduce the number of multiplications.
-    type Domain =
-        {
-            midPoints : Vector<double>
-            step : double
-            range : double
-        }
-
-        member d.noOfIntervals = d.midPoints.value.Length
-
-        member d.integrateValues (v : SparseArray<double>) =
-            let sum = v.value |> Array.map (fun e -> e.value1D) |> Array.sum
-            sum * d.step
-
-        static member create noOfIntervals minValue maxValue =
-            let points = [| for i in 0..noOfIntervals -> minValue + (maxValue - minValue) * (double i) / (double noOfIntervals) |]
-
-            {
-                midPoints = [| for i in 0..noOfIntervals - 1 -> (points[i + 1] + points[i]) / 2.0 |] |> Vector
-                step =  (maxValue - minValue) / (double noOfIntervals)
-                range = points[noOfIntervals] - points[0]
-            }
-
-
-    /// Data that describes a rectangle in ee * inf space.
-    /// ee space is naturally limited to [-1, 1] unless we use a conformal transformation to extend it to [-Infinity, Infinity].
-    /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
-    type Domain2D =
-        {
-            eeDomain : Domain
-            infDomain : Domain
-        }
-
-        member private d.normalize v = v * d.eeDomain.step * d.infDomain.step
-        member private d.integrateValues (a : double[][]) = a |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
-        member private d.integrateValues (a : SparseArray2D<double>) = a.value |> Array.map (fun e -> e.value2D) |> Array.sum |> d.normalize
-
-        member d.integrateValues (a : Matrix<double>) =
-            let sum = a.value |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
-            sum
-
-        member d.integrateValues (a : LinearMatrix<double>) =
-            let sum = a.d1Range |> Array.map (fun i -> a.d2Range |> Array.map (fun j -> a.getValue i j) |> Array.sum) |> Array.sum |> d.normalize
-            sum
-
-        member private d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
-            let bValue = b.getValue
-            let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum |> d.normalize
-            sum
-
-        member d.integrateValues (a : SparseArray4D<double>, b : LinearMatrix<double>) =
-            a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b))) |> Matrix
-
-        member d.integrateValues (a : SparseArray4D<double>) =
-            a.value |> Array.map (fun v -> v |> Array.map d.integrateValues) |> Matrix
-
-        member d.norm (a : LinearMatrix<double>) = d.integrateValues a
-
-        member d.mean (a : LinearMatrix<double>) =
-            let norm = d.norm a
-
-            if norm > 0.0
-            then
-                let mx = (d.integrateValues (d.eeDomain.midPoints * a)) / norm
-                let my = (d.integrateValues (a * d.infDomain.midPoints)) / norm
-                (mx, my)
-            else (0.0, 0.0)
-
-        member d.stdDev (a : LinearMatrix<double>) =
-            let norm = d.norm a
-
-            if norm > 0.0
-            then
-                let mx, my = d.mean a
-                let m2x = (d.integrateValues (d.eeDomain.midPoints * (d.eeDomain.midPoints * a))) / norm
-                let m2y = (d.integrateValues ((a * d.infDomain.midPoints) * d.infDomain.midPoints)) / norm
-                (Math.Max(m2x - mx * mx, 0.0) |> Math.Sqrt, Math.Max(m2y - my * my, 0.0) |> Math.Sqrt)
-            else (0.0, 0.0)
-
-        static member eeMinValue = -1.0
-        static member eeMaxValue = 1.0
-        static member infDefaultMinValue = 0.0
-
-        static member create noOfIntervals l2 =
-            let eeDomain = Domain.create noOfIntervals Domain2D.eeMinValue Domain2D.eeMaxValue
-            let infDomain = Domain.create noOfIntervals Domain2D.infDefaultMinValue l2
-
-            {
-                eeDomain = eeDomain
-                infDomain = infDomain
-                // midPoints = cartesianMultiply eeDomain infDomain
-            }
