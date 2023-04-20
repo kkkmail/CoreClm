@@ -127,6 +127,28 @@ module Kernel =
             }
 
 
+    let factorial n = [ 1..n ] |> List.fold (*) 1
+
+
+    /// Uses: y = scale * (x - x0) in Taylor expansion.
+    type TaylorApproximation =
+        {
+            x0 : double
+            scale : double
+            coefficients : double[]
+        }
+
+        member ta.calculate x =
+            let y = ta.scale * (x - ta.x0)
+
+            let retVal =
+                ta.coefficients
+                |> Array.mapi (fun i e -> (pown y i) * e / (factorial i |> double))
+                |> Array.sum
+
+            retVal
+
+
     /// Type to describe a function used to calculate eps in mutation probability calculations.
     type EpsFunc =
         | EpsFunc of (Domain -> double -> double)
@@ -156,27 +178,79 @@ module Kernel =
             | ScalarEps e -> EpsFunc (fun _ _ -> e)
 
 
+    let separableFunc (tEe : TaylorApproximation) (tInf : TaylorApproximation) a b =
+        let eeVal = tEe.calculate a
+        let infVal = tInf.calculate b
+        eeVal * infVal
+
+
     type KaFuncValue =
         | IdentityKa
-        | QuadraticSeparableKa
-        | QuadraticInseparableKa
+        | SeparableKa of TaylorApproximation * TaylorApproximation
 
         member k.kaFunc (d : Domain2D) : KaFunc =
             match k with
             | IdentityKa -> (fun _ _ _ -> 1.0)
-            | QuadraticSeparableKa -> (fun _ _ _ -> 1.0)
-            | QuadraticInseparableKa -> (fun _ _ _ -> 1.0)
+            | SeparableKa (tEe, tInf) -> (fun _ a b -> separableFunc tEe tInf a b)
             |> KaFunc
+
+        static member defaultValue = IdentityKa
+
+        static member defaultQuadraticValue (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    scale = 1.0
+                    coefficients = [| 1.0; 0.0; 1.0|]
+                }
+
+            // We want (2 / 3) of the domain range to scale to 1.0.
+            let one = (2.0 / 3.0) * d.infDomain.range
+            let scale = 1.0 / one
+
+            let tInf =
+                {
+                    x0 = 0.0
+                    scale = scale
+                    coefficients = [| 1.0; 0.5; 1.0|]
+                }
+
+            SeparableKa (tEe, tInf)
 
 
     type GammaFuncValue =
         | ScalarGamma of double
+        | SeparableGamma of double * TaylorApproximation * TaylorApproximation
 
         member g.gammaFunc (d : Domain2D) : GammaFunc =
             match g with
-            | ScalarGamma e -> GammaFunc (fun _ _ _ -> e)
+            | ScalarGamma e -> (fun _ _ _ -> e)
+            | SeparableGamma (g0, tEe, tInf) -> (fun _ a b -> g0 * (separableFunc tEe tInf a b))
+            |> GammaFunc
 
         static member defaultValue = ScalarGamma 0.01
+
+        static member defaultNonlinearValue (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    scale = 1.0
+                    coefficients = [| 1.0; -0.01|]
+                }
+
+            // We want (2 / 3) of the domain range to scale to 1.0.
+            let one = (2.0 / 3.0) * d.infDomain.range
+            let scale = 1.0 / one
+
+            let tInf =
+                {
+                    x0 = 0.0
+                    scale = scale
+                    coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
+                }
+
+            SeparableGamma (0.01, tEe, tInf)
+
 
 
     type MutationProbabilityData =
@@ -344,6 +418,9 @@ module Kernel =
                 epsInfFuncValue = EpsFuncValue.ScalarEps 0.0001
                 kaFuncValue = KaFuncValue.IdentityKa
             }
+
+        static member defaultQuadraticValue d =
+            { KernelData.defaultValue with kaFuncValue = KaFuncValue.defaultQuadraticValue d }
 
 
     type KernelValue =

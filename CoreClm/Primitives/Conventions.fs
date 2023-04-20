@@ -1,5 +1,7 @@
 ﻿namespace Primitives
 
+/// TODO kk:20230420 - Conventions have not been formalized yet.
+///
 /// Use suffixes: Value, Array, Data, Func, Var, Params, Info, State and come up with naming conventions
 /// to use them in F#. Explain why each suffix should be used in each case. Add more suffixes if found necessary.
 ///

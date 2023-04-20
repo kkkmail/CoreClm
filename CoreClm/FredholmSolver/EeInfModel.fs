@@ -100,6 +100,14 @@ module EeInfModel =
                 recyclingRate = RecyclingRate.defaultValue
             }
 
+        static member defaultNonlinearValue d =
+            {
+                kernelData = KernelData.defaultQuadraticValue d
+                gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
+                numberOfMolecules = NumberOfMolecules.defaultValue
+                recyclingRate = RecyclingRate.defaultValue
+            }
+
 
     type EeInfModel =
         {

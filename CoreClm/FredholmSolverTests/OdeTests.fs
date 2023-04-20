@@ -33,11 +33,13 @@ type CallBackResults =
             chartCallBackCount = 0
         }
 
+
 type EeInfInitParams =
     {
         eps : double
         total : double
     }
+
 
 type EeInfModelData =
     {
@@ -54,6 +56,11 @@ type EeInfModelData =
                     total = 10.0
                 }
         }
+
+    static member defaultNonlinearValue =
+        let data = EeInfModelData.defaultValue
+        let domain2D = Domain2D.create data.modelParams.kernelData.domainIntervals.value data.modelParams.kernelData.infMaxValue.value
+        { EeInfModelData.defaultValue with modelParams = EeInfModelParams.defaultNonlinearValue domain2D }
 
 
 type OdeResultData =
@@ -96,7 +103,7 @@ type OdeTests (output : ITestOutputHelper) =
         sd
 
 
-    let odeParams =
+    let defaultOdeParams =
         {
             startTime = 0.0
             endTime = 10.0
@@ -110,6 +117,10 @@ type OdeTests (output : ITestOutputHelper) =
                     noOfChartDetailedPoints = None
                 }
         }
+
+    let defaultNonlinearOdeParams =
+        { defaultOdeParams with endTime = 1_000_000.0 }
+
 
     let outputResult md t (v : SubstanceData) r =
         let u = v.protocell
@@ -128,7 +139,7 @@ type OdeTests (output : ITestOutputHelper) =
             |> ignore
 
 
-    let nSolveParam (data : EeInfModelData) =
+    let nSolveParam (data : EeInfModelData) odeParams =
         let md = EeInfModel.create data.modelParams
         let i = initialValues data
         // let f t v = outputResult md t v
@@ -185,11 +196,11 @@ type OdeTests (output : ITestOutputHelper) =
         }
 
 
-    let odePackRun (data : EeInfModelData) cc =
+    let odePackRun (data : EeInfModelData) cc odeParams =
         let mutable cr = CallBackResults.defaultValue
 
         let md = EeInfModel.create data.modelParams
-        let n, getData = nSolveParam data
+        let n, getData = nSolveParam data odeParams
         let outputResult b t x = outputResult md t (getData x) b
 
         let callBack c t x = cr <- callBack cr (outputResult false) c t x
@@ -214,7 +225,20 @@ type OdeTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.odePack_ShouldRun () : unit =
-        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None)
+        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None) defaultOdeParams
+
+        let v = r.getData r.result.xEnd
+        let inv_tEnd = r.modelData.invariant v
+        let diff = (inv_tEnd - r.invStart) / r.invStart
+
+        use _ = new AssertionScope()
+        r.result.Should().NotBeNull(nullString) |> ignore
+        diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.odePack_ShouldRunNonLinear () : unit =
+        let r = odePackRun EeInfModelData.defaultNonlinearValue (fun _ -> None) defaultNonlinearOdeParams
 
         let v = r.getData r.result.xEnd
         let inv_tEnd = r.modelData.invariant v
@@ -227,7 +251,7 @@ type OdeTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.odePack_ShouldCallBack () : unit =
-        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None)
+        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None) defaultOdeParams
 
         use _ = new AssertionScope()
         r.result.Should().NotBeNull(nullString) |> ignore
@@ -243,9 +267,9 @@ type OdeTests (output : ITestOutputHelper) =
 
         let md = EeInfModelData.defaultValue
         let model = EeInfModel.create md.modelParams
-        let r = odePackRun md (fun _ -> None)
+        let r = odePackRun md (fun _ -> None) defaultOdeParams
 
-        let n, getData = nSolveParam md
+        let n, getData = nSolveParam md defaultOdeParams
         let outputResult b t x = outputResult model t (getData x) b
 
         let callBack c t x = cr <- callBack cr (outputResult false) c t x
@@ -270,7 +294,7 @@ type OdeTests (output : ITestOutputHelper) =
         let md = EeInfModelData.defaultValue
         let model = EeInfModel.create md.modelParams
 
-        let n, getData = nSolveParam md
+        let n, getData = nSolveParam md defaultOdeParams
         let outputResult b t x = outputResult model t (getData x) b
 
         let callBack c t x = cr <- callBack cr (outputResult false) c t x
