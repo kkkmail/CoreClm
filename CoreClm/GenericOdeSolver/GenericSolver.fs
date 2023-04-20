@@ -14,7 +14,7 @@ open GenericOdeSolver.Primitives
 
 module Solver =
 
-    let mutable private callBackData = CallBackData.defaultValue
+    let mutable private needsCallBackData = NeedsCallBackData.defaultValue
 
     // ================================================================ //
     //let private printDebug s = printfn $"{s}"
@@ -31,7 +31,7 @@ module Solver =
 
 
     let shouldNotifyByCallCount d =
-        let callCount = d.callCount
+        let callCount = d.progressData.callCount
 
         let r =
             [
@@ -90,7 +90,7 @@ module Solver =
         with
         member op.needsCallBack n =
             // let f (d0 : CallBackData) t =
-            let f d t =
+            let f (d : NeedsCallBackData) t =
                 // let d = { d0 with callCount = d0.callCount + 1L }
                 let shouldNotifyProgress = shouldNotifyProgress n d t
                 let shouldNotifyChart = shouldNotifyChart n d t
@@ -124,7 +124,7 @@ module Solver =
         | None -> EmptyString
 
 
-    let private calculateProgressDataWithErr n d t v =
+    let private calculateProgressDataWithErr n (d : NeedsCallBackData) t v =
         printDebug $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
 
         let withMessage s m =
@@ -137,44 +137,45 @@ module Solver =
 
             let pd =
                 {
-                    progress = d.progress
-                    callCount = d. callCount
+                    progress = d.progressData.progress
+                    callCount = d.progressData.callCount
                     errorMessageOpt = eo
                 }
 
             pd
 
         match v with
-        | AbortCalculation s -> $"The run queue was aborted at: %.2f{d.progress * 100.0m}%% progress." |> withMessage s
+        | AbortCalculation s -> $"The run queue was aborted at: %.2f{d.progressData.progress * 100.0m}%% progress." |> withMessage s
         | CancelWithResults s ->
-            $"The run queue was cancelled at: %.2f{d.progress * 100.0m}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
+            $"The run queue was cancelled at: %.2f{d.progressData.progress * 100.0m}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
             |> withMessage s
 
 
-    let private notifyAll n c t x =
-        n.callBackInfo.progressCallBack.invoke c t x
-        n.callBackInfo.chartCallBack.invoke c t x
+    let private notifyAll n c d =
+        n.callBackInfo.progressCallBack.invoke c d
+        n.callBackInfo.chartCallBack.invoke c d
 
 
     let private tryCallBack n t x =
-        let d0 = callBackData
-        let d, ct = { d0 with callCount = d0.callCount + 1L; progress = calculateProgress n t } |> checkCancellation n
+        let d0 = needsCallBackData
+        let d, ct = { d0 with progressData = { d0.progressData with callCount = d0.progressData.callCount + 1L; progress = calculateProgress n t } } |> checkCancellation n
+        let cbd = { progressData = d.progressData; t = t; x = x }
 
         match ct with
         | Some v ->
-            notifyAll n (v |> CancelledCalculation |> FinalCallBack) t x
+            notifyAll n (v |> CancelledCalculation |> FinalCallBack) cbd
             raise(ComputationAbortedException (calculateProgressDataWithErr n d t v, v))
         | None ->
             let c, v = n.callBackInfo.needsCallBack.invoke d t
-            callBackData <- c
+            needsCallBackData <- c
 
             match v with
             | None -> ()
             | Some v ->
                 match v with
-                | ProgressNotification -> n.callBackInfo.progressCallBack.invoke RegularCallBack t x
-                | ChartNotification -> n.callBackInfo.chartCallBack.invoke RegularCallBack t x
-                | ProgressAndChartNotification -> notifyAll n RegularCallBack t x
+                | ProgressNotification -> n.callBackInfo.progressCallBack.invoke RegularCallBack cbd
+                | ChartNotification -> n.callBackInfo.chartCallBack.invoke RegularCallBack cbd
+                | ProgressAndChartNotification -> notifyAll n RegularCallBack cbd
 
 
     let private fUseNonNegative (
@@ -216,16 +217,16 @@ module Solver =
 
 
     /// F# wrapper around various ODE solvers.
-    let nSolve (n : NSolveParam) : OdeResult =
+    let nSolve (n : NSolveParam) =
         printfn "nSolve::Starting."
         let p = n.odeParams
-        notifyAll n RegularCallBack n.odeParams.startTime n.initialValues
+        notifyAll n RegularCallBack { progressData = ProgressData.defaultValue; t = n.odeParams.startTime; x = n.initialValues }
 
         let mapResults (r : SolverResult) _ =
             {
-                startTime = n.odeParams.startTime
-                endTime = r.EndTime
-                xEnd = r.X
+                progressData = needsCallBackData.progressData
+                t = r.EndTime
+                x = r.X
             }
 
         match n.odeParams.solverType with
@@ -243,16 +244,16 @@ module Solver =
             do alglib.odesolversolve(s, d, null)
             let mutable m, xTbl, yTbl, rep = alglib.odesolverresults(s)
             let xEnd = yTbl[nt - 1, *]
-            notifyAll n (FinalCallBack CompletedCalculation) p.endTime xEnd
+            notifyAll n (FinalCallBack CompletedCalculation) { progressData = needsCallBackData.progressData; t = p.endTime; x = xEnd }
 
             {
-                startTime = p.startTime
-                endTime = p.endTime
-                xEnd = xEnd
+                progressData = needsCallBackData.progressData
+                t = p.endTime
+                x = xEnd
             }
 
         | OdePack (m, i, nc) ->
-            printfn $"nSolve: Using {m} / {i} DLSODE solver."
+            printfn $"nSolve: Using {m} / {i} / {nc} DLSODE solver."
 
             let result =
                 match nc with
@@ -278,5 +279,5 @@ module Solver =
                             mapResults,
                             p.absoluteTolerance.value)
 
-            notifyAll n (FinalCallBack CompletedCalculation) result.endTime result.xEnd
+            notifyAll n (FinalCallBack CompletedCalculation) result
             result

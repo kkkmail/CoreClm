@@ -22,16 +22,24 @@ module Primitives =
         | FinalCallBack of CalculationCompletionType
 
 
+    type CallBackData =
+        {
+            progressData : ProgressData
+            t : double
+            x : double[]
+        }
+
+
     /// A function to call in order to notify about progress.
     type ProgressCallBack =
-        | ProgressCallBack of (CallBackType -> double -> double[] -> unit)
+        | ProgressCallBack of (CallBackType -> CallBackData -> unit)
 
         member r.invoke = let (ProgressCallBack v) = r in v
 
 
     /// A function to call in order to generate a chart data point.
     type ChartCallBack =
-        | ChartCallBack of (CallBackType -> double -> double[] -> unit)
+        | ChartCallBack of (CallBackType -> CallBackData -> unit)
 
         member r.invoke = let (ChartCallBack v) = r in v
 
@@ -44,20 +52,23 @@ module Primitives =
 
 
     /// An addition [past] data needed to determine if a call back is needed.
-    type CallBackData =
+    type NeedsCallBackData =
         {
-            callCount : int64
+            progressData : ProgressData
             lastCheck : DateTime
-            progress : decimal
             nextProgress : decimal
             nextChartProgress : decimal
         }
 
         static member defaultValue =
             {
-                callCount = 0L
+                progressData =
+                    {
+                        callCount = 0L
+                        progress = 0.0M
+                        errorMessageOpt = None
+                    }
                 lastCheck = DateTime.Now
-                progress = 0.0M
                 nextProgress = 0.0M
                 nextChartProgress = 0.0M
             }
@@ -65,7 +76,7 @@ module Primitives =
 
     /// A function to call in order to determine if a call back is needed.
     type NeedsCallBack =
-        | NeedsCallBack of (CallBackData -> double -> CallBackData * CallBackNotificationType option)
+        | NeedsCallBack of (NeedsCallBackData -> double -> NeedsCallBackData * CallBackNotificationType option)
 
         member r.invoke = let (NeedsCallBack v) = r in v
 
@@ -147,12 +158,12 @@ module Primitives =
         }
 
 
-    type OdeResult =
-        {
-            startTime : double
-            endTime : double
-            xEnd : double[]
-        }
+    // type OdeResult =
+    //     {
+    //         progressDataEnd : ProgressData
+    //         tEnd : double
+    //         xEnd : double[]
+    //     }
 
 
     type NSolveParam =

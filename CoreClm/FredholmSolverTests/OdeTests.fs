@@ -67,7 +67,7 @@ type OdeResultData =
     {
         modelData : EeInfModel
         callBackResults : CallBackResults
-        result : OdeResult
+        result : CallBackData
         getData : double[] -> SubstanceData
         invStart : double
     }
@@ -122,14 +122,14 @@ type OdeTests (output : ITestOutputHelper) =
         { defaultOdeParams with endTime = 1_000_000.0 }
 
 
-    let outputResult md t (v : SubstanceData) r =
+    let outputResult md d (v : SubstanceData) r =
         let u = v.protocell
         let total = md.kernel.domain2D.integrateValues u
         let inv = md.invariant v
         let m = md.kernel.domain2D.mean u
         let s = md.kernel.domain2D.stdDev u
         let um = u.toMatrix()
-        writeLine $"t: {t}, inv: {inv}, total: {total}, mean: {m}, stdDev: {s}."
+        writeLine $"t: {d.t}, call count: {d.progressData.callCount}, progress: {d.progressData.progress}, inv: {inv}, total: {total}, mean: {m}, stdDev: {s}."
 
         if r
         then
@@ -156,8 +156,8 @@ type OdeTests (output : ITestOutputHelper) =
                     {
                         checkFreq = TimeSpan.MaxValue
                         needsCallBack = NeedsCallBack (fun c _ -> c, None)
-                        progressCallBack = ProgressCallBack (fun _ _ _ -> ())
-                        chartCallBack = ChartCallBack (fun _ _ _ -> ())
+                        progressCallBack = ProgressCallBack (fun _ _ -> ())
+                        chartCallBack = ChartCallBack (fun _ _ -> ())
                         checkCancellation = CheckCancellation (fun _ -> None)
                     }
 
@@ -167,15 +167,15 @@ type OdeTests (output : ITestOutputHelper) =
         n, v
 
 
-    let callBack cr outputResult c t x =
+    let callBack cr outputResult c (d : CallBackData) =
         match c with
         | RegularCallBack ->
-            outputResult t x
+            outputResult d
             { cr with progressCallBackCount = cr.progressCallBackCount + 1 }
         | FinalCallBack ct ->
             match ct with
             | CompletedCalculation ->
-                outputResult t x
+                outputResult d
                 { cr with completedCallBackCount = cr.completedCallBackCount + 1 }
             | CancelledCalculation c ->
                 match c with
@@ -183,7 +183,7 @@ type OdeTests (output : ITestOutputHelper) =
                 | AbortCalculation _ -> { cr with abortedCallBackCount = cr.abortedCallBackCount + 1 }
 
 
-    let chartCallBack cr _ _ _ = { cr with chartCallBackCount = cr.chartCallBackCount + 1 }
+    let chartCallBack cr _ _ = { cr with chartCallBackCount = cr.chartCallBackCount + 1 }
 
 
     let calLBackInfo n callBack charCallBack checkCancellation =
@@ -201,18 +201,18 @@ type OdeTests (output : ITestOutputHelper) =
 
         let md = EeInfModel.create data.modelParams
         let n, getData = nSolveParam data odeParams
-        let outputResult b t x = outputResult md t (getData x) b
+        let outputResult b (d : CallBackData) = outputResult md d (getData d.x) b
 
-        let callBack c t x = cr <- callBack cr (outputResult false) c t x
-        let chartCallBack c t x = cr <- chartCallBack cr c t x
+        let callBack c d = cr <- callBack cr (outputResult false) c d
+        let chartCallBack c d = cr <- chartCallBack cr c d
         let c = calLBackInfo n callBack chartCallBack cc
 
         let nSolveParam = { n with callBackInfo = c }
         let invStart = getData nSolveParam.initialValues |> md.invariant
-        outputResult true nSolveParam.odeParams.startTime nSolveParam.initialValues
+        outputResult true { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
 
         let result = nSolve nSolveParam
-        outputResult true result.endTime result.xEnd
+        outputResult true result
 
         {
             modelData = md
@@ -227,7 +227,7 @@ type OdeTests (output : ITestOutputHelper) =
     member _.odePack_ShouldRun () : unit =
         let r = odePackRun EeInfModelData.defaultValue (fun _ -> None) defaultOdeParams
 
-        let v = r.getData r.result.xEnd
+        let v = r.getData r.result.x
         let inv_tEnd = r.modelData.invariant v
         let diff = (inv_tEnd - r.invStart) / r.invStart
 
@@ -240,7 +240,7 @@ type OdeTests (output : ITestOutputHelper) =
     member _.odePack_ShouldRunNonLinear () : unit =
         let r = odePackRun EeInfModelData.defaultNonlinearValue (fun _ -> None) defaultNonlinearOdeParams
 
-        let v = r.getData r.result.xEnd
+        let v = r.getData r.result.x
         let inv_tEnd = r.modelData.invariant v
         let diff = (inv_tEnd - r.invStart) / r.invStart
 
@@ -270,10 +270,10 @@ type OdeTests (output : ITestOutputHelper) =
         let r = odePackRun md (fun _ -> None) defaultOdeParams
 
         let n, getData = nSolveParam md defaultOdeParams
-        let outputResult b t x = outputResult model t (getData x) b
+        let outputResult b d = outputResult model d (getData d.x) b
 
-        let callBack c t x = cr <- callBack cr (outputResult false) c t x
-        let chartCallBack c t x = cr <- chartCallBack cr c t x
+        let callBack c d = cr <- callBack cr (outputResult false) c d
+        let chartCallBack c d = cr <- chartCallBack cr c d
         let checkCancellation _ = CancelWithResults None |> Some
         let c = calLBackInfo n callBack chartCallBack checkCancellation
 
@@ -295,10 +295,10 @@ type OdeTests (output : ITestOutputHelper) =
         let model = EeInfModel.create md.modelParams
 
         let n, getData = nSolveParam md defaultOdeParams
-        let outputResult b t x = outputResult model t (getData x) b
+        let outputResult b d = outputResult model d (getData d.x) b
 
-        let callBack c t x = cr <- callBack cr (outputResult false) c t x
-        let chartCallBack c t x = cr <- chartCallBack cr c t x
+        let callBack c d = cr <- callBack cr (outputResult false) c d
+        let chartCallBack c d = cr <- chartCallBack cr c d
         let checkCancellation _ = AbortCalculation None |> Some
         let c = calLBackInfo n callBack chartCallBack checkCancellation
 
