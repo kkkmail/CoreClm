@@ -17,9 +17,6 @@ module Solver =
     let mutable private needsCallBackData = NeedsCallBackData.defaultValue
 
     // ================================================================ //
-    //let private printDebug s = printfn $"{s}"
-    let private printDebug _ = ()
-    // ================================================================ //
 
     let private makeNonNegativeByRef (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> max 0.0 (NativePtr.get x i) |]
     let private toArray (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> NativePtr.get x i |]
@@ -48,21 +45,21 @@ module Solver =
             |> List.tryFind id
             |> Option.defaultValue false
 
-        printDebug $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
+        // printDebug $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
         r
 
 
     let shouldNotifyByNextProgress (n : NSolveParam) d t =
         let p = calculateProgress n t
         let r = p >= d.nextProgress
-        printDebug $"shouldNotifyByNextProgress: p = {p}, nextProgress = {d.nextProgress}, r = {r}."
+        // n.logger.logDebugString $"shouldNotifyByNextProgress: p = {p}, nextProgress = {d.nextProgress}, r = {r}."
         r
 
 
     let shouldNotifyByNextChartProgress (n : NSolveParam) d t =
         let p = calculateProgress n t
         let r = p >= d.nextChartProgress
-        printDebug $"shouldNotifyByNextChart: p = {p}, nextChartProgress = {d.nextChartProgress}, r = {r}."
+        // n.logger.logDebugString $"shouldNotifyByNextChart: p = {p}, nextChartProgress = {d.nextChartProgress}, r = {r}."
         r
 
 
@@ -71,7 +68,7 @@ module Solver =
             match n.odeParams.outputParams.noOfProgressPoints with
             | np when np <= 0 -> 1.0m
             | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
-        printDebug $"calculateNextProgress: r = {r}."
+        // n.logger.logDebugString $"calculateNextProgress: r = {r}."
         r
 
     let calculateNextChartProgress n t =
@@ -79,7 +76,7 @@ module Solver =
             match n.odeParams.outputParams.noOfOutputPoints with
             | np when np <= 0 -> 1.0m
             | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
-        printDebug $"calculateNextChartProgress: r = {r}."
+        // n.logger.logDebugString $"calculateNextChartProgress: r = {r}."
         r
 
     let shouldNotifyProgress n d t = shouldNotifyByCallCount d || shouldNotifyByNextProgress n d t
@@ -89,27 +86,30 @@ module Solver =
     type OdeOutputParams
         with
         member op.needsCallBack n =
-            // let f (d0 : CallBackData) t =
             let f (d : NeedsCallBackData) t =
-                // let d = { d0 with callCount = d0.callCount + 1L }
                 let shouldNotifyProgress = shouldNotifyProgress n d t
                 let shouldNotifyChart = shouldNotifyChart n d t
+                // n.logger.logDebugString $"needsCallBack: shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}."
 
-                match (shouldNotifyProgress, shouldNotifyChart) with
-                | false, false -> (d, None)
-                | false, true -> ( { d with nextChartProgress = calculateNextChartProgress n t }, Some ChartNotification)
-                | true, false -> ( { d with nextProgress = calculateNextProgress n t }, Some ProgressNotification)
-                | true, true ->
-                    let nextProgress = calculateNextProgress n t
-                    let nextChartProgress = calculateNextChartProgress n t
-                    ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
+                let retVal =
+                    match (shouldNotifyProgress, shouldNotifyChart) with
+                    | false, false -> (d, None)
+                    | false, true -> ( { d with nextChartProgress = calculateNextChartProgress n t }, Some ChartNotification)
+                    | true, false -> ( { d with nextProgress = calculateNextProgress n t }, Some ProgressNotification)
+                    | true, true ->
+                        let nextProgress = calculateNextProgress n t
+                        let nextChartProgress = calculateNextChartProgress n t
+                        ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
+
+                // n.logger.logDebugString $"needsCallBack: retVal = {retVal}."
+                retVal
 
             NeedsCallBack f
 
 
     let private checkCancellation n d =
         let fromLastCheck = DateTime.Now - d.lastCheck
-        printDebug $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
+        // n.logger.logDebugString $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
 
         if fromLastCheck > n.callBackInfo.checkFreq
         then
@@ -125,7 +125,7 @@ module Solver =
 
 
     let private calculateProgressDataWithErr n (d : NeedsCallBackData) t v =
-        printDebug $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
+        // n.logger.logDebugString $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
 
         let withMessage s m =
             let eo =
@@ -160,13 +160,16 @@ module Solver =
         let d0 = needsCallBackData
         let d, ct = { d0 with progressData = { d0.progressData with callCount = d0.progressData.callCount + 1L; progress = calculateProgress n t } } |> checkCancellation n
         let cbd = { progressData = d.progressData; t = t; x = x }
+        // n.logger.logDebugString $"tryCallBack: d = {d}, cbd = {cbd}."
 
         match ct with
         | Some v ->
             notifyAll n (v |> CancelledCalculation |> FinalCallBack) cbd
             raise(ComputationAbortedException (calculateProgressDataWithErr n d t v, v))
         | None ->
-            let c, v = n.callBackInfo.needsCallBack.invoke d t
+            // let c, v = n.callBackInfo.needsCallBack.invoke d t
+            let c, v = (n.odeParams.outputParams.needsCallBack n).invoke d t
+            // n.logger.logDebugString $"tryCallBack: c = {c}, v = {v}."
             needsCallBackData <- c
 
             match v with
@@ -218,7 +221,7 @@ module Solver =
 
     /// F# wrapper around various ODE solvers.
     let nSolve (n : NSolveParam) =
-        printfn "nSolve::Starting."
+        // n.logger.logDebugString "nSolve::Starting."
         let p = n.odeParams
         notifyAll n RegularCallBack { progressData = ProgressData.defaultValue; t = n.odeParams.startTime; x = n.initialValues }
 
@@ -231,7 +234,7 @@ module Solver =
 
         match n.odeParams.solverType with
         | AlgLib CashCarp ->
-            printfn "nSolve: Using Cash - Carp Alglib solver."
+            n.logger.logDebugString "nSolve: Using Cash - Carp Alglib solver."
             let nt = 2
 
             let cashCarpDerivative (x : double[]) (t : double) : double[] =
@@ -253,7 +256,7 @@ module Solver =
             }
 
         | OdePack (m, i, nc) ->
-            printfn $"nSolve: Using {m} / {i} / {nc} DLSODE solver."
+            n.logger.logDebugString $"nSolve: Using {m} / {i} / {nc} DLSODE solver."
 
             let result =
                 match nc with

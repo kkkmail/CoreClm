@@ -12,6 +12,7 @@ open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfModel
 open Primitives.SolverRunnerErrors
+open Softellect.Sys.Logging
 open Xunit
 open Xunit.Abstractions
 
@@ -113,7 +114,7 @@ type OdeTests (output : ITestOutputHelper) =
             outputParams =
                 {
                     noOfOutputPoints = 100
-                    noOfProgressPoints = 2
+                    noOfProgressPoints = 100
                     noOfChartDetailedPoints = None
                 }
         }
@@ -155,13 +156,21 @@ type OdeTests (output : ITestOutputHelper) =
                 callBackInfo =
                     {
                         checkFreq = TimeSpan.MaxValue
-                        needsCallBack = NeedsCallBack (fun c _ -> c, None)
+                        // needsCallBack = NeedsCallBack (fun c _ -> c, None)
                         progressCallBack = ProgressCallBack (fun _ _ -> ())
                         chartCallBack = ChartCallBack (fun _ _ -> ())
                         checkCancellation = CheckCancellation (fun _ -> None)
                     }
 
                 started = DateTime.Now
+                logger =
+                    {
+                        logCrit = fun e -> writeLine $"CRIT: {DateTime.Now}, {e}."
+                        logError = fun e -> writeLine $"ERROR: {DateTime.Now}, {e}."
+                        logWarn = fun e -> writeLine $"WARN: {DateTime.Now}, {e}."
+                        logInfo = fun e -> writeLine $"INFO: {DateTime.Now}, {e}."
+                        logDebug = fun e -> writeLine $"DEBUG: {DateTime.Now}, {e}."
+                    }
             }
 
         n, v
@@ -189,7 +198,7 @@ type OdeTests (output : ITestOutputHelper) =
     let calLBackInfo n callBack charCallBack checkCancellation =
         {
             checkFreq = TimeSpan.FromMilliseconds(10.0)
-            needsCallBack = n.odeParams.outputParams.needsCallBack n
+            // needsCallBack = n.odeParams.outputParams.needsCallBack n
             progressCallBack = ProgressCallBack callBack
             chartCallBack = ChartCallBack charCallBack
             checkCancellation = CheckCancellation checkCancellation

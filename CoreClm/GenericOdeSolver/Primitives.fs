@@ -3,6 +3,7 @@
 open System
 open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
+open Softellect.Sys.Logging
 
 module Primitives =
 
@@ -84,7 +85,7 @@ module Primitives =
     type CallBackInfo =
         {
             checkFreq : TimeSpan
-            needsCallBack : NeedsCallBack
+            // needsCallBack : NeedsCallBack
             progressCallBack : ProgressCallBack
             chartCallBack : ChartCallBack
             checkCancellation : CheckCancellation
@@ -158,14 +159,6 @@ module Primitives =
         }
 
 
-    // type OdeResult =
-    //     {
-    //         progressDataEnd : ProgressData
-    //         tEnd : double
-    //         xEnd : double[]
-    //     }
-
-
     type NSolveParam =
         {
             odeParams : OdeParams
@@ -174,4 +167,5 @@ module Primitives =
             derivative : DerivativeCalculator
             callBackInfo : CallBackInfo
             started : DateTime
+            logger : Logger<int>
         }
