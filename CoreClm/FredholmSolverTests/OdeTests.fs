@@ -319,3 +319,76 @@ type OdeTests (output : ITestOutputHelper) =
         cr.completedCallBackCount.Should().Be(0, nullString) |> ignore
         cr.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
         cr.abortedCallBackCount.Should().Be(1, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.integrate_ShouldWork () : unit =
+        let integrate2D (grid: float[][]) (x1, dx) (y1, dy) =
+            let integrateX y =
+                grid[0]
+                |> Array.mapi (fun x _ -> grid[x][y])
+                |> Array.sum
+
+            let sum = Array.init (y1 + 1) integrateX |> Array.sum
+
+            sum  * dx * dy
+
+        let xSteps = 100
+        let ySteps = 100
+        let dx = 0.01
+        let dy = 0.01
+
+        let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
+
+        let xRange = (xSteps - 1, dx)
+        let yRange = (ySteps - 1, dy)
+        let result = integrate2D grid xRange yRange
+
+        // let integrate2D (grid: float[][]) dx dy =
+        //     let integrateX y =
+        //         Array.mapi (fun x _ -> grid.[x].[y]) grid.[0]
+        //         |> Array.fold (+) 0.0
+        //         |> (*) (dx * dy)
+        //
+        //     Array.init (Array.length grid.[0]) integrateX
+        //     |> Array.fold (+) 0.0
+        //
+        // let xSteps = 100
+        // let ySteps = 100
+        // let dx = 0.01
+        // let dy = 0.01
+        //
+        // let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
+        // let result = integrate2D grid dx dy
+
+        result.Should().BeApproximately(0.25, 0.001, nullString) |> ignore
+
+    [<Fact>]
+    member _.integrate_ShouldWork2 () : unit =
+
+        let integrate2D (grid: double[][]) dx dy =
+            let len1 = grid.Length - 1
+            let len2 = grid[0].Length - 1
+            let sum = grid |> Array.map (fun e -> e |> Array.sum) |> Array.sum
+            let edgeSum1 = grid[0] |> Array.sum
+            let edgeSum2 = grid[len1] |> Array.sum
+            let edgeSum3 = grid |> Array.mapi (fun i _ -> grid[i][0]) |> Array.sum
+            let edgeSum4 = grid |> Array.mapi (fun i _ -> grid[i][len2]) |> Array.sum
+            let cornerSum = grid[0][0] + grid[len1][0] + grid[0][len2] + grid[len1][len2]
+            let retVal = dx * dy * (4.0 * sum - 2.0 * (edgeSum1 + edgeSum2 + edgeSum3 + edgeSum4) + cornerSum) / 4.0
+            retVal
+
+        let xSteps = 101
+        let ySteps = 101
+        let dx = 1.0 / (double (xSteps - 1))
+        let dy = 1.0 / (double (ySteps - 1))
+
+        let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
+
+        // grid
+        // |> Array.map (fun e -> String.Join(",", e))
+        // |> Array.map (fun e -> (writeLine $"{e}"))
+        // |> ignore
+
+        let result = integrate2D grid dx dy
+        result.Should().BeApproximately(0.25, 0.001, nullString) |> ignore

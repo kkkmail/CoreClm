@@ -13,46 +13,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
     let nullString : string = null
     let errTolerance = 1.0e-10
 
-    // let defaultKernelData =
-    //     {
-    //         noOfIntervals = 101
-    //         l2 = 25
-    //         zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-    //         epsEeFunc = (fun _ -> 0.02) |> EpsFunc
-    //         epsInfFunc = (fun _ -> 0.02) |> EpsFunc
-    //         kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
-    //     }
-    //
-    // let defaultNarrowKernelData =
-    //     {
-    //         noOfIntervals = 101
-    //         l2 = 25
-    //         zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-    //         epsEeFunc = (fun _ -> 0.0001) |> EpsFunc
-    //         epsInfFunc = (fun _ -> 0.0001) |> EpsFunc
-    //         kaFunc = (fun _ _ _ -> 1.0) |> KaFunc
-    //     }
-
-    // let domain2D data = Domain2D.create data.noOfIntervals data.l2
     let domain2D (data : KernelData) = Domain2D.create data.domainIntervals.value data.infMaxValue.value
-
-    // let m2Data domain data =
-    //     {
-    //         eeMutationProbabilityData =
-    //             {
-    //                 domain = domain.eeDomain
-    //                 zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-    //                 epsFunc = data.epsEeFunc
-    //             }
-    //         infMutationProbabilityData =
-    //             {
-    //                 domain = domain.infDomain
-    //                 zeroThreshold = MutationProbabilityData.defaultZeroThreshold
-    //                 epsFunc = data.epsInfFunc
-    //             }
-    //     }
-
-
     let normalize data v = v / (double (data.domainIntervals.value * data.domainIntervals.value))
 
 

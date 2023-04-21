@@ -57,6 +57,19 @@ module Kernel =
             Domain.create dd.domainIntervals.value dd.domainRange.minValue dd.domainRange.maxValue
 
 
+    let integrate2D (grid: double[][]) dx dy =
+        let len1 = grid.Length - 1
+        let len2 = grid[0].Length - 1
+        let sum = grid |> Array.map (fun e -> e |> Array.sum) |> Array.sum
+        let edgeSum1 = grid[0] |> Array.sum
+        let edgeSum2 = grid[len1] |> Array.sum
+        let edgeSum3 = grid |> Array.mapi (fun i _ -> grid[i][0]) |> Array.sum
+        let edgeSum4 = grid |> Array.mapi (fun i _ -> grid[i][len2]) |> Array.sum
+        let cornerSum = grid[0][0] + grid[len1][0] + grid[0][len2] + grid[len1][len2]
+        let retVal = dx * dy * (4.0 * sum - 2.0 * (edgeSum1 + edgeSum2 + edgeSum3 + edgeSum4) + cornerSum) / 4.0
+        retVal
+
+
     /// Data that describes a rectangle in ee * inf space.
     /// ee space is naturally limited to [-1, 1] unless we use a conformal transformation to extend it to [-Infinity, Infinity].
     /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
@@ -70,17 +83,17 @@ module Kernel =
         member private d.integrateValues (a : double[][]) = a |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
         member private d.integrateValues (a : SparseArray2D<double>) = a.value |> Array.map (fun e -> e.value2D) |> Array.sum |> d.normalize
 
+        member private d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
+            let bValue = b.getValue
+            let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum |> d.normalize
+            sum
+
         member d.integrateValues (a : Matrix<double>) =
             let sum = a.value |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
             sum
 
         member d.integrateValues (a : LinearMatrix<double>) =
             let sum = a.d1Range |> Array.map (fun i -> a.d2Range |> Array.map (fun j -> a.getValue i j) |> Array.sum) |> Array.sum |> d.normalize
-            sum
-
-        member private d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
-            let bValue = b.getValue
-            let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum |> d.normalize
             sum
 
         member d.integrateValues (a : SparseArray4D<double>, b : LinearMatrix<double>) =
