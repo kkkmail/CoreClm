@@ -10,22 +10,30 @@ module Kernel =
     /// Equidistant grid is used to reduce the number of multiplications.
     type Domain =
         {
-            midPoints : Vector<double>
+            points : Vector<double>
             step : double
             range : double
         }
 
-        member d.noOfIntervals = d.midPoints.value.Length
+        member private d.integralValue xSize (v : SparseValue<double>) =
+            match v.i = 0, v.i = xSize with
+            | true, false -> 0.5 * v.value1D
+            | false, true -> 0.5 * v.value1D
+            | _ -> v.value1D
+
+        member d.noOfIntervals = d.points.value.Length - 1
 
         member d.integrateValues (v : SparseArray<double>) =
-            let sum = v.value |> Array.map (fun e -> e.value1D) |> Array.sum
+            let len = d.noOfIntervals
+            let sum = v.value |> Array.map (fun e -> d.integralValue len e) |> Array.sum
             sum * d.step
 
+        /// Number of points is (noOfIntervals + 1).
         static member create noOfIntervals minValue maxValue =
             let points = [| for i in 0..noOfIntervals -> minValue + (maxValue - minValue) * (double i) / (double noOfIntervals) |]
 
             {
-                midPoints = [| for i in 0..noOfIntervals - 1 -> (points[i + 1] + points[i]) / 2.0 |] |> Vector
+                points = Vector points
                 step =  (maxValue - minValue) / (double noOfIntervals)
                 range = points[noOfIntervals] - points[0]
             }
@@ -37,7 +45,7 @@ module Kernel =
 
         member r.value = let (DomainIntervals v) = r in v
 
-        static member defaultValue = DomainIntervals 101
+        static member defaultValue = DomainIntervals 100
 
 
     type DomainRange =
@@ -57,19 +65,6 @@ module Kernel =
             Domain.create dd.domainIntervals.value dd.domainRange.minValue dd.domainRange.maxValue
 
 
-    let integrate2D (grid: double[][]) dx dy =
-        let len1 = grid.Length - 1
-        let len2 = grid[0].Length - 1
-        let sum = grid |> Array.map (fun e -> e |> Array.sum) |> Array.sum
-        let edgeSum1 = grid[0] |> Array.sum
-        let edgeSum2 = grid[len1] |> Array.sum
-        let edgeSum3 = grid |> Array.mapi (fun i _ -> grid[i][0]) |> Array.sum
-        let edgeSum4 = grid |> Array.mapi (fun i _ -> grid[i][len2]) |> Array.sum
-        let cornerSum = grid[0][0] + grid[len1][0] + grid[0][len2] + grid[len1][len2]
-        let retVal = dx * dy * (4.0 * sum - 2.0 * (edgeSum1 + edgeSum2 + edgeSum3 + edgeSum4) + cornerSum) / 4.0
-        retVal
-
-
     /// Data that describes a rectangle in ee * inf space.
     /// ee space is naturally limited to [-1, 1] unless we use a conformal transformation to extend it to [-Infinity, Infinity].
     /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
@@ -80,21 +75,82 @@ module Kernel =
         }
 
         member private d.normalize v = v * d.eeDomain.step * d.infDomain.step
-        member private d.integrateValues (a : double[][]) = a |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
-        member private d.integrateValues (a : SparseArray2D<double>) = a.value |> Array.map (fun e -> e.value2D) |> Array.sum |> d.normalize
+
+        member private d.integralValue xSize ySize (v : SparseValue2D<double>) =
+            match v.i = 0, v.j = 0, v.i = xSize, v.j = ySize with
+            | true, true, false, false -> 0.25 * v.value2D
+            | true, false, false, true -> 0.25 * v.value2D
+            | false, true, true, false -> 0.25 * v.value2D
+            | false, false, true, true -> 0.25 * v.value2D
+
+            | true, false, false, false -> 0.5 * v.value2D
+            | false, true, false, false -> 0.5 * v.value2D
+            | false, false, true, false -> 0.5 * v.value2D
+            | false, false, false, true -> 0.5 * v.value2D
+
+            | _ -> v.value2D
+
+        member private d.integrateValues (a : double[][])=
+            let len1 = a.Length - 1
+            let len2 = a[0].Length - 1
+            let sum = a |> Array.map (fun e -> e |> Array.sum) |> Array.sum
+            let edgeSum1 = a[0] |> Array.sum
+            let edgeSum2 = a[len1] |> Array.sum
+            let edgeSum3 = a |> Array.mapi (fun i _ -> a[i][0]) |> Array.sum
+            let edgeSum4 = a |> Array.mapi (fun i _ -> a[i][len2]) |> Array.sum
+            let cornerSum = a[0][0] + a[len1][0] + a[0][len2] + a[len1][len2]
+            let retVal = (4.0 * sum - 2.0 * (edgeSum1 + edgeSum2 + edgeSum3 + edgeSum4) + cornerSum) / 4.0 |> d.normalize
+            retVal
+
+        member d.integrateValues (a : SparseArray2D<double>) =
+            let len1 = d.eeDomain.points.value.Length - 1
+            let len2 = d.infDomain.points.value.Length - 1
+            let integralValue = d.integralValue len1 len2
+            let sum = a.value |> Array.map integralValue |> Array.sum
+            let retVal = sum |> d.normalize
+            retVal
 
         member private d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
             let bValue = b.getValue
-            let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum |> d.normalize
-            sum
+            let len1 = d.eeDomain.points.value.Length - 1
+            let len2 = d.infDomain.points.value.Length - 1
+            let integralValue = d.integralValue len1 len2
+            let sum = a.value |> Array.map (fun e -> (integralValue e) * (bValue e.i e.j) ) |> Array.sum
+            let retVal = sum |> d.normalize
+            retVal
 
-        member d.integrateValues (a : Matrix<double>) =
-            let sum = a.value |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
-            sum
+        member d.integrateValues (a : Matrix<double>) = d.integrateValues a.value
 
         member d.integrateValues (a : LinearMatrix<double>) =
-            let sum = a.d1Range |> Array.map (fun i -> a.d2Range |> Array.map (fun j -> a.getValue i j) |> Array.sum) |> Array.sum |> d.normalize
-            sum
+            let len1 = a.d1 - 1
+            let len2 = a.d2 - 1
+            let r1 = a.d1Range
+            let r2 = a.d2Range
+
+            let sum = r1 |> Array.map (fun i -> r2 |> Array.map (fun j -> a.getValue i j) |> Array.sum) |> Array.sum
+            let edgeSum1 = r2 |> Array.map (fun j -> a.getValue 0 j) |> Array.sum
+            let edgeSum2 = r2 |> Array.map (fun j -> a.getValue len1 j) |> Array.sum
+            let edgeSum3 = r1 |> Array.map (fun i -> a.getValue i 0) |> Array.sum
+            let edgeSum4 = r1 |> Array.map (fun i -> a.getValue i len2) |> Array.sum
+            let cornerSum = (a.getValue 0 0) + (a.getValue len1 0) + (a.getValue 0 len2) + (a.getValue len1 len2)
+            let retVal = (4.0 * sum - 2.0 * (edgeSum1 + edgeSum2 + edgeSum3 + edgeSum4) + cornerSum) / 4.0 |> d.normalize
+            retVal
+
+        // member private d.integrateValues (a : double[][]) = a |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
+        // member private d.integrateValues (a : SparseArray2D<double>) = a.value |> Array.map (fun e -> e.value2D) |> Array.sum |> d.normalize
+        //
+        // member private d.integrateValues (a : SparseArray2D<double>, b : LinearMatrix<double>) =
+        //     let bValue = b.getValue
+        //     let sum = a.value |> Array.map (fun e -> e.value2D * (bValue e.i e.j)) |> Array.sum |> d.normalize
+        //     sum
+        //
+        // member d.integrateValues (a : Matrix<double>) =
+        //     let sum = a.value |> Array.map (fun e -> e |> Array.sum) |> Array.sum |> d.normalize
+        //     sum
+        //
+        // member d.integrateValues (a : LinearMatrix<double>) =
+        //     let sum = a.d1Range |> Array.map (fun i -> a.d2Range |> Array.map (fun j -> a.getValue i j) |> Array.sum) |> Array.sum |> d.normalize
+        //     sum
 
         member d.integrateValues (a : SparseArray4D<double>, b : LinearMatrix<double>) =
             a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b))) |> Matrix
@@ -109,8 +165,8 @@ module Kernel =
 
             if norm > 0.0
             then
-                let mx = (d.integrateValues (d.eeDomain.midPoints * a)) / norm
-                let my = (d.integrateValues (a * d.infDomain.midPoints)) / norm
+                let mx = (d.integrateValues (d.eeDomain.points * a)) / norm
+                let my = (d.integrateValues (a * d.infDomain.points)) / norm
                 (mx, my)
             else (0.0, 0.0)
 
@@ -120,8 +176,8 @@ module Kernel =
             if norm > 0.0
             then
                 let mx, my = d.mean a
-                let m2x = (d.integrateValues (d.eeDomain.midPoints * (d.eeDomain.midPoints * a))) / norm
-                let m2y = (d.integrateValues ((a * d.infDomain.midPoints) * d.infDomain.midPoints)) / norm
+                let m2x = (d.integrateValues (d.eeDomain.points * (d.eeDomain.points * a))) / norm
+                let m2y = (d.integrateValues ((a * d.infDomain.points) * d.infDomain.points)) / norm
                 (Math.Max(m2x - mx * mx, 0.0) |> Math.Sqrt, Math.Max(m2y - my * my, 0.0) |> Math.Sqrt)
             else (0.0, 0.0)
 
@@ -287,7 +343,7 @@ module Kernel =
             let ef = data.epsFuncValue.epsFunc domain
             let epsFunc x = (ef.invoke domain x) * domain.range / 2.0
             let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
-            let values = domain.midPoints.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
+            let values = domain.points.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
             let norm = domain.integrateValues values
             let p = values.value |> Array.map (fun v -> { v with value1D = v.value1D / norm }) |> SparseArray.SparseArray |> MutationProbability
             p
@@ -332,8 +388,8 @@ module Kernel =
 
         static member create (data : MutationProbabilityData2D) =
             let domain2D = data.domain2D()
-            let eeMu = domain2D.eeDomain.midPoints.value
-            let infMu = domain2D.infDomain.midPoints.value
+            let eeMu = domain2D.eeDomain.points.value
+            let infMu = domain2D.infDomain.points.value
 
             // These are the values where integration by (x, y) should yield 1 for each (x1, y1).
             // So [][] is by (x1, y1) and the underlying SparseArray2D is by (x, y).
@@ -432,6 +488,16 @@ module Kernel =
                 kaFuncValue = KaFuncValue.IdentityKa
             }
 
+        static member defaultWideValue =
+            {
+                domainIntervals = DomainIntervals.defaultValue
+                infMaxValue = InfMaxValue.defaultValue
+                zeroThreshold = ZeroThreshold.defaultValue
+                epsEeFuncValue = EpsFuncValue.ScalarEps 0.05
+                epsInfFuncValue = EpsFuncValue.ScalarEps 0.05
+                kaFuncValue = KaFuncValue.IdentityKa
+            }
+
         static member defaultQuadraticValue d =
             { KernelData.defaultValue with kaFuncValue = KaFuncValue.defaultQuadraticValue d }
 
@@ -480,8 +546,8 @@ module Kernel =
             let kaFunc = data.kaFuncValue.kaFunc domain2D
 
             let ka =
-                domain2D.eeDomain.midPoints.value
-                |> Array.map (fun x -> domain2D.infDomain.midPoints.value |> Array.map (fun y -> kaFunc.invoke domain2D x y))
+                domain2D.eeDomain.points.value
+                |> Array.map (fun x -> domain2D.infDomain.points.value |> Array.map (fun y -> kaFunc.invoke domain2D x y))
                 |> Matrix
 
             let kernel = mp.xy_x1y1 * ka |> KernelValue
@@ -498,8 +564,8 @@ module Kernel =
 
         static member create (d : Domain2D) (g : GammaFuncValue) : Gamma =
             let gamma =
-                d.eeDomain.midPoints.value
-                |> Array.map (fun a -> d.infDomain.midPoints.value |> Array.map (fun b -> (g.gammaFunc d).invoke d a b))
+                d.eeDomain.points.value
+                |> Array.map (fun a -> d.infDomain.points.value |> Array.map (fun b -> (g.gammaFunc d).invoke d a b))
                 |> Matrix
                 |> Gamma
 

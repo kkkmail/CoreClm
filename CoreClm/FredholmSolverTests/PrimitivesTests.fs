@@ -1,5 +1,6 @@
 ﻿namespace FredholmSolverTests
 
+open System
 open System.Diagnostics
 open FluentAssertions.Execution
 open Xunit
@@ -21,31 +22,37 @@ type PrimitivesTests (output : ITestOutputHelper) =
         let domain = domain2D data
         let sw = Stopwatch.StartNew()
         let p = MutationProbability4D.create data.mutationProbabilityData2D
-        writeLine $"{sw.Elapsed.TotalSeconds}."
+        writeLine $"Took: {sw.Elapsed.TotalSeconds} seconds to create MutationProbability4D."
+        sw.Restart()
 
         let x1 = domain.integrateValues p.x1y1_xy
         let x1Linear = x1.toLinearMatrix()
         let diff = x1Linear.x |> Array.map (fun e -> pown (e - 1.0) 2) |> Array.sum
-        writeLine $"{sw.Elapsed.TotalSeconds}."
+        writeLine $"Took: {sw.Elapsed.TotalSeconds} seconds to call integrateValues, diff: {diff}."
 
         use _ = new AssertionScope()
         diff.Should().BeLessThan(errTolerance, nullString) |> ignore
 
         let x2 = domain.integrateValues p.xy_x1y1
-        let total1 = x1.value |> Array.concat |> Array.sum |> (normalize data)
-        let total2 = x2.value |> Array.concat |> Array.sum |> (normalize data)
+        let total1 = domain.integrateValues x1 |> (normalize data)
+        let total2 = domain.integrateValues x2 |> (normalize data)
         total1.Should().BeApproximately(total2, errTolerance, nullString) |> ignore
+
 
     /// Creates a "delta" function centered near (0, 0) in the domain,
     /// which is a middle point in ee domain and 0-th point in inf domain.
     let getDeltaU data =
         let domain =
-            if data.domainIntervals.value % 2 = 1
+            if data.domainIntervals.value % 2 = 0
             then domain2D data
             else failwith "data.noOfIntervals must be odd for this method to work."
 
-        let g i j = if (i * 2 + 1 = data.domainIntervals.value) && (j = 0) then 1.0 else 0.0
-        let v = domain.eeDomain.midPoints.value |> Array.mapi (fun i _ -> domain.infDomain.midPoints.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
+        let g i j =
+            if (i * 2 = data.domainIntervals.value) && (j = 0)
+            then 1.0
+            else 0.0
+
+        let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
         let norm = domain.integrateValues v
         (1.0 / norm) * v
 
@@ -58,6 +65,11 @@ type PrimitivesTests (output : ITestOutputHelper) =
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOneForNarrowData () : unit =
         mutationProbability4D_ShouldIntegrateToOneImpl KernelData.defaultNarrowValue
+
+
+    [<Fact>]
+    member _.mutationProbability4D_ShouldIntegrateToOneForWideData () : unit =
+        mutationProbability4D_ShouldIntegrateToOneImpl KernelData.defaultWideValue
 
 
     [<Fact>]
@@ -139,12 +151,13 @@ type PrimitivesTests (output : ITestOutputHelper) =
         let u = (getDeltaU data).toLinearMatrix()
         let domain = domain2D data
         let mx, my = domain.mean u
+        writeLine $"mx = {mx}, my = {my}."
 
         use _ = new AssertionScope()
         mx.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
 
         // my gets some weird value of 0.12376237623762376, which could be correct as we don't (yet) have points at the boundary.
-        // my.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
+        my.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
 
 
     [<Fact>]
@@ -158,3 +171,26 @@ type PrimitivesTests (output : ITestOutputHelper) =
         use _ = new AssertionScope()
         sx.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
         sy.Should().BeApproximately(0.0, errTolerance, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.integrate2D_ShouldMatch () : unit =
+        let rnd = Random(1)
+        let n = 100
+        let domain = Domain2D.create n 25.0
+
+        let m =
+            domain.eeDomain.points.value
+            |> Array.map (fun _ -> domain.infDomain.points.value |> Array.map (fun _ -> rnd.NextDouble()))
+            |> Matrix
+
+        let s =
+            m.value
+            |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> { i = i; j = j; value2D = v }))
+            |> Array.concat
+            |> SparseArray2D<double>.SparseArray2D
+
+        let mv = domain.integrateValues m
+        let ms = domain.integrateValues s
+        writeLine $"mv = {mv}, ms = {ms}."
+        mv.Should().BeApproximately(ms, 0.00001, nullString) |> ignore

@@ -86,12 +86,12 @@ type OdeTests (output : ITestOutputHelper) =
     /// which is a middle point in ee domain and 0-th point in inf domain.
     let getDeltaU (data : KernelData) eps =
         let domain =
-            if data.domainIntervals.value % 2 = 1
+            if data.domainIntervals.value % 2 = 0
             then domain2D data
             else failwith "data.noOfIntervals must be odd for this method to work."
 
-        let g i j = if (i * 2 + 1 = data.domainIntervals.value) && (j = 0) then 1.0 else 0.0
-        let v = domain.eeDomain.midPoints.value |> Array.mapi (fun i _ -> domain.infDomain.midPoints.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
+        let g i j = if (i * 2 = data.domainIntervals.value) && (j = 0) then 1.0 else 0.0
+        let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
         let norm = domain.integrateValues v
         (eps / norm) * v
 
@@ -321,50 +321,50 @@ type OdeTests (output : ITestOutputHelper) =
         cr.abortedCallBackCount.Should().Be(1, nullString) |> ignore
 
 
+    // [<Fact>]
+    // member _.integrate_ShouldWork () : unit =
+    //     let integrate2D (grid: float[][]) (x1, dx) (y1, dy) =
+    //         let integrateX y =
+    //             grid[0]
+    //             |> Array.mapi (fun x _ -> grid[x][y])
+    //             |> Array.sum
+    //
+    //         let sum = Array.init (y1 + 1) integrateX |> Array.sum
+    //
+    //         sum  * dx * dy
+    //
+    //     let xSteps = 100
+    //     let ySteps = 100
+    //     let dx = 0.01
+    //     let dy = 0.01
+    //
+    //     let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
+    //
+    //     let xRange = (xSteps - 1, dx)
+    //     let yRange = (ySteps - 1, dy)
+    //     let result = integrate2D grid xRange yRange
+    //
+    //     // let integrate2D (grid: float[][]) dx dy =
+    //     //     let integrateX y =
+    //     //         Array.mapi (fun x _ -> grid.[x].[y]) grid.[0]
+    //     //         |> Array.fold (+) 0.0
+    //     //         |> (*) (dx * dy)
+    //     //
+    //     //     Array.init (Array.length grid.[0]) integrateX
+    //     //     |> Array.fold (+) 0.0
+    //     //
+    //     // let xSteps = 100
+    //     // let ySteps = 100
+    //     // let dx = 0.01
+    //     // let dy = 0.01
+    //     //
+    //     // let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
+    //     // let result = integrate2D grid dx dy
+    //
+    //     result.Should().BeApproximately(0.25, 0.001, nullString) |> ignore
+
     [<Fact>]
     member _.integrate_ShouldWork () : unit =
-        let integrate2D (grid: float[][]) (x1, dx) (y1, dy) =
-            let integrateX y =
-                grid[0]
-                |> Array.mapi (fun x _ -> grid[x][y])
-                |> Array.sum
-
-            let sum = Array.init (y1 + 1) integrateX |> Array.sum
-
-            sum  * dx * dy
-
-        let xSteps = 100
-        let ySteps = 100
-        let dx = 0.01
-        let dy = 0.01
-
-        let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
-
-        let xRange = (xSteps - 1, dx)
-        let yRange = (ySteps - 1, dy)
-        let result = integrate2D grid xRange yRange
-
-        // let integrate2D (grid: float[][]) dx dy =
-        //     let integrateX y =
-        //         Array.mapi (fun x _ -> grid.[x].[y]) grid.[0]
-        //         |> Array.fold (+) 0.0
-        //         |> (*) (dx * dy)
-        //
-        //     Array.init (Array.length grid.[0]) integrateX
-        //     |> Array.fold (+) 0.0
-        //
-        // let xSteps = 100
-        // let ySteps = 100
-        // let dx = 0.01
-        // let dy = 0.01
-        //
-        // let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
-        // let result = integrate2D grid dx dy
-
-        result.Should().BeApproximately(0.25, 0.001, nullString) |> ignore
-
-    [<Fact>]
-    member _.integrate_ShouldWork2 () : unit =
 
         let integrate2D (grid: double[][]) dx dy =
             let len1 = grid.Length - 1
