@@ -180,14 +180,14 @@ type OdeTests (output : ITestOutputHelper) =
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
             outputParams =
                 {
-                    noOfOutputPoints = 100
+                    noOfOutputPoints = 1_000
                     noOfProgressPoints = 100
                     noOfChartDetailedPoints = None
                 }
         }
 
     let defaultNonlinearOdeParams =
-        { defaultOdeParams with endTime = 1_000_000.0 }
+        { defaultOdeParams with endTime = 200_000.0 }
 
     let calculateStat md (v : SubstanceData) =
         let u = v.protocell
@@ -211,6 +211,14 @@ type OdeTests (output : ITestOutputHelper) =
             invariant = inv
         }
 
+    let outputMatrix (m : Matrix<double>) =
+        m.value
+        |> Array.map (fun e -> String.Join(",", e))
+        |> Array.map (fun e -> (writeLine $"{e}"))
+        |> ignore
+
+        writeLine $"{Nl}===================================================================================={Nl}{Nl}"
+
 
     let outputResult md d (v : SubstanceData) r =
         let sd = calculateStat md v
@@ -225,12 +233,16 @@ type OdeTests (output : ITestOutputHelper) =
         if r
         then
             writeLine "u data:"
-            v.protocell.toMatrix().value
-            |> Array.map (fun e -> String.Join(",", e))
-            |> Array.map (fun e -> (writeLine $"{e}"))
-            |> ignore
+            v.protocell.toMatrix() |> outputMatrix
 
-            writeLine $"{Nl}"
+    let outputKa (md : EeInfModel) =
+        writeLine "ka:"
+        md.kernel.kaValue.value |> outputMatrix
+
+
+    let outputGamma (md : EeInfModel) =
+        writeLine "gamma:"
+        md.gamma.value |> outputMatrix
 
 
     let outputChart (cd : ChartData) =
@@ -338,7 +350,9 @@ type OdeTests (output : ITestOutputHelper) =
 
         let nSolveParam = { n with callBackInfo = c }
         let invStart = getData nSolveParam.initialValues |> md.invariant
-        outputResult true { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
+        outputKa md
+        outputGamma md
+        outputResult false { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
 
         let result = nSolve nSolveParam
         outputResult true result
@@ -441,48 +455,6 @@ type OdeTests (output : ITestOutputHelper) =
         cr.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
         cr.abortedCallBackCount.Should().Be(1, nullString) |> ignore
 
-
-    // [<Fact>]
-    // member _.integrate_ShouldWork () : unit =
-    //     let integrate2D (grid: float[][]) (x1, dx) (y1, dy) =
-    //         let integrateX y =
-    //             grid[0]
-    //             |> Array.mapi (fun x _ -> grid[x][y])
-    //             |> Array.sum
-    //
-    //         let sum = Array.init (y1 + 1) integrateX |> Array.sum
-    //
-    //         sum  * dx * dy
-    //
-    //     let xSteps = 100
-    //     let ySteps = 100
-    //     let dx = 0.01
-    //     let dy = 0.01
-    //
-    //     let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
-    //
-    //     let xRange = (xSteps - 1, dx)
-    //     let yRange = (ySteps - 1, dy)
-    //     let result = integrate2D grid xRange yRange
-    //
-    //     // let integrate2D (grid: float[][]) dx dy =
-    //     //     let integrateX y =
-    //     //         Array.mapi (fun x _ -> grid.[x].[y]) grid.[0]
-    //     //         |> Array.fold (+) 0.0
-    //     //         |> (*) (dx * dy)
-    //     //
-    //     //     Array.init (Array.length grid.[0]) integrateX
-    //     //     |> Array.fold (+) 0.0
-    //     //
-    //     // let xSteps = 100
-    //     // let ySteps = 100
-    //     // let dx = 0.01
-    //     // let dy = 0.01
-    //     //
-    //     // let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
-    //     // let result = integrate2D grid dx dy
-    //
-    //     result.Should().BeApproximately(0.25, 0.001, nullString) |> ignore
 
     [<Fact>]
     member _.integrate_ShouldWork () : unit =

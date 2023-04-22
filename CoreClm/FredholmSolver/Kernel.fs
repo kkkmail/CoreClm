@@ -281,7 +281,8 @@ module Kernel =
                 {
                     x0 = 0.0
                     scale = scale
-                    coefficients = [| 1.0; 0.5; 1.0|]
+                    // coefficients = [| 1.0; 0.5; 1.0|]
+                    coefficients = [| 1.0; 0.0; 1.0|]
                 }
 
             SeparableKa (tEe, tInf)
@@ -502,6 +503,12 @@ module Kernel =
             { KernelData.defaultValue with kaFuncValue = KaFuncValue.defaultQuadraticValue d }
 
 
+    type KaValue =
+        | KaValue of Matrix<double>
+
+        member r.value = let (KaValue v) = r in v
+
+
     type KernelValue =
         | KernelValue of SparseArray4D<double>
 
@@ -515,6 +522,7 @@ module Kernel =
     type Kernel =
         {
             kernel : KernelValue
+            kaValue : KaValue
             domain2D : Domain2D
         }
 
@@ -554,6 +562,7 @@ module Kernel =
 
             {
                 kernel = kernel
+                kaValue = KaValue ka
                 domain2D = domain2D
             }
 
