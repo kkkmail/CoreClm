@@ -12,9 +12,76 @@ open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfModel
 open Primitives.SolverRunnerErrors
+open Softellect.Sys.Core
 open Softellect.Sys.Logging
 open Xunit
 open Xunit.Abstractions
+
+type StatData =
+    {
+        mean : double
+        stdDev : double
+    }
+
+
+type EeInfStatData =
+    {
+        eeStatData : StatData
+        infStatData : StatData
+        total : double
+        invariant : double
+    }
+
+
+type ChartInitData =
+    {
+        y0 : decimal
+        tEnd : decimal
+    }
+
+
+type ChartSliceData =
+    {
+        tChart : double
+        progressChart : ProgressData
+        statData : EeInfStatData
+    }
+
+
+type ChartData =
+    {
+        startedOn : DateTime
+        initData : ChartInitData
+        allChartData : list<ChartSliceData>
+    }
+
+    static member create i =
+        {
+            startedOn = DateTime.Now
+            initData = i
+            allChartData = []
+        }
+
+    /// Last calculated value of tEnd.
+    member cd.tLast =
+        match cd.allChartData |> List.tryHead with
+        | Some c -> c.tChart
+        | None -> 0.0
+        |> decimal
+
+    member cd.progress =
+        let tEnd = cd.initData.tEnd
+        min (max (if tEnd > 0.0m then cd.tLast / tEnd else 0.0m) 0.0m) 1.0m
+
+
+type ChartDataUpdater () =
+    interface IUpdater<ChartInitData, ChartSliceData, ChartData> with
+        member _.init i = ChartData.create i
+        member _.add a m = { m with allChartData = a :: m.allChartData }
+
+
+type AsyncChartDataUpdater = AsyncUpdater<ChartInitData, ChartSliceData, ChartData>
+
 
 type CallBackResults =
     {
@@ -122,22 +189,62 @@ type OdeTests (output : ITestOutputHelper) =
     let defaultNonlinearOdeParams =
         { defaultOdeParams with endTime = 1_000_000.0 }
 
-
-    let outputResult md d (v : SubstanceData) r =
+    let calculateStat md (v : SubstanceData) =
         let u = v.protocell
         let total = md.kernel.domain2D.integrateValues u
         let inv = md.invariant v
-        let m = md.kernel.domain2D.mean u
-        let s = md.kernel.domain2D.stdDev u
-        let um = u.toMatrix()
-        writeLine $"t: {d.t}, call count: {d.progressData.callCount}, progress: {d.progressData.progress}, inv: {inv}, total: {total}, mean: {m}, stdDev: {s}."
+        let mEe, mInf = md.kernel.domain2D.mean u
+        let sEe, sInf = md.kernel.domain2D.stdDev u
+
+        {
+            eeStatData =
+                {
+                    mean = mEe
+                    stdDev = sEe
+                }
+            infStatData =
+                {
+                    mean = mInf
+                    stdDev = sInf
+                }
+            total = total
+            invariant = inv
+        }
+
+
+    let outputResult md d (v : SubstanceData) r =
+        let sd = calculateStat md v
+
+        let s = $"t: {d.t}, call count: {d.progressData.callCount}, " +
+                $"progress: {d.progressData.progress}, " +
+                $"inv: {sd.invariant}, total: {sd.total}, " +
+                $"mean: {(sd.eeStatData.mean, sd.infStatData.mean)}, stdDev: {(sd.eeStatData.stdDev, sd.infStatData.stdDev)}.{Nl}"
+
+        writeLine s
 
         if r
         then
-            um.value
+            writeLine "u data:"
+            v.protocell.toMatrix().value
             |> Array.map (fun e -> String.Join(",", e))
             |> Array.map (fun e -> (writeLine $"{e}"))
             |> ignore
+
+            writeLine $"{Nl}"
+
+
+    let outputChart (cd : ChartData) =
+        let f e =
+            $"{e.tChart},{e.statData.eeStatData.mean},{e.statData.infStatData.mean}," +
+            $"{e.statData.eeStatData.stdDev},{e.statData.infStatData.stdDev}," +
+            $"{e.statData.total},{e.statData.invariant}"
+
+        let header = "t,eeMean,infMean,eeStdDev,infStdDev,total,invariant"
+
+        writeLine $"{Nl}{Nl}Chart data:"
+        List.append [ header ] (cd.allChartData |> List.map f |> List.rev)
+        |> List.map writeLine
+        |> ignore
 
 
     let nSolveParam (data : EeInfModelData) odeParams =
@@ -213,7 +320,20 @@ type OdeTests (output : ITestOutputHelper) =
         let outputResult b (d : CallBackData) = outputResult md d (getData d.x) b
 
         let callBack c d = cr <- callBack cr (outputResult false) c d
-        let chartCallBack c d = cr <- chartCallBack cr c d
+        let chartInitData = { y0 = 0.0M; tEnd = 0.0M }
+        let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
+
+        let getChartSliceData (d : CallBackData) : ChartSliceData =
+            {
+                tChart = d.t
+                progressChart = d.progressData
+                statData = calculateStat md (getData d.x)
+            }
+
+        let chartCallBack c d =
+            getChartSliceData d |> chartDataUpdater.addContent
+            cr <- chartCallBack cr c d
+
         let c = calLBackInfo n callBack chartCallBack cc
 
         let nSolveParam = { n with callBackInfo = c }
@@ -222,6 +342,7 @@ type OdeTests (output : ITestOutputHelper) =
 
         let result = nSolve nSolveParam
         outputResult true result
+        chartDataUpdater.getContent() |> outputChart
 
         {
             modelData = md
