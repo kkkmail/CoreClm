@@ -1,15 +1,15 @@
-drop function if exists dbo.getCatLigScarcityRnd
+drop function if exists clm.getCatLigScarcityRnd
 go
 
-create function dbo.getCatLigScarcityRnd(@clmDefaultValueId bigint)
+create function clm.getCatLigScarcityRnd(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4000000000
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4000000000
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

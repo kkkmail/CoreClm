@@ -1,15 +1,15 @@
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000110
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000110
 
-drop function if exists dbo.getSugarScarcity
+drop function if exists clm.getSugarScarcity
 go
 
-create function dbo.getSugarScarcity(@clmDefaultValueId bigint)
+create function clm.getSugarScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

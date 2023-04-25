@@ -1,12 +1,12 @@
-drop function if exists dbo.getCatSynthScarcity
+drop function if exists clm.getCatSynthScarcity
 go
 
-create function dbo.getCatSynthScarcity(@clmDefaultValueId bigint)
+create function clm.getCatSynthScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

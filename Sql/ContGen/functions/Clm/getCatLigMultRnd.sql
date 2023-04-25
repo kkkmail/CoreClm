@@ -1,15 +1,15 @@
-drop function if exists dbo.getCatLigMultRnd
+drop function if exists clm.getCatLigMultRnd
 go
 
-create function dbo.getCatLigMultRnd(@clmDefaultValueId bigint)
+create function clm.getCatLigMultRnd(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4000000000
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4000000000
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

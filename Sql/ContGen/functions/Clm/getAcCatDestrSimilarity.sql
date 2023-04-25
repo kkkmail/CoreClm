@@ -1,15 +1,15 @@
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
-drop function if exists dbo.getAcCatDestrSimilarity
+drop function if exists clm.getAcCatDestrSimilarity
 go
 
-create function dbo.getAcCatDestrSimilarity(@clmDefaultValueId bigint)
+create function clm.getAcCatDestrSimilarity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

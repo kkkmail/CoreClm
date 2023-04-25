@@ -1,12 +1,12 @@
-drop function if exists dbo.getWasteRecyclingRate
+drop function if exists clm.getWasteRecyclingRate
 go
 
-create function dbo.getWasteRecyclingRate(@clmDefaultValueId bigint)
+create function clm.getWasteRecyclingRate(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

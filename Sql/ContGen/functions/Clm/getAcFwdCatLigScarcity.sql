@@ -1,16 +1,16 @@
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
 
-drop function if exists dbo.getAcFwdCatLigScarcity
+drop function if exists clm.getAcFwdCatLigScarcity
 go
 
-create function dbo.getAcFwdCatLigScarcity(@clmDefaultValueId bigint)
+create function clm.getAcFwdCatLigScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

@@ -1,15 +1,15 @@
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000110
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000110
 
-drop function if exists dbo.getSugarBackward
+drop function if exists clm.getSugarBackward
 go
 
-create function dbo.getSugarBackward(@clmDefaultValueId bigint)
+create function clm.getSugarBackward(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

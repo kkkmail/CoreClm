@@ -7,13 +7,13 @@
 			  (0, 'Active')
 			, (1, 'Inactive')
 
-		) as a (clmTaskStatusId, clmTaskStatusName)
+		) as a (taskStatusId, taskStatusName)
 	)
-insert into ClmTaskStatus
+insert into clm.TaskStatus
 select valTbl.*
 from valTbl
-left outer join ClmTaskStatus on valTbl.clmTaskStatusId = ClmTaskStatus.clmTaskStatusId
-where ClmTaskStatus.clmTaskStatusId is null
+left outer join clm.TaskStatus on valTbl.taskStatusId = clm.TaskStatus.TaskStatusId
+where clm.TaskStatus.TaskStatusId is null
 go
 
 

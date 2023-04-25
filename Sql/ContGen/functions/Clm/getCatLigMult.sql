@@ -1,12 +1,12 @@
-drop function if exists dbo.getCatLigMult
+drop function if exists clm.getCatLigMult
 go
 
-create function dbo.getCatLigMult(@clmDefaultValueId bigint)
+create function clm.getCatLigMult(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @retVal float
-	set @retVal = isnull(dbo.getCatLigMultSim(@clmDefaultValueId), dbo.getCatLigMultRnd(@clmDefaultValueId))
+	set @retVal = isnull(clm.getCatLigMultSim(@defaultValueId), clm.getCatLigMultRnd(@defaultValueId))
 	return @retval
 end
 go

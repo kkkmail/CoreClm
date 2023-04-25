@@ -1,15 +1,15 @@
-drop function if exists dbo.getLigFwd
+drop function if exists clm.getLigFwd
 go
 
-create function dbo.getLigFwd(@clmDefaultValueId bigint)
+create function clm.getLigFwd(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4002000022
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4002000022
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(

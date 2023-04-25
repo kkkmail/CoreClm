@@ -1,15 +1,15 @@
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 9028
+--declare @defaultValueId bigint
+--set @defaultValueId = 9028
 
-drop function if exists dbo.getCatDestrSim
+drop function if exists clm.getCatDestrSim
 go
 
-create function dbo.getCatDestrSim(@clmDefaultValueId bigint)
+create function clm.getCatDestrSim(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
