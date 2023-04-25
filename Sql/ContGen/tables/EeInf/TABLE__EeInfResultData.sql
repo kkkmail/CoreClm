@@ -5,7 +5,6 @@ IF OBJECT_ID('[dbo].[EeInfResultData]') IS NULL begin
 		[eeInfResultDataId] [uniqueidentifier] NOT NULL, -- resultId is always runQueueId
 		[eeInfResultDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[eeInfModelDataId] [uniqueidentifier] NOT NULL,
-		[maxLastEe] [float] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
 		[modifiedOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_EeInfResultData] PRIMARY KEY CLUSTERED 

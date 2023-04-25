@@ -14,6 +14,8 @@ begin
 	declare @rowCount int
 	set nocount on;
 
+	delete from dbo.ClmRunQueue where runQueueId = @runQueueId
+	delete from dbo.EeInfRunQueue where runQueueId = @runQueueId
 	delete from dbo.RunQueue where runQueueId = @runQueueId
 
 	set @rowCount = @@rowcount

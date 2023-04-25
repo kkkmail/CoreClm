@@ -451,7 +451,6 @@ IF OBJECT_ID('[dbo].[EeInfResultData]') IS NULL begin
 		[eeInfResultDataId] [uniqueidentifier] NOT NULL, -- resultId is always runQueueId
 		[eeInfResultDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[eeInfModelDataId] [uniqueidentifier] NOT NULL,
-		[maxLastEe] [float] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
 		[modifiedOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_EeInfResultData] PRIMARY KEY CLUSTERED 
@@ -2569,6 +2568,8 @@ begin
 	declare @rowCount int
 	set nocount on;
 
+	delete from dbo.ClmRunQueue where runQueueId = @runQueueId
+	delete from dbo.EeInfRunQueue where runQueueId = @runQueueId
 	delete from dbo.RunQueue where runQueueId = @runQueueId
 
 	set @rowCount = @@rowcount
@@ -2697,6 +2698,41 @@ begin
         values (source.clmModelDataId, source.clmTaskId, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
     when matched then
         update set clmTaskId = source.clmTaskId, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists upsertEeInfModelData
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure upsertEeInfModelData 
+		@eeInfModelDataId uniqueidentifier, 
+		@modelDataParams nvarchar(max), 
+		@modelBinaryData varbinary(max), 
+		@createdOn datetime
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    merge EeInfModelData as target
+    using (select @eeInfModelDataId, @modelDataParams, @modelBinaryData, @createdOn)
+    as source (eeInfModelDataId, modelDataParams, modelBinaryData, createdOn)
+    on (target.eeInfModelDataId = source.eeInfModelDataId)
+    when not matched then
+        insert (eeInfModelDataId, modelDataParams, modelBinaryData, createdOn)
+        values (source.eeInfModelDataId, source.modelDataParams, source.modelBinaryData, source.createdOn)
+    when matched then
+        update set modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
 
 	set @rowCount = @@rowcount
 	select @rowCount as [RowCount]
