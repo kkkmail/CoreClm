@@ -1,4 +1,4 @@
-drop procedure if exists tryUpdateProgressRunQueue
+drop procedure if exists eeInf.tryUpdateProgressRunQueue
 go
 
 
@@ -8,15 +8,12 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryUpdateProgressRunQueue (
+create procedure eeInf.tryUpdateProgressRunQueue (
 						@runQueueId uniqueidentifier,
 						@progress decimal(18, 14),
 						@callCount bigint,
-						@yRelative float,
-						@maxEe float,
-						@maxAverageEe float,
-						@maxWeightedAverageAbsEe float,
-						@maxLastEe float)
+						@relativeInvariant float,
+						@dummy float)
 as
 begin
 	declare @rowCount int
@@ -26,11 +23,8 @@ begin
     set
         progress = @progress,
         callCount = @callCount,
-        yRelative = @yRelative,
-        maxEe = @maxEe,
-        maxAverageEe = @maxAverageEe,
-        maxWeightedAverageAbsEe = @maxWeightedAverageAbsEe,
-        maxLastEe = @maxLastEe,
+        relativeInvariant = @relativeInvariant,
+--        dummy = @dummy,
         modifiedOn = (getdate())
     where runQueueId = @runQueueId and runQueueStatusId in (dbo.RunQueueStatus_InProgress(), dbo.RunQueueStatus_CancelRequested())
 

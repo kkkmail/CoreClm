@@ -1,4 +1,4 @@
-drop procedure if exists tryRequestCancelRunQueue
+drop procedure if exists dbo.tryRequestCancelRunQueue
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryRequestCancelRunQueue (@runQueueId uniqueidentifier, @notificationTypeId int)
+create procedure dbo.tryRequestCancelRunQueue (@runQueueId uniqueidentifier, @notificationTypeId int)
 as
 begin
 	declare @rowCount int

@@ -1,3 +1,41 @@
+if not exists(select schema_name from information_schema.schemata where schema_name = 'clm') begin
+	print 'Creating schema clm...'
+	exec sp_executesql N'create schema clm'
+end else begin
+	print 'Schema clm already exists...'
+end
+go
+
+if not exists(select schema_name from information_schema.schemata where schema_name = 'eeInf') begin
+	print 'Creating schema eeInf...'
+	exec sp_executesql N'create schema eeInf'
+end else begin
+	print 'Schema eeInf already exists...'
+end
+go
+
+IF OBJECT_ID('[dbo].[ModelType]') IS NULL begin
+	print 'Creating table [dbo].[ModelType] ...'
+
+	CREATE TABLE [dbo].[ModelType](
+		[modelTypeId] [int] NOT NULL,
+		[modelTypeName] [nvarchar](50) NOT NULL,
+	 CONSTRAINT [PK_ModelType] PRIMARY KEY CLUSTERED 
+	(
+		[modelTypeId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_ModelType] ON [dbo].[ModelType]
+	(
+		[modelTypeName] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+end else begin
+	print 'Table [dbo].[ModelType] already exists ...'
+end
+go
+
+
 IF OBJECT_ID('[dbo].[NotificationType]') IS NULL begin
 	print 'Creating table [dbo].[NotificationType] ...'
 
@@ -47,19 +85,16 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 
 	CREATE TABLE [dbo].[RunQueue](
 		[runQueueId] [uniqueidentifier] NOT NULL,
-		[workerNodeRunModelData] [varbinary](max) NOT NULL,
 		[runQueueOrder] [bigint] IDENTITY(1,1) NOT NULL,
+		[modelTypeId] [int] NOT NULL,
+		[workerNodeRunModelData] [varbinary](max) NOT NULL,
 		[runQueueStatusId] [int] NOT NULL,
 		[processId] [int] NULL,
 		[notificationTypeId] [int] NOT NULL,
 		[errorMessage] [nvarchar](max) NULL,
 		[progress] [decimal](18, 14) NOT NULL,
 		[callCount] [bigint] NOT NULL,
-		[yRelative] [float] NOT NULL,
-		[maxEe] [float] NOT NULL,
-		[maxAverageEe] [float] NOT NULL,
-		[maxWeightedAverageAbsEe] [float] NOT NULL,
-		[maxLastEe] [float] NOT NULL,
+		[relativeInvariant] [float] NOT NULL, -- Should be close to 1.0 all the time. Substantial deviations is a sign of errors. If not needed, then set to 1.0.
 		[createdOn] [datetime] NOT NULL,
 		[startedOn] [datetime] NULL,
 		[modifiedOn] [datetime] NOT NULL,
@@ -73,23 +108,22 @@ IF OBJECT_ID('[dbo].[RunQueue]') IS NULL begin
 	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((0)) FOR [notificationTypeId]
 	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((0)) FOR [progress]
 	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((0)) FOR [callCount]
-	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((1)) FOR [yRelative]
-	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((0)) FOR [maxEe]
-	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((0)) FOR [maxAverageEe]
-	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
-	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((0)) FOR [maxLastEe]
+	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT ((1)) FOR [relativeInvariant]
 	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT (getdate()) FOR [createdOn]
 	ALTER TABLE [dbo].[RunQueue] ADD DEFAULT (getdate()) FOR [modifiedOn]
 
 	ALTER TABLE [dbo].[RunQueue] WITH CHECK ADD CONSTRAINT [FK_RunQueue_NotificationType] FOREIGN KEY([notificationTypeId])
 	REFERENCES [dbo].[NotificationType] ([notificationTypeId])
-
 	ALTER TABLE [dbo].[RunQueue] CHECK CONSTRAINT [FK_RunQueue_NotificationType]
 
 	ALTER TABLE [dbo].[RunQueue] WITH CHECK ADD CONSTRAINT [FK_RunQueue_RunQueueStatus] FOREIGN KEY([runQueueStatusId])
 	REFERENCES [dbo].[RunQueueStatus] ([runQueueStatusId])
-
 	ALTER TABLE [dbo].[RunQueue] CHECK CONSTRAINT [FK_RunQueue_RunQueueStatus]
+
+	ALTER TABLE [dbo].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_RunQueue_ModelType] FOREIGN KEY([modelTypeId])
+	REFERENCES [dbo].[ModelType] ([modelTypeId])
+	ALTER TABLE [dbo].[RunQueue] CHECK CONSTRAINT [FK_RunQueue_ModelType]
+
 end else begin
 	print 'Table [dbo].[RunQueue] already exists ...'
 end
@@ -119,6 +153,62 @@ IF OBJECT_ID('[dbo].[Setting]') IS NULL begin
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
 	print 'Table [dbo].[Setting] already exists ...'
+end
+go
+
+
+
+IF OBJECT_ID('[clm].[RunQueue]') IS NULL begin
+	print 'Creating table [clm].[RunQueue] ...'
+
+	CREATE TABLE [clm].[RunQueue](
+		[runQueueId] [uniqueidentifier] NOT NULL,
+		[maxEe] [float] NOT NULL,
+		[maxAverageEe] [float] NOT NULL,
+		[maxWeightedAverageAbsEe] [float] NOT NULL,
+		[maxLastEe] [float] NOT NULL,
+	 CONSTRAINT [PK_clm_RunQueue] PRIMARY KEY CLUSTERED 
+	(
+		[runQueueId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	ALTER TABLE [clm].[RunQueue] ADD DEFAULT ((0)) FOR [maxEe]
+	ALTER TABLE [clm].[RunQueue] ADD DEFAULT ((0)) FOR [maxAverageEe]
+	ALTER TABLE [clm].[RunQueue] ADD DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
+	ALTER TABLE [clm].[RunQueue] ADD DEFAULT ((0)) FOR [maxLastEe]
+
+	ALTER TABLE [clm].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_clm_RunQueue_RunQueue] FOREIGN KEY([runQueueId])
+	REFERENCES [dbo].[RunQueue] ([runQueueId])
+	ALTER TABLE [clm].[RunQueue] CHECK CONSTRAINT [FK_clm_RunQueue_RunQueue]
+
+end else begin
+	print 'Table [clm].[RunQueue] already exists ...'
+end
+go
+
+
+
+IF OBJECT_ID('[eeInf].[RunQueue]') IS NULL begin
+	print 'Creating table [eeInf].[RunQueue] ...'
+
+	CREATE TABLE [eeInf].[RunQueue](
+		[runQueueId] [uniqueidentifier] NOT NULL,
+		[dummy] [float] NOT NULL,
+	 CONSTRAINT [PK_eeInf_RunQueue] PRIMARY KEY CLUSTERED 
+	(
+		[runQueueId] ASC
+	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+	) ON [PRIMARY]
+
+	ALTER TABLE [eeInf].[RunQueue] ADD DEFAULT ((0)) FOR [dummy]
+
+	ALTER TABLE [eeInf].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_RunQueue_RunQueue] FOREIGN KEY([runQueueId])
+	REFERENCES [dbo].[RunQueue] ([runQueueId])
+	ALTER TABLE [eeInf].[RunQueue] CHECK CONSTRAINT [FK_eeInf_RunQueue_RunQueue]
+
+end else begin
+	print 'Table [eeInf].[RunQueue] already exists ...'
 end
 go
 
@@ -157,7 +247,7 @@ go
 create function dbo.RunQueueStatus_Cancelled() returns int as begin return 6 end
 go
 
-drop procedure if exists deleteRunQueue
+drop procedure if exists dbo.deleteRunQueue
 go
 
 
@@ -167,12 +257,14 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure deleteRunQueue @runQueueId uniqueidentifier
+create procedure dbo.deleteRunQueue @runQueueId uniqueidentifier
 as
 begin
 	declare @rowCount int
 	set nocount on;
 
+	delete from clm.RunQueue where runQueueId = @runQueueId
+	delete from eeInf.RunQueue where runQueueId = @runQueueId
 	delete from dbo.RunQueue where runQueueId = @runQueueId
 
 	set @rowCount = @@rowcount
@@ -180,7 +272,7 @@ begin
 end
 go
 
-drop procedure if exists tryCancelRunQueue
+drop procedure if exists dbo.tryCancelRunQueue
 go
 
 
@@ -190,7 +282,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryCancelRunQueue (@runQueueId uniqueidentifier, @errorMessage nvarchar(max))
+create procedure dbo.tryCancelRunQueue (@runQueueId uniqueidentifier, @errorMessage nvarchar(max))
 as
 begin
 	declare @rowCount int
@@ -209,7 +301,7 @@ begin
 end
 go
 
-drop procedure if exists tryClearNotificationRunQueue
+drop procedure if exists dbo.tryClearNotificationRunQueue
 go
 
 
@@ -219,7 +311,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryClearNotificationRunQueue @runQueueId uniqueidentifier
+create procedure dbo.tryClearNotificationRunQueue @runQueueId uniqueidentifier
 as
 begin
 	declare @rowCount int
@@ -236,7 +328,7 @@ begin
 end
 go
 
-drop procedure if exists tryCompleteRunQueue
+drop procedure if exists dbo.tryCompleteRunQueue
 go
 
 
@@ -246,7 +338,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryCompleteRunQueue @runQueueId uniqueidentifier
+create procedure dbo.tryCompleteRunQueue @runQueueId uniqueidentifier
 as
 begin
 	declare @rowCount int
@@ -264,7 +356,7 @@ begin
 end
 go
 
-drop procedure if exists tryFailRunQueue
+drop procedure if exists dbo.tryFailRunQueue
 go
 
 
@@ -274,7 +366,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryFailRunQueue (@runQueueId uniqueidentifier, @errorMessage nvarchar(max))
+create procedure dbo.tryFailRunQueue (@runQueueId uniqueidentifier, @errorMessage nvarchar(max))
 as
 begin
 	declare @rowCount int
@@ -293,7 +385,7 @@ begin
 end
 go
 
-drop procedure if exists tryNotifyRunQueue
+drop procedure if exists dbo.tryNotifyRunQueue
 go
 
 
@@ -303,7 +395,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryNotifyRunQueue (@runQueueId uniqueidentifier, @notificationTypeId int)
+create procedure dbo.tryNotifyRunQueue (@runQueueId uniqueidentifier, @notificationTypeId int)
 as
 begin
 	declare @rowCount int
@@ -320,7 +412,7 @@ begin
 end
 go
 
-drop procedure if exists tryRequestCancelRunQueue
+drop procedure if exists dbo.tryRequestCancelRunQueue
 go
 
 
@@ -330,7 +422,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryRequestCancelRunQueue (@runQueueId uniqueidentifier, @notificationTypeId int)
+create procedure dbo.tryRequestCancelRunQueue (@runQueueId uniqueidentifier, @notificationTypeId int)
 as
 begin
 	declare @rowCount int
@@ -348,7 +440,7 @@ begin
 end
 go
 
-drop procedure if exists tryStartRunQueue
+drop procedure if exists dbo.tryStartRunQueue
 go
 
 
@@ -357,7 +449,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-create procedure tryStartRunQueue (@runQueueId uniqueidentifier, @processId int)
+create procedure dbo.tryStartRunQueue (@runQueueId uniqueidentifier, @processId int)
 as
 begin
 	declare @rowCount int
@@ -377,7 +469,7 @@ begin
 end
 go
 
-drop procedure if exists tryUpdateProgressRunQueue
+drop procedure if exists clm.tryUpdateProgressRunQueue
 go
 
 
@@ -387,11 +479,11 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryUpdateProgressRunQueue (
+create procedure clm.tryUpdateProgressRunQueue (
 						@runQueueId uniqueidentifier,
 						@progress decimal(18, 14),
 						@callCount bigint,
-						@yRelative float,
+						@relativeInvariant float,
 						@maxEe float,
 						@maxAverageEe float,
 						@maxWeightedAverageAbsEe float,
@@ -405,11 +497,46 @@ begin
     set
         progress = @progress,
         callCount = @callCount,
-        yRelative = @yRelative,
-        maxEe = @maxEe,
-        maxAverageEe = @maxAverageEe,
-        maxWeightedAverageAbsEe = @maxWeightedAverageAbsEe,
-        maxLastEe = @maxLastEe,
+        relativeInvariant = @relativeInvariant,
+--        maxEe = @maxEe,
+--        maxAverageEe = @maxAverageEe,
+--        maxWeightedAverageAbsEe = @maxWeightedAverageAbsEe,
+--        maxLastEe = @maxLastEe,
+        modifiedOn = (getdate())
+    where runQueueId = @runQueueId and runQueueStatusId in (dbo.RunQueueStatus_InProgress(), dbo.RunQueueStatus_CancelRequested())
+
+	set @rowCount = @@rowcount
+	select @rowCount as [RowCount]
+end
+go
+
+drop procedure if exists eeInf.tryUpdateProgressRunQueue
+go
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+create procedure eeInf.tryUpdateProgressRunQueue (
+						@runQueueId uniqueidentifier,
+						@progress decimal(18, 14),
+						@callCount bigint,
+						@relativeInvariant float,
+						@dummy float)
+as
+begin
+	declare @rowCount int
+	set nocount on;
+
+    update dbo.RunQueue
+    set
+        progress = @progress,
+        callCount = @callCount,
+        relativeInvariant = @relativeInvariant,
+--        dummy = @dummy,
         modifiedOn = (getdate())
     where runQueueId = @runQueueId and runQueueStatusId in (dbo.RunQueueStatus_InProgress(), dbo.RunQueueStatus_CancelRequested())
 
@@ -540,6 +667,24 @@ begin
 	set @rowCount = @@rowcount
 	select @rowCount as [RowCount]
 end
+go
+
+;with 
+	valTbl as
+	(
+		select * 
+		from 
+		( values
+			  (1, 'ClmModel')
+			, (2, 'EeInfModel')
+
+		) as a (modelTypeId, modelTypeName)
+	)
+insert into dbo.ModelType
+select valTbl.*
+from valTbl
+left outer join dbo.ModelType on valTbl.modelTypeId = ModelType.modelTypeId
+where ModelType.modelTypeId is null
 go
 
 ;with 

@@ -1,4 +1,4 @@
-drop procedure if exists tryStartRunQueue
+drop procedure if exists dbo.tryStartRunQueue
 go
 
 
@@ -7,7 +7,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-create procedure tryStartRunQueue (@runQueueId uniqueidentifier, @processId int)
+create procedure dbo.tryStartRunQueue (@runQueueId uniqueidentifier, @processId int)
 as
 begin
 	declare @rowCount int

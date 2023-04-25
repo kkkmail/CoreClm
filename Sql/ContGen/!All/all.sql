@@ -1,3 +1,19 @@
+if not exists(select schema_name from information_schema.schemata where schema_name = 'clm') begin
+	print 'Creating schema clm...'
+	exec sp_executesql N'create schema clm'
+end else begin
+	print 'Schema clm already exists...'
+end
+go
+
+if not exists(select schema_name from information_schema.schemata where schema_name = 'eeInf') begin
+	print 'Creating schema eeInf...'
+	exec sp_executesql N'create schema eeInf'
+end else begin
+	print 'Schema eeInf already exists...'
+end
+go
+
 IF OBJECT_ID('[dbo].[ModelType]') IS NULL begin
 	print 'Creating table [dbo].[ModelType] ...'
 
@@ -136,37 +152,37 @@ go
 
 
 
-IF OBJECT_ID('[dbo].[ClmTaskStatus]') IS NULL begin
-	print 'Creating table [dbo].[ClmTaskStatus] ...'
+IF OBJECT_ID('[clm].[TaskStatus]') IS NULL begin
+	print 'Creating table [clm].[TaskStatus] ...'
 
-	CREATE TABLE [dbo].[ClmTaskStatus](
-		[clmTaskStatusId] [int] NOT NULL,
-		[clmTaskStatusName] [nvarchar](50) NOT NULL,
-	 CONSTRAINT [PK_clmTaskStatus] PRIMARY KEY CLUSTERED 
+	CREATE TABLE [clm].[TaskStatus](
+		[taskStatusId] [int] NOT NULL,
+		[taskStatusName] [nvarchar](50) NOT NULL,
+	 CONSTRAINT [PK_clm_TaskStatus] PRIMARY KEY CLUSTERED 
 	(
-		[clmTaskStatusId] ASC
+		[taskStatusId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
-	CREATE UNIQUE NONCLUSTERED INDEX [UX_clmTaskStatus] ON [dbo].[ClmTaskStatus]
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_clm_TaskStatus] ON [clm].[TaskStatus]
 	(
-		[clmTaskStatusName] ASC
+		[taskStatusName] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
-	print 'Table [dbo].[ClmTaskStatus] already exists ...'
+	print 'Table [clm].[TaskStatus] already exists ...'
 end
 go
 
 
-IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
-	print 'Creating table [dbo].[ClmTask] ...'
+IF OBJECT_ID('[clm].[Task]') IS NULL begin
+	print 'Creating table [clm].[Task] ...'
 
-	CREATE TABLE [dbo].[ClmTask](
-		[clmTaskId] [uniqueidentifier] NOT NULL,
-		[clmTaskOrder] [bigint] IDENTITY(1,1) NOT NULL,
-		[clmDefaultValueId] [bigint] NOT NULL,
-		[clmTaskStatusId] [int] NOT NULL,
-		[clmTaskPriority] [int] NOT NULL,
+	CREATE TABLE [clm].[Task](
+		[taskId] [uniqueidentifier] NOT NULL,
+		[taskOrder] [bigint] IDENTITY(1,1) NOT NULL,
+		[defaultValueId] [bigint] NOT NULL,
+		[taskStatusId] [int] NOT NULL,
+		[taskPriority] [int] NOT NULL,
 		[numberOfAminoAcids] [int] NOT NULL,
 		[maxPeptideLength] [int] NOT NULL,
 		[numberOfRepetitions] [int] NOT NULL,
@@ -175,74 +191,73 @@ IF OBJECT_ID('[dbo].[ClmTask]') IS NULL begin
 		[modifiedOn] [datetime] NOT NULL,
 	 CONSTRAINT [PK_ClmTask] PRIMARY KEY CLUSTERED 
 	(
-		[clmTaskId] ASC
+		[taskId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
-	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((1)) FOR [numberOfRepetitions]
-	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((1)) FOR [remainingRepetitions]
-	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((0)) FOR [clmTaskStatusId]
-	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT ((1000)) FOR [clmTaskPriority]
-	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT (getdate()) FOR [createdOn]
-	ALTER TABLE [dbo].[ClmTask] ADD  DEFAULT (getdate()) FOR [modifiedOn]
+	ALTER TABLE [clm].[Task] ADD  DEFAULT ((1)) FOR [numberOfRepetitions]
+	ALTER TABLE [clm].[Task] ADD  DEFAULT ((1)) FOR [remainingRepetitions]
+	ALTER TABLE [clm].[Task] ADD  DEFAULT ((0)) FOR [taskStatusId]
+	ALTER TABLE [clm].[Task] ADD  DEFAULT ((1000)) FOR [taskPriority]
+	ALTER TABLE [clm].[Task] ADD  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [clm].[Task] ADD  DEFAULT (getdate()) FOR [modifiedOn]
 
-	ALTER TABLE [dbo].[ClmTask]  WITH CHECK ADD CONSTRAINT [FK_ClmTask_ClmTaskStatus] FOREIGN KEY([clmTaskStatusId])
-	REFERENCES [dbo].[ClmTaskStatus] ([clmTaskStatusId])
+	ALTER TABLE [clm].[Task]  WITH CHECK ADD CONSTRAINT [FK_clm_Task_TaskStatus] FOREIGN KEY([taskStatusId])
+	REFERENCES [clm].[TaskStatus] ([taskStatusId])
+	ALTER TABLE [clm].[Task] CHECK CONSTRAINT [FK_clm_Task_TaskStatus]
 
-	ALTER TABLE [dbo].[ClmTask] CHECK CONSTRAINT [FK_ClmTask_ClmTaskStatus]
-
-	CREATE UNIQUE NONCLUSTERED INDEX [UX_ClmTask] ON [dbo].[ClmTask]
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_clm_Task] ON [clm].[Task]
 	(
-		[clmTaskOrder] ASC
+		[taskOrder] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
-	print 'Table [dbo].[ClmTask] already exists ...'
+	print 'Table [clm].[Task] already exists ...'
 end
 go
 
 
 
-IF OBJECT_ID('[dbo].[ClmModelData]') IS NULL begin
-	print 'Creating table [dbo].[ClmModelData] ...'
+IF OBJECT_ID('[clm].[ModelData]') IS NULL begin
+	print 'Creating table [clm].[ModelData] ...'
 
-	CREATE TABLE [dbo].[ClmModelData](
-		[clmModelDataId] [uniqueidentifier] NOT NULL,
-		[clmModelDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
-		[clmTaskId] [uniqueidentifier] NOT NULL,
+	CREATE TABLE [clm].[ModelData](
+		[modelDataId] [uniqueidentifier] NOT NULL,
+		[modelDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
+		[taskId] [uniqueidentifier] NOT NULL,
 		[seedValue] [int] NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,
 		[modelBinaryData] [varbinary](max) NOT NULL,
 		[createdOn] [datetime] NOT NULL,
-	 CONSTRAINT [PK_ClmModelData] PRIMARY KEY CLUSTERED 
+	 CONSTRAINT [PK_clm_ModelData] PRIMARY KEY CLUSTERED 
 	(
-		[clmModelDataId] ASC
+		[modelDataId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 
-	ALTER TABLE [dbo].[ClmModelData] ADD  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [clm].[ModelData] ADD  DEFAULT (getdate()) FOR [createdOn]
 
-	ALTER TABLE [dbo].[ClmModelData]  WITH CHECK ADD  CONSTRAINT [FK_ClmModelData_ClmTask] FOREIGN KEY([clmTaskId])
-	REFERENCES [dbo].[ClmTask] ([clmTaskId])
-	ALTER TABLE [dbo].[ClmModelData] CHECK CONSTRAINT [FK_ClmModelData_ClmTask]
+	ALTER TABLE [clm].[ModelData]  WITH CHECK ADD  CONSTRAINT [FK_clm_ModelData_Task] FOREIGN KEY([taskId])
+	REFERENCES [clm].[Task] ([taskId])
+	ALTER TABLE [clm].[ModelData] CHECK CONSTRAINT [FK_clm_ModelData_Task]
 
-	CREATE UNIQUE NONCLUSTERED INDEX [UX_ClmModelData] ON [dbo].[ClmModelData]
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_clm_ModelData] ON [clm].[ModelData]
 	(
-		[clmModelDataOrder] ASC
+		[modelDataOrder] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
-	print 'Table [dbo].[ClmModelData] already exists ...'
+	print 'Table [clm].[ModelData] already exists ...'
 end
 go
 
 
 
 
-IF OBJECT_ID('[dbo].[ClmRunQueue]') IS NULL begin
-	print 'Creating table [dbo].[ClmRunQueue] ...'
+IF OBJECT_ID('[clm].[RunQueue]') IS NULL begin
+	print 'Creating table [clm].[RunQueue] ...'
 
-	CREATE TABLE [dbo].[ClmRunQueue](
+	CREATE TABLE [clm].[RunQueue](
 		[runQueueId] [uniqueidentifier] NOT NULL,
-		[clmModelDataId] [uniqueidentifier] NOT NULL,
+		[modelDataId] [uniqueidentifier] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL,
@@ -250,94 +265,94 @@ IF OBJECT_ID('[dbo].[ClmRunQueue]') IS NULL begin
 		[maxAverageEe] [float] NOT NULL,
 		[maxWeightedAverageAbsEe] [float] NOT NULL,
 		[maxLastEe] [float] NOT NULL,
-	 CONSTRAINT [PK_ClmRunQueue] PRIMARY KEY CLUSTERED 
+	 CONSTRAINT [PK_clm_RunQueue] PRIMARY KEY CLUSTERED 
 	(
 		[runQueueId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
-	ALTER TABLE [dbo].[ClmRunQueue] ADD  DEFAULT ((0)) FOR [useAbundant]
-	ALTER TABLE [dbo].[ClmRunQueue] ADD  DEFAULT ((0)) FOR [maxEe]
-	ALTER TABLE [dbo].[ClmRunQueue] ADD  DEFAULT ((0)) FOR [maxAverageEe]
-	ALTER TABLE [dbo].[ClmRunQueue] ADD  DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
-	ALTER TABLE [dbo].[ClmRunQueue] ADD  DEFAULT ((0)) FOR [maxLastEe]
+	ALTER TABLE [clm].[RunQueue] ADD  DEFAULT ((0)) FOR [useAbundant]
+	ALTER TABLE [clm].[RunQueue] ADD  DEFAULT ((0)) FOR [maxEe]
+	ALTER TABLE [clm].[RunQueue] ADD  DEFAULT ((0)) FOR [maxAverageEe]
+	ALTER TABLE [clm].[RunQueue] ADD  DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
+	ALTER TABLE [clm].[RunQueue] ADD  DEFAULT ((0)) FOR [maxLastEe]
 
-	ALTER TABLE [dbo].[ClmRunQueue]  WITH CHECK ADD  CONSTRAINT [FK_ClmRunQueue_RunQueue] FOREIGN KEY([runQueueId])
+	ALTER TABLE [clm].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_clm_RunQueue_RunQueue] FOREIGN KEY([runQueueId])
 	REFERENCES [dbo].[RunQueue] ([runQueueId])
-	ALTER TABLE [dbo].[ClmRunQueue] CHECK CONSTRAINT [FK_ClmRunQueue_RunQueue]
+	ALTER TABLE [clm].[RunQueue] CHECK CONSTRAINT [FK_clm_RunQueue_RunQueue]
 
-	ALTER TABLE [dbo].[ClmRunQueue]  WITH CHECK ADD  CONSTRAINT [FK_ClmRunQueue_ClmModelData] FOREIGN KEY([clmModelDataId])
-	REFERENCES [dbo].[ClmModelData] ([clmModelDataId])
-	ALTER TABLE [dbo].[ClmRunQueue] CHECK CONSTRAINT [FK_ClmRunQueue_ClmModelData]
+	ALTER TABLE [clm].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_clm_RunQueue_ModelData] FOREIGN KEY([modelDataId])
+	REFERENCES [clm].[ModelData] ([modelDataId])
+	ALTER TABLE [clm].[RunQueue] CHECK CONSTRAINT [FK_clm_RunQueue_ModelData]
 
 end else begin
-	print 'Table [dbo].[ClmRunQueue] already exists ...'
+	print 'Table [clm].[ClmRunQueue] already exists ...'
 end
 go
 
 
 
-IF OBJECT_ID('[dbo].[ClmCommandLineParam]') IS NULL begin
-	print 'Creating table [dbo].[ClmCommandLineParam] ...'
+IF OBJECT_ID('[clm].[CommandLineParam]') IS NULL begin
+	print 'Creating table [clm].[CommandLineParam] ...'
 
-	CREATE TABLE [dbo].[ClmCommandLineParam](
-		[clmCommandLineParamId] [uniqueidentifier] NOT NULL,
-		[clmCommandLineParamOrder] [bigint] IDENTITY(1,1) NOT NULL,
-		[clmTaskId] [uniqueidentifier] NOT NULL,
+	CREATE TABLE [clm].[CommandLineParam](
+		[commandLineParamId] [uniqueidentifier] NOT NULL,
+		[commandLineParamOrder] [bigint] IDENTITY(1,1) NOT NULL,
+		[taskId] [uniqueidentifier] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
 		[useAbundant] [bit] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
-	 CONSTRAINT [PK_ClmCommandLineParam] PRIMARY KEY CLUSTERED 
+	 CONSTRAINT [PK_clm_CommandLineParam] PRIMARY KEY CLUSTERED 
 	(
-		[clmCommandLineParamId] ASC
+		[commandLineParamId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
-	ALTER TABLE [dbo].[ClmCommandLineParam] ADD DEFAULT ((0)) FOR [useAbundant]
-	ALTER TABLE [dbo].[ClmCommandLineParam] ADD DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [clm].[CommandLineParam] ADD DEFAULT ((0)) FOR [useAbundant]
+	ALTER TABLE [clm].[CommandLineParam] ADD DEFAULT (getdate()) FOR [createdOn]
 
-	ALTER TABLE [dbo].[ClmCommandLineParam]  WITH CHECK ADD  CONSTRAINT [FK_ClmCommandLineParam_ClmTask] FOREIGN KEY([clmTaskId])
-	REFERENCES [dbo].[ClmTask] ([clmTaskId])
+	ALTER TABLE [clm].[CommandLineParam]  WITH CHECK ADD  CONSTRAINT [FK_clm_CommandLineParam_Task] FOREIGN KEY([taskId])
+	REFERENCES [clm].[Task] ([taskId])
 
-	ALTER TABLE [dbo].[ClmCommandLineParam] CHECK CONSTRAINT [FK_ClmCommandLineParam_ClmTask]
+	ALTER TABLE [clm].[CommandLineParam] CHECK CONSTRAINT [FK_clm_CommandLineParam_Task]
 
-	CREATE NONCLUSTERED INDEX [UX_ClmCommandLineParam] ON [dbo].[ClmCommandLineParam]
+	CREATE NONCLUSTERED INDEX [UX_clm_CommandLineParam] ON [clm].[CommandLineParam]
 	(
-		[clmCommandLineParamOrder] ASC
+		[commandLineParamOrder] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
-	print 'Table [dbo].[ClmCommandLineParam] already exists ...'
+	print 'Table [clm].[CommandLineParam] already exists ...'
 end
 go
 
 
 
-IF OBJECT_ID('[dbo].[ClmDefaultValue]') IS NULL begin
-	print 'Creating table [dbo].[ClmDefaultValue] ...'
+IF OBJECT_ID('[clm].[DefaultValue]') IS NULL begin
+	print 'Creating table [clm].[DefaultValue] ...'
 
-	CREATE TABLE [dbo].[ClmDefaultValue](
-		[clmDefaultValueId] [bigint] NOT NULL,
+	CREATE TABLE [clm].[DefaultValue](
+		[defaultValueId] [bigint] NOT NULL,
 		[defaultRateParams] [nvarchar](max) NOT NULL,
 		[description] [nvarchar](max) NULL,
-	 CONSTRAINT [PK_ClmDefaultValue] PRIMARY KEY CLUSTERED 
+	 CONSTRAINT [PK_clm_DefaultValue] PRIMARY KEY CLUSTERED 
 	(
-		[clmDefaultValueId] ASC
+		[defaultValueId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 end else begin
-	print 'Table [dbo].[ClmDefaultValue] already exists ...'
+	print 'Table [clm].[DefaultValue] already exists ...'
 end
 go
 
 
-IF OBJECT_ID('[dbo].[ClmResultData]') IS NULL begin
-	print 'Creating table [dbo].[ClmResultData] ...'
+IF OBJECT_ID('[clm].[ResultData]') IS NULL begin
+	print 'Creating table [clm].[ResultData] ...'
 
-	CREATE TABLE [dbo].[ClmResultData](
-		[clmResultDataId] [uniqueidentifier] NOT NULL, -- resultId is always runQueueId
-		[clmResultDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
-		[clmModelDataId] [uniqueidentifier] NOT NULL,
+	CREATE TABLE [clm].[ResultData](
+		[resultDataId] [uniqueidentifier] NOT NULL, -- resultId is always runQueueId
+		[resultDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
+		[modelDataId] [uniqueidentifier] NOT NULL,
 		--[workerNodeId] [uniqueidentifier] NOT NULL,
 		[y0] [money] NOT NULL,
 		[tEnd] [money] NOT NULL,
@@ -348,135 +363,135 @@ IF OBJECT_ID('[dbo].[ClmResultData]') IS NULL begin
 		[maxLastEe] [float] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
 		[modifiedOn] [datetime] NOT NULL,
-	 CONSTRAINT [PK_ClmResultData] PRIMARY KEY CLUSTERED 
+	 CONSTRAINT [PK_clm_ResultData] PRIMARY KEY CLUSTERED 
 	(
-		[clmResultDataId] ASC
+		[resultDataId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
-	ALTER TABLE [dbo].[ClmResultData] ADD  DEFAULT ((0)) FOR [useAbundant]
-	ALTER TABLE [dbo].[ClmResultData] ADD  DEFAULT ((0)) FOR [maxEe]
-	ALTER TABLE [dbo].[ClmResultData] ADD  DEFAULT ((0)) FOR [maxAverageEe]
-	ALTER TABLE [dbo].[ClmResultData] ADD  DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
-	ALTER TABLE [dbo].[ClmResultData] ADD  DEFAULT ((0)) FOR [maxLastEe]
-	ALTER TABLE [dbo].[ClmResultData] ADD  DEFAULT (getdate()) FOR [createdOn]
-	ALTER TABLE [dbo].[ClmResultData] ADD  DEFAULT (getdate()) FOR [modifiedOn]
+	ALTER TABLE [clm].[ResultData] ADD  DEFAULT ((0)) FOR [useAbundant]
+	ALTER TABLE [clm].[ResultData] ADD  DEFAULT ((0)) FOR [maxEe]
+	ALTER TABLE [clm].[ResultData] ADD  DEFAULT ((0)) FOR [maxAverageEe]
+	ALTER TABLE [clm].[ResultData] ADD  DEFAULT ((0)) FOR [maxWeightedAverageAbsEe]
+	ALTER TABLE [clm].[ResultData] ADD  DEFAULT ((0)) FOR [maxLastEe]
+	ALTER TABLE [clm].[ResultData] ADD  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [clm].[ResultData] ADD  DEFAULT (getdate()) FOR [modifiedOn]
 
-	--ALTER TABLE [dbo].[ClmResultData]  WITH CHECK ADD  CONSTRAINT [FK_ClmResultData_WorkerNode] FOREIGN KEY([workerNodeId])
-	--REFERENCES [dbo].[WorkerNode] ([workerNodeId])
-	--ALTER TABLE [dbo].[ClmResultData] CHECK CONSTRAINT [FK_ClmResultData_WorkerNode]
+	--ALTER TABLE [clm].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_clm_ResultData_WorkerNode] FOREIGN KEY([workerNodeId])
+	--REFERENCES [clm].[WorkerNode] ([workerNodeId])
+	--ALTER TABLE [clm].[ResultData] CHECK CONSTRAINT [FK_clm_ResultData_WorkerNode]
 
-	ALTER TABLE [dbo].[ClmResultData]  WITH CHECK ADD  CONSTRAINT [FK_ClmResultlData_ClmModelData] FOREIGN KEY([clmModelDataId])
-	REFERENCES [dbo].[ClmModelData] ([clmModelDataId])
-	ALTER TABLE [dbo].[ClmResultData] CHECK CONSTRAINT [FK_ClmResultlData_ClmModelData]
+	ALTER TABLE [clm].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_clm_ResultlData_ModelData] FOREIGN KEY([modelDataId])
+	REFERENCES [clm].[ModelData] ([modelDataId])
+	ALTER TABLE [clm].[ResultData] CHECK CONSTRAINT [FK_clm_ResultlData_ModelData]
 
-	ALTER TABLE [dbo].[ClmResultData]  WITH CHECK ADD  CONSTRAINT [FK_ClmResultData_RunQueue] FOREIGN KEY([clmResultDataId])
-	REFERENCES [dbo].[RunQueue] ([runQueueId])
-	ALTER TABLE [dbo].[ClmResultData] CHECK CONSTRAINT [FK_ClmResultData_RunQueue]
+	ALTER TABLE [clm].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_clm_ResultData_RunQueue] FOREIGN KEY([resultDataId])
+	REFERENCES [clm].[RunQueue] ([runQueueId])
+	ALTER TABLE [clm].[resultData] CHECK CONSTRAINT [FK_clm_ResultData_RunQueue]
 
-	CREATE UNIQUE NONCLUSTERED INDEX [UX_ResultData] ON [dbo].[ClmResultData]
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_clm_ResultData] ON [clm].[ResultData]
 	(
-		[clmResultDataOrder] ASC
+		[resultDataOrder] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 
 end else begin
-	print 'Table [dbo].[ClmResultData] already exists ...'
+	print 'Table [clm].[ResultData] already exists ...'
 end
 go
 
 
 
 
-IF OBJECT_ID('[dbo].[EeInfModelData]') IS NULL begin
-	print 'Creating table [dbo].[EeInfModelData] ...'
+IF OBJECT_ID('[eeInf].[ModelData]') IS NULL begin
+	print 'Creating table [eeInf].[ModelData] ...'
 
-	CREATE TABLE [dbo].[EeInfModelData](
-		[eeInfModelDataId] [uniqueidentifier] NOT NULL,
-		[eeInfModelDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
+	CREATE TABLE [eeInf].[ModelData](
+		[modelDataId] [uniqueidentifier] NOT NULL,
+		[modelDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
 		[modelDataParams] [nvarchar](max) NOT NULL,
 		[modelBinaryData] [varbinary](max) NOT NULL,
 		[createdOn] [datetime] NOT NULL,
-	 CONSTRAINT [PK_EeInfModelData] PRIMARY KEY CLUSTERED 
+	 CONSTRAINT [PK_eeInf_ModelData] PRIMARY KEY CLUSTERED 
 	(
-		[eeInfModelDataId] ASC
+		[modelDataId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 
-	ALTER TABLE [dbo].[EeInfModelData] ADD  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [eeInf].[ModelData] ADD  DEFAULT (getdate()) FOR [createdOn]
 
-	CREATE UNIQUE NONCLUSTERED INDEX [UX_EeInfModelData] ON [dbo].[EeInfModelData]
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_eeInf_ModelData] ON [eeInf].[ModelData]
 	(
-		[eeInfModelDataOrder] ASC
+		[modelDataOrder] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 end else begin
-	print 'Table [dbo].[EeInfModelData] already exists ...'
+	print 'Table [eeInf].[ModelData] already exists ...'
 end
 go
 
 
 
 
-IF OBJECT_ID('[dbo].[EeInfRunQueue]') IS NULL begin
-	print 'Creating table [dbo].[EeInfRunQueue] ...'
+IF OBJECT_ID('[eeInf].[RunQueue]') IS NULL begin
+	print 'Creating table [eeInf].[RunQueue] ...'
 
-	CREATE TABLE [dbo].[EeInfRunQueue](
+	CREATE TABLE [eeInf].[RunQueue](
 		[runQueueId] [uniqueidentifier] NOT NULL,
-		[eeInfModelDataId] [uniqueidentifier] NOT NULL,
+		[ModelDataId] [uniqueidentifier] NOT NULL,
 		[tEnd] [money] NOT NULL,
-	 CONSTRAINT [PK_EeInfRunQueue] PRIMARY KEY CLUSTERED 
+	 CONSTRAINT [PK_eeInf_RunQueue] PRIMARY KEY CLUSTERED 
 	(
 		[runQueueId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
-	ALTER TABLE [dbo].[EeInfRunQueue]  WITH CHECK ADD  CONSTRAINT [FK_EeInfRunQueue_RunQueue] FOREIGN KEY([runQueueId])
+	ALTER TABLE [eeInf].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_RunQueue_RunQueue] FOREIGN KEY([runQueueId])
 	REFERENCES [dbo].[RunQueue] ([runQueueId])
-	ALTER TABLE [dbo].[EeInfRunQueue] CHECK CONSTRAINT [FK_EeInfRunQueue_RunQueue]
+	ALTER TABLE [eeInf].[RunQueue] CHECK CONSTRAINT [FK_eeInf_RunQueue_RunQueue]
 
-	ALTER TABLE [dbo].[EeInfRunQueue]  WITH CHECK ADD  CONSTRAINT [FK_EeInfRunQueue_EeInfModelData] FOREIGN KEY([eeInfModelDataId])
-	REFERENCES [dbo].[EeInfModelData] ([eeInfModelDataId])
-	ALTER TABLE [dbo].[EeInfRunQueue] CHECK CONSTRAINT [FK_EeInfRunQueue_EeInfModelData]
+	ALTER TABLE [eeInf].[RunQueue]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_RunQueue_ModelData] FOREIGN KEY([modelDataId])
+	REFERENCES [eeInf].[ModelData] ([modelDataId])
+	ALTER TABLE [eeInf].[RunQueue] CHECK CONSTRAINT [FK_eeInf_RunQueue_ModelData]
 
 end else begin
-	print 'Table [dbo].[EeInfRunQueue] already exists ...'
+	print 'Table [eeInf].[RunQueue] already exists ...'
 end
 go
 
 
 
-IF OBJECT_ID('[dbo].[EeInfResultData]') IS NULL begin
-	print 'Creating table [dbo].[EeInfResultData] ...'
+IF OBJECT_ID('[eeInf].[ResultData]') IS NULL begin
+	print 'Creating table [eeInf].[ResultData] ...'
 
-	CREATE TABLE [dbo].[EeInfResultData](
-		[eeInfResultDataId] [uniqueidentifier] NOT NULL, -- resultId is always runQueueId
-		[eeInfResultDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
-		[eeInfModelDataId] [uniqueidentifier] NOT NULL,
+	CREATE TABLE [eeInf].[ResultData](
+		[resultDataId] [uniqueidentifier] NOT NULL, -- resultId is always runQueueId
+		[resultDataOrder] [bigint] IDENTITY(1,1) NOT NULL,
+		[modelDataId] [uniqueidentifier] NOT NULL,
 		[createdOn] [datetime] NOT NULL,
 		[modifiedOn] [datetime] NOT NULL,
-	 CONSTRAINT [PK_EeInfResultData] PRIMARY KEY CLUSTERED 
+	 CONSTRAINT [PK_eeInf_ResultData] PRIMARY KEY CLUSTERED 
 	(
-		[eeInfResultDataId] ASC
+		[resultDataId] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 	) ON [PRIMARY]
 
-	ALTER TABLE [dbo].[EeInfResultData] ADD  DEFAULT (getdate()) FOR [createdOn]
-	ALTER TABLE [dbo].[EeInfResultData] ADD  DEFAULT (getdate()) FOR [modifiedOn]
+	ALTER TABLE [eeInf].[ResultData] ADD  DEFAULT (getdate()) FOR [createdOn]
+	ALTER TABLE [eeInf].[ResultData] ADD  DEFAULT (getdate()) FOR [modifiedOn]
 
-	ALTER TABLE [dbo].[EeInfResultData]  WITH CHECK ADD  CONSTRAINT [FK_EeInfResultlData_EeInfModelData] FOREIGN KEY([eeInfModelDataId])
-	REFERENCES [dbo].[EeInfModelData] ([eeInfModelDataId])
-	ALTER TABLE [dbo].[EeInfResultData] CHECK CONSTRAINT [FK_EeInfResultlData_EeInfModelData]
+	ALTER TABLE [eeInf].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_ResultlData_ModelData] FOREIGN KEY([modelDataId])
+	REFERENCES [eeInf].[ModelData] ([eeInfModelDataId])
+	ALTER TABLE [eeInf].[ResultData] CHECK CONSTRAINT [FK_eeInf_ResultlData_ModelData]
 
-	ALTER TABLE [dbo].[EeInfResultData]  WITH CHECK ADD  CONSTRAINT [FK_EeInfResultData_RunQueue] FOREIGN KEY([eeInfResultDataId])
-	REFERENCES [dbo].[RunQueue] ([runQueueId])
-	ALTER TABLE [dbo].[EeInfResultData] CHECK CONSTRAINT [FK_EeInfResultData_RunQueue]
+	ALTER TABLE [eeInf].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_ResultData_RunQueue] FOREIGN KEY([resultDataId])
+	REFERENCES [eeInf].[RunQueue] ([runQueueId])
+	ALTER TABLE [eeInf].[ResultData] CHECK CONSTRAINT [FK_eeInf_ResultData_RunQueue]
 
-	CREATE UNIQUE NONCLUSTERED INDEX [UX_ResultData] ON [dbo].[EeInfResultData]
+	CREATE UNIQUE NONCLUSTERED INDEX [UX_eeInf_ResultData] ON [eeInf].[ResultData]
 	(
-		[eeInfResultDataOrder] ASC
+		[resultDataOrder] ASC
 	)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 
 end else begin
-	print 'Table [dbo].[EeInfResultData] already exists ...'
+	print 'Table [eeInf].[ResultData] already exists ...'
 end
 go
 
@@ -490,6 +505,45 @@ go
 create view vw_newid
 as
 select newid() as new_id
+go
+
+drop function if exists dbo.getAvailableWorkerNode
+go
+
+
+create function dbo.getAvailableWorkerNode(@lastAllowedNodeErrInMinutes int)
+returns table
+as
+return
+(
+	with a as
+	(
+	select
+		workerNodeId
+		,nodePriority
+		,cast(
+			case
+				when numberOfCores <= 0 then 1
+				else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
+			end as money) as workLoad
+		,case when lastErrorOn is null or dateadd(minute, @lastAllowedNodeErrInMinutes, lastErrorOn) < getdate() then 0 else 1 end as noErr
+	from WorkerNode w
+	where isInactive = 0
+	),
+	b as
+	(
+		select
+			a.*, 
+			c.new_id
+			from a
+			cross apply (select new_id from vw_newid) c
+	)
+	select top 1
+	workerNodeId
+	from b
+	where noErr = 0 and workLoad < 1
+	order by nodePriority desc, workLoad, new_id
+)
 go
 
 drop view if exists vw_AvailableWorkerNode
@@ -520,18 +574,18 @@ select
 
 go
 
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
-drop function if exists dbo.getAcBkwCatLigScarcity
+drop function if exists clm.getAcBkwCatLigScarcity
 go
 
-create function dbo.getAcBkwCatLigScarcity(@clmDefaultValueId bigint)
+create function clm.getAcBkwCatLigScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -627,18 +681,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
-drop function if exists dbo.getAcBkwCatLigSimilarity
+drop function if exists clm.getAcBkwCatLigSimilarity
 go
 
-create function dbo.getAcBkwCatLigSimilarity(@clmDefaultValueId bigint)
+create function clm.getAcBkwCatLigSimilarity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -724,18 +778,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
-drop function if exists dbo.getAcCatDestrScarcity
+drop function if exists clm.getAcCatDestrScarcity
 go
 
-create function dbo.getAcCatDestrScarcity(@clmDefaultValueId bigint)
+create function clm.getAcCatDestrScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -829,18 +883,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
-drop function if exists dbo.getAcCatDestrSimilarity
+drop function if exists clm.getAcCatDestrSimilarity
 go
 
-create function dbo.getAcCatDestrSimilarity(@clmDefaultValueId bigint)
+create function clm.getAcCatDestrSimilarity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -926,19 +980,19 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
 
-drop function if exists dbo.getAcCatSynthScarcity
+drop function if exists clm.getAcCatSynthScarcity
 go
 
-create function dbo.getAcCatSynthScarcity(@clmDefaultValueId bigint)
+create function clm.getAcCatSynthScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1034,18 +1088,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
-drop function if exists dbo.getAcCatSynthSimilarity
+drop function if exists clm.getAcCatSynthSimilarity
 go
 
-create function dbo.getAcCatSynthSimilarity(@clmDefaultValueId bigint)
+create function clm.getAcCatSynthSimilarity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1131,19 +1185,19 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
 
-drop function if exists dbo.getAcFwdCatLigScarcity
+drop function if exists clm.getAcFwdCatLigScarcity
 go
 
-create function dbo.getAcFwdCatLigScarcity(@clmDefaultValueId bigint)
+create function clm.getAcFwdCatLigScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1239,18 +1293,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000020
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000020
 
-drop function if exists dbo.getAcFwdCatLigSimilarity
+drop function if exists clm.getAcFwdCatLigSimilarity
 go
 
-create function dbo.getAcFwdCatLigSimilarity(@clmDefaultValueId bigint)
+create function clm.getAcFwdCatLigSimilarity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1336,54 +1390,15 @@ begin
 	return @retval
 end
 go
-drop function if exists dbo.getAvailableWorkerNode
+drop function if exists clm.getCatDestrScarcity
 go
 
-
-create function dbo.getAvailableWorkerNode(@lastAllowedNodeErrInMinutes int)
-returns table
-as
-return
-(
-	with a as
-	(
-	select
-		workerNodeId
-		,nodePriority
-		,cast(
-			case
-				when numberOfCores <= 0 then 1
-				else (select count(1) as runningModels from RunQueue where workerNodeId = w.workerNodeId and runQueueStatusId in (2, 5, 7)) / (cast(numberOfCores as money))
-			end as money) as workLoad
-		,case when lastErrorOn is null or dateadd(minute, @lastAllowedNodeErrInMinutes, lastErrorOn) < getdate() then 0 else 1 end as noErr
-	from WorkerNode w
-	where isInactive = 0
-	),
-	b as
-	(
-		select
-			a.*, 
-			c.new_id
-			from a
-			cross apply (select new_id from vw_newid) c
-	)
-	select top 1
-	workerNodeId
-	from b
-	where noErr = 0 and workLoad < 1
-	order by nodePriority desc, workLoad, new_id
-)
-go
-
-drop function if exists dbo.getCatDestrScarcity
-go
-
-create function dbo.getCatDestrScarcity(@clmDefaultValueId bigint)
+create function clm.getCatDestrScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1469,18 +1484,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 9028
+--declare @defaultValueId bigint
+--set @defaultValueId = 9028
 
-drop function if exists dbo.getCatDestrSim
+drop function if exists clm.getCatDestrSim
 go
 
-create function dbo.getCatDestrSim(@clmDefaultValueId bigint)
+create function clm.getCatDestrSim(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1553,31 +1568,31 @@ begin
 	return @retval
 end
 go
-drop function if exists dbo.getCatLigMult
+drop function if exists clm.getCatLigMult
 go
 
-create function dbo.getCatLigMult(@clmDefaultValueId bigint)
+create function clm.getCatLigMult(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @retVal float
-	set @retVal = isnull(dbo.getCatLigMultSim(@clmDefaultValueId), dbo.getCatLigMultRnd(@clmDefaultValueId))
+	set @retVal = isnull(clm.getCatLigMultSim(@defaultValueId), clm.getCatLigMultRnd(@defaultValueId))
 	return @retval
 end
 go
 
-drop function if exists dbo.getCatLigMultRnd
+drop function if exists clm.getCatLigMultRnd
 go
 
-create function dbo.getCatLigMultRnd(@clmDefaultValueId bigint)
+create function clm.getCatLigMultRnd(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4000000000
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4000000000
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1667,18 +1682,18 @@ begin
 end
 go
 
-drop function if exists dbo.getCatLigMultSim
+drop function if exists clm.getCatLigMultSim
 go
 
-create function dbo.getCatLigMultSim(@clmDefaultValueId bigint)
+create function clm.getCatLigMultSim(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4002000022
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4002000022
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1768,31 +1783,31 @@ begin
 end
 go
 
-drop function if exists dbo.getCatLigScarcity
+drop function if exists clm.getCatLigScarcity
 go
 
-create function dbo.getCatLigScarcity(@clmDefaultValueId bigint)
+create function clm.getCatLigScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @retVal float
-	set @retVal = isnull(dbo.getCatLigScarcitySim(@clmDefaultValueId), dbo.getCatLigScarcityRnd(@clmDefaultValueId))
+	set @retVal = isnull(clm.getCatLigScarcitySim(@defaultValueId), clm.getCatLigScarcityRnd(@defaultValueId))
 	return @retval
 end
 go
 
-drop function if exists dbo.getCatLigScarcityRnd
+drop function if exists clm.getCatLigScarcityRnd
 go
 
-create function dbo.getCatLigScarcityRnd(@clmDefaultValueId bigint)
+create function clm.getCatLigScarcityRnd(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4000000000
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4000000000
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1881,18 +1896,18 @@ begin
 end
 go
 
-drop function if exists dbo.getCatLigScarcitySim
+drop function if exists clm.getCatLigScarcitySim
 go
 
-create function dbo.getCatLigScarcitySim(@clmDefaultValueId bigint)
+create function clm.getCatLigScarcitySim(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4002000022
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4002000022
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -1982,18 +1997,18 @@ begin
 end
 go
 
-drop function if exists dbo.getCatLigSim
+drop function if exists clm.getCatLigSim
 go
 
-create function dbo.getCatLigSim(@clmDefaultValueId bigint)
+create function clm.getCatLigSim(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4002000022
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4002000022
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2068,15 +2083,15 @@ begin
 	return @retval
 end
 go
-drop function if exists dbo.getCatSynthScarcity
+drop function if exists clm.getCatSynthScarcity
 go
 
-create function dbo.getCatSynthScarcity(@clmDefaultValueId bigint)
+create function clm.getCatSynthScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2162,18 +2177,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 9028
+--declare @defaultValueId bigint
+--set @defaultValueId = 9028
 
-drop function if exists dbo.getCatSynthSim
+drop function if exists clm.getCatSynthSim
 go
 
-create function dbo.getCatSynthSim(@clmDefaultValueId bigint)
+create function clm.getCatSynthSim(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2246,28 +2261,28 @@ begin
 	return @retval
 end
 go
-drop function if exists dbo.getGroupId
+drop function if exists clm.getGroupId
 go
 
-create function dbo.getGroupId(@clmDefaultValueId bigint)
+create function clm.getGroupId(@defaultValueId bigint)
 returns bigint
 as
 begin
-	return (@clmDefaultValueId / 1000000000)
+	return (@defaultValueId / 1000000000)
 end
 go
-drop function if exists dbo.getLigBkw
+drop function if exists clm.getLigBkw
 go
 
-create function dbo.getLigBkw(@clmDefaultValueId bigint)
+create function clm.getLigBkw(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4002000022
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4002000022
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2321,18 +2336,18 @@ begin
 end
 go
 
-drop function if exists dbo.getLigFwd
+drop function if exists clm.getLigFwd
 go
 
-create function dbo.getLigFwd(@clmDefaultValueId bigint)
+create function clm.getLigFwd(@defaultValueId bigint)
 returns float
 as
 begin
-	--declare @clmDefaultValueId bigint
-	--set @clmDefaultValueId = 4002000022
+	--declare @defaultValueId bigint
+	--set @defaultValueId = 4002000022
 
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2386,18 +2401,18 @@ begin
 end
 go
 
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000110
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000110
 
-drop function if exists dbo.getSugarBackward
+drop function if exists clm.getSugarBackward
 go
 
-create function dbo.getSugarBackward(@clmDefaultValueId bigint)
+create function clm.getSugarBackward(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2429,18 +2444,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000110
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000110
 
-drop function if exists dbo.getSugarForward
+drop function if exists clm.getSugarForward
 go
 
-create function dbo.getSugarForward(@clmDefaultValueId bigint)
+create function clm.getSugarForward(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2472,18 +2487,18 @@ begin
 	return @retval
 end
 go
---declare @clmDefaultValueId bigint
---set @clmDefaultValueId = 4005000110
+--declare @defaultValueId bigint
+--set @defaultValueId = 4005000110
 
-drop function if exists dbo.getSugarScarcity
+drop function if exists clm.getSugarScarcity
 go
 
-create function dbo.getSugarScarcity(@clmDefaultValueId bigint)
+create function clm.getSugarScarcity(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2523,15 +2538,15 @@ begin
 	return @retval
 end
 go
-drop function if exists dbo.getWasteRecyclingRate
+drop function if exists clm.getWasteRecyclingRate
 go
 
-create function dbo.getWasteRecyclingRate(@clmDefaultValueId bigint)
+create function clm.getWasteRecyclingRate(@defaultValueId bigint)
 returns float
 as
 begin
 	declare @json nvarchar(max), @retVal float
-	select @json = defaultRateparams from ClmDefaultValue where clmDefaultValueId = @clmDefaultValueId
+	select @json = defaultRateparams from clm.DefaultValue where defaultValueId = @defaultValueId
 
 	;with t1 as
 	(
@@ -2552,7 +2567,7 @@ begin
 	return @retVal
 end
 go
-drop procedure if exists deleteRunQueue
+drop procedure if exists dbo.deleteRunQueue
 go
 
 
@@ -2562,14 +2577,14 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure deleteRunQueue @runQueueId uniqueidentifier
+create procedure dbo.deleteRunQueue @runQueueId uniqueidentifier
 as
 begin
 	declare @rowCount int
 	set nocount on;
 
-	delete from dbo.ClmRunQueue where runQueueId = @runQueueId
-	delete from dbo.EeInfRunQueue where runQueueId = @runQueueId
+	delete from clm.RunQueue where runQueueId = @runQueueId
+	delete from eeInf.RunQueue where runQueueId = @runQueueId
 	delete from dbo.RunQueue where runQueueId = @runQueueId
 
 	set @rowCount = @@rowcount
@@ -2577,7 +2592,7 @@ begin
 end
 go
 
-drop procedure if exists tryResetRunQueue
+drop procedure if exists dbo.tryResetRunQueue
 go
 
 
@@ -2587,7 +2602,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryResetRunQueue @runQueueId uniqueidentifier
+create procedure dbo.tryResetRunQueue @runQueueId uniqueidentifier
 as
 begin
 	declare @rowCount int
@@ -2607,7 +2622,7 @@ begin
 end
 go
 
-drop procedure if exists updateClmTask
+drop procedure if exists clm.updateTask
 go
 
 
@@ -2617,24 +2632,24 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure updateClmTask
-		@clmTaskId uniqueidentifier,
+create procedure clm.updateTask
+		@taskId uniqueidentifier,
 		@remainingRepetitions int
 as
 begin
 	declare @rowCount int
 	set nocount on;
 
-    update dbo.ClmTask
+    update clm.ClmTask
     set remainingRepetitions = @remainingRepetitions
-    where clmTaskId = @clmTaskId
+    where taskId = @taskId
 
 	set @rowCount = @@rowcount
 	select @rowCount as [RowCount]
 end
 go
 
-drop procedure if exists upsertClmDefaultValue
+drop procedure if exists clm.upsertDefaultValue
 go
 
 
@@ -2644,8 +2659,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure upsertClmDefaultValue 
-		@clmDefaultValueId bigint,
+create procedure clm.upsertDefaultValue 
+		@defaultValueId bigint,
 		@defaultRateParams nvarchar(max),
 		@description nvarchar(max)
 as
@@ -2653,12 +2668,12 @@ begin
 	declare @rowCount int
 	set nocount on;
 
-    merge ClmDefaultValue as target
-    using (select @clmDefaultValueId, @defaultRateParams, @description) as source (clmDefaultValueId, defaultRateParams, description)
-    on (target.clmDefaultValueId = source.clmDefaultValueId)
+    merge clm.DefaultValue as target
+    using (select @defaultValueId, @defaultRateParams, @description) as source (defaultValueId, defaultRateParams, description)
+    on (target.defaultValueId = source.defaultValueId)
     when not matched then
-        insert (clmDefaultValueId, defaultRateParams, description)
-        values (source.clmDefaultValueId, source.defaultRateParams, source.description)
+        insert (defaultValueId, defaultRateParams, description)
+        values (source.defaultValueId, source.defaultRateParams, source.description)
     when matched then
         update set defaultRateParams = source.defaultRateParams, description = source.description;
 
@@ -2667,7 +2682,7 @@ begin
 end
 go
 
-drop procedure if exists upsertClmModelData
+drop procedure if exists clm.upsertModelData
 go
 
 
@@ -2677,9 +2692,9 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure upsertClmModelData 
-		@clmModelDataId uniqueidentifier, 
-		@clmTaskId uniqueidentifier, 
+create procedure clm.upsertModelData 
+		@modelDataId uniqueidentifier, 
+		@taskId uniqueidentifier, 
 		@seedValue int, 
 		@modelDataParams nvarchar(max), 
 		@modelBinaryData varbinary(max), 
@@ -2689,22 +2704,22 @@ begin
 	declare @rowCount int
 	set nocount on;
 
-    merge ClmModelData as target
-    using (select @clmModelDataId, @clmTaskId, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
-    as source (clmModelDataId, clmTaskId, seedValue, modelDataParams, modelBinaryData, createdOn)
-    on (target.clmModelDataId = source.clmModelDataId)
+    merge clm.ModelData as target
+    using (select @modelDataId, @taskId, @seedValue, @modelDataParams, @modelBinaryData, @createdOn)
+    as source (modelDataId, taskId, seedValue, modelDataParams, modelBinaryData, createdOn)
+    on (target.modelDataId = source.modelDataId)
     when not matched then
-        insert (clmModelDataId, clmTaskId, seedValue, modelDataParams, modelBinaryData, createdOn)
-        values (source.clmModelDataId, source.clmTaskId, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
+        insert (modelDataId, taskId, seedValue, modelDataParams, modelBinaryData, createdOn)
+        values (source.modelDataId, source.taskId, source.seedValue, source.modelDataParams, source.modelBinaryData, source.createdOn)
     when matched then
-        update set clmTaskId = source.clmTaskId, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
+        update set taskId = source.taskId, seedValue = source.seedValue, modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
 
 	set @rowCount = @@rowcount
 	select @rowCount as [RowCount]
 end
 go
 
-drop procedure if exists upsertEeInfModelData
+drop procedure if exists eeInf.upsertModelData
 go
 
 
@@ -2714,8 +2729,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure upsertEeInfModelData 
-		@eeInfModelDataId uniqueidentifier, 
+create procedure eeInf.upsertModelData 
+		@modelDataId uniqueidentifier, 
 		@modelDataParams nvarchar(max), 
 		@modelBinaryData varbinary(max), 
 		@createdOn datetime
@@ -2724,13 +2739,13 @@ begin
 	declare @rowCount int
 	set nocount on;
 
-    merge EeInfModelData as target
-    using (select @eeInfModelDataId, @modelDataParams, @modelBinaryData, @createdOn)
-    as source (eeInfModelDataId, modelDataParams, modelBinaryData, createdOn)
-    on (target.eeInfModelDataId = source.eeInfModelDataId)
+    merge eeInf.ModelData as target
+    using (select @modelDataId, @modelDataParams, @modelBinaryData, @createdOn)
+    as source (modelDataId, modelDataParams, modelBinaryData, createdOn)
+    on (target.modelDataId = source.modelDataId)
     when not matched then
-        insert (eeInfModelDataId, modelDataParams, modelBinaryData, createdOn)
-        values (source.eeInfModelDataId, source.modelDataParams, source.modelBinaryData, source.createdOn)
+        insert (modelDataId, modelDataParams, modelBinaryData, createdOn)
+        values (source.modelDataId, source.modelDataParams, source.modelBinaryData, source.createdOn)
     when matched then
         update set modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
 
@@ -2932,13 +2947,13 @@ go
 			  (0, 'Active')
 			, (1, 'Inactive')
 
-		) as a (clmTaskStatusId, clmTaskStatusName)
+		) as a (taskStatusId, taskStatusName)
 	)
-insert into ClmTaskStatus
+insert into clm.TaskStatus
 select valTbl.*
 from valTbl
-left outer join ClmTaskStatus on valTbl.clmTaskStatusId = ClmTaskStatus.clmTaskStatusId
-where ClmTaskStatus.clmTaskStatusId is null
+left outer join clm.TaskStatus on valTbl.taskStatusId = clm.TaskStatus.TaskStatusId
+where clm.TaskStatus.TaskStatusId is null
 go
 
 

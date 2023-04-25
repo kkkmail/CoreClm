@@ -34,7 +34,7 @@ IF OBJECT_ID('[clm].[ResultData]') IS NULL begin
 	--ALTER TABLE [clm].[ResultData] CHECK CONSTRAINT [FK_clm_ResultData_WorkerNode]
 
 	ALTER TABLE [clm].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_clm_ResultlData_ModelData] FOREIGN KEY([modelDataId])
-	REFERENCES [clm].[ModelData] ([clmModelDataId])
+	REFERENCES [clm].[ModelData] ([modelDataId])
 	ALTER TABLE [clm].[ResultData] CHECK CONSTRAINT [FK_clm_ResultlData_ModelData]
 
 	ALTER TABLE [clm].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_clm_ResultData_RunQueue] FOREIGN KEY([resultDataId])

@@ -1,4 +1,4 @@
-drop procedure if exists updateClmTask
+drop procedure if exists clm.updateTask
 go
 
 
@@ -8,17 +8,17 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure updateClmTask
-		@clmTaskId uniqueidentifier,
+create procedure clm.updateTask
+		@taskId uniqueidentifier,
 		@remainingRepetitions int
 as
 begin
 	declare @rowCount int
 	set nocount on;
 
-    update dbo.ClmTask
+    update clm.ClmTask
     set remainingRepetitions = @remainingRepetitions
-    where clmTaskId = @clmTaskId
+    where taskId = @taskId
 
 	set @rowCount = @@rowcount
 	select @rowCount as [RowCount]

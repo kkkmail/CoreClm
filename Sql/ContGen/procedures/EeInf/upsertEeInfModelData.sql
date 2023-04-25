@@ -1,4 +1,4 @@
-drop procedure if exists upsertEeInfModelData
+drop procedure if exists eeInf.upsertModelData
 go
 
 
@@ -8,8 +8,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure upsertEeInfModelData 
-		@eeInfModelDataId uniqueidentifier, 
+create procedure eeInf.upsertModelData 
+		@modelDataId uniqueidentifier, 
 		@modelDataParams nvarchar(max), 
 		@modelBinaryData varbinary(max), 
 		@createdOn datetime
@@ -18,13 +18,13 @@ begin
 	declare @rowCount int
 	set nocount on;
 
-    merge EeInfModelData as target
-    using (select @eeInfModelDataId, @modelDataParams, @modelBinaryData, @createdOn)
-    as source (eeInfModelDataId, modelDataParams, modelBinaryData, createdOn)
-    on (target.eeInfModelDataId = source.eeInfModelDataId)
+    merge eeInf.ModelData as target
+    using (select @modelDataId, @modelDataParams, @modelBinaryData, @createdOn)
+    as source (modelDataId, modelDataParams, modelBinaryData, createdOn)
+    on (target.modelDataId = source.modelDataId)
     when not matched then
-        insert (eeInfModelDataId, modelDataParams, modelBinaryData, createdOn)
-        values (source.eeInfModelDataId, source.modelDataParams, source.modelBinaryData, source.createdOn)
+        insert (modelDataId, modelDataParams, modelBinaryData, createdOn)
+        values (source.modelDataId, source.modelDataParams, source.modelBinaryData, source.createdOn)
     when matched then
         update set modelDataParams = source.modelDataParams, modelBinaryData = source.modelBinaryData, createdOn = source.createdOn;
 
