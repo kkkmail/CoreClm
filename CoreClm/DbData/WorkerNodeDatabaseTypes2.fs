@@ -304,11 +304,11 @@ module WorkerNodeDatabaseTypes =
             let ctx = getDbContext c
             let ee = td.eeData
 
-            let r = ctx.Procedures.TryUpdateProgressRunQueue.Invoke(
+            let r = ctx.Procedures.ClmTryUpdateProgressRunQueue.Invoke(
                                         ``@runQueueId`` = q.value,
                                         ``@progress`` = td.progressData.progress,
                                         ``@callCount`` = td.progressData.callCount,
-                                        ``@relativeInvariant`` = td.yRelative
+                                        ``@relativeInvariant`` = td.yRelative,
                                         ``@maxEe`` = ee.maxEe,
                                         ``@maxAverageEe`` = ee.maxAverageEe,
                                         ``@maxWeightedAverageAbsEe`` = ee.maxWeightedAverageAbsEe,
