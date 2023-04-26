@@ -16,7 +16,7 @@ begin
 	declare @rowCount int
 	set nocount on;
 
-    update clm.ClmTask
+    update clm.Task
     set remainingRepetitions = @remainingRepetitions
     where taskId = @taskId
 

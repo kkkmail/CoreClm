@@ -480,21 +480,29 @@ module DatabaseTypes =
     let private addRunQueueRow (ctx : ClmContext) (r : RunQueue) =
         let row = ctx.Dbo.RunQueue.Create(
                             RunQueueId = r.runQueueId.value,
-                            ModelDataId = r.info.modelDataId.value,
+                            ModelTypeId = 1,
+                            WorkerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
                             RunQueueStatusId = r.runQueueStatus.value,
+                            ErrorMessage = (r.progressData.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)),
+                            Progress = r.progressData.progressData.progress,
+                            CallCount = r.progressData.progressData.callCount,
+                            RelativeInvariant = r.progressData.yRelative,
+                            ModifiedOn = DateTime.Now)
+
+        row
+
+
+    let private addClmRunQueueRow (ctx : ClmContext) (r : RunQueue) =
+        let row = ctx.Clm.RunQueue.Create(
+                            RunQueueId = r.runQueueId.value,
+                            ModelDataId = r.info.modelDataId.value,
                             Y0 = r.modelCommandLineParam.y0,
                             TEnd = r.modelCommandLineParam.tEnd,
                             UseAbundant = r.modelCommandLineParam.useAbundant,
-                            Progress = r.progressData.progressData.progress,
-                            CallCount = r.progressData.progressData.callCount,
-                            YRelative = r.progressData.yRelative,
                             MaxEe = r.progressData.eeData.maxEe,
                             MaxAverageEe = r.progressData.eeData.maxAverageEe,
                             MaxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
-                            MaxLastEe = r.progressData.eeData.maxLastEe,
-                            WorkerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
-                            ModifiedOn = DateTime.Now,
-                            ErrorMessage = (r.progressData.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)))
+                            MaxLastEe = r.progressData.eeData.maxLastEe)
 
         row
 
@@ -555,12 +563,14 @@ module DatabaseTypes =
             r.WorkerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
             r.Progress <- q.progressData.progressData.progress
             r.CallCount <- q.progressData.progressData.callCount
-            r.YRelative <- q.progressData.yRelative
-            r.MaxEe <- q.progressData.eeData.maxEe
-            r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
-            r.MaxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
-            r.MaxLastEe <- q.progressData.eeData.maxLastEe
+            r.RelativeInvariant <- q.progressData.yRelative
             r.ErrorMessage <- q.progressData.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
+
+            // r.YRelative <- q.progressData.yRelative
+            // r.MaxEe <- q.progressData.eeData.maxEe
+            // r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
+            // r.MaxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
+            // r.MaxLastEe <- q.progressData.eeData.maxLastEe
 
             match s with
             | Some (Some v) -> r.StartedOn <- Some v
