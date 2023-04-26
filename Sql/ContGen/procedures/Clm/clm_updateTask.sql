@@ -1,4 +1,4 @@
-drop procedure if exists clm.updateTask
+drop procedure if exists dbo.clm_updateTask
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure clm.updateTask
+create procedure dbo.clm_updateTask
 		@taskId uniqueidentifier,
 		@remainingRepetitions int
 as

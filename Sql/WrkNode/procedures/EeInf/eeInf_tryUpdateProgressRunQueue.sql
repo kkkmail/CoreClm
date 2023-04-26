@@ -1,4 +1,4 @@
-drop procedure if exists eeInf.tryUpdateProgressRunQueue
+drop procedure if exists dbo.eeInf_tryUpdateProgressRunQueue
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure eeInf.tryUpdateProgressRunQueue (
+create procedure dbo.eeInf_tryUpdateProgressRunQueue (
 						@runQueueId uniqueidentifier,
 						@progress decimal(18, 14),
 						@callCount bigint,

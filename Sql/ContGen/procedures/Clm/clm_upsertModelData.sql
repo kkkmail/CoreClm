@@ -1,4 +1,4 @@
-drop procedure if exists clm.upsertModelData
+drop procedure if exists dbo.clm_upsertModelData
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure clm.upsertModelData 
+create procedure dbo.clm_upsertModelData 
 		@modelDataId uniqueidentifier, 
 		@taskId uniqueidentifier, 
 		@seedValue int, 

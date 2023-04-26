@@ -1,4 +1,4 @@
-drop procedure if exists eeInf.upsertModelData
+drop procedure if exists dbo.eeInf_upsertModelData
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure eeInf.upsertModelData 
+create procedure dbo.eeInf_upsertModelData 
 		@modelDataId uniqueidentifier, 
 		@modelDataParams nvarchar(max), 
 		@modelBinaryData varbinary(max), 

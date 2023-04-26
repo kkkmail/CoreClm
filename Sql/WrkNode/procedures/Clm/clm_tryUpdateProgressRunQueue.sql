@@ -1,4 +1,4 @@
-drop procedure if exists clm.tryUpdateProgressRunQueue
+drop procedure if exists dbo.clm_tryUpdateProgressRunQueue
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure clm.tryUpdateProgressRunQueue (
+create procedure dbo.clm_tryUpdateProgressRunQueue (
 						@runQueueId uniqueidentifier,
 						@progress decimal(18, 14),
 						@callCount bigint,

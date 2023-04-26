@@ -17,7 +17,7 @@ IF OBJECT_ID('[eeInf].[ResultData]') IS NULL begin
 	ALTER TABLE [eeInf].[ResultData] ADD  DEFAULT (getdate()) FOR [modifiedOn]
 
 	ALTER TABLE [eeInf].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_ResultlData_ModelData] FOREIGN KEY([modelDataId])
-	REFERENCES [eeInf].[ModelData] ([eeInfModelDataId])
+	REFERENCES [eeInf].[ModelData] ([modelDataId])
 	ALTER TABLE [eeInf].[ResultData] CHECK CONSTRAINT [FK_eeInf_ResultlData_ModelData]
 
 	ALTER TABLE [eeInf].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_ResultData_RunQueue] FOREIGN KEY([resultDataId])

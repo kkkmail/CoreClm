@@ -478,7 +478,7 @@ IF OBJECT_ID('[eeInf].[ResultData]') IS NULL begin
 	ALTER TABLE [eeInf].[ResultData] ADD  DEFAULT (getdate()) FOR [modifiedOn]
 
 	ALTER TABLE [eeInf].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_ResultlData_ModelData] FOREIGN KEY([modelDataId])
-	REFERENCES [eeInf].[ModelData] ([eeInfModelDataId])
+	REFERENCES [eeInf].[ModelData] ([modelDataId])
 	ALTER TABLE [eeInf].[ResultData] CHECK CONSTRAINT [FK_eeInf_ResultlData_ModelData]
 
 	ALTER TABLE [eeInf].[ResultData]  WITH CHECK ADD  CONSTRAINT [FK_eeInf_ResultData_RunQueue] FOREIGN KEY([resultDataId])
@@ -2622,7 +2622,7 @@ begin
 end
 go
 
-drop procedure if exists clm.updateTask
+drop procedure if exists dbo.clm_updateTask
 go
 
 
@@ -2632,7 +2632,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure clm.updateTask
+create procedure dbo.clm_updateTask
 		@taskId uniqueidentifier,
 		@remainingRepetitions int
 as
@@ -2649,7 +2649,7 @@ begin
 end
 go
 
-drop procedure if exists clm.upsertDefaultValue
+drop procedure if exists dbo.clm_upsertDefaultValue
 go
 
 
@@ -2659,7 +2659,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure clm.upsertDefaultValue 
+create procedure dbo.clm_upsertDefaultValue 
 		@defaultValueId bigint,
 		@defaultRateParams nvarchar(max),
 		@description nvarchar(max)
@@ -2682,7 +2682,7 @@ begin
 end
 go
 
-drop procedure if exists clm.upsertModelData
+drop procedure if exists dbo.clm_upsertModelData
 go
 
 
@@ -2692,7 +2692,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure clm.upsertModelData 
+create procedure dbo.clm_upsertModelData 
 		@modelDataId uniqueidentifier, 
 		@taskId uniqueidentifier, 
 		@seedValue int, 
@@ -2719,7 +2719,7 @@ begin
 end
 go
 
-drop procedure if exists eeInf.upsertModelData
+drop procedure if exists dbo.eeInf_upsertModelData
 go
 
 
@@ -2729,7 +2729,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure eeInf.upsertModelData 
+create procedure dbo.eeInf_upsertModelData 
 		@modelDataId uniqueidentifier, 
 		@modelDataParams nvarchar(max), 
 		@modelBinaryData varbinary(max), 

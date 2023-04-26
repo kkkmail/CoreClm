@@ -1,4 +1,4 @@
-drop procedure if exists clm.upsertDefaultValue
+drop procedure if exists dbo.clm_upsertDefaultValue
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure clm.upsertDefaultValue 
+create procedure dbo.clm_upsertDefaultValue 
 		@defaultValueId bigint,
 		@defaultRateParams nvarchar(max),
 		@description nvarchar(max)
