@@ -85,7 +85,6 @@ module Primitives =
     type CallBackInfo =
         {
             checkFreq : TimeSpan
-            // needsCallBack : NeedsCallBack
             progressCallBack : ProgressCallBack
             chartCallBack : ChartCallBack
             checkCancellation : CheckCancellation

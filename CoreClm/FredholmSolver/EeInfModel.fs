@@ -163,3 +163,45 @@ module EeInfModel =
                 gamma = Gamma.create kernel.domain2D mp.gammaFuncValue
                 modelParams = mp
             }
+
+
+    type ShiftedDeltaParams =
+        {
+            eeShift : double
+            infShift : double
+        }
+
+    type ProtocellInitParams =
+        | Delta
+        | ShiftedDelta of ShiftedDeltaParams
+
+
+    type EeInfInitParams =
+        {
+            eps : double
+            protocellInitParams : ProtocellInitParams
+            total : double
+        }
+
+
+    type EeInfModelData =
+        {
+            modelParams : EeInfModelParams
+            initParams : EeInfInitParams
+        }
+
+        static member defaultValue =
+            {
+                modelParams = EeInfModelParams.defaultValue
+                initParams =
+                    {
+                        eps = 1.0e-2
+                        protocellInitParams = Delta
+                        total = 10.0
+                    }
+            }
+
+        static member defaultNonlinearValue =
+            let data = EeInfModelData.defaultValue
+            let domain2D = Domain2D.create data.modelParams.kernelData.domainIntervals.value data.modelParams.kernelData.infMaxValue.value
+            { EeInfModelData.defaultValue with modelParams = EeInfModelParams.defaultNonlinearValue domain2D }

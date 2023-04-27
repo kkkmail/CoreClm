@@ -24,6 +24,7 @@
     <Compile Include="Primitives.fs" />
     <Compile Include="Kernel.fs" />
     <Compile Include="EeInfModel.fs" />
+    <Compile Include="EeInfChartData.fs" />
   </ItemGroup>
 
   <ItemGroup>
