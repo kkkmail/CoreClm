@@ -15,8 +15,8 @@ open Softellect.Wcf.Common
 open Softellect.Wcf.Client
 open Softellect.Messaging.ServiceInfo
 
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
+open Primitives.VersionInfo
+open Primitives.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData

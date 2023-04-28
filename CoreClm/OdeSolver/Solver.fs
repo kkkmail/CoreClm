@@ -14,7 +14,7 @@ open Softellect.OdePackInterop
 open Microsoft.FSharp.Core
 open Clm.ChartData
 open ClmSys.GeneralPrimitives
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.SolverData

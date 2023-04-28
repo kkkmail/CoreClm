@@ -16,7 +16,7 @@ open Softellect.Messaging.Primitives
 open Softellect.Sys.MessagingClientErrors
 open Softellect.Sys.MessagingServiceErrors
 
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.GeneralErrors

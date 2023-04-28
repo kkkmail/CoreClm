@@ -17,7 +17,7 @@ open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.MessagingData
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
@@ -28,7 +28,7 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open Clm.ChartData
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open ClmSys.SolverData
 
 module ServiceInfo =

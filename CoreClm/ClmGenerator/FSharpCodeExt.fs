@@ -8,10 +8,9 @@ open Clm.ReactionRateParams
 open Clm.ModelParams
 open Clm.ReactionTypes
 open ClmSys.DistributionData
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open ClmSys.ContGenPrimitives
 open ClmSys.ModelData
-open Primitives.GeneralData
 
 
 module FSharpCodeExt =

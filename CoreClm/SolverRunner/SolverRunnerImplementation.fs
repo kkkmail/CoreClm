@@ -25,7 +25,7 @@ open ServiceProxy.SolverRunner
 open SolverRunner.SolverRunnerTasks
 open DbData.MsgSvcDatabaseTypes
 open System.Diagnostics
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open Primitives.SolverRunnerErrors
 
 module SolverRunnerImplementation =

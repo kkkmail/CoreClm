@@ -4,7 +4,7 @@ open Clm.Substances
 open Microsoft.FSharp.Core
 
 open Clm.ModelParams
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open Clm.ChartData
 open Plotly.NET
 open ChartExt

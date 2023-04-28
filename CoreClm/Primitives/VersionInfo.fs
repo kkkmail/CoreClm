@@ -1,4 +1,4 @@
-﻿namespace ClmSys
+﻿namespace Primitives
 
 open Softellect.Sys.MessagingPrimitives
 
@@ -29,7 +29,7 @@ module VersionInfo =
 
     /// A base name, which controls the database name and a working folder name.
     [<Literal>]
-    let ClmBaseName = "clm" + VersionNumberNumericalValue
+    let ContGenBaseName = "clm" + VersionNumberNumericalValue
 
 
     [<Literal>]

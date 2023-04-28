@@ -16,7 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="VersionInfo.fs" />
     <Compile Include="ExitErrorCodes.fs" />
     <Compile Include="GeneralPrimitives.fs" />
     <Compile Include="MessagingPrimitives.fs" />
@@ -31,7 +30,6 @@
     <Compile Include="WorkerNodeErrors.fs" />
     <Compile Include="ClmErrors.fs" />
     <Compile Include="Logging.fs" />
-    <Compile Include="GeneralData.fs" />
     <Compile Include="TimerEvents.fs" />
     <Compile Include="DistributionData.fs" />
     <Compile Include="ModelData.fs" />

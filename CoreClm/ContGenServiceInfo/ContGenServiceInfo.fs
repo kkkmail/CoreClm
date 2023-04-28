@@ -17,10 +17,10 @@ open Softellect.Wcf.Common
 open Softellect.Sys.Primitives
 open Softellect.Messaging.ServiceInfo
 
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.MessagingPrimitives
 open ClmSys.PartitionerPrimitives
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.WorkerNodePrimitives

@@ -1,6 +1,6 @@
 ﻿namespace ClmDefaults
 
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open Clm.Distributions
 open Clm.ReactionRates
 open Clm.ReactionRatesBase

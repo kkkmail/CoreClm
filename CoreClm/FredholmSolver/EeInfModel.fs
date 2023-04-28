@@ -1,11 +1,23 @@
 ﻿namespace FredholmSolver
 
+open Primitives.VersionInfo
+open Primitives.GeneralData
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open GenericOdeSolver.Solver
 open GenericOdeSolver.Primitives
 
 module EeInfModel =
+
+    [<Literal>]
+    let DefaultRootFolder = DefaultRootDrive + @":\" + ContGenBaseName + @"\Clm\"
+
+    [<Literal>]
+    let DefaultResultLocationFolder = DefaultRootFolder + "Results"
+
+    [<Literal>]
+    let DefaultFileStorageFolder = DefaultRootFolder + "FileStorage"
+
 
     type SubstanceType =
         | Food

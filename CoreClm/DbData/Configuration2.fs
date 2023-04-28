@@ -7,19 +7,19 @@ open FSharp.Data.Sql
 open Softellect.Sys.Retry
 open Softellect.Sys.AppSettings
 
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.GeneralPrimitives
 open System.Data
 open System.Data.SqlClient
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open Primitives.GeneralData
 
 module Configuration =
 
     [<Literal>]
-    let ContGenDbName = ClmBaseName
+    let ContGenDbName = ContGenBaseName
 
 
     [<Literal>]

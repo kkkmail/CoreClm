@@ -1,7 +1,7 @@
 ﻿namespace ClmSys
 
 open System
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 
 module GeneralPrimitives =
 

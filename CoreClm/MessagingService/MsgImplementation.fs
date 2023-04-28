@@ -10,7 +10,7 @@ open MessagingServiceInfo.ServiceInfo
 open MessagingService.SvcCommandLine
 open ServiceProxy.MsgServiceProxy
 open DbData.Configuration
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 
 module ServiceImplementation =
 

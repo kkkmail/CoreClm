@@ -1,10 +1,9 @@
 ﻿namespace Clm
 
 open System
-open ClmSys
 open FSharp.Collections
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
+open Primitives.VersionInfo
+open Primitives.GeneralData
 open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodePrimitives
 open Clm.Substances
@@ -18,7 +17,7 @@ open Primitives.GeneralData
 module ModelParams =
 
     [<Literal>]
-    let DefaultRootFolder = DefaultRootDrive + @":\" + ClmBaseName + @"\"
+    let DefaultRootFolder = DefaultRootDrive + @":\" + ContGenBaseName + @"\Clm\"
 
     [<Literal>]
     let DefaultResultLocationFolder = DefaultRootFolder + "Results"
@@ -57,30 +56,6 @@ module ModelParams =
         }
 
 
-//    type ResultData =
-//        {
-//            modelDataId : ModelDataId
-//
-//            y0 : decimal
-//            tEnd : decimal
-//            useAbundant : bool
-//
-//            // All are using abs. Averaging is performed first, then abs is applied.
-//            maxEe : double // max ee over all data points and all pairs of chiral substances.
-//            maxAverageEe : double // max value of ee averaged over evolution period per each pair of chiral substances.
-//            maxWeightedAverageAbsEe : double // the same as above but using linear weighted average and abs of ee.
-//            maxLastEe : double // max ee at the last point.
-//        }
-//
-//
-//    type ResultDataWithId =
-//        {
-//            resultDataId : ResultDataId
-//            workerNodeId : WorkerNodeId
-//            resultData : ResultData
-//        }
-
-
     type AllSubstData =
         {
             allSubst : list<Substance>
@@ -102,25 +77,6 @@ module ModelParams =
 
         member info.getTotalSubst x =
             getTotalSubstValue info.allSubstData.allInd info.allSubstData.allSubst x
-
-
-//    type BinaryResultData =
-//        {
-//            binaryInfo : BinaryInfo
-//
-//            x : double [,]
-//            t : double []
-//        }
-//
-//
-//    type FullResultData =
-//        {
-//            resultData : ResultData
-//            binaryResultData : BinaryResultData
-//        }
-//
-//        member resultData.getTotals x = resultData.binaryResultData.binaryInfo.getTotals x
-//        member resultData.getTotalSubst x = resultData.binaryResultData.binaryInfo.getTotalSubst x
 
 
     type ModelDataRegularParams =
