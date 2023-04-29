@@ -31,6 +31,27 @@ module EeInfChartData =
         }
 
 
+    type ChartType =
+        | PlotEeMu
+        | PlotEeStdDev
+        | PlotInfMu
+        | PlotInfStdDev
+        | PlotKa
+        | PlotU
+        | PlotGamma
+
+        member ct.fileSuffix =
+            match ct with
+            | PlotEeMu -> "EeMu"
+            | PlotEeStdDev -> "EeStdDev"
+            | PlotInfMu -> "InfMu"
+            | PlotInfStdDev -> "InfStdDev"
+            | PlotKa -> "Ka"
+            | PlotU -> "U"
+            | PlotGamma -> "Gamma"
+
+
+
     type ChartInitData =
         {
             y0 : decimal

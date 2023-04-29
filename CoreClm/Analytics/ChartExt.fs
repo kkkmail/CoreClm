@@ -75,7 +75,7 @@ module ChartExt =
             | PlotTotalSubst -> "ts"
 
         member private ct.getFileNameImpl (i : PlotDataInfo) (modelDataId : ModelDataId) (y0 : decimal) (tEnd : decimal) =
-            let suff = ct.fileSuffix
+            let suffix = ct.fileSuffix
 
             let fileName =
                 [
@@ -83,7 +83,7 @@ module ChartExt =
                     i.resultInfo.separator
                     (int y0).ToString().PadLeft(3, '0')
                     (int tEnd).ToString().PadLeft(5, '0')
-                    suff
+                    suffix
                 ]
                 |> String.concat i.resultInfo.separator
 
