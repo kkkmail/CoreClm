@@ -58,22 +58,27 @@ type OdeTests (output : ITestOutputHelper) =
 
     /// Creates a "delta" function centered near (0, 0) in the domain,
     /// which is a middle point in ee domain and 0-th point in inf domain.
-    let getDeltaU (data : KernelData) eps =
-        let domain =
-            if data.domainIntervals.value % 2 = 0
-            then domain2D data
-            else failwith "data.noOfIntervals must be odd for this method to work."
+    let getDeltaU (data : KernelData) eps eeShift =
+        let domain = domain2D data
+            // if data.domainIntervals.value % 2 = 0
+            // then domain2D data
+            // else failwith "data.noOfIntervals must be odd for this method to work."
 
-        let g i j = if (i * 2 = data.domainIntervals.value) && (j = 0) then 1.0 else 0.0
+        let g i j =
+            match data.domainIntervals.value % 2 = 0 with
+            | true -> if ((i + eeShift) * 2 = data.domainIntervals.value) && (j = 0) then 1.0 else 0.0
+            | false ->
+                if (((i + eeShift) * 2 = data.domainIntervals.value - 1) || ((i + eeShift) * 2 = data.domainIntervals.value + 1)) && (j = 0) then 1.0 else 0.0
+
         let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
         let norm = domain.integrateValues v
         (eps / norm) * v
 
 
-    let initialValues (md : EeInfModelData) =
+    let initialValues (md : EeInfModelData) eeShift =
         let f = FoodData (md.initParams.total - (double md.modelParams.numberOfMolecules.value) * md.initParams.eps)
         let w = WasteData 0.0
-        let u = getDeltaU md.modelParams.kernelData md.initParams.eps |> ProtocellData
+        let u = getDeltaU md.modelParams.kernelData md.initParams.eps eeShift |> ProtocellData
         let sd = SubstanceData.create f w u
         sd
 
@@ -96,9 +101,15 @@ type OdeTests (output : ITestOutputHelper) =
     let defaultNonlinearOdeParams =
         { defaultOdeParams with endTime = 200_000.0 }
 
-    let outputMatrix (m : Matrix<double>) =
+    let defaultNonlinearOdeParams2 =
+        { defaultOdeParams with endTime = 400_000.0 }
+
+    let outputMatrix (d : Domain2D) (m : Matrix<double>) =
+        "000," + String.Join(",", d.infDomain.points.value)
+        |> writeLine
+
         m.value
-        |> Array.map (fun e -> String.Join(",", e))
+        |> Array.mapi (fun i e -> $"{d.eeDomain.points.value[i]}," + String.Join(",", e))
         |> Array.map (fun e -> (writeLine $"{e}"))
         |> ignore
 
@@ -118,25 +129,26 @@ type OdeTests (output : ITestOutputHelper) =
         if r
         then
             writeLine "u data:"
-            v.protocell.toMatrix() |> outputMatrix
+            v.protocell.toMatrix() |> outputMatrix md.kernel.domain2D
 
     let outputKa (md : EeInfModel) =
         writeLine "ka:"
-        md.kernel.kaValue.value |> outputMatrix
+        md.kernel.kaValue.value |> outputMatrix md.kernel.domain2D
 
 
     let outputGamma (md : EeInfModel) =
         writeLine "gamma:"
-        md.gamma.value |> outputMatrix
+        md.gamma.value |> outputMatrix md.kernel.domain2D
 
 
     let outputChart (cd : ChartData) =
         let f e =
             $"{e.tChart},{e.statData.eeStatData.mean},{e.statData.infStatData.mean}," +
             $"{e.statData.eeStatData.stdDev},{e.statData.infStatData.stdDev}," +
-            $"{e.statData.total},{e.statData.invariant}"
+            $"{e.statData.total},{e.statData.invariant}" +
+            $"{e.statData.food},{e.statData.waste}"
 
-        let header = "t,eeMean,infMean,eeStdDev,infStdDev,total,invariant"
+        let header = "t,eeMean,infMean,eeStdDev,infStdDev,total,invariant,food,waste"
 
         writeLine $"{Nl}{Nl}Chart data:"
         List.append [ header ] (cd.allChartData |> List.map f |> List.rev)
@@ -144,9 +156,9 @@ type OdeTests (output : ITestOutputHelper) =
         |> ignore
 
 
-    let nSolveParam (data : EeInfModelData) odeParams =
+    let nSolveParam (data : EeInfModelData) odeParams eeShift =
         let md = EeInfModel.create data.modelParams
-        let i = initialValues data
+        let i = initialValues data eeShift
         // let f t v = outputResult md t v
         let f t v = ()
         let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
@@ -208,11 +220,11 @@ type OdeTests (output : ITestOutputHelper) =
         }
 
 
-    let odePackRun (data : EeInfModelData) cc odeParams =
+    let odePackRun (data : EeInfModelData) cc odeParams eeShift =
         let mutable cr = CallBackResults.defaultValue
 
         let md = EeInfModel.create data.modelParams
-        let n, getData = nSolveParam data odeParams
+        let n, getData = nSolveParam data odeParams eeShift
         let outputResult b (d : CallBackData) = outputResult md d (getData d.x) b
 
         let callBack c d = cr <- callBack cr (outputResult false) c d
@@ -251,9 +263,8 @@ type OdeTests (output : ITestOutputHelper) =
         }
 
 
-    [<Fact>]
-    member _.odePack_ShouldRun () : unit =
-        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None) defaultOdeParams
+    let odePackShouldRun eeInfModelData odeParams eeShift =
+        let r = odePackRun eeInfModelData (fun _ -> None) odeParams eeShift
 
         let v = r.getData r.result.x
         let inv_tEnd = r.modelData.invariant v
@@ -265,21 +276,20 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
-    member _.odePack_ShouldRunNonLinear () : unit =
-        let r = odePackRun EeInfModelData.defaultNonlinearValue (fun _ -> None) defaultNonlinearOdeParams
+    member _.odePack_ShouldRun () : unit = odePackShouldRun EeInfModelData.defaultValue defaultOdeParams 0
 
-        let v = r.getData r.result.x
-        let inv_tEnd = r.modelData.invariant v
-        let diff = (inv_tEnd - r.invStart) / r.invStart
 
-        use _ = new AssertionScope()
-        r.result.Should().NotBeNull(nullString) |> ignore
-        diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
+    [<Fact>]
+    member _.odePack_ShouldRunNonLinear () : unit = odePackShouldRun EeInfModelData.defaultNonlinearValue defaultNonlinearOdeParams 1
+
+
+    [<Fact>]
+    member _.odePack_ShouldRunNonLinear2 () : unit = odePackShouldRun EeInfModelData.defaultNonlinearValue2 defaultNonlinearOdeParams2 1
 
 
     [<Fact>]
     member _.odePack_ShouldCallBack () : unit =
-        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None) defaultOdeParams
+        let r = odePackRun EeInfModelData.defaultValue (fun _ -> None) defaultOdeParams 0
 
         use _ = new AssertionScope()
         r.result.Should().NotBeNull(nullString) |> ignore
@@ -297,7 +307,7 @@ type OdeTests (output : ITestOutputHelper) =
         let model = EeInfModel.create md.modelParams
         let r = odePackRun md (fun _ -> None) defaultOdeParams
 
-        let n, getData = nSolveParam md defaultOdeParams
+        let n, getData = nSolveParam md defaultOdeParams 0
         let outputResult b d = outputResult model d (getData d.x) b
 
         let callBack c d = cr <- callBack cr (outputResult false) c d
@@ -322,7 +332,7 @@ type OdeTests (output : ITestOutputHelper) =
         let md = EeInfModelData.defaultValue
         let model = EeInfModel.create md.modelParams
 
-        let n, getData = nSolveParam md defaultOdeParams
+        let n, getData = nSolveParam md defaultOdeParams 0
         let outputResult b d = outputResult model d (getData d.x) b
 
         let callBack c d = cr <- callBack cr (outputResult false) c d

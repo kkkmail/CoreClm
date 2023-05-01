@@ -26,8 +26,10 @@ module EeInfChartData =
         {
             eeStatData : StatData
             infStatData : StatData
-            total : double
             invariant : double
+            total : double
+            food : double
+            waste : double
         }
 
 
@@ -103,6 +105,7 @@ module EeInfChartData =
 
 
     let calculateStat (md : EeInfModel) (v : SubstanceData) =
+        let n = md.modelParams.numberOfMolecules.value
         let u = v.protocell
         let total = md.kernel.domain2D.integrateValues u
         let inv = md.invariant v
@@ -120,6 +123,8 @@ module EeInfChartData =
                     mean = mInf
                     stdDev = sInf
                 }
-            total = total
             invariant = inv
+            total = (double n) * total
+            food = v.food
+            waste = (double n) * v.waste
         }

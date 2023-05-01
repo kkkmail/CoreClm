@@ -253,6 +253,13 @@ module Kernel =
         eeVal * infVal
 
 
+    /// We want (2 / 3) of the domain range to scale to 1.0.
+    let twoThirdInfScale (d : Domain2D) =
+        let one = (2.0 / 3.0) * d.infDomain.range
+        let scale = 1.0 / one
+        scale
+
+
     type KaFuncValue =
         | IdentityKa
         | SeparableKa of TaylorApproximation * TaylorApproximation
@@ -273,16 +280,28 @@ module Kernel =
                     coefficients = [| 1.0; 0.0; 1.0|]
                 }
 
-            // We want (2 / 3) of the domain range to scale to 1.0.
-            let one = (2.0 / 3.0) * d.infDomain.range
-            let scale = 1.0 / one
+            let tInf =
+                {
+                    x0 = 0.0
+                    scale = twoThirdInfScale d
+                    coefficients = [| 1.0; 0.0; 1.0|]
+                }
+
+            SeparableKa (tEe, tInf)
+
+        static member defaultQuadraticValue2 (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    scale = 1.0
+                    coefficients = [| 1.0; 0.0; 0.2|]
+                }
 
             let tInf =
                 {
                     x0 = 0.0
-                    scale = scale
-                    // coefficients = [| 1.0; 0.5; 1.0|]
-                    coefficients = [| 1.0; 0.0; 1.0|]
+                    scale = twoThirdInfScale d
+                    coefficients = [| 1.0; 0.0; 0.2|]
                 }
 
             SeparableKa (tEe, tInf)
@@ -308,19 +327,31 @@ module Kernel =
                     coefficients = [| 1.0; -0.01|]
                 }
 
-            // We want (2 / 3) of the domain range to scale to 1.0.
-            let one = (2.0 / 3.0) * d.infDomain.range
-            let scale = 1.0 / one
-
             let tInf =
                 {
                     x0 = 0.0
-                    scale = scale
+                    scale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
                 }
 
             SeparableGamma (0.01, tEe, tInf)
 
+        static member defaultNonlinearValue2 (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    scale = 1.0
+                    coefficients = [| 1.0; -0.001|]
+                }
+
+            let tInf =
+                {
+                    x0 = 0.0
+                    scale = twoThirdInfScale d
+                    coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
+                }
+
+            SeparableGamma (0.01, tEe, tInf)
 
 
     type MutationProbabilityData =
@@ -501,6 +532,9 @@ module Kernel =
 
         static member defaultQuadraticValue d =
             { KernelData.defaultValue with kaFuncValue = KaFuncValue.defaultQuadraticValue d }
+
+        static member defaultQuadraticValue2 d =
+            { KernelData.defaultValue with kaFuncValue = KaFuncValue.defaultQuadraticValue2 d }
 
 
     type KaValue =

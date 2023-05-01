@@ -120,6 +120,14 @@ module EeInfModel =
                 recyclingRate = RecyclingRate.defaultValue
             }
 
+        static member defaultNonlinearValue2 d =
+            {
+                kernelData = KernelData.defaultQuadraticValue2 d
+                gammaFuncValue = GammaFuncValue.defaultNonlinearValue2 d
+                numberOfMolecules = NumberOfMolecules.defaultValue
+                recyclingRate = RecyclingRate.defaultValue
+            }
+
 
     type EeInfModel =
         {
@@ -217,3 +225,8 @@ module EeInfModel =
             let data = EeInfModelData.defaultValue
             let domain2D = Domain2D.create data.modelParams.kernelData.domainIntervals.value data.modelParams.kernelData.infMaxValue.value
             { EeInfModelData.defaultValue with modelParams = EeInfModelParams.defaultNonlinearValue domain2D }
+
+        static member defaultNonlinearValue2 =
+            let data = EeInfModelData.defaultValue
+            let domain2D = Domain2D.create data.modelParams.kernelData.domainIntervals.value data.modelParams.kernelData.infMaxValue.value
+            { EeInfModelData.defaultValue with modelParams = EeInfModelParams.defaultNonlinearValue2 domain2D }
