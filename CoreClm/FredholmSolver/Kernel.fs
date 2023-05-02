@@ -621,6 +621,7 @@ module Kernel =
 
         member r.value = let (NumberOfMolecules v) = r in v
         static member defaultValue = NumberOfMolecules 100
+        static member defaultValue2 = NumberOfMolecules 2
 
 
     type RecyclingRate =

@@ -92,7 +92,7 @@ type OdeTests (output : ITestOutputHelper) =
             solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
             outputParams =
                 {
-                    noOfOutputPoints = 1_000
+                    noOfOutputPoints = 4_000
                     noOfProgressPoints = 100
                     noOfChartDetailedPoints = None
                 }
@@ -102,7 +102,7 @@ type OdeTests (output : ITestOutputHelper) =
         { defaultOdeParams with endTime = 200_000.0 }
 
     let defaultNonlinearOdeParams2 =
-        { defaultOdeParams with endTime = 400_000.0 }
+        { defaultOdeParams with endTime = 1_000_000.0 }
 
     let outputMatrix (d : Domain2D) (m : Matrix<double>) =
         "000," + String.Join(",", d.infDomain.points.value)
