@@ -101,8 +101,10 @@ type OdeTests (output : ITestOutputHelper) =
     let defaultNonlinearOdeParams =
         { defaultOdeParams with endTime = 200_000.0 }
 
+
     let defaultNonlinearOdeParams2 =
         { defaultOdeParams with endTime = 1_000_000.0 }
+
 
     let outputMatrix (d : Domain2D) (m : Matrix<double>) =
         "000," + String.Join(",", d.infDomain.points.value)
@@ -114,6 +116,10 @@ type OdeTests (output : ITestOutputHelper) =
         |> ignore
 
         writeLine $"{Nl}===================================================================================={Nl}{Nl}"
+
+
+    let outputEeInfModelData (data : EeInfModelData) =
+        writeLine $"data:{Nl}{data}"
 
 
     let outputResult md d (v : SubstanceData) r =
@@ -131,6 +137,7 @@ type OdeTests (output : ITestOutputHelper) =
             writeLine "u data:"
             v.protocell.toMatrix() |> outputMatrix md.kernel.domain2D
 
+
     let outputKa (md : EeInfModel) =
         writeLine "ka:"
         md.kernel.kaValue.value |> outputMatrix md.kernel.domain2D
@@ -145,7 +152,7 @@ type OdeTests (output : ITestOutputHelper) =
         let f e =
             $"{e.tChart},{e.statData.eeStatData.mean},{e.statData.infStatData.mean}," +
             $"{e.statData.eeStatData.stdDev},{e.statData.infStatData.stdDev}," +
-            $"{e.statData.total},{e.statData.invariant}" +
+            $"{e.statData.total},{e.statData.invariant}," +
             $"{e.statData.food},{e.statData.waste}"
 
         let header = "t,eeMean,infMean,eeStdDev,infStdDev,total,invariant,food,waste"
@@ -222,6 +229,7 @@ type OdeTests (output : ITestOutputHelper) =
 
     let odePackRun (data : EeInfModelData) cc odeParams eeShift =
         let mutable cr = CallBackResults.defaultValue
+        outputEeInfModelData data
 
         let md = EeInfModel.create data.modelParams
         let n, getData = nSolveParam data odeParams eeShift
