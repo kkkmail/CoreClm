@@ -107,10 +107,10 @@ module EeInfChartData =
     let calculateStat (md : EeInfModel) (v : SubstanceData) =
         let n = md.modelParams.numberOfMolecules.value
         let u = v.protocell
-        let total = md.kernel.domain2D.integrateValues u
+        let total = md.kernelData.domain2D.integrateValues u
         let inv = md.invariant v
-        let mEe, mInf = md.kernel.domain2D.mean u
-        let sEe, sInf = md.kernel.domain2D.stdDev u
+        let mEe, mInf = md.kernelData.domain2D.mean u
+        let sEe, sInf = md.kernelData.domain2D.stdDev u
 
         {
             eeStatData =

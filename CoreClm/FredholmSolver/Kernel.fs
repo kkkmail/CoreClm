@@ -55,7 +55,7 @@ module Kernel =
         }
 
 
-    type DomainData =
+    type DomainParams =
         {
             domainIntervals : DomainIntervals
             domainRange : DomainRange
@@ -354,9 +354,9 @@ module Kernel =
             SeparableGamma (0.01, tEe, tInf)
 
 
-    type MutationProbabilityData =
+    type MutationProbabilityParams =
         {
-            domainData : DomainData
+            domainParams : DomainParams
             zeroThreshold : ZeroThreshold
             epsFuncValue : EpsFuncValue
         }
@@ -370,8 +370,8 @@ module Kernel =
         member r.value = let (MutationProbability v) = r in v
 
         /// m is a real (unscaled) value but e is scaled to the half of the range.
-        static member create (data : MutationProbabilityData) mean =
-            let domain = data.domainData.domain()
+        static member create (data : MutationProbabilityParams) mean =
+            let domain = data.domainParams.domain()
             let ef = data.epsFuncValue.epsFunc domain
             let epsFunc x = (ef.invoke domain x) * domain.range / 2.0
             let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
@@ -381,16 +381,16 @@ module Kernel =
             p
 
 
-    type MutationProbabilityData2D =
+    type MutationProbabilityParams2D =
         {
-            eeMutationProbabilityData : MutationProbabilityData
-            infMutationProbabilityData : MutationProbabilityData
+            eeMutationProbabilityParams : MutationProbabilityParams
+            infMutationProbabilityParams : MutationProbabilityParams
         }
 
         member d.domain2D() =
             {
-                eeDomain = d.eeMutationProbabilityData.domainData.domain()
-                infDomain = d.infMutationProbabilityData.domainData.domain()
+                eeDomain = d.eeMutationProbabilityParams.domainParams.domain()
+                infDomain = d.infMutationProbabilityParams.domainParams.domain()
             }
 
 
@@ -399,9 +399,9 @@ module Kernel =
 
         member r.value = let (MutationProbability2D v) = r in v
 
-        static member create (data : MutationProbabilityData2D) eeMean infMean =
-            let p1 = MutationProbability.create data.eeMutationProbabilityData eeMean
-            let p2 = MutationProbability.create data.infMutationProbabilityData infMean
+        static member create (data : MutationProbabilityParams2D) eeMean infMean =
+            let p1 = MutationProbability.create data.eeMutationProbabilityParams eeMean
+            let p2 = MutationProbability.create data.infMutationProbabilityParams infMean
             let p = cartesianMultiply p1.value p2.value // |> MutationProbability2D
             p
 
@@ -418,7 +418,7 @@ module Kernel =
             xy_x1y1 : SparseArray4D<double>
         }
 
-        static member create (data : MutationProbabilityData2D) =
+        static member create (data : MutationProbabilityParams2D) =
             let domain2D = data.domain2D()
             let eeMu = domain2D.eeDomain.points.value
             let infMu = domain2D.infDomain.points.value
@@ -453,7 +453,7 @@ module Kernel =
         static member defaultValue = InfMaxValue 25.0
 
 
-    type KernelData =
+    type KernelParams =
         {
             domainIntervals : DomainIntervals
             infMaxValue : InfMaxValue
@@ -463,9 +463,9 @@ module Kernel =
             kaFuncValue : KaFuncValue
         }
 
-        member kd.eeDomainData =
+        member kp.eeDomainParams =
             {
-                domainIntervals = kd.domainIntervals
+                domainIntervals = kp.domainIntervals
                 domainRange =
                     {
                         minValue = Domain2D.eeMinValue
@@ -473,32 +473,33 @@ module Kernel =
                     }
             }
 
-        member kd.infDomainData =
+        member kp.infDomainParams =
             {
-                domainIntervals = kd.domainIntervals
+                domainIntervals = kp.domainIntervals
                 domainRange =
                     {
                         minValue = Domain2D.infDefaultMinValue
-                        maxValue = kd.infMaxValue.value
+                        maxValue = kp.infMaxValue.value
                     }
             }
 
-        member kd.mutationProbabilityData2D =
+        member kp.mutationProbabilityData2D =
             {
-                eeMutationProbabilityData =
+                eeMutationProbabilityParams =
                     {
-                        domainData = kd.eeDomainData
+                        domainParams = kp.eeDomainParams
                         zeroThreshold = ZeroThreshold.defaultValue
-                        epsFuncValue = kd.epsEeFuncValue
+                        epsFuncValue = kp.epsEeFuncValue
                     }
-                infMutationProbabilityData =
+                infMutationProbabilityParams =
                     {
-                        domainData = kd.infDomainData
+                        domainParams = kp.infDomainParams
                         zeroThreshold = ZeroThreshold.defaultValue
-                        epsFuncValue = kd.epsInfFuncValue
+                        epsFuncValue = kp.epsInfFuncValue
                     }
             }
 
+        member kp.domain2D() = Domain2D.create kp.domainIntervals.value kp.infMaxValue.value
 
         static member defaultValue =
             {
@@ -530,33 +531,35 @@ module Kernel =
                 kaFuncValue = KaFuncValue.IdentityKa
             }
 
-        static member defaultQuadraticValue d =
-            { KernelData.defaultValue with kaFuncValue = KaFuncValue.defaultQuadraticValue d }
+        static member defaultQuadraticValue =
+            let kp = KernelParams.defaultValue
+            { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue (kp.domain2D()) }
 
-        static member defaultQuadraticValue2 d =
-            { KernelData.defaultValue with kaFuncValue = KaFuncValue.defaultQuadraticValue2 d }
-
-
-    type KaValue =
-        | KaValue of Matrix<double>
-
-        member r.value = let (KaValue v) = r in v
+        static member defaultQuadraticValue2 =
+            let kp = KernelParams.defaultValue
+            { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue2 (kp.domain2D()) }
 
 
-    type KernelValue =
-        | KernelValue of SparseArray4D<double>
+    type Ka =
+        | Ka of Matrix<double>
 
-        member r.value = let (KernelValue v) = r in v
+        member r.value = let (Ka v) = r in v
+
+
+    type Kernel =
+        | Kernel of SparseArray4D<double>
+
+        member r.value = let (Kernel v) = r in v
 
 
     /// Represents K(x, x1, y, y1) 2D Fredholm kernel.
-    /// It is convenient to store it as in a form,
+    /// It is convenient to store it in a form,
     /// where the first two indexes are (x, y) and last ones are (x1, y1).
     /// So the actual indexes here are K(x, y, x1, y1).
-    type Kernel =
+    type KernelData =
         {
-            kernel : KernelValue
-            kaValue : KaValue
+            kernel : Kernel
+            ka : Ka
             domain2D : Domain2D
         }
 
@@ -564,39 +567,39 @@ module Kernel =
             let v = k.domain2D.integrateValues (k.kernel.value, u)
             v
 
-        static member create data =
-            let domain2D = Domain2D.create data.domainIntervals.value data.infMaxValue.value
+        static member create p =
+            let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
 
-            let mpData =
+            let mp =
                 {
-                    eeMutationProbabilityData =
+                    eeMutationProbabilityParams =
                         {
-                            domainData = data.eeDomainData
-                            zeroThreshold = data.zeroThreshold
-                            epsFuncValue = data.epsEeFuncValue
+                            domainParams = p.eeDomainParams
+                            zeroThreshold = p.zeroThreshold
+                            epsFuncValue = p.epsEeFuncValue
                         }
 
-                    infMutationProbabilityData =
+                    infMutationProbabilityParams =
                         {
-                            domainData = data.infDomainData
-                            zeroThreshold = data.zeroThreshold
-                            epsFuncValue = data.epsInfFuncValue
+                            domainParams = p.infDomainParams
+                            zeroThreshold = p.zeroThreshold
+                            epsFuncValue = p.epsInfFuncValue
                         }
                 }
 
-            let mp = MutationProbability4D.create mpData
-            let kaFunc = data.kaFuncValue.kaFunc domain2D
+            let mp = MutationProbability4D.create mp
+            let kaFunc = p.kaFuncValue.kaFunc domain2D
 
             let ka =
                 domain2D.eeDomain.points.value
                 |> Array.map (fun x -> domain2D.infDomain.points.value |> Array.map (fun y -> kaFunc.invoke domain2D x y))
                 |> Matrix
 
-            let kernel = mp.xy_x1y1 * ka |> KernelValue
+            let kernel = mp.xy_x1y1 * ka |> Kernel
 
             {
                 kernel = kernel
-                kaValue = KaValue ka
+                ka = Ka ka
                 domain2D = domain2D
             }
 

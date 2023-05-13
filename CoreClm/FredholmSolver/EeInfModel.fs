@@ -4,7 +4,6 @@ open Primitives.VersionInfo
 open Primitives.GeneralData
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-open GenericOdeSolver.Solver
 open GenericOdeSolver.Primitives
 
 module EeInfModel =
@@ -88,57 +87,112 @@ module EeInfModel =
         member d.unpack() = d.food, d.waste, d.protocell
 
 
-    type EeInfModelParams =
+    /// We can only shift delta to a grid cell.
+    type ProtocellInitParams =
+        | DeltaEeShifted of int
+
+        static member create shift = DeltaEeShifted shift
+        static member defaultValue = ProtocellInitParams.create 0
+
+        /// Creates a "delta" function centered near (0, 0) in the domain,
+        /// which is a middle point in ee domain and 0-th point in inf domain.
+        member p.getU eps (domain : Domain2D) =
+            match p with
+            | DeltaEeShifted eeShift ->
+                let domainIntervals = domain.eeDomain.noOfIntervals
+                let g i j =
+                    match domainIntervals % 2 = 0 with
+                    | true -> if ((i + eeShift) * 2 = domainIntervals) && (j = 0) then 1.0 else 0.0
+                    | false ->
+                        if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (j = 0) then 1.0 else 0.0
+
+                let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
+                let norm = domain.integrateValues v
+                (eps / norm) * v
+
+
+    type EeInfInitParams =
         {
-            kernelData : KernelData
-            gammaFuncValue : GammaFuncValue
-            numberOfMolecules : NumberOfMolecules
-            recyclingRate : RecyclingRate
+            eps : double
+            protocellInitParams : ProtocellInitParams
+            total : double
         }
 
         static member defaultValue =
             {
-                kernelData = KernelData.defaultValue
+                eps = 1.0e-2
+                protocellInitParams = ProtocellInitParams.defaultValue
+                total = 10.0
+            }
+
+        member p.shifted shift = { p with protocellInitParams = ProtocellInitParams.create shift }
+
+
+    type EeInfModelParams =
+        {
+            kernelParams : KernelParams
+            gammaFuncValue : GammaFuncValue
+            numberOfMolecules : NumberOfMolecules
+            recyclingRate : RecyclingRate
+            initParams : EeInfInitParams
+        }
+
+        member p.shifted shift = { p with initParams = p.initParams.shifted shift }
+
+        static member defaultValue =
+            {
+                kernelParams = KernelParams.defaultValue
                 gammaFuncValue = GammaFuncValue.defaultValue
                 numberOfMolecules = NumberOfMolecules.defaultValue
                 recyclingRate = RecyclingRate.defaultValue
+                initParams = EeInfInitParams.defaultValue
             }
 
         static member defaultNarrowValue =
             {
-                kernelData = KernelData.defaultNarrowValue
+                kernelParams = KernelParams.defaultNarrowValue
                 gammaFuncValue = GammaFuncValue.defaultValue
                 numberOfMolecules = NumberOfMolecules.defaultValue
                 recyclingRate = RecyclingRate.defaultValue
+                initParams = EeInfInitParams.defaultValue
             }
 
-        static member defaultNonlinearValue d =
+        static member defaultNonlinearValue =
+            let kp = KernelParams.defaultQuadraticValue
+            let d = kp.domain2D()
+
             {
-                kernelData = KernelData.defaultQuadraticValue d
+                kernelParams = kp
                 gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
                 numberOfMolecules = NumberOfMolecules.defaultValue
                 recyclingRate = RecyclingRate.defaultValue
+                initParams = EeInfInitParams.defaultValue
             }
 
-        static member defaultNonlinearValue2 d =
+        static member defaultNonlinearValue2 =
+            let kp = KernelParams.defaultQuadraticValue
+            let d = kp.domain2D()
+
             {
-                kernelData = KernelData.defaultQuadraticValue2 d
+                kernelParams = kp
                 gammaFuncValue = GammaFuncValue.defaultNonlinearValue2 d
                 numberOfMolecules = NumberOfMolecules.defaultValue2
                 recyclingRate = RecyclingRate.defaultValue
+                initParams = EeInfInitParams.defaultValue
             }
 
 
     type EeInfModel =
         {
-            kernel : Kernel
+            kernelData : KernelData
             gamma : Gamma
+            initialValues : SubstanceData
             modelParams : EeInfModelParams // To keep all params used to create a model.
         }
 
         member private md.unpack() =
             let p = md.modelParams
-            md.kernel, md.gamma.value, p.numberOfMolecules.value, p.recyclingRate.value
+            md.kernelData, md.gamma.value, p.numberOfMolecules.value, p.recyclingRate.value
 
         member md.derivative (x : SubstanceData) =
             let f, w, u = x.unpack()
@@ -169,64 +223,23 @@ module EeInfModel =
 
         member md.invariant (v : SubstanceData) =
             let f, w, u = v.unpack()
-            let k, g, n, s = md.unpack()
+            let k, _, n, _ = md.unpack()
 
             let int_u = k.domain2D.integrateValues u
             let inv = (double n) * (int_u + w) + f
             inv
 
         static member create (mp : EeInfModelParams) : EeInfModel =
-            let kernel = Kernel.create mp.kernelData
+            let k = KernelData.create mp.kernelParams
+
+            let f = FoodData (mp.initParams.total - (double mp.numberOfMolecules.value) * mp.initParams.eps)
+            let w = WasteData 0.0
+            let u = mp.initParams.protocellInitParams.getU mp.initParams.eps k.domain2D |> ProtocellData
+            let sd = SubstanceData.create f w u
 
             {
-                kernel = kernel
-                gamma = Gamma.create kernel.domain2D mp.gammaFuncValue
+                kernelData = k
+                gamma = Gamma.create k.domain2D mp.gammaFuncValue
+                initialValues = sd
                 modelParams = mp
             }
-
-
-    type ShiftedDeltaParams =
-        {
-            eeShift : double
-            infShift : double
-        }
-
-    type ProtocellInitParams =
-        | Delta
-        | ShiftedDelta of ShiftedDeltaParams
-
-
-    type EeInfInitParams =
-        {
-            eps : double
-            protocellInitParams : ProtocellInitParams
-            total : double
-        }
-
-
-    type EeInfModelData =
-        {
-            modelParams : EeInfModelParams
-            initParams : EeInfInitParams
-        }
-
-        static member defaultValue =
-            {
-                modelParams = EeInfModelParams.defaultValue
-                initParams =
-                    {
-                        eps = 1.0e-2
-                        protocellInitParams = Delta
-                        total = 10.0
-                    }
-            }
-
-        static member defaultNonlinearValue =
-            let data = EeInfModelData.defaultValue
-            let domain2D = Domain2D.create data.modelParams.kernelData.domainIntervals.value data.modelParams.kernelData.infMaxValue.value
-            { data with modelParams = EeInfModelParams.defaultNonlinearValue domain2D }
-
-        static member defaultNonlinearValue2 =
-            let data = EeInfModelData.defaultValue
-            let domain2D = Domain2D.create data.modelParams.kernelData.domainIntervals.value data.modelParams.kernelData.infMaxValue.value
-            { data with modelParams = EeInfModelParams.defaultNonlinearValue2 domain2D }

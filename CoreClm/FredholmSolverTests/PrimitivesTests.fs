@@ -14,7 +14,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
     let nullString : string = null
     let errTolerance = 1.0e-10
 
-    let domain2D (data : KernelData) = Domain2D.create data.domainIntervals.value data.infMaxValue.value
+    let domain2D (data : KernelParams) = Domain2D.create data.domainIntervals.value data.infMaxValue.value
     let normalize data v = v / (double (data.domainIntervals.value * data.domainIntervals.value))
 
 
@@ -59,27 +59,27 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOne () : unit =
-        mutationProbability4D_ShouldIntegrateToOneImpl KernelData.defaultValue
+        mutationProbability4D_ShouldIntegrateToOneImpl KernelParams.defaultValue
 
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOneForNarrowData () : unit =
-        mutationProbability4D_ShouldIntegrateToOneImpl KernelData.defaultNarrowValue
+        mutationProbability4D_ShouldIntegrateToOneImpl KernelParams.defaultNarrowValue
 
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOneForWideData () : unit =
-        mutationProbability4D_ShouldIntegrateToOneImpl KernelData.defaultWideValue
+        mutationProbability4D_ShouldIntegrateToOneImpl KernelParams.defaultWideValue
 
 
     [<Fact>]
     member _.defaultKernel_ShouldMatchProbability () : unit =
-        let data = KernelData.defaultValue
+        let data = KernelParams.defaultValue
 
         let domain = domain2D data
         let sw = Stopwatch.StartNew()
         let p = MutationProbability4D.create data.mutationProbabilityData2D
-        let kernel = Kernel.create data
+        let kernel = KernelData.create data
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
         let x1 = domain.integrateValues kernel.kernel.value
@@ -132,7 +132,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.delta_ShouldIntegrateToOne () : unit =
-        let data = KernelData.defaultValue
+        let data = KernelParams.defaultValue
 
         let u = (getDeltaU data).toLinearMatrix()
         let domain = domain2D data
@@ -146,7 +146,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.mean_ShouldBeConsistent () : unit =
-        let data = KernelData.defaultValue
+        let data = KernelParams.defaultValue
 
         let u = (getDeltaU data).toLinearMatrix()
         let domain = domain2D data
@@ -162,7 +162,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.stdDev_ShouldBeConsistent () : unit =
-        let data = KernelData.defaultValue
+        let data = KernelParams.defaultValue
 
         let u = (getDeltaU data).toLinearMatrix()
         let domain = domain2D data
