@@ -74,13 +74,6 @@ module ContGenPrimitives =
         static member getNewId() = Guid.NewGuid() |> ClmTaskId
 
 
-    type HtmlChart =
-        {
-            htmlContent: string
-            fileName : string
-        }
-
-
     type ChartInfo =
         {
             runQueueId : RunQueueId

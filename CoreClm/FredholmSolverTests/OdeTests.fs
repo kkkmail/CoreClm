@@ -1,5 +1,7 @@
 ﻿namespace FredholmSolverTests
 
+open System.IO
+open FredholmSolver.EeInfCharts
 open Primitives.GeneralData
 open System
 open FluentAssertions.Execution
@@ -17,7 +19,9 @@ open Softellect.Sys.Core
 open Softellect.Sys.Logging
 open Xunit
 open Xunit.Abstractions
-
+open Plotly.NET
+open Analytics.ChartExt
+open Primitives.ChartPrimitives
 
 type CallBackResults =
     {
@@ -52,7 +56,6 @@ type OdeTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
     let errInvTolerance = 1.0e-3
-    // let domain2D (data : KernelParams) = Domain2D.create data.domainIntervals.value data.infMaxValue.value
 
 
     let defaultOdeParams =
@@ -70,12 +73,10 @@ type OdeTests (output : ITestOutputHelper) =
                 }
         }
 
-    let defaultNonlinearOdeParams =
-        { defaultOdeParams with endTime = 200_000.0 }
-
-
-    let defaultNonlinearOdeParams2 =
-        { defaultOdeParams with endTime = 1_000_000.0 }
+    let defaultNonlinearOdeParams = { defaultOdeParams with endTime = 200_000.0 }
+    let defaultNonlinearOdeParams2 = { defaultOdeParams with endTime = 1_000_000.0 }
+    // let defaultNonlinearOdeParams = { defaultOdeParams with endTime = 2000.0 }
+    // let defaultNonlinearOdeParams2 = { defaultOdeParams with endTime = 10_000.0 }
 
 
     let outputMatrix (d : Domain2D) (m : Matrix<double>) =
@@ -133,6 +134,10 @@ type OdeTests (output : ITestOutputHelper) =
         List.append [ header ] (cd.allChartData |> List.map f |> List.rev)
         |> List.map writeLine
         |> ignore
+
+        let plotter = EeInfPlotter(cd)
+        plotter.eeChart()
+        plotter.uChart()
 
 
     let nSolveParam p odeParams =
@@ -208,18 +213,40 @@ type OdeTests (output : ITestOutputHelper) =
         let outputResult b (d : CallBackData) = outputResult md d (getData d.x) b
 
         let callBack c d = cr <- callBack cr (outputResult false) c d
-        let chartInitData = { y0 = 0.0M; tEnd = 0.0M }
+
+        let chartInitData =
+            {
+                y0 = 0.0M
+                tEnd = 0.0M
+                resultId = RunQueueId.getNewId()
+                modelParams = md.modelParams
+                domain2D = md.kernelData.domain2D
+            }
+
         let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
 
-        let getChartSliceData (d : CallBackData) : ChartSliceData =
+        let getChartSliceData c (d : CallBackData) : ChartSliceData =
+            let g() = getData d.x
+
+            let substanceData =
+                match c with
+                | RegularCallBack -> None
+                | FinalCallBack cct ->
+                    match cct with
+                    | CompletedCalculation -> g() |> Some
+                    | CancelledCalculation ct ->
+                        match ct with
+                        | AbortCalculation _ -> None
+                        | CancelWithResults _ -> g() |> Some
             {
                 tChart = d.t
                 progressChart = d.progressData
                 statData = calculateStat md (getData d.x)
+                substanceData = substanceData
             }
 
         let chartCallBack c d =
-            getChartSliceData d |> chartDataUpdater.addContent
+            getChartSliceData c d |> chartDataUpdater.addContent
             cr <- chartCallBack cr c d
 
         let c = calLBackInfo n callBack chartCallBack cc
@@ -360,3 +387,14 @@ type OdeTests (output : ITestOutputHelper) =
 
         let result = integrate2D grid dx dy
         result.Should().BeApproximately(0.25, 0.001, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.chart_ShouldWork() : unit =
+        let xData = [0. .. 10.]
+        let yData = [0. .. 10.]
+        let description = toDescription "Title" "description"
+        let chart = Chart.Point(xData, yData, UseDefaults = false)
+        let htmlString = toEmbeddedHtmlWithDescription description chart
+        let tempFilePath = @"C:\Temp\tempHtmlFile.html"
+        File.WriteAllText(tempFilePath, htmlString)

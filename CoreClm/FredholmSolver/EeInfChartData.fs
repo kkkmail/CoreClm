@@ -56,8 +56,11 @@ module EeInfChartData =
 
     type ChartInitData =
         {
+            resultId : RunQueueId
             y0 : decimal
             tEnd : decimal
+            modelParams : EeInfModelParams
+            domain2D : Domain2D
         }
 
 
@@ -66,6 +69,7 @@ module EeInfChartData =
             tChart : double
             progressChart : ProgressData
             statData : EeInfStatData
+            substanceData : SubstanceData option
         }
 
 

@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Analytics\Analytics.fsproj" />
     <ProjectReference Include="..\GenericOdeSolver\GenericOdeSolver.fsproj" />
   </ItemGroup>
 

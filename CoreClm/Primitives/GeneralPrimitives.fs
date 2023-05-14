@@ -49,3 +49,10 @@ module GeneralPrimitives =
             | 5 -> Some CancelRequestedRunQueue
             | 6 -> Some CancelledRunQueue
             | _ -> None
+
+
+    type HtmlChart =
+        {
+            htmlContent: string
+            fileName : string
+        }

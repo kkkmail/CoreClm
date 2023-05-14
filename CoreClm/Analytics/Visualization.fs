@@ -9,6 +9,7 @@ open Clm.ChartData
 open Plotly.NET
 open ChartExt
 open Primitives.GeneralData
+open Primitives.ChartPrimitives
 
 module Visualization =
 

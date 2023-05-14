@@ -6,29 +6,15 @@ open Microsoft.FSharp.Core
 open ClmSys.ContGenPrimitives
 open Clm.ModelParams
 open Clm.ChartData
-open Plotly.NET
-open Plotly.NET.GenericChart
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
+open Primitives.GeneralPrimitives
+open Primitives.ChartPrimitives
+open Plotly.NET
+open Plotly.NET.GenericChart
+open Giraffe.ViewEngine
 
 module ChartExt =
-
-    let toDescription h t =
-        {
-            Heading = h
-            Text = t
-        }
-
-
-    let toEmbeddedHtmlWithDescription (description : ChartDescription) gChart =
-         let chartMarkup =
-             toChartHTML gChart
-
-         HTML.doc
-             .Replace("[CHART]", chartMarkup)
-             .Replace("[DESCRIPTION]", description.Text)
-             .Replace("[ADDITIONAL_HEAD_TAGS]", description.Heading)
-
 
     type Chart with
 
@@ -98,13 +84,6 @@ module ChartExt =
         match i.useTempFolder with
         | true -> Chart.ShowWithDescription1 show
         | false -> Chart.ShowFileWithDescription show fileName
-
-
-    let getChart fileName d ch =
-        {
-            htmlContent = toEmbeddedHtmlWithDescription d ch
-            fileName = fileName
-        }
 
 
     let showHtmlChart chart =
