@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
-    <PackageReference Include="SQLProvider" Version="1.3.7" />
+    <PackageReference Include="SQLProvider" Version="1.3.8" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
     <PackageReference Include="SQLite.Interop.dll" Version="1.0.103" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
