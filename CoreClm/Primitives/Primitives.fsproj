@@ -37,6 +37,7 @@
     <Compile Include="SolverPrimitives.fs" />
     <Compile Include="SolverRunnerErrors.fs" />
     <Compile Include="ChartPrimitives.fs" />
+    <Compile Include="WolframPrimitives.fs" />
   </ItemGroup>
 
 </Project>
