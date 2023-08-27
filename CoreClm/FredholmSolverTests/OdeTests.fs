@@ -22,6 +22,7 @@ open Xunit.Abstractions
 open Plotly.NET
 open Analytics.ChartExt
 open Primitives.ChartPrimitives
+open Primitives.WolframPrimitives
 
 type CallBackResults =
     {
@@ -49,7 +50,32 @@ type OdeResultData =
         result : CallBackData
         getData : double[] -> SubstanceData
         invStart : double
+        chartData : ChartData
     }
+
+    member r.toWolframData() =
+        let descr = $"{Nl}{Nl}"
+
+        let eta = 0
+        let zeta = 0
+        let etaData = $"etaData = {(toWolframNotation eta)}{Nl}{Nl}"
+        let zetaData = $"zetaData = {(toWolframNotation zeta)}{Nl}{Nl}"
+
+        let substanceData = r.getData r.result.x
+        let u = substanceData.protocell.toMatrix()
+        let uData = $"uData = {(toWolframNotation u)}{Nl}{Nl}"
+
+        let ka = 0
+        let kaData = $"ka = {(toWolframNotation ka)}{Nl}{Nl}"
+
+        let gamma = 0
+        let gammaData = $"gamma = {(toWolframNotation gamma)}{Nl}{Nl}"
+
+        let chartTitles = $"{Nl}{Nl}"
+        let chart = 0
+        let chartData = $"chartData = {(toWolframNotation chart)}{Nl}{Nl}"
+
+        $"{descr}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartData}"
 
 
 type OdeTests (output : ITestOutputHelper) =
@@ -138,6 +164,13 @@ type OdeTests (output : ITestOutputHelper) =
         let plotter = EeInfPlotter(cd)
         plotter.eeChart()
         plotter.uChart()
+
+
+    let outputWolframData suffix (d : OdeResultData) =
+        let wolframFileName = $@"C:\EeInf\{d.chartData.initData.resultId.value}_{suffix}.m"
+
+        let wolframData = ""
+        File.WriteAllText(wolframFileName, wolframData)
 
 
     let nSolveParam p odeParams =
@@ -259,15 +292,20 @@ type OdeTests (output : ITestOutputHelper) =
 
         let result = nSolve nSolveParam
         outputResult true result
-        chartDataUpdater.getContent() |> outputChart
+        let chartData = chartDataUpdater.getContent()
+        chartData|> outputChart
 
-        {
-            modelData = md
-            callBackResults = cr
-            result = result
-            getData = getData
-            invStart = invStart
-        }
+        let odeResult =
+            {
+                modelData = md
+                callBackResults = cr
+                result = result
+                getData = getData
+                invStart = invStart
+                chartData = chartData
+            }
+
+        odeResult
 
 
     let odePackShouldRun p odeParams shift =
