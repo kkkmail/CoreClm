@@ -24,6 +24,7 @@ open Analytics.ChartExt
 open Primitives.ChartPrimitives
 open Primitives.WolframPrimitives
 
+
 type CallBackResults =
     {
         progressCallBackCount : int
@@ -56,24 +57,28 @@ type OdeResultData =
     member r.toWolframData() =
         let descr = $"{Nl}{Nl}"
 
-        let eta = 0
-        let zeta = 0
-        let etaData = $"etaData = {(toWolframNotation eta)}{Nl}{Nl}"
-        let zetaData = $"zetaData = {(toWolframNotation zeta)}{Nl}{Nl}"
+        let eta = r.modelData.kernelData.domain2D.eeDomain.points.value
+        let zeta = r.modelData.kernelData.domain2D.infDomain.points.value
+        let etaData = $"etaData = {(toWolframNotation eta)};{Nl}{Nl}"
+        let zetaData = $"zetaData = {(toWolframNotation zeta)};{Nl}{Nl}"
 
         let substanceData = r.getData r.result.x
         let u = substanceData.protocell.toMatrix()
-        let uData = $"uData = {(toWolframNotation u)}{Nl}{Nl}"
+        let uData = $"uData = {(toWolframNotation u)};{Nl}{Nl}"
 
-        let ka = 0
-        let kaData = $"ka = {(toWolframNotation ka)}{Nl}{Nl}"
+        let ka = r.modelData.kernelData.ka.value
+        let kaData = $"ka = {(toWolframNotation ka)};{Nl}{Nl}"
 
-        let gamma = 0
-        let gammaData = $"gamma = {(toWolframNotation gamma)}{Nl}{Nl}"
+        let gamma = r.modelData.gamma.value
+        let gammaData = $"gamma = {(toWolframNotation gamma)};{Nl}{Nl}"
+
+        let w (e : ChartSliceData) =
+            let g x = toWolframNotation x
+            $"{{ {(g e.tChart)}, {g e.statData.eeStatData.mean} }}"
 
         let chartTitles = $"{Nl}{Nl}"
-        let chart = 0
-        let chartData = $"chartData = {(toWolframNotation chart)}{Nl}{Nl}"
+        let chart = r.chartData.allChartData
+        let chartData = $"chartData = {(toWolframNotation chart)};{Nl}{Nl}"
 
         $"{descr}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartData}"
 

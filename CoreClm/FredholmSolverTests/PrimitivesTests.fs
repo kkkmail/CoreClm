@@ -8,6 +8,22 @@ open Xunit.Abstractions
 open FluentAssertions
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
+open Primitives.WolframPrimitives
+
+type InnerType =
+    {
+        a : double
+        b : double
+    }
+
+
+type TestType =
+    {
+        c : double
+        d : double
+        inner : InnerType
+    }
+
 
 type PrimitivesTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
@@ -194,3 +210,28 @@ type PrimitivesTests (output : ITestOutputHelper) =
         let ms = domain.integrateValues s
         writeLine $"mv = {mv}, ms = {ms}."
         mv.Should().BeApproximately(ms, 0.00001, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.toWolframNotation_ShouldWorkForSmallFloats () : unit =
+        let x = 1.0e-20
+
+        let output = toWolframNotation x
+        output.Should().Be("1.000000*^-020", nullString) |> ignore
+
+
+    [<Fact>]
+    member _.toWolframNotation_ShouldWorkForRecords () : unit =
+        let x =
+            {
+                c = 1.0
+                d = 2.0
+                inner =
+                    {
+                        a = 3.0
+                        b = 4.0
+                    }
+            }
+
+        let output = toWolframNotation x
+        output.Should().Be("{ 1.0, 2.0, { 3.0, 4.0 } }", nullString) |> ignore
