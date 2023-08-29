@@ -12,16 +12,18 @@ open Primitives.WolframPrimitives
 
 type InnerType =
     {
-        a : double
+        a : int
         b : double
     }
 
 
 type TestType =
     {
+        d : int
         c : double
-        d : double
         inner : InnerType
+        innerList : list<InnerType>
+        innerArray: array<InnerType>
     }
 
 
@@ -225,13 +227,35 @@ type PrimitivesTests (output : ITestOutputHelper) =
         let x =
             {
                 c = 1.0
-                d = 2.0
+                d = 2
                 inner =
                     {
-                        a = 3.0
+                        a = 3
                         b = 4.0
                     }
+                innerList =
+                    [
+                        {
+                            a = 5
+                            b = 6.0
+                        }
+                        {
+                            a = 7
+                            b = 8.0
+                        }
+                    ]
+                innerArray =
+                    [|
+                        {
+                            a = 9
+                            b = 10.0
+                        }
+                        {
+                            a = 11
+                            b = 12.0
+                        }
+                    |]
             }
 
         let output = toWolframNotation x
-        output.Should().Be("{ 1.0, 2.0, { 3.0, 4.0 } }", nullString) |> ignore
+        output.Should().Be("{ 1.000000*^+000, 2, { 3, 4.000000*^+000 }, { { 9, 1.000000*^+001 }, { 11, 1.200000*^+001 } }, { { 5, 6.000000*^+000 }, { 7, 8.000000*^+000 } } }", nullString) |> ignore
