@@ -619,11 +619,14 @@ module Kernel =
 
 
     /// Number of "molecules" or building blocks used in a protocell.
+    /// This controls the nonlinearity of the creation model.
+    /// Default value is set to 1 because we take into account that a single protocell encounters with food
+    /// proportionally to concentration of the food.
     type NumberOfMolecules =
         | NumberOfMolecules of int
 
         member r.value = let (NumberOfMolecules v) = r in v
-        static member defaultValue = NumberOfMolecules 100
+        static member defaultValue = NumberOfMolecules 1
         static member defaultValue2 = NumberOfMolecules 2
 
 

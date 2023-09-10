@@ -1,67 +1,40 @@
 ﻿namespace Primitives
 
-open Primitives.GeneralData
 open System
 open Microsoft.FSharp.Reflection
+open Primitives.GeneralData
 
 module WolframPrimitives =
 
-    //let toWolframNotation v =
-    //    let rec inner x joiner =
-    //        match box x with
-    //        | :? float as num -> $"{num:E}".Replace("E", "*^")
-    //        | :? seq<_> as seq -> (seq |> Seq.fold (fun acc item -> acc + joiner + (inner item ",\n ")) "{") + "}"
-    //        | _ when FSharpType.IsRecord(x.GetType()) ->
-    //            let propertyValues =
-    //                FSharpType.GetRecordFields(x.GetType())
-    //                |> Array.sortBy (fun fi -> fi.Name)
-    //                |> Array.map (fun fi -> fi.GetValue(x))
-
-    //            //let g v =
-    //            //    let u = unbox v
-    //            //    let r = inner u ", "
-    //            //    r
-
-    //            let g (v: obj) =
-    //                match v with
-    //                | :? float as num -> inner num ", "
-    //                | _ -> inner v ", "
-
-    //            propertyValues
-    //            |> Array.map g
-    //            |> fun arr -> "{ " + String.Join(", ", arr) + " }"
-    //        | _ -> $"{x}"
-
-    //    inner v ", "
-
-    //let toWolframNotation v =
-    //    let rec inner (x: obj) joiner =
-    //        match x with
-    //        | :? float as num -> $"{num:E}".Replace("E", "*^")
-    //        | _ when FSharpType.IsRecord(x.GetType()) ->
-    //            let propertyValues =
-    //                FSharpType.GetRecordFields(x.GetType())
-    //                |> Array.sortBy (fun fi -> fi.Name)
-    //                |> Array.map (fun fi -> fi.GetValue(x, null))
-
-    //            propertyValues
-    //            |> Array.map (fun v -> inner v ", ")
-    //            |> fun arr -> "{ " + String.Join(", ", arr) + " }"
-    //        | :? seq<_> as seq -> (seq |> Seq.fold (fun acc item -> acc + joiner + (inner item ",\n ")) "{") + "}"
-    //        | _ -> $"{x}"
-
-    //    inner (box v) ", "
+    let joinStrings j s = String.Join(j, s |> List.map (fun e -> $"{e}"))
 
 
     //let toWolframNotation v =
     //    // Helper function to check if object is a sequence but not a string
     //    let isSeq obj =
     //        if obj = null then false
-    //        elif obj.GetType().GetInterface("System.Collections.IEnumerable") <> null && 
+    //        elif obj.GetType().GetInterface(typeof<System.Collections.IEnumerable>.FullName) <> null &&
     //             obj.GetType() <> typeof<string> then true
     //        else false
 
-    //    let rec inner (x: obj) joiner =
+    //    // Helper function to get depth of sequences and records
+    //    let rec seqDepth currentDepth (x : obj) =
+    //        if isSeq x then
+    //            let seq = x :?> System.Collections.IEnumerable |> Seq.cast<_>
+    //            if Seq.isEmpty seq then currentDepth + 1
+    //            else Seq.map (seqDepth (currentDepth + 1)) seq |> Seq.max
+    //        elif FSharpType.IsRecord(x.GetType()) then
+    //            let propertyValues =
+    //                FSharpType.GetRecordFields(x.GetType())
+    //                |> Array.map (fun fi -> fi.GetValue(x, null))
+    //            Array.map (seqDepth currentDepth) propertyValues |> Array.max
+    //        else currentDepth
+
+    //    let rec inner (nestingLevel : int) (maxDepth: int) (x : obj) =
+    //        let seqSeparator =
+    //            if nestingLevel = (maxDepth - 1) then ", "
+    //            else $",{System.Environment.NewLine}"
+
     //        match x with
     //        | :? float as num -> $"{num:E}".Replace("E", "*^")
     //        | _ when FSharpType.IsRecord(x.GetType()) ->
@@ -71,108 +44,45 @@ module WolframPrimitives =
     //                |> Array.map (fun fi -> fi.GetValue(x, null))
 
     //            propertyValues
-    //            |> Array.map (fun v -> inner v ", ")
+    //            |> Array.map (inner nestingLevel maxDepth)
     //            |> fun arr -> "{ " + String.Join(", ", arr) + " }"
     //        | _ when isSeq x ->
     //            let seq = x :?> System.Collections.IEnumerable |> Seq.cast<_>
-    //            (seq |> Seq.fold (fun acc item -> acc + joiner + (inner item ",\n ")) "{") + "}"
+    //            let localMaxDepth = seqDepth 0 x
+    //            let convertedSeq = seq |> Seq.map (inner (nestingLevel + 1) localMaxDepth)
+    //            "{ " + String.Join(seqSeparator, convertedSeq) + " }"
     //        | _ -> $"{x}"
 
-    //    inner (box v) ", "
-
-
-    //let toWolframNotation v =
-    //    // Helper function to check if object is a sequence but not a string
-    //    let isSeq obj =
-    //        if obj = null then false
-    //        elif obj.GetType().GetInterface(typeof<System.Collections.IEnumerable>.FullName) <> null && 
-    //             obj.GetType() <> typeof<string> then true
-    //        else false
-
-    //    let rec inner (x: obj) joiner =
-    //        match x with
-    //        | :? float as num -> $"{num:E}".Replace("E", "*^")
-    //        | _ when FSharpType.IsRecord(x.GetType()) ->
-    //            let propertyValues =
-    //                FSharpType.GetRecordFields(x.GetType())
-    //                |> Array.sortBy (fun fi -> fi.Name)
-    //                |> Array.map (fun fi -> fi.GetValue(x, null))
-
-    //            propertyValues
-    //            |> Array.map (fun v -> inner v ", ")
-    //            |> fun arr -> "{ " + String.Join(", ", arr) + " }"
-    //        | _ when isSeq x ->
-    //            let seq = x :?> System.Collections.IEnumerable |> Seq.cast<_>
-    //            (seq |> Seq.fold (fun acc item -> acc + joiner + (inner item ",\n ")) "{") + "}"
-    //        | _ -> $"{x}"
-
-    //    inner (box v) ", "
-
-    //let toWolframNotation v =
-    //    // Helper function to check if object is a sequence but not a string
-    //    let isSeq obj =
-    //        if obj = null then false
-    //        elif obj.GetType().GetInterface(typeof<System.Collections.IEnumerable>.FullName) <> null && 
-    //             obj.GetType() <> typeof<string> then true
-    //        else false
-
-    //    let rec inner (x: obj) joiner =
-    //        match x with
-    //        | :? float as num -> $"{num:E}".Replace("E", "*^")
-    //        | _ when FSharpType.IsRecord(x.GetType()) ->
-    //            let propertyValues =
-    //                FSharpType.GetRecordFields(x.GetType())
-    //                |> Array.sortBy (fun fi -> fi.Name)
-    //                |> Array.map (fun fi -> fi.GetValue(x, null))
-
-    //            propertyValues
-    //            |> Array.map (fun v -> inner v ", ")
-    //            |> fun arr -> "{ " + String.Join(", ", arr) + " }"
-    //        | _ when isSeq x ->
-    //            let seq = x :?> System.Collections.IEnumerable |> Seq.cast<_>
-    //            let convertedSeq = seq |> Seq.map (fun item -> inner item ",\n ")
-    //            "{ " + String.Join(", ", convertedSeq) + " }"
-    //        | _ -> $"{x}"
-
-    //    inner (box v) ", "
-
-    //let toWolframNotation v =
-    //    // Helper function to check if object is a sequence but not a string
-    //    let isSeq obj =
-    //        if obj = null then false
-    //        elif obj.GetType().GetInterface(typeof<System.Collections.IEnumerable>.FullName) <> null && 
-    //             obj.GetType() <> typeof<string> then true
-    //        else false
-
-    //    let rec inner (x : obj) =
-    //        match x with
-    //        | :? float as num -> $"{num:E}".Replace("E", "*^")
-    //        | _ when FSharpType.IsRecord(x.GetType()) ->
-    //            let propertyValues =
-    //                FSharpType.GetRecordFields(x.GetType())
-    //                |> Array.sortBy (fun fi -> fi.Name)
-    //                |> Array.map (fun fi -> fi.GetValue(x, null))
-
-    //            propertyValues
-    //            |> Array.map inner
-    //            |> fun arr -> "{ " + String.Join(", ", arr) + " }"
-    //        | _ when isSeq x ->
-    //            let seq = x :?> System.Collections.IEnumerable |> Seq.cast<_>
-    //            let convertedSeq = seq |> Seq.map inner
-    //            "{ " + String.Join(", ", convertedSeq) + " }"
-    //        | _ -> $"{x}"
-
-    //    inner (box v)
+    //    let maxDepth = seqDepth 0 (box v)
+    //    inner 0 maxDepth (box v)
 
     let toWolframNotation v =
         // Helper function to check if object is a sequence but not a string
         let isSeq obj =
             if obj = null then false
-            elif obj.GetType().GetInterface(typeof<System.Collections.IEnumerable>.FullName) <> null && 
+            elif obj.GetType().GetInterface(typeof<System.Collections.IEnumerable>.FullName) <> null &&
                  obj.GetType() <> typeof<string> then true
             else false
 
-        let rec inner (x : obj) =
+        // Helper function to get depth of sequences and records
+        let rec seqDepth currentDepth (x : obj) =
+            match x with
+            | _ when isSeq x ->
+                let seq = x :?> System.Collections.IEnumerable |> Seq.cast<_>
+                if Seq.isEmpty seq then currentDepth + 1
+                else Seq.map (seqDepth (currentDepth + 1)) seq |> Seq.max
+            | _ when FSharpType.IsRecord(x.GetType()) ->
+                let propertyValues =
+                    FSharpType.GetRecordFields(x.GetType())
+                    |> Array.map (fun fi -> fi.GetValue(x, null))
+                Array.map (seqDepth currentDepth) propertyValues |> Array.max
+            | _ -> currentDepth
+
+        let rec inner (nestingLevel : int) (maxDepth: int) (x : obj) =
+            let seqSeparator =
+                if nestingLevel = (maxDepth - 1) then ", "
+                else $",{System.Environment.NewLine}"
+
             match x with
             | :? float as num -> $"{num:E}".Replace("E", "*^")
             | _ when FSharpType.IsRecord(x.GetType()) ->
@@ -182,13 +92,14 @@ module WolframPrimitives =
                     |> Array.map (fun fi -> fi.GetValue(x, null))
 
                 propertyValues
-                |> Array.map inner
+                |> Array.map (inner nestingLevel maxDepth)
                 |> fun arr -> "{ " + String.Join(", ", arr) + " }"
             | _ when isSeq x ->
                 let seq = x :?> System.Collections.IEnumerable |> Seq.cast<_>
-                let convertedSeq = seq |> Seq.map inner
-                "{ " + String.Join(", ", convertedSeq) + " }"
+                let localMaxDepth = seqDepth 0 x
+                let convertedSeq = seq |> Seq.map (inner (nestingLevel + 1) localMaxDepth)
+                "{ " + String.Join(seqSeparator, convertedSeq) + " }"
             | _ -> $"{x}"
 
-        inner (box v)
-
+        let maxDepth = seqDepth 0 (box v)
+        inner 0 maxDepth (box v)

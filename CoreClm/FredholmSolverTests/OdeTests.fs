@@ -1,6 +1,8 @@
 ﻿namespace FredholmSolverTests
 
 open System.IO
+open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
 open FredholmSolver.EeInfCharts
 open Primitives.GeneralData
 open System
@@ -55,7 +57,9 @@ type OdeResultData =
     }
 
     member r.toWolframData() =
-        let descr = $"{Nl}{Nl}"
+        let d = $"{r.modelData.modelParams}".Replace("\n", " ").Replace("    ", " ").Replace("    ", " ").Replace("    ", " ").Replace("  ", " ").Replace("  ", " ")
+
+        let descr = $"descr = \"{d}\";{Nl}{Nl}"
 
         let eta = r.modelData.kernelData.domain2D.eeDomain.points.value
         let zeta = r.modelData.kernelData.domain2D.infDomain.points.value
@@ -63,23 +67,42 @@ type OdeResultData =
         let zetaData = $"zetaData = {(toWolframNotation zeta)};{Nl}{Nl}"
 
         let substanceData = r.getData r.result.x
-        let u = substanceData.protocell.toMatrix()
+        let u = substanceData.protocell.toMatrix().value
         let uData = $"uData = {(toWolframNotation u)};{Nl}{Nl}"
 
-        let ka = r.modelData.kernelData.ka.value
+        let ka = r.modelData.kernelData.ka.value.value
         let kaData = $"ka = {(toWolframNotation ka)};{Nl}{Nl}"
 
-        let gamma = r.modelData.gamma.value
+        let gamma = r.modelData.gamma.value.value
         let gammaData = $"gamma = {(toWolframNotation gamma)};{Nl}{Nl}"
 
         let w (e : ChartSliceData) =
             let g x = toWolframNotation x
-            $"{{ {(g e.tChart)}, {g e.statData.eeStatData.mean} }}"
 
-        let chartTitles = $"{Nl}{Nl}"
-        let chart = r.chartData.allChartData
-        let chartData = $"chartData = {(toWolframNotation chart)};{Nl}{Nl}"
+            let a =
+                [
+                    $"{(g e.tChart)}"
+                    $"{g e.statData.eeStatData.mean}"
+                    $"{g e.statData.eeStatData.stdDev}"
+                    $"{g e.statData.infStatData.mean}"
+                    $"{g e.statData.infStatData.stdDev}"
+                    $"{g e.statData.invariant}"
+                    $"{g e.statData.total}"
+                    $"{g e.statData.food}"
+                    $"{g e.statData.waste}"
+                ]
+                |> joinStrings ", "
 
+            $"{{ {a} }}"
+
+        let chartTitles = $"{Nl}chartTitles = {{\"t\", \"eeMean\", \"eeStdDev\", \"infMean\", \"infStdDev\", \"invariant\", \"total\", \"food\", \"waste\"}};{Nl}"
+
+        let chart =
+            r.chartData.allChartData
+            |> List.map w
+            |> joinStrings $",{Nl}"
+
+        let chartData = $"chartData = {{ {chart} }};{Nl}{Nl}"
         $"{descr}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartData}"
 
 
@@ -87,7 +110,6 @@ type OdeTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
     let errInvTolerance = 1.0e-3
-
 
     let defaultOdeParams =
         {
@@ -154,12 +176,12 @@ type OdeTests (output : ITestOutputHelper) =
 
     let outputChart (cd : ChartData) =
         let f e =
-            $"{e.tChart},{e.statData.eeStatData.mean},{e.statData.infStatData.mean}," +
-            $"{e.statData.eeStatData.stdDev},{e.statData.infStatData.stdDev}," +
-            $"{e.statData.total},{e.statData.invariant}," +
+            $"{e.tChart},{e.statData.eeStatData.mean},{e.statData.eeStatData.stdDev}," +
+            $"{e.statData.infStatData.mean},{e.statData.infStatData.stdDev}," +
+            $"{e.statData.invariant},{e.statData.total}," +
             $"{e.statData.food},{e.statData.waste}"
 
-        let header = "t,eeMean,infMean,eeStdDev,infStdDev,total,invariant,food,waste"
+        let header = "t,eeMean,eeStdDev,infMean,infStdDev,invariant,total,food,waste"
 
         writeLine $"{Nl}{Nl}Chart data:"
         List.append [ header ] (cd.allChartData |> List.map f |> List.rev)
@@ -171,10 +193,10 @@ type OdeTests (output : ITestOutputHelper) =
         plotter.uChart()
 
 
-    let outputWolframData suffix (d : OdeResultData) =
-        let wolframFileName = $@"C:\EeInf\{d.chartData.initData.resultId.value}_{suffix}.m"
+    let outputWolframData name (d : OdeResultData) =
+        let wolframFileName = $@"C:\EeInf\{name}.m"
 
-        let wolframData = ""
+        let wolframData = d.toWolframData()
         File.WriteAllText(wolframFileName, wolframData)
 
 
@@ -313,9 +335,11 @@ type OdeTests (output : ITestOutputHelper) =
         odeResult
 
 
-    let odePackShouldRun p odeParams shift =
-        let eeInfModelParams = { p with initParams = p.initParams.shifted shift }
+    let odePackShouldRun p odeParams shift name =
+        let eeInfModelParams = { p with initParams = p.initParams.shifted shift; name = Some name }
         let r = odePackRun eeInfModelParams (fun _ -> None) odeParams
+
+        outputWolframData name r
 
         let v = r.getData r.result.x
         let inv_tEnd = r.modelData.invariant v
@@ -326,16 +350,21 @@ type OdeTests (output : ITestOutputHelper) =
         diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
 
 
-    [<Fact>]
-    member _.odePack_ShouldRun () : unit = odePackShouldRun EeInfModelParams.defaultValue defaultOdeParams 0
+    member private _.getCallerName([<CallerMemberName; Optional; DefaultParameterValue("")>] ?memberName: string) =
+        let memberName = defaultArg memberName ""
+        memberName
 
 
     [<Fact>]
-    member _.odePack_ShouldRunNonLinear () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams 1
+    member t.odePack_ShouldRun () : unit = odePackShouldRun EeInfModelParams.defaultValue defaultOdeParams 0 (t.getCallerName())
 
 
     [<Fact>]
-    member _.odePack_ShouldRunNonLinear2 () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue2 defaultNonlinearOdeParams2 1
+    member t.odePack_ShouldRunNonLinear () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear2 () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue2 defaultNonlinearOdeParams2 1 (t.getCallerName())
 
 
     [<Fact>]

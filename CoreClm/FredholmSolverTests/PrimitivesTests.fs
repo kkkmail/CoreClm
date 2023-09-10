@@ -259,3 +259,18 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
         let output = toWolframNotation x
         output.Should().Be("{ 1.000000*^+000, 2, { 3, 4.000000*^+000 }, { { 9, 1.000000*^+001 }, { 11, 1.200000*^+001 } }, { { 5, 6.000000*^+000 }, { 7, 8.000000*^+000 } } }", nullString) |> ignore
+
+
+    [<Fact>]
+    member _.toWolframNotation_ShouldWorkForListOfLists () : unit =
+        let x =
+            [
+                [ 1; 2 ; 3 ]
+                [ 4; 5; 6 ]
+            ]
+
+        let s = @"{ { 1, 2, 3 },
+{ 4, 5, 6 } }"
+
+        let output = toWolframNotation x
+        output.Should().Be(s, nullString) |> ignore

@@ -135,6 +135,7 @@ module EeInfModel =
             numberOfMolecules : NumberOfMolecules
             recyclingRate : RecyclingRate
             initParams : EeInfInitParams
+            name : string option
         }
 
         member p.shifted shift = { p with initParams = p.initParams.shifted shift }
@@ -146,6 +147,7 @@ module EeInfModel =
                 numberOfMolecules = NumberOfMolecules.defaultValue
                 recyclingRate = RecyclingRate.defaultValue
                 initParams = EeInfInitParams.defaultValue
+                name = None
             }
 
         static member defaultNarrowValue =
@@ -155,6 +157,7 @@ module EeInfModel =
                 numberOfMolecules = NumberOfMolecules.defaultValue
                 recyclingRate = RecyclingRate.defaultValue
                 initParams = EeInfInitParams.defaultValue
+                name = None
             }
 
         static member defaultNonlinearValue =
@@ -167,6 +170,7 @@ module EeInfModel =
                 numberOfMolecules = NumberOfMolecules.defaultValue
                 recyclingRate = RecyclingRate.defaultValue
                 initParams = EeInfInitParams.defaultValue
+                name = None
             }
 
         static member defaultNonlinearValue2 =
@@ -179,6 +183,7 @@ module EeInfModel =
                 numberOfMolecules = NumberOfMolecules.defaultValue2
                 recyclingRate = RecyclingRate.defaultValue
                 initParams = EeInfInitParams.defaultValue
+                name = None
             }
 
 

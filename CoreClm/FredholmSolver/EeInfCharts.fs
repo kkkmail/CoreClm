@@ -7,10 +7,14 @@ open Primitives.ChartPrimitives
 
 module EeInfCharts =
 
-    // type Plotter(i : PlotDataInfo, p : ChartData) =
     type EeInfPlotter(p : ChartData) =
         let getFileName (ct : ChartType) =
-            $@"C:\EeInf\{p.initData.resultId.value}_{ct.fileSuffix}.html"
+            let name =
+                match p.initData.modelParams.name with
+                | Some v -> v
+                | None -> $"{p.initData.resultId.value}"
+
+            $@"C:\EeInf\{name}_{ct.fileSuffix}.html"
             //ct.getFileName (i, p)
 
         let noOfOutputPoints = p.allChartData.Length - 1
