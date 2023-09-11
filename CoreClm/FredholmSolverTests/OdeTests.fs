@@ -57,7 +57,14 @@ type OdeResultData =
     }
 
     member r.toWolframData() =
-        let d = $"{r.modelData.modelParams}".Replace("\n", " ").Replace("    ", " ").Replace("    ", " ").Replace("    ", " ").Replace("  ", " ").Replace("  ", " ")
+        let d = $"{r.modelData.modelParams}"
+                    .Replace("\n", " ")
+                    .Replace("    ", " ")
+                    .Replace("    ", " ")
+                    .Replace("    ", " ")
+                    .Replace("  ", " ")
+                    .Replace("  ", " ")
+                    .Replace("\"", "\\\"")
 
         let descr = $"descr = \"{d}\";{Nl}{Nl}"
 
@@ -368,8 +375,9 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
-    member _.odePack_ShouldCallBack () : unit =
-        let r = odePackRun EeInfModelParams.defaultValue (fun _ -> None) defaultOdeParams
+    member t.odePack_ShouldCallBack () : unit =
+        let name = t.getCallerName()
+        let r = odePackRun { EeInfModelParams.defaultValue with name = Some name } (fun _ -> None) defaultOdeParams
 
         use _ = new AssertionScope()
         r.result.Should().NotBeNull(nullString) |> ignore

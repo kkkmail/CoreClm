@@ -14,8 +14,7 @@ module EeInfCharts =
                 | Some v -> v
                 | None -> $"{p.initData.resultId.value}"
 
-            $@"C:\EeInf\{name}_{ct.fileSuffix}.html"
-            //ct.getFileName (i, p)
+            $@"C:\EeInf\{name}__{ct.fileSuffix}.html"
 
         let noOfOutputPoints = p.allChartData.Length - 1
         let allChartData = p.allChartData |> List.rev |> Array.ofList
