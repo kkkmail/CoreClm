@@ -54,6 +54,7 @@ module WolframPrimitives =
 
             match x with
             | :? float as num -> $"{num:E}".Replace("E", "*^")
+            | :? string as s -> s.Replace("\"", "\\\"")
             | _ when FSharpType.IsRecord(x.GetType()) ->
                 let propertyValues =
                     FSharpType.GetRecordFields(x.GetType())
