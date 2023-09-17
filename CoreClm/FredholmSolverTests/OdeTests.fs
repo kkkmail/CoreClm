@@ -128,6 +128,7 @@ type OdeTests (output : ITestOutputHelper) =
         }
 
     let defaultNonlinearOdeParams = { defaultOdeParams with endTime = 200_000.0 }
+    let defaultNonlinearOdeParams_65K = { defaultOdeParams with endTime = 65_000.0 }
     let defaultNonlinearOdeParams2 = { defaultOdeParams with endTime = 1_000_000.0 }
     // let defaultNonlinearOdeParams = { defaultOdeParams with endTime = 2000.0 }
     // let defaultNonlinearOdeParams2 = { defaultOdeParams with endTime = 10_000.0 }
@@ -363,6 +364,18 @@ type OdeTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.odePack_ShouldRunNonLinear () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_65K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_65K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_65K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_65K 0 (t.getCallerName())
 
 
     [<Fact>]

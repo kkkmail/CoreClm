@@ -115,7 +115,7 @@ module WolframPrimitives =
                     then
                         sb.AppendLine() |> ignore
                         sb.Append($"{newIndent}    ") |> ignore
-                        sb.AppendLine(String.Join($"\n{newIndent}    ", formattedElems)) |> ignore
+                        sb.AppendLine(String.Join($"{Nl}{newIndent}    ", formattedElems)) |> ignore
                     else
                         sb.AppendLine(String.Join("", formattedElems)) |> ignore
 
