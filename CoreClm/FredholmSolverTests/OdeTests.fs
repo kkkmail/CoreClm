@@ -98,6 +98,7 @@ type OdeResultData =
 
         let chart =
             r.chartData.allChartData
+            |> List.sortBy (fun e -> e.tChart)
             |> List.map w
             |> joinStrings $",{Nl}"
 
@@ -109,6 +110,7 @@ type OdeTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
     let errInvTolerance = 1.0e-3
+    let outputFolder = @"C:\EeInf"
 
     let defaultOdeParams =
         {
@@ -144,7 +146,7 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     let outputEeInfModelData (data : EeInfModelParams) =
-        writeLine $"data:{Nl}{data}"
+        writeLine $"data:{Nl}{(toOutputString data)}"
 
 
     let outputResult md d (v : SubstanceData) r =
@@ -193,7 +195,7 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     let outputWolframData name (d : OdeResultData) =
-        let wolframFileName = $@"C:\EeInf\{name}.m"
+        let wolframFileName = $@"{outputFolder}\{name}.m"
 
         let wolframData = d.toWolframData()
         File.WriteAllText(wolframFileName, wolframData)
@@ -381,12 +383,12 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
-    member _.odePack_ShouldCancel () : unit =
+    member t.odePack_ShouldCancel () : unit =
         let mutable cr = CallBackResults.defaultValue
 
-        let md = EeInfModelParams.defaultValue
+        let md = { EeInfModelParams.defaultValue with name = Some (t.getCallerName()) }
         let model = EeInfModel.create md
-        let r = odePackRun md (fun _ -> None) defaultOdeParams
+        //let r = odePackRun md (fun _ -> None) defaultOdeParams
 
         let n, getData = nSolveParam md defaultOdeParams
         let outputResult b d = outputResult model d (getData d.x) b
@@ -452,12 +454,6 @@ type OdeTests (output : ITestOutputHelper) =
         let dy = 1.0 / (double (ySteps - 1))
 
         let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
-
-        // grid
-        // |> Array.map (fun e -> String.Join(",", e))
-        // |> Array.map (fun e -> (writeLine $"{e}"))
-        // |> ignore
-
         let result = integrate2D grid dx dy
         result.Should().BeApproximately(0.25, 0.001, nullString) |> ignore
 
@@ -469,5 +465,5 @@ type OdeTests (output : ITestOutputHelper) =
         let description = toDescription "Title" "description"
         let chart = Chart.Point(xData, yData, UseDefaults = false)
         let htmlString = toEmbeddedHtmlWithDescription description chart
-        let tempFilePath = @"C:\Temp\tempHtmlFile.html"
+        let tempFilePath = $@"{outputFolder}\tempHtmlFile.html"
         File.WriteAllText(tempFilePath, htmlString)

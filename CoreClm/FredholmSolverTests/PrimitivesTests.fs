@@ -16,7 +16,8 @@ open Microsoft.FSharp.Reflection
 type TestUnion =
     | A
     | B of int
-    | C of int[]
+    | C of array<int>
+    | D of array<(double * int)>
 
 
 type InnerType =
@@ -36,10 +37,18 @@ type TestType =
     }
 
 
+type TestTypeWithArray =
+    {
+        testUnionArray : array<TestUnion>
+        testArray : array<int>
+    }
+
+
 type OuterType =
     {
         testType : TestType
         testUnion : TestUnion
+        testTypeWithArray : TestTypeWithArray
     }
 
 
@@ -127,6 +136,11 @@ type PrimitivesTests (output : ITestOutputHelper) =
         {
             testType = data
             testUnion = C [| 0; 1; 2; 3 |]
+            testTypeWithArray =
+                {
+                    testUnionArray = [| A; B 1; C [| 1; 2; |]; D [| (3.0, 4); (5.0, 6) |] |]
+                    testArray = [| 1; 2; 3; |]
+                }
         }
 
 
@@ -335,5 +349,16 @@ type PrimitivesTests (output : ITestOutputHelper) =
                 |]
         }
     testUnion = C [| 0; 1; 2; 3 |]
+    testTypeWithArray =
+        {
+            testUnionArray =
+                [|
+                    A
+                    B 1
+                    C [| 1; 2 |]
+                    D [| (3, 4); (5, 6) |]
+                |]
+            testArray = [| 1; 2; 3 |]
+        }
 }"
         output.Should().Be(s, nullString) |> ignore

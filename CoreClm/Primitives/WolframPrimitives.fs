@@ -8,6 +8,10 @@ open System.Text
 module WolframPrimitives =
 
     let joinStrings j s = String.Join(j, s |> List.map (fun e -> $"{e}"))
+    let isDiscriminatedUnion obj = FSharpType.IsUnion(obj.GetType())
+    let isRecord obj = FSharpType.IsRecord(obj.GetType())
+    let isArray obj = obj <> null && obj.GetType().IsArray
+    let isTuple obj = obj <> null && FSharpType.IsTuple(obj.GetType())
 
 
     /// Helper function to check if object is a sequence but not a string
@@ -18,9 +22,6 @@ module WolframPrimitives =
         else false
 
 
-    let isArray obj = obj <> null && obj.GetType().IsArray
-
-
     let isList obj =
         obj <> null && obj.GetType().IsGenericType &&
         obj.GetType().GetGenericTypeDefinition() = typedefof<List<_>>
@@ -28,8 +29,8 @@ module WolframPrimitives =
 
     let isSimpleType obj =
         obj <> null &&
-        not (FSharpType.IsUnion(obj.GetType()) || FSharpType.IsRecord(obj.GetType())) &&
-        (obj.GetType().IsPrimitive || obj.GetType() = typeof<string>)
+        not (isDiscriminatedUnion obj || isRecord obj) &&
+        (obj.GetType().IsPrimitive || obj.GetType() = typeof<string> || obj.GetType() = typeof<decimal> || obj.GetType() = typeof<DateTime> || isTuple obj)
 
 
     let toWolframNotation v =
@@ -96,17 +97,28 @@ module WolframPrimitives =
             match x with
             | null -> "null"
             | :? string as str -> $"\"{str}\""
+            | _ when isTuple x ->
+                let elements = FSharpValue.GetTupleFields(x) |> Array.map (fun el -> inner el "")
+                $"""({String.Join(", ", elements)})"""
             | _ when isArray x || isList x || isSeq x ->
                 let brackets = getBrackets x
                 let elements = (x :?> System.Collections.IEnumerable) |> Seq.cast<obj> |> Seq.toList
-                if List.forall isSimpleType elements then $"""{(fst brackets)} {String.Join("; ", elements)} {(snd brackets)}"""
+                if List.forall isSimpleType elements then $""" {(fst brackets)} {String.Join("; ", elements)} {(snd brackets)}"""
                 else
                     let newIndent = $"{indent}    "
                     let sb = StringBuilder()
                     sb.AppendLine() |> ignore
                     sb.Append($"    {indent}{(fst brackets)}") |> ignore
                     let formattedElems = elements |> List.map (fun el -> $"{inner el newIndent}")
-                    sb.AppendLine(String.Join("", formattedElems)) |> ignore
+
+                    if List.forall isDiscriminatedUnion elements
+                    then
+                        sb.AppendLine() |> ignore
+                        sb.Append($"{newIndent}    ") |> ignore
+                        sb.AppendLine(String.Join($"\n{newIndent}    ", formattedElems)) |> ignore
+                    else
+                        sb.AppendLine(String.Join("", formattedElems)) |> ignore
+
                     sb.Append($"    {indent}{(snd brackets)}") |> ignore
                     sb.ToString()
             | _ when FSharpType.IsRecord(x.GetType()) ->
@@ -132,6 +144,12 @@ module WolframPrimitives =
                 let case, fields = FSharpValue.GetUnionFields(x, unionType)
                 let caseName = case.Name
                 let fieldStrs = fields |> Array.map (fun f -> inner f indent)
-                $"""{caseName} {String.Join(" ", fieldStrs)}"""
+                let allFieldsStr = $"""{String.Join(" ", fieldStrs)}"""
+
+                let sep =
+                    if allFieldsStr <> "" && allFieldsStr.StartsWith " " |> not then " "
+                    else ""
+
+                $"""{caseName}{sep}{allFieldsStr}"""
             | _ -> x.ToString()
         inner x ""
