@@ -9,6 +9,15 @@ open FluentAssertions
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open Primitives.WolframPrimitives
+open System.Text
+open Microsoft.FSharp.Reflection
+
+
+type TestUnion =
+    | A
+    | B of int
+    | C of int[]
+
 
 type InnerType =
     {
@@ -24,6 +33,13 @@ type TestType =
         inner : InnerType
         innerList : list<InnerType>
         innerArray: array<InnerType>
+    }
+
+
+type OuterType =
+    {
+        testType : TestType
+        testUnion : TestUnion
     }
 
 
@@ -73,6 +89,45 @@ type PrimitivesTests (output : ITestOutputHelper) =
         let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
         let norm = domain.integrateValues v
         (1.0 / norm) * v
+
+    let data =
+        {
+            c = 1.0
+            d = 2
+            inner =
+                {
+                    a = 3
+                    b = 4.0
+                }
+            innerList =
+                [
+                    {
+                        a = 5
+                        b = 6.0
+                    }
+                    {
+                        a = 7
+                        b = 8.0
+                    }
+                ]
+            innerArray =
+                [|
+                    {
+                        a = 9
+                        b = 10.0
+                    }
+                    {
+                        a = 11
+                        b = 12.0
+                    }
+                |]
+        }
+
+    let outputData =
+        {
+            testType = data
+            testUnion = C [| 0; 1; 2; 3 |]
+        }
 
 
     [<Fact>]
@@ -224,40 +279,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.toWolframNotation_ShouldWorkForRecords () : unit =
-        let x =
-            {
-                c = 1.0
-                d = 2
-                inner =
-                    {
-                        a = 3
-                        b = 4.0
-                    }
-                innerList =
-                    [
-                        {
-                            a = 5
-                            b = 6.0
-                        }
-                        {
-                            a = 7
-                            b = 8.0
-                        }
-                    ]
-                innerArray =
-                    [|
-                        {
-                            a = 9
-                            b = 10.0
-                        }
-                        {
-                            a = 11
-                            b = 12.0
-                        }
-                    |]
-            }
-
-        let output = toWolframNotation x
+        let output = toWolframNotation data
         output.Should().Be("{ 1.000000*^+000, 2, { 3, 4.000000*^+000 }, { { 9, 1.000000*^+001 }, { 11, 1.200000*^+001 } }, { { 5, 6.000000*^+000 }, { 7, 8.000000*^+000 } } }", nullString) |> ignore
 
 
@@ -273,4 +295,45 @@ type PrimitivesTests (output : ITestOutputHelper) =
 { 4, 5, 6 } }"
 
         let output = toWolframNotation x
+        output.Should().Be(s, nullString) |> ignore
+
+
+    [<Fact>]
+    member _.toOutputString_ShouldWork () : unit =
+        let output = toOutputString outputData
+        let s = @"{
+    testType =
+        {
+            d = 2
+            c = 1
+            inner =
+                {
+                    a = 3
+                    b = 4
+                }
+            innerList =
+                [
+                    {
+                        a = 5
+                        b = 6
+                    }
+                    {
+                        a = 7
+                        b = 8
+                    }
+                ]
+            innerArray =
+                [|
+                    {
+                        a = 9
+                        b = 10
+                    }
+                    {
+                        a = 11
+                        b = 12
+                    }
+                |]
+        }
+    testUnion = C [| 0; 1; 2; 3 |]
+}"
         output.Should().Be(s, nullString) |> ignore

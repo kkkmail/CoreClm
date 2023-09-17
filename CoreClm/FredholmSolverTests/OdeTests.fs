@@ -57,16 +57,8 @@ type OdeResultData =
     }
 
     member r.toWolframData() =
-        let d = $"{r.modelData.modelParams}"
-                    .Replace("\n", " ")
-                    .Replace("    ", " ")
-                    .Replace("    ", " ")
-                    .Replace("    ", " ")
-                    .Replace("  ", " ")
-                    .Replace("  ", " ")
-                    .Replace("\"", "\\\"")
-
-        let descr = $"descr = \"{d}\";{Nl}{Nl}"
+        let d = r.modelData.modelParams |> toOutputString |> toWolframNotation
+        let descr = $"descr ={Nl}\"{d}\";{Nl}{Nl}"
 
         let eta = r.modelData.kernelData.domain2D.eeDomain.points.value
         let zeta = r.modelData.kernelData.domain2D.infDomain.points.value
@@ -358,8 +350,9 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     member private _.getCallerName([<CallerMemberName; Optional; DefaultParameterValue("")>] ?memberName: string) =
+        let now = DateTime.Now
         let memberName = defaultArg memberName ""
-        memberName
+        $"{memberName}__{now:yyyyMMdd_HHmm}"
 
 
     [<Fact>]
