@@ -218,6 +218,20 @@ module Kernel =
             retVal
 
 
+    type EeInfTaylorApproximation =
+        {
+            tEe : TaylorApproximation
+            tInf : TaylorApproximation
+        }
+
+
+    type ScaledEeInfTaylorApproximation =
+        {
+            tEeInf : EeInfTaylorApproximation
+            eeInfScale : double
+        }
+
+
     /// Type to describe a function used to calculate eps in mutation probability calculations.
     type EpsFunc =
         | EpsFunc of (Domain -> double -> double)
@@ -247,9 +261,9 @@ module Kernel =
             | ScalarEps e -> EpsFunc (fun _ _ -> e)
 
 
-    let separableFunc (tEe : TaylorApproximation) (tInf : TaylorApproximation) a b =
-        let eeVal = tEe.calculate a
-        let infVal = tInf.calculate b
+    let separableFunc (v : EeInfTaylorApproximation) a b =
+        let eeVal = v.tEe.calculate a
+        let infVal = v.tInf.calculate b
         eeVal * infVal
 
 
@@ -262,12 +276,12 @@ module Kernel =
 
     type KaFuncValue =
         | IdentityKa
-        | SeparableKa of TaylorApproximation * TaylorApproximation
+        | SeparableKa of EeInfTaylorApproximation
 
         member k.kaFunc (d : Domain2D) : KaFunc =
             match k with
             | IdentityKa -> (fun _ _ _ -> 1.0)
-            | SeparableKa (tEe, tInf) -> (fun _ a b -> separableFunc tEe tInf a b)
+            | SeparableKa v -> (fun _ a b -> separableFunc v a b)
             |> KaFunc
 
         static member defaultValue = IdentityKa
@@ -277,44 +291,44 @@ module Kernel =
                 {
                     x0 = 0.0
                     scale = 1.0
-                    coefficients = [| 1.0; 0.0; 1.0|]
+                    coefficients = [| 1.0; 0.0; 1.0 |]
                 }
 
             let tInf =
                 {
                     x0 = 0.0
                     scale = twoThirdInfScale d
-                    coefficients = [| 1.0; 0.0; 1.0|]
+                    coefficients = [| 1.0; 0.0; 1.0 |]
                 }
 
-            SeparableKa (tEe, tInf)
+            SeparableKa { tEe = tEe; tInf = tInf }
 
         static member defaultQuadraticValue2 (d : Domain2D) =
             let tEe =
                 {
                     x0 = 0.0
                     scale = 1.0
-                    coefficients = [| 1.0; 0.0; 0.2|]
+                    coefficients = [| 1.0; 0.0; 0.2 |]
                 }
 
             let tInf =
                 {
                     x0 = 0.0
                     scale = twoThirdInfScale d
-                    coefficients = [| 1.0; 0.0; 0.2|]
+                    coefficients = [| 1.0; 0.0; 0.2 |]
                 }
 
-            SeparableKa (tEe, tInf)
+            SeparableKa { tEe = tEe; tInf = tInf }
 
 
     type GammaFuncValue =
         | ScalarGamma of double
-        | SeparableGamma of double * TaylorApproximation * TaylorApproximation
+        | SeparableGamma of ScaledEeInfTaylorApproximation
 
         member g.gammaFunc (d : Domain2D) : GammaFunc =
             match g with
             | ScalarGamma e -> (fun _ _ _ -> e)
-            | SeparableGamma (g0, tEe, tInf) -> (fun _ a b -> g0 * (separableFunc tEe tInf a b))
+            | SeparableGamma e -> (fun _ a b -> e.eeInfScale * (separableFunc e.tEeInf a b))
             |> GammaFunc
 
         static member defaultValue = ScalarGamma 0.01
@@ -324,24 +338,24 @@ module Kernel =
                 {
                     x0 = 0.0
                     scale = 1.0
-                    coefficients = [| 1.0; -0.01|]
+                    coefficients = [| 1.0; -0.01 |]
                 }
 
             let tInf =
                 {
                     x0 = 0.0
                     scale = twoThirdInfScale d
-                    coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
+                    coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0 |]
                 }
 
-            SeparableGamma (0.01, tEe, tInf)
+            SeparableGamma { eeInfScale = 0.01; tEeInf = { tEe = tEe; tInf = tInf } }
 
         static member defaultNonlinearValue2 (d : Domain2D) =
             let tEe =
                 {
                     x0 = 0.0
                     scale = 1.0
-                    coefficients = [| 1.0; -0.001|]
+                    coefficients = [| 1.0; -0.001 |]
                 }
 
             let tInf =
@@ -351,7 +365,7 @@ module Kernel =
                     coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
                 }
 
-            SeparableGamma (0.01, tEe, tInf)
+            SeparableGamma { eeInfScale = 0.01; tEeInf = { tEe = tEe; tInf = tInf } }
 
 
     type MutationProbabilityParams =
