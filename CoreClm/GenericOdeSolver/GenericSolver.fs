@@ -64,11 +64,12 @@ module Solver =
 
 
     let shouldNotifyByNextChartDetailedProgress (n : NSolveParam) d t =
+        n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, n.odeParams.outputParams.noOfChartDetailedPoints = {n.odeParams.outputParams.noOfChartDetailedPoints}."
         match n.odeParams.outputParams.noOfChartDetailedPoints with
         | Some _ ->
             let p = calculateProgress n t
             let r = p >= d.nextChartDetailedProgress
-            // n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: p = {p}, nextChartDetailedProgress = {d.nextChartDetailedProgress}, r = {r}."
+            n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, p = {p}, d.nextChartDetailedProgress = {d.nextChartDetailedProgress}, r = {r}."
             r
         | None -> false
 
@@ -118,7 +119,7 @@ module Solver =
                 let nextProgress = calculateNextProgress n t
                 let nextChartProgress = calculateNextChartProgress n t
                 let nextChartDetailedProgress = calculateNextChartDetailedProgress n t
-                // n.logger.logDebugString $"needsCallBack: shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}, shouldNotifyChartDetailed = {shouldNotifyChartDetailed}."
+                n.logger.logDebugString $"needsCallBack: t = {t}, shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}, shouldNotifyChartDetailed = {shouldNotifyChartDetailed}."
 
                 let retVal =
                     match (shouldNotifyProgress, shouldNotifyChart, shouldNotifyChartDetailed) with
@@ -129,11 +130,13 @@ module Solver =
                         ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
 
                     | false, _, true ->
+                        n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartDetailedProgress to: {nextChartDetailedProgress}, ChartDetailedNotification."
                         ( { d with nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some ChartDetailedNotification)
                     | true, _, true ->
+                        n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartDetailedProgress to: {nextChartDetailedProgress}, AllNotification."
                         ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some AllNotification)
 
-                // n.logger.logDebugString $"needsCallBack: retVal = {retVal}."
+                n.logger.logDebugString $"needsCallBack: retVal = {retVal}."
                 retVal
 
             NeedsCallBack f
@@ -212,7 +215,7 @@ module Solver =
                 match v with
                 | ProgressNotification -> i.progressCallBack.invoke RegularCallBack cbd
                 | ChartNotification -> i.chartCallBack.invoke RegularCallBack cbd
-                | ChartDetailedNotification ->i.chartDetailedCallBack.invoke RegularCallBack cbd
+                | ChartDetailedNotification -> i.chartDetailedCallBack.invoke RegularCallBack cbd
                 | ProgressAndChartNotification ->
                     i.progressCallBack.invoke RegularCallBack cbd
                     i.chartCallBack.invoke RegularCallBack cbd

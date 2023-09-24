@@ -339,10 +339,12 @@ type OdeTests (output : ITestOutputHelper) =
             }
 
         let chartCallBack c d =
+            writeLine $"chartCallBack: t = {d.t}, progress = {d.progressData.progress}."
             getChartSliceData c false d |> chartDataUpdater.addContent
             cr <- chartCallBack cr c d
 
         let chartDetailedCallBack c d =
+            writeLine $"chartDetailedCallBack: t = {d.t}, progress = {d.progressData.progress}."
             getChartSliceData c true d |> chartDataUpdater.addContent
             cr <- chartDetailedCallBack cr c d
 
@@ -350,14 +352,14 @@ type OdeTests (output : ITestOutputHelper) =
 
         let nSolveParam = { n with callBackInfo = c }
         let invStart = getData nSolveParam.initialValues |> md.invariant
-        outputKa md
-        outputGamma md
-        outputResult false { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
+        //outputKa md
+        //outputGamma md
+        //outputResult false { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
 
         let result = nSolve nSolveParam
-        outputResult true result
+        //outputResult true result
         let chartData = chartDataUpdater.getContent()
-        chartData|> outputChart
+        //chartData|> outputChart
 
         let odeResult =
             {
