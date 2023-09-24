@@ -361,6 +361,5 @@ type PrimitivesTests (output : ITestOutputHelper) =
       testArray = [| 1; 2; 3 |]
     }
 }"
-        //let arrayOutput = output.ToCharArray()
-        //let arrayS = s.ToCharArray()
-        output.Should().Be(s, s.Substring(897)) |> ignore
+
+        output.Should().Be(s, nullString) |> ignore

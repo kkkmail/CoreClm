@@ -128,12 +128,9 @@ module Solver =
                     | true, true, false ->
                         ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
 
-                    | false, false, true -> ( { d with nextChartDetailedProgress = nextChartDetailedProgress }, Some ChartDetailedNotification)
-                    | false, true, true ->
+                    | false, _, true ->
                         ( { d with nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some ChartDetailedNotification)
-                    | true, false, true ->
-                        ( { d with nextProgress = nextProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some AllNotification)
-                    | true, true, true ->
+                    | true, _, true ->
                         ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some AllNotification)
 
                 // n.logger.logDebugString $"needsCallBack: retVal = {retVal}."

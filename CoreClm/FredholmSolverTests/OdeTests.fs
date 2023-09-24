@@ -278,7 +278,10 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     let chartCallBack cr _ _ = { cr with chartCallBackCount = cr.chartCallBackCount + 1 }
-    let chartDetailedCallBack cr _ _ = { cr with chartDetailedCallBackCount = cr.chartDetailedCallBackCount + 1 }
+
+
+    let chartDetailedCallBack cr _ _ =
+        { cr with chartCallBackCount = cr.chartCallBackCount + 1; chartDetailedCallBackCount = cr.chartDetailedCallBackCount + 1 }
 
 
     let calLBackInfo n callBack charCallBack chartDetailedCallBack checkCancellation =
