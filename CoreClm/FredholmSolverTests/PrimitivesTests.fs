@@ -316,50 +316,50 @@ type PrimitivesTests (output : ITestOutputHelper) =
     member _.toOutputString_ShouldWork () : unit =
         let output = toOutputString outputData
         let s = @"{
-    testType =
+  testType =
+    {
+      d = 2
+      c = 1
+      inner =
         {
-            d = 2
-            c = 1
-            inner =
-                {
-                    a = 3
-                    b = 4
-                }
-            innerList =
-                [
-                    {
-                        a = 5
-                        b = 6
-                    }
-                    {
-                        a = 7
-                        b = 8
-                    }
-                ]
-            innerArray =
-                [|
-                    {
-                        a = 9
-                        b = 10
-                    }
-                    {
-                        a = 11
-                        b = 12
-                    }
-                |]
+          a = 3
+          b = 4
         }
-    testUnion = C [| 0; 1; 2; 3 |]
-    testTypeWithArray =
-        {
-            testUnionArray =
-                [|
-                    A
-                    B 1
-                    C [| 1; 2 |]
-                    D [| (3, 4); (5, 6) |]
-                |]
-            testArray = [| 1; 2; 3 |]
-        }
+      innerList =
+        [
+          {
+            a = 5
+            b = 6
+          }
+          {
+            a = 7
+            b = 8
+          }
+        ]
+      innerArray =
+        [|
+          {
+            a = 9
+            b = 10
+          }
+          {
+            a = 11
+            b = 12
+          }
+        |]
+    }
+  testUnion = C [| 0; 1; 2; 3 |]
+  testTypeWithArray =
+    {
+      testUnionArray =
+        [|
+          A
+          B 1
+          C [| 1; 2 |]
+          D [| (3, 4); (5, 6) |]
+        |]
+      testArray = [| 1; 2; 3 |]
+    }
 }"
         //let arrayOutput = output.ToCharArray()
         //let arrayS = s.ToCharArray()

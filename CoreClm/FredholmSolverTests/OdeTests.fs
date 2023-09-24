@@ -34,6 +34,7 @@ type CallBackResults =
         cancelledCallBackCount : int
         abortedCallBackCount : int
         chartCallBackCount : int
+        chartDetailedCallBackCount : int
     }
 
     static member defaultValue =
@@ -43,6 +44,7 @@ type CallBackResults =
             cancelledCallBackCount = 0
             abortedCallBackCount = 0
             chartCallBackCount = 0
+            chartDetailedCallBackCount = 0
         }
 
 
@@ -56,9 +58,12 @@ type OdeResultData =
         chartData : ChartData
     }
 
-    member r.toWolframData() =
+    member r.toWolframData (odeParams : OdeParams) =
+        let a = $"""Get["C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m"];{Nl}{Nl}"""
+        let b = $"""plotAll[1];{Nl}"""
         let d = r.modelData.modelParams |> toOutputString |> toWolframNotation
-        let descr = $"descr ={Nl}\"{d}\";{Nl}{Nl}"
+        let o = odeParams |> toOutputString |> toWolframNotation
+        let descr = $"descr ={Nl}\"{d}{Nl}{o}\";{Nl}{Nl}"
 
         let eta = r.modelData.kernelData.domain2D.eeDomain.points.value
         let zeta = r.modelData.kernelData.domain2D.infDomain.points.value
@@ -103,7 +108,25 @@ type OdeResultData =
             |> joinStrings $",{Nl}"
 
         let chartData = $"chartData = {{ {chart} }};{Nl}{Nl}"
-        $"{descr}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartData}"
+
+        let uw (e : ChartSliceData) =
+            match e.substanceData with
+            | Some v ->
+                let t = toWolframNotation e.tChart
+                let u = v.protocell.toMatrix().value |> toWolframNotation
+                $"{{ {t}, {u} }}" |> Some
+            | None -> None
+
+        let ut =
+            r.chartData.allChartData
+            |> List.sortBy (fun e -> e.tChart)
+            |> List.map uw
+            |> List.choose id
+            |> joinStrings $",{Nl}"
+
+        let uDataT = $"uDataT = {{ {ut} }};{Nl}{Nl}"
+
+        $"{a}{descr}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartData}{uDataT}{b}"
 
 
 type OdeTests (output : ITestOutputHelper) =
@@ -123,7 +146,7 @@ type OdeTests (output : ITestOutputHelper) =
                 {
                     noOfOutputPoints = 4_000
                     noOfProgressPoints = 100
-                    noOfChartDetailedPoints = None
+                    noOfChartDetailedPoints = Some 10
                 }
         }
 
@@ -195,10 +218,10 @@ type OdeTests (output : ITestOutputHelper) =
         plotter.uChart()
 
 
-    let outputWolframData name (d : OdeResultData) =
+    let outputWolframData odeParams name (d : OdeResultData) =
         let wolframFileName = $@"{outputFolder}\{name}.m"
 
-        let wolframData = d.toWolframData()
+        let wolframData = d.toWolframData odeParams
         File.WriteAllText(wolframFileName, wolframData)
 
 
@@ -218,9 +241,9 @@ type OdeTests (output : ITestOutputHelper) =
                 callBackInfo =
                     {
                         checkFreq = TimeSpan.MaxValue
-                        // needsCallBack = NeedsCallBack (fun c _ -> c, None)
                         progressCallBack = ProgressCallBack (fun _ _ -> ())
                         chartCallBack = ChartCallBack (fun _ _ -> ())
+                        chartDetailedCallBack = ChartDetailedCallBack (fun _ _ -> ())
                         checkCancellation = CheckCancellation (fun _ -> None)
                     }
 
@@ -255,13 +278,15 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     let chartCallBack cr _ _ = { cr with chartCallBackCount = cr.chartCallBackCount + 1 }
+    let chartDetailedCallBack cr _ _ = { cr with chartDetailedCallBackCount = cr.chartDetailedCallBackCount + 1 }
 
 
-    let calLBackInfo n callBack charCallBack checkCancellation =
+    let calLBackInfo n callBack charCallBack chartDetailedCallBack checkCancellation =
         {
             checkFreq = TimeSpan.FromMilliseconds(10.0)
             progressCallBack = ProgressCallBack callBack
             chartCallBack = ChartCallBack charCallBack
+            chartDetailedCallBack = ChartDetailedCallBack chartDetailedCallBack
             checkCancellation = CheckCancellation checkCancellation
         }
 
@@ -287,12 +312,15 @@ type OdeTests (output : ITestOutputHelper) =
 
         let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
 
-        let getChartSliceData c (d : CallBackData) : ChartSliceData =
+        let getChartSliceData c b (d : CallBackData) : ChartSliceData =
             let g() = getData d.x
 
             let substanceData =
                 match c with
-                | RegularCallBack -> None
+                | RegularCallBack ->
+                    match b with
+                        | false -> None
+                        | true -> g() |> Some
                 | FinalCallBack cct ->
                     match cct with
                     | CompletedCalculation -> g() |> Some
@@ -308,10 +336,14 @@ type OdeTests (output : ITestOutputHelper) =
             }
 
         let chartCallBack c d =
-            getChartSliceData c d |> chartDataUpdater.addContent
+            getChartSliceData c false d |> chartDataUpdater.addContent
             cr <- chartCallBack cr c d
 
-        let c = calLBackInfo n callBack chartCallBack cc
+        let chartDetailedCallBack c d =
+            getChartSliceData c true d |> chartDataUpdater.addContent
+            cr <- chartDetailedCallBack cr c d
+
+        let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack cc
 
         let nSolveParam = { n with callBackInfo = c }
         let invStart = getData nSolveParam.initialValues |> md.invariant
@@ -341,7 +373,7 @@ type OdeTests (output : ITestOutputHelper) =
         let eeInfModelParams = { p with initParams = p.initParams.shifted shift; name = Some name }
         let r = odePackRun eeInfModelParams (fun _ -> None) odeParams
 
-        outputWolframData name r
+        outputWolframData odeParams name r
 
         let v = r.getData r.result.x
         let inv_tEnd = r.modelData.invariant v
@@ -408,8 +440,9 @@ type OdeTests (output : ITestOutputHelper) =
 
         let callBack c d = cr <- callBack cr (outputResult false) c d
         let chartCallBack c d = cr <- chartCallBack cr c d
+        let chartDetailedCallBack c d = cr <- chartDetailedCallBack cr c d
         let checkCancellation _ = CancelWithResults None |> Some
-        let c = calLBackInfo n callBack chartCallBack checkCancellation
+        let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack checkCancellation
 
         let nSolveParam = { n with callBackInfo = c }
 
@@ -433,8 +466,9 @@ type OdeTests (output : ITestOutputHelper) =
 
         let callBack c d = cr <- callBack cr (outputResult false) c d
         let chartCallBack c d = cr <- chartCallBack cr c d
+        let chartDetailedCallBack c d = cr <- chartDetailedCallBack cr c d
         let checkCancellation _ = AbortCalculation None |> Some
-        let c = calLBackInfo n callBack chartCallBack checkCancellation
+        let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack checkCancellation
 
         let nSolveParam = { n with callBackInfo = c }
 

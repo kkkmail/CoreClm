@@ -199,23 +199,25 @@ module Kernel =
     let factorial n = [ 1..n ] |> List.fold (*) 1
 
 
-    /// Uses: y = scale * (x - x0) in Taylor expansion.
+    /// Uses: x1 = xScale * (x - x0) in Taylor expansion.
+    /// Returns y1 = yScale * y where y is obtaing using Taylor expansion by x1.
     type TaylorApproximation =
         {
             x0 : double
-            scale : double
+            xScale : double
             coefficients : double[]
+            yScale : double
         }
 
         member ta.calculate x =
-            let y = ta.scale * (x - ta.x0)
+            let x1 = ta.xScale * (x - ta.x0)
 
             let retVal =
                 ta.coefficients
-                |> Array.mapi (fun i e -> (pown y i) * e / (factorial i |> double))
+                |> Array.mapi (fun i e -> (pown x1 i) * e / (factorial i |> double))
                 |> Array.sum
 
-            retVal
+            retVal * ta.yScale
 
 
     type EeInfTaylorApproximation =
@@ -278,6 +280,9 @@ module Kernel =
         | IdentityKa
         | SeparableKa of EeInfTaylorApproximation
 
+        // Default Y scale of kA. We don't want to use 1 as it is too large.
+        static member defaultScale = 0.1
+
         member k.kaFunc (d : Domain2D) : KaFunc =
             match k with
             | IdentityKa -> (fun _ _ _ -> 1.0)
@@ -290,15 +295,17 @@ module Kernel =
             let tEe =
                 {
                     x0 = 0.0
-                    scale = 1.0
+                    xScale = 1.0
                     coefficients = [| 1.0; 0.0; 1.0 |]
+                    yScale = KaFuncValue.defaultScale
                 }
 
             let tInf =
                 {
                     x0 = 0.0
-                    scale = twoThirdInfScale d
+                    xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 1.0 |]
+                    yScale = KaFuncValue.defaultScale
                 }
 
             SeparableKa { tEe = tEe; tInf = tInf }
@@ -307,15 +314,17 @@ module Kernel =
             let tEe =
                 {
                     x0 = 0.0
-                    scale = 1.0
+                    xScale = 1.0
                     coefficients = [| 1.0; 0.0; 0.2 |]
+                    yScale = KaFuncValue.defaultScale
                 }
 
             let tInf =
                 {
                     x0 = 0.0
-                    scale = twoThirdInfScale d
+                    xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 0.2 |]
+                    yScale = KaFuncValue.defaultScale
                 }
 
             SeparableKa { tEe = tEe; tInf = tInf }
@@ -337,15 +346,17 @@ module Kernel =
             let tEe =
                 {
                     x0 = 0.0
-                    scale = 1.0
+                    xScale = 1.0
                     coefficients = [| 1.0; -0.01 |]
+                    yScale = 1.0
                 }
 
             let tInf =
                 {
                     x0 = 0.0
-                    scale = twoThirdInfScale d
+                    xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0 |]
+                    yScale = 1.0
                 }
 
             SeparableGamma { eeInfScale = 0.01; tEeInf = { tEe = tEe; tInf = tInf } }
@@ -354,15 +365,17 @@ module Kernel =
             let tEe =
                 {
                     x0 = 0.0
-                    scale = 1.0
+                    xScale = 1.0
                     coefficients = [| 1.0; -0.001 |]
+                    yScale = 1.0
                 }
 
             let tInf =
                 {
                     x0 = 0.0
-                    scale = twoThirdInfScale d
+                    xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
+                    yScale = 1.0
                 }
 
             SeparableGamma { eeInfScale = 0.01; tEeInf = { tEe = tEe; tInf = tInf } }

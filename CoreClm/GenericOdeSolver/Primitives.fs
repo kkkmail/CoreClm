@@ -15,7 +15,9 @@ module Primitives =
     type CallBackNotificationType =
         | ProgressNotification
         | ChartNotification
+        | ChartDetailedNotification // Also should include ChartNotification.
         | ProgressAndChartNotification
+        | AllNotification // Should send ProgressNotification and ChartDetailedNotification
 
 
     type CallBackType =
@@ -45,6 +47,14 @@ module Primitives =
         member r.invoke = let (ChartCallBack v) = r in v
 
 
+    /// A function to call in order to generate a detailed chart data point.
+    /// This is mostly to collect 3D data at some predetermined intervals.
+    type ChartDetailedCallBack =
+        | ChartDetailedCallBack of (CallBackType -> CallBackData -> unit)
+
+        member r.invoke = let (ChartDetailedCallBack v) = r in v
+
+
     /// A function to call to check if cancellation is requested.
     type CheckCancellation =
         | CheckCancellation of (RunQueueId -> CancellationType option)
@@ -59,6 +69,7 @@ module Primitives =
             lastCheck : DateTime
             nextProgress : decimal
             nextChartProgress : decimal
+            nextChartDetailedProgress : decimal
         }
 
         static member defaultValue =
@@ -72,6 +83,7 @@ module Primitives =
                 lastCheck = DateTime.Now
                 nextProgress = 0.0M
                 nextChartProgress = 0.0M
+                nextChartDetailedProgress = 0.0M
             }
 
 
@@ -87,6 +99,7 @@ module Primitives =
             checkFreq : TimeSpan
             progressCallBack : ProgressCallBack
             chartCallBack : ChartCallBack
+            chartDetailedCallBack : ChartDetailedCallBack
             checkCancellation : CheckCancellation
         }
 

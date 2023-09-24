@@ -7,6 +7,7 @@ open System.Text
 
 module WolframPrimitives =
 
+    let private baseIndent = "  "
     let joinStrings j s = String.Join(j, s |> List.map (fun e -> $"{e}"))
     let isDiscriminatedUnion obj = FSharpType.IsUnion(obj.GetType())
     let isRecord obj = FSharpType.IsRecord(obj.GetType())
@@ -105,31 +106,31 @@ module WolframPrimitives =
                 let elements = (x :?> System.Collections.IEnumerable) |> Seq.cast<obj> |> Seq.toList
                 if List.forall isSimpleType elements then $""" {(fst brackets)} {String.Join("; ", elements)} {(snd brackets)}"""
                 else
-                    let newIndent = $"{indent}    "
+                    let newIndent = $"{baseIndent}{indent}"
                     let sb = StringBuilder()
                     sb.AppendLine() |> ignore
-                    sb.Append($"    {indent}{(fst brackets)}") |> ignore
+                    sb.Append($"{baseIndent}{indent}{(fst brackets)}") |> ignore
                     let formattedElems = elements |> List.map (fun el -> $"{inner el newIndent}")
 
                     if List.forall isDiscriminatedUnion elements
                     then
                         sb.AppendLine() |> ignore
-                        sb.Append($"{newIndent}    ") |> ignore
-                        sb.AppendLine(String.Join($"{Nl}{newIndent}    ", formattedElems)) |> ignore
+                        sb.Append($"{baseIndent}{newIndent}") |> ignore
+                        sb.AppendLine(String.Join($"{Nl}{baseIndent}{newIndent}", formattedElems)) |> ignore
                     else
                         sb.AppendLine(String.Join("", formattedElems)) |> ignore
 
-                    sb.Append($"    {indent}{(snd brackets)}") |> ignore
+                    sb.Append($"{baseIndent}{indent}{(snd brackets)}") |> ignore
                     sb.ToString()
             | _ when FSharpType.IsRecord(x.GetType()) ->
                 let sb = StringBuilder()
                 if indent <> "" then sb.AppendLine("") |> ignore
-                let indent1 = if indent <> "" then $"{indent}    " else indent
+                let indent1 = if indent <> "" then $"{baseIndent}{indent}" else indent
                 sb.AppendLine($"{indent1}{{") |> ignore
 
                 let recordType = x.GetType()
                 let fields = FSharpType.GetRecordFields(recordType)
-                let newIndent = $"{indent1}    "
+                let newIndent = $"{baseIndent}{indent1}"
 
                 for field in fields do
                     let fieldName = field.Name

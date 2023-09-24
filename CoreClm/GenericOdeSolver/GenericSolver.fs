@@ -59,8 +59,18 @@ module Solver =
     let shouldNotifyByNextChartProgress (n : NSolveParam) d t =
         let p = calculateProgress n t
         let r = p >= d.nextChartProgress
-        // n.logger.logDebugString $"shouldNotifyByNextChart: p = {p}, nextChartProgress = {d.nextChartProgress}, r = {r}."
+        // n.logger.logDebugString $"shouldNotifyByNextChartProgress: p = {p}, nextChartProgress = {d.nextChartProgress}, r = {r}."
         r
+
+
+    let shouldNotifyByNextChartDetailedProgress (n : NSolveParam) d t =
+        match n.odeParams.outputParams.noOfChartDetailedPoints with
+        | Some _ ->
+            let p = calculateProgress n t
+            let r = p >= d.nextChartDetailedProgress
+            // n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: p = {p}, nextChartDetailedProgress = {d.nextChartDetailedProgress}, r = {r}."
+            r
+        | None -> false
 
 
     let calculateNextProgress n t =
@@ -71,6 +81,7 @@ module Solver =
         // n.logger.logDebugString $"calculateNextProgress: r = {r}."
         r
 
+
     let calculateNextChartProgress n t =
         let r =
             match n.odeParams.outputParams.noOfOutputPoints with
@@ -79,27 +90,51 @@ module Solver =
         // n.logger.logDebugString $"calculateNextChartProgress: r = {r}."
         r
 
+
+    let calculateNextChartDetailedProgress n t =
+        match n.odeParams.outputParams.noOfChartDetailedPoints with
+        | Some nop ->
+            let r =
+                match nop with
+                | np when np <= 0 -> 1.0m
+                | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+            // n.logger.logDebugString $"calculateNextChartDetailedProgress: r = {r}."
+            r
+        | None -> 1.0m
+
+
     let shouldNotifyProgress n d t = shouldNotifyByCallCount d || shouldNotifyByNextProgress n d t
     let shouldNotifyChart n d t = shouldNotifyByCallCount d || shouldNotifyByNextChartProgress n d t
 
 
     type OdeOutputParams
         with
-        member op.needsCallBack n =
+        member _.needsCallBack n =
             let f (d : NeedsCallBackData) t =
                 let shouldNotifyProgress = shouldNotifyProgress n d t
                 let shouldNotifyChart = shouldNotifyChart n d t
-                // n.logger.logDebugString $"needsCallBack: shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}."
+                let shouldNotifyChartDetailed = shouldNotifyByNextChartDetailedProgress n d t
+
+                let nextProgress = calculateNextProgress n t
+                let nextChartProgress = calculateNextChartProgress n t
+                let nextChartDetailedProgress = calculateNextChartDetailedProgress n t
+                // n.logger.logDebugString $"needsCallBack: shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}, shouldNotifyChartDetailed = {shouldNotifyChartDetailed}."
 
                 let retVal =
-                    match (shouldNotifyProgress, shouldNotifyChart) with
-                    | false, false -> (d, None)
-                    | false, true -> ( { d with nextChartProgress = calculateNextChartProgress n t }, Some ChartNotification)
-                    | true, false -> ( { d with nextProgress = calculateNextProgress n t }, Some ProgressNotification)
-                    | true, true ->
-                        let nextProgress = calculateNextProgress n t
-                        let nextChartProgress = calculateNextChartProgress n t
+                    match (shouldNotifyProgress, shouldNotifyChart, shouldNotifyChartDetailed) with
+                    | false, false, false -> (d, None)
+                    | false, true, false -> ( { d with nextChartProgress = nextChartProgress }, Some ChartNotification)
+                    | true, false, false -> ( { d with nextProgress = nextProgress }, Some ProgressNotification)
+                    | true, true, false ->
                         ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
+
+                    | false, false, true -> ( { d with nextChartDetailedProgress = nextChartDetailedProgress }, Some ChartDetailedNotification)
+                    | false, true, true ->
+                        ( { d with nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some ChartDetailedNotification)
+                    | true, false, true ->
+                        ( { d with nextProgress = nextProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some AllNotification)
+                    | true, true, true ->
+                        ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some AllNotification)
 
                 // n.logger.logDebugString $"needsCallBack: retVal = {retVal}."
                 retVal
@@ -153,7 +188,7 @@ module Solver =
 
     let private notifyAll n c d =
         n.callBackInfo.progressCallBack.invoke c d
-        n.callBackInfo.chartCallBack.invoke c d
+        n.callBackInfo.chartDetailedCallBack.invoke c d
 
 
     let private tryCallBack n t x =
@@ -175,10 +210,16 @@ module Solver =
             match v with
             | None -> ()
             | Some v ->
+                let i = n.callBackInfo
+
                 match v with
-                | ProgressNotification -> n.callBackInfo.progressCallBack.invoke RegularCallBack cbd
-                | ChartNotification -> n.callBackInfo.chartCallBack.invoke RegularCallBack cbd
-                | ProgressAndChartNotification -> notifyAll n RegularCallBack cbd
+                | ProgressNotification -> i.progressCallBack.invoke RegularCallBack cbd
+                | ChartNotification -> i.chartCallBack.invoke RegularCallBack cbd
+                | ChartDetailedNotification ->i.chartDetailedCallBack.invoke RegularCallBack cbd
+                | ProgressAndChartNotification ->
+                    i.progressCallBack.invoke RegularCallBack cbd
+                    i.chartCallBack.invoke RegularCallBack cbd
+                | AllNotification -> notifyAll n RegularCallBack cbd
 
 
     let private fUseNonNegative (
