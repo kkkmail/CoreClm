@@ -14,6 +14,10 @@ open GenericOdeSolver.Primitives
 
 module Solver =
 
+    /// Note that it шs compiled into a static variable, which means that you cannot run many instances of the solver in parallel.
+    /// Currently this is not an issue since parallel running is not needed (by design).
+    /// Note (2) - it cannot be moved inside nSolve because that will require moving fUseNonNegative inside nSolve,
+    /// which is not allowed by IL design.
     let mutable private needsCallBackData = NeedsCallBackData.defaultValue
 
     // ================================================================ //
@@ -64,12 +68,12 @@ module Solver =
 
 
     let shouldNotifyByNextChartDetailedProgress (n : NSolveParam) d t =
-        n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, n.odeParams.outputParams.noOfChartDetailedPoints = {n.odeParams.outputParams.noOfChartDetailedPoints}."
+        // n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, n.odeParams.outputParams.noOfChartDetailedPoints = {n.odeParams.outputParams.noOfChartDetailedPoints}."
         match n.odeParams.outputParams.noOfChartDetailedPoints with
         | Some _ ->
             let p = calculateProgress n t
             let r = p >= d.nextChartDetailedProgress
-            n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, p = {p}, d.nextChartDetailedProgress = {d.nextChartDetailedProgress}, r = {r}."
+            // n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, p = {p}, d.nextChartDetailedProgress = {d.nextChartDetailedProgress}, r = {r}."
             r
         | None -> false
 
@@ -88,20 +92,25 @@ module Solver =
             match n.odeParams.outputParams.noOfOutputPoints with
             | np when np <= 0 -> 1.0m
             | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
-        // n.logger.logDebugString $"calculateNextChartProgress: r = {r}."
+        // n.logger.logDebugString $"calculateNextChartProgress: t = {t}, r = {r}."
         r
 
 
     let calculateNextChartDetailedProgress n t =
-        match n.odeParams.outputParams.noOfChartDetailedPoints with
-        | Some nop ->
-            let r =
-                match nop with
-                | np when np <= 0 -> 1.0m
-                | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
-            // n.logger.logDebugString $"calculateNextChartDetailedProgress: r = {r}."
-            r
-        | None -> 1.0m
+        let r =
+            match n.odeParams.outputParams.noOfChartDetailedPoints with
+            | Some nop ->
+                let r =
+                    match nop with
+                    | np when np <= 0 -> 1.0m
+                    | np ->
+                        let progress = calculateProgress n t
+                        // n.logger.logDebugString $"calculateNextChartDetailedProgress: t = {t}, progress = {progress}."
+                        min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+                r
+            | None -> 1.0m
+        // n.logger.logDebugString $"calculateNextChartDetailedProgress: t = {t}, r = {r}."
+        r
 
 
     let shouldNotifyProgress n d t = shouldNotifyByCallCount d || shouldNotifyByNextProgress n d t
@@ -119,24 +128,29 @@ module Solver =
                 let nextProgress = calculateNextProgress n t
                 let nextChartProgress = calculateNextChartProgress n t
                 let nextChartDetailedProgress = calculateNextChartDetailedProgress n t
-                n.logger.logDebugString $"needsCallBack: t = {t}, shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}, shouldNotifyChartDetailed = {shouldNotifyChartDetailed}."
+                // n.logger.logDebugString $"needsCallBack: t = {t}, d = {d}, shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}, shouldNotifyChartDetailed = {shouldNotifyChartDetailed}, nextChartDetailedProgress = {nextChartDetailedProgress}."
 
                 let retVal =
                     match (shouldNotifyProgress, shouldNotifyChart, shouldNotifyChartDetailed) with
                     | false, false, false -> (d, None)
-                    | false, true, false -> ( { d with nextChartProgress = nextChartProgress }, Some ChartNotification)
-                    | true, false, false -> ( { d with nextProgress = nextProgress }, Some ProgressNotification)
+                    | false, true, false ->
+                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartProgress to: {nextChartProgress}, ChartNotification."
+                        ( { d with nextChartProgress = nextChartProgress }, Some ChartNotification)
+                    | true, false, false ->
+                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to: {nextProgress}, ProgressNotification."
+                        ( { d with nextProgress = nextProgress }, Some ProgressNotification)
                     | true, true, false ->
+                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to {nextProgress}, nextChartProgress to: {nextChartProgress}, ProgressAndChartNotification."
                         ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
 
                     | false, _, true ->
-                        n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartDetailedProgress to: {nextChartDetailedProgress}, ChartDetailedNotification."
+                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartProgress to {nextChartProgress}, nextChartDetailedProgress to: {nextChartDetailedProgress}, ChartDetailedNotification."
                         ( { d with nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some ChartDetailedNotification)
                     | true, _, true ->
-                        n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartDetailedProgress to: {nextChartDetailedProgress}, AllNotification."
+                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to {nextProgress}, nextChartProgress to {nextChartProgress}, nextChartDetailedProgress to: {nextChartDetailedProgress}, AllNotification."
                         ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some AllNotification)
 
-                n.logger.logDebugString $"needsCallBack: retVal = {retVal}."
+                // n.logger.logDebugString $"needsCallBack: retVal = {retVal}."
                 retVal
 
             NeedsCallBack f
@@ -193,9 +207,10 @@ module Solver =
 
     let private tryCallBack n t x =
         let d0 = needsCallBackData
+        // n.logger.logDebugString $"tryCallBack - starting: t = {t}, needsCallBackData = {d0}."
         let d, ct = { d0 with progressData = { d0.progressData with callCount = d0.progressData.callCount + 1L; progress = calculateProgress n t } } |> checkCancellation n
         let cbd = { progressData = d.progressData; t = t; x = x }
-        // n.logger.logDebugString $"tryCallBack: d = {d}, cbd = {cbd}."
+        // n.logger.logDebugString $"    tryCallBack: t = {t}, d = {d}, cbd = {cbd}."
 
         match ct with
         | Some v ->
@@ -204,7 +219,7 @@ module Solver =
         | None ->
             // let c, v = n.callBackInfo.needsCallBack.invoke d t
             let c, v = (n.odeParams.outputParams.needsCallBack n).invoke d t
-            // n.logger.logDebugString $"tryCallBack: c = {c}, v = {v}."
+            // n.logger.logDebugString $"    tryCallBack: t = {t}, setting needsCallBackData to c = {c}, v = {v}."
             needsCallBackData <- c
 
             match v with
@@ -263,6 +278,10 @@ module Solver =
     /// F# wrapper around various ODE solvers.
     let nSolve (n : NSolveParam) =
         // n.logger.logDebugString "nSolve::Starting."
+
+        // Reset needsCallBackData to a default value. This is a static variable and if we run several consecutive tests, then
+        // needsCallBackData will usually have non-default value after the test.
+        needsCallBackData <- NeedsCallBackData.defaultValue
         let p = n.odeParams
         notifyAll n RegularCallBack { progressData = ProgressData.defaultValue; t = n.odeParams.startTime; x = n.initialValues }
 
