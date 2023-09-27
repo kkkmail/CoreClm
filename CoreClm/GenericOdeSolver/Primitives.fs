@@ -48,7 +48,7 @@ module Primitives =
 
 
     /// A function to call in order to generate a detailed chart data point.
-    /// This is mostly to collect 3D data at some predetermined intervals.
+    /// This is mostly to collect "heavy" 3D data at some predetermined intervals.
     type ChartDetailedCallBack =
         | ChartDetailedCallBack of (CallBackType -> CallBackData -> unit)
 

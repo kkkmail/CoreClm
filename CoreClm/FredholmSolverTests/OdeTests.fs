@@ -150,11 +150,11 @@ type OdeTests (output : ITestOutputHelper) =
                 }
         }
 
-    let defaultNonlinearOdeParams = { defaultOdeParams with endTime = 200_000.0 }
+    let defaultNonlinearOdeParams_50K = { defaultOdeParams with endTime = 50_000.0 }
     let defaultNonlinearOdeParams_65K = { defaultOdeParams with endTime = 65_000.0 }
-    let defaultNonlinearOdeParams2 = { defaultOdeParams with endTime = 1_000_000.0 }
-    // let defaultNonlinearOdeParams = { defaultOdeParams with endTime = 2000.0 }
-    // let defaultNonlinearOdeParams2 = { defaultOdeParams with endTime = 10_000.0 }
+    let defaultNonlinearOdeParams_100K = { defaultOdeParams with endTime = 100_000.0 }
+    let defaultNonlinearOdeParams_200K = { defaultOdeParams with endTime = 200_000.0 }
+    let defaultNonlinearOdeParams_1M = { defaultOdeParams with endTime = 1_000_000.0 }
 
 
     let outputMatrix (d : Domain2D) (m : Matrix<double>) =
@@ -169,8 +169,9 @@ type OdeTests (output : ITestOutputHelper) =
         writeLine $"{Nl}===================================================================================={Nl}{Nl}"
 
 
-    let outputEeInfModelData (data : EeInfModelParams) =
-        writeLine $"data:{Nl}{(toOutputString data)}"
+    let outputEeInfModelData (data : EeInfModelParams) (odeParams : OdeParams) =
+        writeLine $"data:{Nl}{(toOutputString data)}{Nl}"
+        writeLine $"odeParams:{Nl}{(toOutputString odeParams)}"
 
 
     let outputResult md d (v : SubstanceData) r =
@@ -199,19 +200,20 @@ type OdeTests (output : ITestOutputHelper) =
         md.gamma.value |> outputMatrix md.kernelData.domain2D
 
 
-    let outputChart (cd : ChartData) =
-        let f e =
-            $"{e.tChart},{e.statData.eeStatData.mean},{e.statData.eeStatData.stdDev}," +
-            $"{e.statData.infStatData.mean},{e.statData.infStatData.stdDev}," +
-            $"{e.statData.invariant},{e.statData.total}," +
-            $"{e.statData.food},{e.statData.waste}"
+    let outputChart b (cd : ChartData) =
+        if b then
+            let f e =
+                $"{e.tChart},{e.statData.eeStatData.mean},{e.statData.eeStatData.stdDev}," +
+                $"{e.statData.infStatData.mean},{e.statData.infStatData.stdDev}," +
+                $"{e.statData.invariant},{e.statData.total}," +
+                $"{e.statData.food},{e.statData.waste}"
 
-        let header = "t,eeMean,eeStdDev,infMean,infStdDev,invariant,total,food,waste"
+            let header = "t,eeMean,eeStdDev,infMean,infStdDev,invariant,total,food,waste"
 
-        writeLine $"{Nl}{Nl}Chart data:"
-        List.append [ header ] (cd.allChartData |> List.map f |> List.rev)
-        |> List.map writeLine
-        |> ignore
+            writeLine $"{Nl}{Nl}Chart data:"
+            List.append [ header ] (cd.allChartData |> List.map f |> List.rev)
+            |> List.map writeLine
+            |> ignore
 
         let plotter = EeInfPlotter(cd)
         plotter.eeChart()
@@ -270,8 +272,11 @@ type OdeTests (output : ITestOutputHelper) =
             match ct with
             | CompletedCalculation ->
                 outputResult d
+                writeLine "CompletedCalculation."
                 { cr with completedCallBackCount = cr.completedCallBackCount + 1 }
             | CancelledCalculation c ->
+                writeLine $"CancelledCalculation: {c}."
+
                 match c with
                 | CancelWithResults _  -> { cr with cancelledCallBackCount = cr.cancelledCallBackCount + 1 }
                 | AbortCalculation _ -> { cr with abortedCallBackCount = cr.abortedCallBackCount + 1 }
@@ -296,7 +301,7 @@ type OdeTests (output : ITestOutputHelper) =
 
     let odePackRun p cc odeParams =
         let mutable cr = CallBackResults.defaultValue
-        outputEeInfModelData p
+        outputEeInfModelData p odeParams
 
         let md = EeInfModel.create p
         let n, getData = nSolveParam p odeParams
@@ -339,12 +344,12 @@ type OdeTests (output : ITestOutputHelper) =
             }
 
         let chartCallBack c d =
-            writeLine $"chartCallBack: t = {d.t}, progress = {d.progressData.progress}."
+            // writeLine $"chartCallBack: t = {d.t}, progress = {d.progressData.progress}."
             getChartSliceData c false d |> chartDataUpdater.addContent
             cr <- chartCallBack cr c d
 
         let chartDetailedCallBack c d =
-            writeLine $"chartDetailedCallBack: t = {d.t}, progress = {d.progressData.progress}."
+            // writeLine $"chartDetailedCallBack: t = {d.t}, progress = {d.progressData.progress}."
             getChartSliceData c true d |> chartDataUpdater.addContent
             cr <- chartDetailedCallBack cr c d
 
@@ -352,14 +357,14 @@ type OdeTests (output : ITestOutputHelper) =
 
         let nSolveParam = { n with callBackInfo = c }
         let invStart = getData nSolveParam.initialValues |> md.invariant
-        //outputKa md
-        //outputGamma md
-        //outputResult false { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
+        // outputKa md
+        // outputGamma md
+        // outputResult false { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
 
         let result = nSolve nSolveParam
-        //outputResult true result
+        // outputResult true result
         let chartData = chartDataUpdater.getContent()
-        //chartData|> outputChart
+        chartData |> outputChart false
 
         let odeResult =
             {
@@ -400,11 +405,11 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams 1 (t.getCallerName())
+    member t.odePack_ShouldRunNonLinear_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_50K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams 0 (t.getCallerName())
+    member t.odePack_ShouldRunNonLinear_50K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_50K 0 (t.getCallerName())
 
 
     [<Fact>]
@@ -416,7 +421,23 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear2 () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue2 defaultNonlinearOdeParams2 1 (t.getCallerName())
+    member t.odePack_ShouldRunNonLinear_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_100K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_200K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_200K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_200K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_200K 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_1M () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue2 defaultNonlinearOdeParams_1M 1 (t.getCallerName())
 
 
     [<Fact>]
@@ -511,11 +532,11 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
-    member _.chart_ShouldWork() : unit =
+    member t.chart_ShouldWork() : unit =
         let xData = [0. .. 10.]
         let yData = [0. .. 10.]
         let description = toDescription "Title" "description"
         let chart = Chart.Point(xData, yData, UseDefaults = false)
         let htmlString = toEmbeddedHtmlWithDescription description chart
-        let tempFilePath = $@"{outputFolder}\tempHtmlFile.html"
+        let tempFilePath = $@"{outputFolder}\{t.getCallerName()}.html"
         File.WriteAllText(tempFilePath, htmlString)
