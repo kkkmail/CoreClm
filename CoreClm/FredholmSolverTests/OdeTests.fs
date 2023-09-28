@@ -146,7 +146,7 @@ type OdeTests (output : ITestOutputHelper) =
                 {
                     noOfOutputPoints = 4_000
                     noOfProgressPoints = 100
-                    noOfChartDetailedPoints = Some 10
+                    noOfChartDetailedPoints = Some 20
                 }
         }
 
@@ -409,6 +409,14 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
+    member t.odePack_ShouldRunNonLinear_Small_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmall defaultNonlinearOdeParams_50K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_SmallNarrow_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmallNarrow defaultNonlinearOdeParams_50K 1 (t.getCallerName())
+
+
+    [<Fact>]
     member t.odePack_ShouldRunNonLinear_50K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_50K 0 (t.getCallerName())
 
 
@@ -422,6 +430,14 @@ type OdeTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.odePack_ShouldRunNonLinear_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_Small_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmall defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.odePack_ShouldRunNonLinear_SmallNarrow_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmallNarrow defaultNonlinearOdeParams_100K 1 (t.getCallerName())
 
 
     [<Fact>]

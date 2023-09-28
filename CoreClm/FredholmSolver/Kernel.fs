@@ -45,7 +45,7 @@ module Kernel =
 
         member r.value = let (DomainIntervals v) = r in v
 
-        static member defaultValue = DomainIntervals 100
+        static member defaultValue = DomainIntervals 200
 
 
     type DomainRange =
@@ -200,13 +200,11 @@ module Kernel =
 
 
     /// Uses: x1 = xScale * (x - x0) in Taylor expansion.
-    /// Returns y1 = yScale * y where y is obtaing using Taylor expansion by x1.
     type TaylorApproximation =
         {
             x0 : double
             xScale : double
             coefficients : double[]
-            yScale : double
         }
 
         member ta.calculate x =
@@ -217,7 +215,7 @@ module Kernel =
                 |> Array.mapi (fun i e -> (pown x1 i) * e / (factorial i |> double))
                 |> Array.sum
 
-            retVal * ta.yScale
+            retVal
 
 
     type EeInfTaylorApproximation =
@@ -278,15 +276,21 @@ module Kernel =
 
     type KaFuncValue =
         | IdentityKa
-        | SeparableKa of EeInfTaylorApproximation
+        | SeparableKa of ScaledEeInfTaylorApproximation
 
         // Default Y scale of kA. We don't want to use 1 as it is too large.
         static member defaultScale = 0.1
 
+        // Default small Y scale of kA.
+        static member defaultScaleSmall = 0.01
+
+        // Default very small Y scale of kA.
+        static member defaultScaleVerySmall = 0.001
+
         member k.kaFunc (d : Domain2D) : KaFunc =
             match k with
             | IdentityKa -> (fun _ _ _ -> 1.0)
-            | SeparableKa v -> (fun _ a b -> separableFunc v a b)
+            | SeparableKa v -> (fun _ a b -> v.eeInfScale * (separableFunc v.tEeInf a b))
             |> KaFunc
 
         static member defaultValue = IdentityKa
@@ -297,7 +301,6 @@ module Kernel =
                     x0 = 0.0
                     xScale = 1.0
                     coefficients = [| 1.0; 0.0; 1.0 |]
-                    yScale = KaFuncValue.defaultScale
                 }
 
             let tInf =
@@ -305,10 +308,27 @@ module Kernel =
                     x0 = 0.0
                     xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 1.0 |]
-                    yScale = KaFuncValue.defaultScale
                 }
 
-            SeparableKa { tEe = tEe; tInf = tInf }
+            SeparableKa { eeInfScale = KaFuncValue.defaultScale; tEeInf = { tEe = tEe; tInf = tInf } }
+
+        /// Same as above but using KaFuncValue.defaultScaleSmall instead of KaFuncValue.defaultScale.
+        static member defaultQuadraticValueSmall (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    xScale = 1.0
+                    coefficients = [| 1.0; 0.0; 1.0 |]
+                }
+
+            let tInf =
+                {
+                    x0 = 0.0
+                    xScale = twoThirdInfScale d
+                    coefficients = [| 1.0; 0.0; 1.0 |]
+                }
+
+            SeparableKa { eeInfScale = KaFuncValue.defaultScaleSmall; tEeInf = { tEe = tEe; tInf = tInf } }
 
         static member defaultQuadraticValue2 (d : Domain2D) =
             let tEe =
@@ -316,7 +336,6 @@ module Kernel =
                     x0 = 0.0
                     xScale = 1.0
                     coefficients = [| 1.0; 0.0; 0.2 |]
-                    yScale = KaFuncValue.defaultScale
                 }
 
             let tInf =
@@ -324,10 +343,9 @@ module Kernel =
                     x0 = 0.0
                     xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 0.2 |]
-                    yScale = KaFuncValue.defaultScale
                 }
 
-            SeparableKa { tEe = tEe; tInf = tInf }
+            SeparableKa { eeInfScale = KaFuncValue.defaultScale; tEeInf = { tEe = tEe; tInf = tInf } }
 
 
     type GammaFuncValue =
@@ -348,7 +366,6 @@ module Kernel =
                     x0 = 0.0
                     xScale = 1.0
                     coefficients = [| 1.0; -0.01 |]
-                    yScale = 1.0
                 }
 
             let tInf =
@@ -356,7 +373,6 @@ module Kernel =
                     x0 = 0.0
                     xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0 |]
-                    yScale = 1.0
                 }
 
             SeparableGamma { eeInfScale = 0.01; tEeInf = { tEe = tEe; tInf = tInf } }
@@ -367,7 +383,6 @@ module Kernel =
                     x0 = 0.0
                     xScale = 1.0
                     coefficients = [| 1.0; -0.001 |]
-                    yScale = 1.0
                 }
 
             let tInf =
@@ -375,7 +390,6 @@ module Kernel =
                     x0 = 0.0
                     xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
-                    yScale = 1.0
                 }
 
             SeparableGamma { eeInfScale = 0.01; tEeInf = { tEe = tEe; tInf = tInf } }
@@ -533,8 +547,8 @@ module Kernel =
                 domainIntervals = DomainIntervals.defaultValue
                 infMaxValue = InfMaxValue.defaultValue
                 zeroThreshold = ZeroThreshold.defaultValue
-                epsEeFuncValue = EpsFuncValue.ScalarEps 0.02
-                epsInfFuncValue = EpsFuncValue.ScalarEps 0.02
+                epsEeFuncValue = EpsFuncValue.ScalarEps 0.01
+                epsInfFuncValue = EpsFuncValue.ScalarEps 0.01
                 kaFuncValue = KaFuncValue.IdentityKa
             }
 
@@ -543,8 +557,8 @@ module Kernel =
                 domainIntervals = DomainIntervals.defaultValue
                 infMaxValue = InfMaxValue.defaultValue
                 zeroThreshold = ZeroThreshold.defaultValue
-                epsEeFuncValue = EpsFuncValue.ScalarEps 0.0001
-                epsInfFuncValue = EpsFuncValue.ScalarEps 0.0001
+                epsEeFuncValue = EpsFuncValue.ScalarEps 0.001
+                epsInfFuncValue = EpsFuncValue.ScalarEps 0.001
                 kaFuncValue = KaFuncValue.IdentityKa
             }
 
@@ -561,6 +575,14 @@ module Kernel =
         static member defaultQuadraticValue =
             let kp = KernelParams.defaultValue
             { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue (kp.domain2D()) }
+
+        static member defaultQuadraticValueSmall =
+            let kp = KernelParams.defaultValue
+            { kp with kaFuncValue = KaFuncValue.defaultQuadraticValueSmall (kp.domain2D()) }
+
+        static member defaultQuadraticValueSmallNarrow =
+            let kp = KernelParams.defaultNarrowValue
+            { kp with kaFuncValue = KaFuncValue.defaultQuadraticValueSmall (kp.domain2D()) }
 
         static member defaultQuadraticValue2 =
             let kp = KernelParams.defaultValue

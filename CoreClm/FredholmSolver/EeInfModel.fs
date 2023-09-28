@@ -173,6 +173,32 @@ module EeInfModel =
                 name = None
             }
 
+        static member defaultNonlinearValueSmall =
+            let kp = KernelParams.defaultQuadraticValueSmall
+            let d = kp.domain2D()
+
+            {
+                kernelParams = kp
+                gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
+                numberOfMolecules = NumberOfMolecules.defaultValue
+                recyclingRate = RecyclingRate.defaultValue
+                initParams = EeInfInitParams.defaultValue
+                name = None
+            }
+
+        static member defaultNonlinearValueSmallNarrow =
+            let kp = KernelParams.defaultQuadraticValueSmallNarrow
+            let d = kp.domain2D()
+
+            {
+                kernelParams = kp
+                gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
+                numberOfMolecules = NumberOfMolecules.defaultValue
+                recyclingRate = RecyclingRate.defaultValue
+                initParams = EeInfInitParams.defaultValue
+                name = None
+            }
+
         static member defaultNonlinearValue2 =
             let kp = KernelParams.defaultQuadraticValue
             let d = kp.domain2D()
