@@ -26,7 +26,6 @@ open Analytics.ChartExt
 open Primitives.ChartPrimitives
 open Primitives.WolframPrimitives
 
-
 type CallBackResults =
     {
         progressCallBackCount : int
@@ -64,20 +63,24 @@ type OdeResultData =
         let d = r.modelData.modelParams |> toOutputString |> toWolframNotation
         let o = odeParams |> toOutputString |> toWolframNotation
         let descr = $"descr ={Nl}\"{d}{Nl}{o}\";{Nl}{Nl}"
+        let gamma0 = r.modelData.modelParams.gammaFuncValue.gamma0.value
+        let k0 = r.modelData.modelParams.kernelParams.kaFuncValue.k0.value
 
         let eta = r.modelData.kernelData.domain2D.eeDomain.points.value
         let zeta = r.modelData.kernelData.domain2D.infDomain.points.value
         let etaData = $"etaData = {(toWolframNotation eta)};{Nl}{Nl}"
         let zetaData = $"zetaData = {(toWolframNotation zeta)};{Nl}{Nl}"
+        let k0Data = $"k0 = {(toWolframNotation k0)};{Nl}{Nl}"
+        let gamma0Data = $"gamma0 = {(toWolframNotation gamma0)};{Nl}{Nl}"
 
         let substanceData = r.getData r.result.x
         let u = substanceData.protocell.toMatrix().value
         let uData = $"uData = {(toWolframNotation u)};{Nl}{Nl}"
+        let ka = r.modelData.kernelData.ka.value.value |> Array.map (fun a -> a |> Array.map (fun b -> b / k0))
 
-        let ka = r.modelData.kernelData.ka.value.value
         let kaData = $"ka = {(toWolframNotation ka)};{Nl}{Nl}"
 
-        let gamma = r.modelData.gamma.value.value
+        let gamma = r.modelData.gamma.value.value |> Array.map (fun a -> a |> Array.map (fun b -> b / gamma0))
         let gammaData = $"gamma = {(toWolframNotation gamma)};{Nl}{Nl}"
 
         let w (e : ChartSliceData) =
@@ -126,7 +129,7 @@ type OdeResultData =
 
         let uDataT = $"uDataT = {{ {ut} }};{Nl}{Nl}"
 
-        $"{a}{descr}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartData}{uDataT}{b}"
+        $"{a}{descr}{k0Data}{gamma0Data}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartData}{uDataT}{b}"
 
 
 type OdeTests (output : ITestOutputHelper) =
@@ -135,7 +138,7 @@ type OdeTests (output : ITestOutputHelper) =
     let errInvTolerance = 1.0e-3
     let outputFolder = @"C:\EeInf"
 
-    let defaultOdeParams =
+    let op_default =
         {
             startTime = 0.0
             endTime = 10.0
@@ -150,11 +153,11 @@ type OdeTests (output : ITestOutputHelper) =
                 }
         }
 
-    let defaultNonlinearOdeParams_50K = { defaultOdeParams with endTime = 50_000.0 }
-    let defaultNonlinearOdeParams_65K = { defaultOdeParams with endTime = 65_000.0 }
-    let defaultNonlinearOdeParams_100K = { defaultOdeParams with endTime = 100_000.0 }
-    let defaultNonlinearOdeParams_200K = { defaultOdeParams with endTime = 200_000.0 }
-    let defaultNonlinearOdeParams_1M = { defaultOdeParams with endTime = 1_000_000.0 }
+    let op_50K = { op_default with endTime = 50_000.0 }
+    let op_65K = { op_default with endTime = 65_000.0 }
+    let op_100K = { op_default with endTime = 100_000.0 }
+    let op_200K = { op_default with endTime = 200_000.0 }
+    let op_1M = { op_default with endTime = 1_000_000.0 }
 
 
     let outputMatrix (d : Domain2D) (m : Matrix<double>) =
@@ -393,6 +396,32 @@ type OdeTests (output : ITestOutputHelper) =
         r.result.Should().NotBeNull(nullString) |> ignore
         diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
 
+    let mp_d100 = EeInfModelParams.defaultValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 100)
+
+
+    /// DomainIntervals 100
+    /// k0 = 0.1, ka - quadratic
+    /// eps0 = 0.01
+    /// gamma0 = 0.01
+    /// global asymmetry factor = -0.01
+    let mp_d100k1e01g01 = EeInfModelParams.defaultNonLinearValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 100)
+
+    let mp_d200k1e01g01 = EeInfModelParams.defaultNonLinearValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 200)
+
+
+    /// eps0 = 0.02
+    let mp_d100k1e02g01 = mp_d100k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultWideValue
+    let mp_d200k1e02g01 = mp_d200k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultWideValue
+
+
+    /// eps0 = 0.005
+    let mp_d100k1e005g01 = mp_d100k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultNarrowValue
+    let mp_d200k1e005g01 = mp_d200k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultNarrowValue
+
+
+    let mp_d100k01e01g01 = mp_d100k1e01g01 |> EeInfModelParams.withK0 K0.defaultSmallValue
+    let mp_d200k01e01g01 = mp_d200k1e01g01 |> EeInfModelParams.withK0 K0.defaultSmallValue
+
 
     member private _.getCallerName([<CallerMemberName; Optional; DefaultParameterValue("")>] ?memberName: string) =
         let now = DateTime.Now
@@ -401,65 +430,127 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
-    member t.odePack_ShouldRun () : unit = odePackShouldRun EeInfModelParams.defaultValue defaultOdeParams 0 (t.getCallerName())
+    member t.odePack_ShouldRun () : unit = odePackShouldRun mp_d100 op_default 0 (t.getCallerName())
+
+    // ===== 50K ===============
+
+    [<Fact>]
+    member t.d100k1e01g01_50K () : unit = odePackShouldRun mp_d100k1e01g01 op_50K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_50K 1 (t.getCallerName())
+    member t.d100k1e02g01_50K () : unit = odePackShouldRun mp_d100k1e02g01 op_50K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_Small_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmall defaultNonlinearOdeParams_50K 1 (t.getCallerName())
+    member t.d100k1e005g01_50K () : unit = odePackShouldRun mp_d100k1e005g01 op_50K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_SmallNarrow_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmallNarrow defaultNonlinearOdeParams_50K 1 (t.getCallerName())
+    member t.d100k01e01g01_50K () : unit = odePackShouldRun mp_d100k01e01g01 op_50K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_50K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_50K 0 (t.getCallerName())
+    member t.d200k1e01g01_50K () : unit = odePackShouldRun mp_d200k1e01g01 op_50K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_65K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_65K 1 (t.getCallerName())
+    member t.d200k1e02g01_50K () : unit = odePackShouldRun mp_d200k1e02g01 op_50K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_65K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_65K 0 (t.getCallerName())
+    member t.d200k1e005g01_50K () : unit = odePackShouldRun mp_d200k1e005g01 op_50K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+    member t.d200k01e01g01_50K () : unit = odePackShouldRun mp_d200k01e01g01 op_50K 1 (t.getCallerName())
+
+    // ===== 100K ===============
+
+    [<Fact>]
+    member t.d100k1e01g01_100K () : unit = odePackShouldRun mp_d100k1e01g01 op_100K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_Small_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmall defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+    member t.d100k1e02g01_100K () : unit = odePackShouldRun mp_d100k1e02g01 op_100K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_SmallNarrow_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmallNarrow defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+    member t.d100k1e005g01_100K () : unit = odePackShouldRun mp_d100k1e005g01 op_100K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_100K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 0 (t.getCallerName())
+    member t.d100k01e01g01_100K () : unit = odePackShouldRun mp_d100k01e01g01 op_100K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_200K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_200K 1 (t.getCallerName())
+    member t.d200k1e01g01_100K () : unit = odePackShouldRun mp_d200k1e01g01 op_100K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_200K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_200K 0 (t.getCallerName())
+    member t.d200k1e02g01_100K () : unit = odePackShouldRun mp_d200k1e02g01 op_100K 1 (t.getCallerName())
 
 
     [<Fact>]
-    member t.odePack_ShouldRunNonLinear_1M () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue2 defaultNonlinearOdeParams_1M 1 (t.getCallerName())
+    member t.d200k1e005g01_100K () : unit = odePackShouldRun mp_d200k1e005g01 op_100K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e01g01_100K () : unit = odePackShouldRun mp_d200k01e01g01 op_100K 1 (t.getCallerName())
+
+
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_Small_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmall defaultNonlinearOdeParams_50K 1 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_SmallNarrow_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmallNarrow defaultNonlinearOdeParams_50K 1 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_50K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_50K 0 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_65K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_65K 1 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_65K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_65K 0 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_Small_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmall defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_SmallNarrow_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmallNarrow defaultNonlinearOdeParams_100K 1 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_100K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 0 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_200K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_200K 1 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_200K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_200K 0 (t.getCallerName())
+    //
+    //
+    // [<Fact>]
+    // member t.odePack_ShouldRunNonLinear_1M () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue2 defaultNonlinearOdeParams_1M 1 (t.getCallerName())
 
 
     [<Fact>]
     member t.odePack_ShouldCallBack () : unit =
         let name = t.getCallerName()
-        let r = odePackRun { EeInfModelParams.defaultValue with name = Some name } (fun _ -> None) defaultOdeParams
+        let r = odePackRun { EeInfModelParams.defaultValue with name = Some name } (fun _ -> None) op_default
 
         use _ = new AssertionScope()
         r.result.Should().NotBeNull(nullString) |> ignore
@@ -477,7 +568,7 @@ type OdeTests (output : ITestOutputHelper) =
         let model = EeInfModel.create md
         //let r = odePackRun md (fun _ -> None) defaultOdeParams
 
-        let n, getData = nSolveParam md defaultOdeParams
+        let n, getData = nSolveParam md op_default
         let outputResult b d = outputResult model d (getData d.x) b
 
         let callBack c d = cr <- callBack cr (outputResult false) c d
@@ -503,7 +594,7 @@ type OdeTests (output : ITestOutputHelper) =
         let md = EeInfModelParams.defaultValue
         let model = EeInfModel.create md
 
-        let n, getData = nSolveParam md defaultOdeParams
+        let n, getData = nSolveParam md op_default
         let outputResult b d = outputResult model d (getData d.x) b
 
         let callBack c d = cr <- callBack cr (outputResult false) c d

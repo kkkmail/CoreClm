@@ -140,6 +140,7 @@ module EeInfModel =
 
         member p.shifted shift = { p with initParams = p.initParams.shifted shift }
 
+        /// Default linear value, mostly for tests, as it does not have many practical purposes.
         static member defaultValue =
             {
                 kernelParams = KernelParams.defaultValue
@@ -150,67 +151,80 @@ module EeInfModel =
                 name = None
             }
 
-        static member defaultNarrowValue =
-            {
-                kernelParams = KernelParams.defaultNarrowValue
-                gammaFuncValue = GammaFuncValue.defaultValue
-                numberOfMolecules = NumberOfMolecules.defaultValue
-                recyclingRate = RecyclingRate.defaultValue
-                initParams = EeInfInitParams.defaultValue
-                name = None
-            }
-
-        static member defaultNonlinearValue =
+        /// Default value with quadratic kernel and non-linear gamma.
+        /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
+        static member defaultNonLinearValue =
             let kp = KernelParams.defaultQuadraticValue
             let d = kp.domain2D()
+            { EeInfModelParams.defaultValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
 
-            {
-                kernelParams = kp
-                gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
-                numberOfMolecules = NumberOfMolecules.defaultValue
-                recyclingRate = RecyclingRate.defaultValue
-                initParams = EeInfInitParams.defaultValue
-                name = None
-            }
+        static member withK0 k0 p = { p with kernelParams = p.kernelParams |> KernelParams.withK0 k0 }
+        static member withEps0 eps0 p = { p with kernelParams = p.kernelParams |> KernelParams.withEps0 eps0 }
+        static member withGamma0 gamma0 p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGamma0 gamma0 }
+        static member withDomainIntervals d p = { p with kernelParams = p.kernelParams |> KernelParams.withDomainIntervals d }
 
-        static member defaultNonlinearValueSmall =
-            let kp = KernelParams.defaultQuadraticValueSmall
-            let d = kp.domain2D()
 
-            {
-                kernelParams = kp
-                gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
-                numberOfMolecules = NumberOfMolecules.defaultValue
-                recyclingRate = RecyclingRate.defaultValue
-                initParams = EeInfInitParams.defaultValue
-                name = None
-            }
-
-        static member defaultNonlinearValueSmallNarrow =
-            let kp = KernelParams.defaultQuadraticValueSmallNarrow
-            let d = kp.domain2D()
-
-            {
-                kernelParams = kp
-                gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
-                numberOfMolecules = NumberOfMolecules.defaultValue
-                recyclingRate = RecyclingRate.defaultValue
-                initParams = EeInfInitParams.defaultValue
-                name = None
-            }
-
-        static member defaultNonlinearValue2 =
-            let kp = KernelParams.defaultQuadraticValue
-            let d = kp.domain2D()
-
-            {
-                kernelParams = kp
-                gammaFuncValue = GammaFuncValue.defaultNonlinearValue2 d
-                numberOfMolecules = NumberOfMolecules.defaultValue2
-                recyclingRate = RecyclingRate.defaultValue
-                initParams = EeInfInitParams.defaultValue
-                name = None
-            }
+        // static member defaultNarrowValue =
+        //     {
+        //         kernelParams = KernelParams.defaultNarrowValue
+        //         gammaFuncValue = GammaFuncValue.defaultValue
+        //         numberOfMolecules = NumberOfMolecules.defaultValue
+        //         recyclingRate = RecyclingRate.defaultValue
+        //         initParams = EeInfInitParams.defaultValue
+        //         name = None
+        //     }
+        //
+        // static member defaultNonlinearValue =
+        //     let kp = KernelParams.defaultQuadraticValue
+        //     let d = kp.domain2D()
+        //
+        //     {
+        //         kernelParams = kp
+        //         gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
+        //         numberOfMolecules = NumberOfMolecules.defaultValue
+        //         recyclingRate = RecyclingRate.defaultValue
+        //         initParams = EeInfInitParams.defaultValue
+        //         name = None
+        //     }
+        //
+        // static member defaultNonlinearValueSmall =
+        //     let kp = KernelParams.defaultQuadraticValueSmall
+        //     let d = kp.domain2D()
+        //
+        //     {
+        //         kernelParams = kp
+        //         gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
+        //         numberOfMolecules = NumberOfMolecules.defaultValue
+        //         recyclingRate = RecyclingRate.defaultValue
+        //         initParams = EeInfInitParams.defaultValue
+        //         name = None
+        //     }
+        //
+        // static member defaultNonlinearValueSmallNarrow =
+        //     let kp = KernelParams.defaultQuadraticValueSmallNarrow
+        //     let d = kp.domain2D()
+        //
+        //     {
+        //         kernelParams = kp
+        //         gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
+        //         numberOfMolecules = NumberOfMolecules.defaultValue
+        //         recyclingRate = RecyclingRate.defaultValue
+        //         initParams = EeInfInitParams.defaultValue
+        //         name = None
+        //     }
+        //
+        // static member defaultNonlinearValue2 =
+        //     let kp = KernelParams.defaultQuadraticValue
+        //     let d = kp.domain2D()
+        //
+        //     {
+        //         kernelParams = kp
+        //         gammaFuncValue = GammaFuncValue.defaultNonlinearValue2 d
+        //         numberOfMolecules = NumberOfMolecules.defaultValue2
+        //         recyclingRate = RecyclingRate.defaultValue
+        //         initParams = EeInfInitParams.defaultValue
+        //         name = None
+        //     }
 
 
     type EeInfModel =

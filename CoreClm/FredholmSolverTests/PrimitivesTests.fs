@@ -151,12 +151,14 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOneForNarrowData () : unit =
-        mutationProbability4D_ShouldIntegrateToOneImpl KernelParams.defaultNarrowValue
+        let kp = KernelParams.defaultValue |> KernelParams.withEps0 Eps0.defaultNarrowValue
+        mutationProbability4D_ShouldIntegrateToOneImpl kp
 
 
     [<Fact>]
     member _.mutationProbability4D_ShouldIntegrateToOneForWideData () : unit =
-        mutationProbability4D_ShouldIntegrateToOneImpl KernelParams.defaultWideValue
+        let kp = KernelParams.defaultValue |> KernelParams.withEps0 Eps0.defaultWideValue
+        mutationProbability4D_ShouldIntegrateToOneImpl kp
 
 
     [<Fact>]

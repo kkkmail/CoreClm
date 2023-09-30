@@ -5,7 +5,6 @@ open FredholmSolver.Primitives
 
 module Kernel =
 
-
     /// Describes a function domain suitable for integral approximation.
     /// Equidistant grid is used to reduce the number of multiplications.
     type Domain =
@@ -34,7 +33,7 @@ module Kernel =
 
             {
                 points = Vector points
-                step =  (maxValue - minValue) / (double noOfIntervals)
+                step = (maxValue - minValue) / (double noOfIntervals)
                 range = points[noOfIntervals] - points[0]
             }
 
@@ -44,8 +43,7 @@ module Kernel =
         | DomainIntervals of int
 
         member r.value = let (DomainIntervals v) = r in v
-
-        static member defaultValue = DomainIntervals 200
+        static member defaultValue = DomainIntervals 100
 
 
     type DomainRange =
@@ -66,7 +64,7 @@ module Kernel =
 
 
     /// Data that describes a rectangle in ee * inf space.
-    /// ee space is naturally limited to [-1, 1] unless we use a conformal transformation to extend it to [-Infinity, Infinity].
+    /// ee space is naturally limited to [-1, 1] unless we use a conformal-like transformation to extend it to [-Infinity, Infinity].
     /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
     type Domain2D =
         {
@@ -76,7 +74,7 @@ module Kernel =
 
         member private d.normalize v = v * d.eeDomain.step * d.infDomain.step
 
-        member private d.integralValue xSize ySize (v : SparseValue2D<double>) =
+        member private _.integralValue xSize ySize (v : SparseValue2D<double>) =
             match v.i = 0, v.j = 0, v.i = xSize, v.j = ySize with
             | true, true, false, false -> 0.25 * v.value2D
             | true, false, false, true -> 0.25 * v.value2D
@@ -192,7 +190,6 @@ module Kernel =
             {
                 eeDomain = eeDomain
                 infDomain = infDomain
-                // midPoints = cartesianMultiply eeDomain infDomain
             }
 
 
@@ -239,6 +236,15 @@ module Kernel =
         member r.invoke = let (EpsFunc v) = r in v
 
 
+    /// k0 multiplier in kA.
+    type K0 =
+        | K0 of double
+
+        member r.value = let (K0 v) = r in v
+        static member defaultValue = K0 0.1
+        static member defaultSmallValue = K0 0.01
+
+
     /// ka portion of the kernel.
     type KaFunc =
         | KaFunc of (Domain2D -> double -> double -> double)
@@ -253,10 +259,19 @@ module Kernel =
         member r.invoke = let (GammaFunc v) = r in v
 
 
+    type Eps0 =
+        | Eps0 of double
+
+        member r.value = let (Eps0 v) = r in v
+        static member defaultValue = Eps0 0.01
+        static member defaultNarrowValue = Eps0 0.005
+        static member defaultWideValue = Eps0 0.02
+
+
     type EpsFuncValue =
         | ScalarEps of double
 
-        member ef.epsFunc (d : Domain) : EpsFunc =
+        member ef.epsFunc (_ : Domain) : EpsFunc =
             match ef with
             | ScalarEps e -> EpsFunc (fun _ _ -> e)
 
@@ -275,26 +290,39 @@ module Kernel =
 
 
     type KaFuncValue =
-        | IdentityKa
+        | IdentityKa of double
         | SeparableKa of ScaledEeInfTaylorApproximation
 
-        // Default Y scale of kA. We don't want to use 1 as it is too large.
-        static member defaultScale = 0.1
-
-        // Default small Y scale of kA.
-        static member defaultScaleSmall = 0.01
-
-        // Default very small Y scale of kA.
-        static member defaultScaleVerySmall = 0.001
-
-        member k.kaFunc (d : Domain2D) : KaFunc =
+        member k.kaFunc (_ : Domain2D) : KaFunc =
             match k with
-            | IdentityKa -> (fun _ _ _ -> 1.0)
+            | IdentityKa v -> (fun _ _ _ -> v)
             | SeparableKa v -> (fun _ a b -> v.eeInfScale * (separableFunc v.tEeInf a b))
             |> KaFunc
 
-        static member defaultValue = IdentityKa
+        /// Same as kaFunc but without k0.
+        member k.kaFuncUnscaled (_ : Domain2D) : KaFunc =
+            match k with
+            | IdentityKa _ -> (fun _ _ _ -> 1.0)
+            | SeparableKa v -> (fun _ a b -> separableFunc v.tEeInf a b)
+            |> KaFunc
 
+        /// k0 - effective y scale of ka.
+        member k.k0 =
+            match k with
+            | IdentityKa v -> v
+            | SeparableKa v -> v.eeInfScale
+            |> K0
+
+        /// Changes k0 value.
+        member k.withK0 (k0 : K0) =
+            match k with
+            | IdentityKa _ -> IdentityKa k0.value
+            | SeparableKa v -> SeparableKa { v with eeInfScale = k0.value }
+
+        /// Default value is 1.0 on all domain.
+        static member defaultValue = IdentityKa 1.0
+
+        /// Quadratic growth from (0, 0) point.
         static member defaultQuadraticValue (d : Domain2D) =
             let tEe =
                 {
@@ -310,62 +338,96 @@ module Kernel =
                     coefficients = [| 1.0; 0.0; 1.0 |]
                 }
 
-            SeparableKa { eeInfScale = KaFuncValue.defaultScale; tEeInf = { tEe = tEe; tInf = tInf } }
+            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
-        /// Same as above but using KaFuncValue.defaultScaleSmall instead of KaFuncValue.defaultScale.
-        static member defaultQuadraticValueSmall (d : Domain2D) =
-            let tEe =
-                {
-                    x0 = 0.0
-                    xScale = 1.0
-                    coefficients = [| 1.0; 0.0; 1.0 |]
-                }
+        // /// Same as above but using K0.defaultSmallValue instead of K0.defaultValue.
+        // static member defaultQuadraticSmallValue (d : Domain2D) =
+        //     let tEe =
+        //         {
+        //             x0 = 0.0
+        //             xScale = 1.0
+        //             coefficients = [| 1.0; 0.0; 1.0 |]
+        //         }
+        //
+        //     let tInf =
+        //         {
+        //             x0 = 0.0
+        //             xScale = twoThirdInfScale d
+        //             coefficients = [| 1.0; 0.0; 1.0 |]
+        //         }
+        //
+        //     SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
-            let tInf =
-                {
-                    x0 = 0.0
-                    xScale = twoThirdInfScale d
-                    coefficients = [| 1.0; 0.0; 1.0 |]
-                }
+        // /// Uses smaller quadratic coefficients both in ee and inf domains.
+        // static member defaultQuadraticValue2 (d : Domain2D) =
+        //     let tEe =
+        //         {
+        //             x0 = 0.0
+        //             xScale = 1.0
+        //             coefficients = [| 1.0; 0.0; 0.2 |]
+        //         }
+        //
+        //     let tInf =
+        //         {
+        //             x0 = 0.0
+        //             xScale = twoThirdInfScale d
+        //             coefficients = [| 1.0; 0.0; 0.2 |]
+        //         }
+        //
+        //     SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
-            SeparableKa { eeInfScale = KaFuncValue.defaultScaleSmall; tEeInf = { tEe = tEe; tInf = tInf } }
 
-        static member defaultQuadraticValue2 (d : Domain2D) =
-            let tEe =
-                {
-                    x0 = 0.0
-                    xScale = 1.0
-                    coefficients = [| 1.0; 0.0; 0.2 |]
-                }
+    /// gamma0 multiplier in gamma.
+    type Gamma0 =
+        | Gamma0 of double
 
-            let tInf =
-                {
-                    x0 = 0.0
-                    xScale = twoThirdInfScale d
-                    coefficients = [| 1.0; 0.0; 0.2 |]
-                }
+        member r.value = let (Gamma0 v) = r in v
+        static member defaultValue = Gamma0 0.01
 
-            SeparableKa { eeInfScale = KaFuncValue.defaultScale; tEeInf = { tEe = tEe; tInf = tInf } }
+
+    type GlobalAsymmetryFactor =
+        | GlobalAsymmetryFactor of double
+
+        member r.value = let (GlobalAsymmetryFactor v) = r in v
+        static member defaultValue = GlobalAsymmetryFactor -0.01
+        static member defaultSmallValue = GlobalAsymmetryFactor -0.001
 
 
     type GammaFuncValue =
         | ScalarGamma of double
         | SeparableGamma of ScaledEeInfTaylorApproximation
 
-        member g.gammaFunc (d : Domain2D) : GammaFunc =
+        member g.gammaFunc (_ : Domain2D) : GammaFunc =
             match g with
             | ScalarGamma e -> (fun _ _ _ -> e)
             | SeparableGamma e -> (fun _ a b -> e.eeInfScale * (separableFunc e.tEeInf a b))
             |> GammaFunc
 
-        static member defaultValue = ScalarGamma 0.01
+        member g.gammaFuncUnscaled (_ : Domain2D) : GammaFunc =
+            match g with
+            | ScalarGamma e -> (fun _ _ _ -> 1.0)
+            | SeparableGamma e -> (fun _ a b -> separableFunc e.tEeInf a b)
+            |> GammaFunc
 
-        static member defaultNonlinearValue (d : Domain2D) =
+        member g.gamma0 =
+            match g with
+            | ScalarGamma _ -> 1.0
+            | SeparableGamma e -> e.eeInfScale
+            |> Gamma0
+
+        static member withGamma0 (gamma0 : Gamma0) (g : GammaFuncValue) =
+            match g with
+            | ScalarGamma _ -> g
+            | SeparableGamma e -> SeparableGamma { e with eeInfScale = gamma0.value }
+
+        static member defaultValue = ScalarGamma Gamma0.defaultValue.value
+
+        static member defaultNonLinearValue (d : Domain2D) =
             let tEe =
                 {
                     x0 = 0.0
                     xScale = 1.0
-                    coefficients = [| 1.0; -0.01 |]
+                    coefficients = [| 1.0; GlobalAsymmetryFactor.defaultValue.value |]
                 }
 
             let tInf =
@@ -375,24 +437,24 @@ module Kernel =
                     coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0 |]
                 }
 
-            SeparableGamma { eeInfScale = 0.01; tEeInf = { tEe = tEe; tInf = tInf } }
+            SeparableGamma { eeInfScale = Gamma0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
-        static member defaultNonlinearValue2 (d : Domain2D) =
-            let tEe =
-                {
-                    x0 = 0.0
-                    xScale = 1.0
-                    coefficients = [| 1.0; -0.001 |]
-                }
-
-            let tInf =
-                {
-                    x0 = 0.0
-                    xScale = twoThirdInfScale d
-                    coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
-                }
-
-            SeparableGamma { eeInfScale = 0.01; tEeInf = { tEe = tEe; tInf = tInf } }
+        // static member defaultNonlinearValue2 (d : Domain2D) =
+        //     let tEe =
+        //         {
+        //             x0 = 0.0
+        //             xScale = 1.0
+        //             coefficients = [| 1.0; GlobalAsymmetryFactor.defaultSmallValue.value |]
+        //         }
+        //
+        //     let tInf =
+        //         {
+        //             x0 = 0.0
+        //             xScale = twoThirdInfScale d
+        //             coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
+        //         }
+        //
+        //     SeparableGamma { eeInfScale = Gamma0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
 
     type MutationProbabilityParams =
@@ -547,46 +609,49 @@ module Kernel =
                 domainIntervals = DomainIntervals.defaultValue
                 infMaxValue = InfMaxValue.defaultValue
                 zeroThreshold = ZeroThreshold.defaultValue
-                epsEeFuncValue = EpsFuncValue.ScalarEps 0.01
-                epsInfFuncValue = EpsFuncValue.ScalarEps 0.01
-                kaFuncValue = KaFuncValue.IdentityKa
+                epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue.value
+                epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue.value
+                kaFuncValue = KaFuncValue.IdentityKa 1.0
             }
 
-        static member defaultNarrowValue =
-            {
-                domainIntervals = DomainIntervals.defaultValue
-                infMaxValue = InfMaxValue.defaultValue
-                zeroThreshold = ZeroThreshold.defaultValue
-                epsEeFuncValue = EpsFuncValue.ScalarEps 0.001
-                epsInfFuncValue = EpsFuncValue.ScalarEps 0.001
-                kaFuncValue = KaFuncValue.IdentityKa
-            }
-
-        static member defaultWideValue =
-            {
-                domainIntervals = DomainIntervals.defaultValue
-                infMaxValue = InfMaxValue.defaultValue
-                zeroThreshold = ZeroThreshold.defaultValue
-                epsEeFuncValue = EpsFuncValue.ScalarEps 0.05
-                epsInfFuncValue = EpsFuncValue.ScalarEps 0.05
-                kaFuncValue = KaFuncValue.IdentityKa
-            }
-
+        /// Same as above but with quadratic ka.
         static member defaultQuadraticValue =
             let kp = KernelParams.defaultValue
             { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue (kp.domain2D()) }
 
-        static member defaultQuadraticValueSmall =
-            let kp = KernelParams.defaultValue
-            { kp with kaFuncValue = KaFuncValue.defaultQuadraticValueSmall (kp.domain2D()) }
+        // /// Same as above but with smaller eps.
+        // static member defaultNarrowValue =
+        //     let kp = KernelParams.defaultValue
+        //     { kp with
+        //         epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultNarrowValue.value
+        //         epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultNarrowValue.value
+        //     }
+        //
+        // /// Same as above but with wider eps.
+        // static member defaultWideValue =
+        //     let kp = KernelParams.defaultValue
+        //     { kp with epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultWideValue.value; epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultWideValue.value }
+        //
+        // static member defaultQuadraticValueSmall =
+        //     let kp = KernelParams.defaultValue
+        //     { kp with kaFuncValue = KaFuncValue.defaultQuadraticSmallValue (kp.domain2D()) }
+        //
+        // static member defaultQuadraticValueSmallNarrow =
+        //     let kp = KernelParams.defaultNarrowValue
+        //     { kp with kaFuncValue = KaFuncValue.defaultQuadraticSmallValue (kp.domain2D()) }
 
-        static member defaultQuadraticValueSmallNarrow =
-            let kp = KernelParams.defaultNarrowValue
-            { kp with kaFuncValue = KaFuncValue.defaultQuadraticValueSmall (kp.domain2D()) }
+        // static member defaultQuadraticValue2 =
+        //     let kp = KernelParams.defaultValue
+        //     { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue2 (kp.domain2D()) }
 
-        static member defaultQuadraticValue2 =
-            let kp = KernelParams.defaultValue
-            { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue2 (kp.domain2D()) }
+        static member withEps0 (eps0 : Eps0) (kp : KernelParams) =
+            { kp with epsEeFuncValue = EpsFuncValue.ScalarEps eps0.value; epsInfFuncValue = EpsFuncValue.ScalarEps eps0.value }
+
+        static member withK0 (k0 : K0) (kp : KernelParams) =
+            { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
+
+        static member withDomainIntervals (d : DomainIntervals) (kp : KernelParams) =
+            { kp with domainIntervals = d }
 
 
     type Ka =
@@ -668,7 +733,7 @@ module Kernel =
 
 
     /// Number of "molecules" or building blocks used in a protocell.
-    /// This controls the nonlinearity of the creation model.
+    /// This controls the non linearity of the creation model.
     /// Default value is set to 1 because we take into account that a single protocell encounters with food
     /// proportionally to concentration of the food.
     type NumberOfMolecules =
