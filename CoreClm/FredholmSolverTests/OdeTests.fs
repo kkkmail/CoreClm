@@ -153,6 +153,7 @@ type OdeTests (output : ITestOutputHelper) =
                 }
         }
 
+    let op_10K = { op_default with endTime = 10_000.0 }
     let op_50K = { op_default with endTime = 50_000.0 }
     let op_65K = { op_default with endTime = 65_000.0 }
     let op_100K = { op_default with endTime = 100_000.0 }
@@ -406,6 +407,7 @@ type OdeTests (output : ITestOutputHelper) =
     /// global asymmetry factor = -0.01
     let mp_d100k1e01g01 = EeInfModelParams.defaultNonLinearValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 100)
 
+    /// DomainIntervals 200
     let mp_d200k1e01g01 = EeInfModelParams.defaultNonLinearValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 200)
 
 
@@ -419,8 +421,26 @@ type OdeTests (output : ITestOutputHelper) =
     let mp_d200k1e005g01 = mp_d200k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultNarrowValue
 
 
+    /// k0 = 0.01, ka - quadratic
     let mp_d100k01e01g01 = mp_d100k1e01g01 |> EeInfModelParams.withK0 K0.defaultSmallValue
     let mp_d200k01e01g01 = mp_d200k1e01g01 |> EeInfModelParams.withK0 K0.defaultSmallValue
+
+    /// k0 = 0.01, ka - quadratic
+    /// eps0 = 0.005
+    let mp_d200k01e005g01 = mp_d200k1e005g01 |> EeInfModelParams.withK0 K0.defaultSmallValue
+
+    /// k0 = 0.001, ka - quadratic
+    /// eps0 = 0.005
+    let mp_d200k001e005g01 = mp_d200k1e005g01 |> EeInfModelParams.withK0 (K0 0.001)
+
+    /// k0 = 0.0001, ka - quadratic
+    /// eps0 = 0.005
+    let mp_d200k0001e005g01 = mp_d200k1e005g01 |> EeInfModelParams.withK0 (K0 0.0001)
+
+
+    /// k0 = 0.001, ka - quadratic
+    let mp_d100k001e01g01 = mp_d100k1e01g01 |> EeInfModelParams.withK0 K0.defaultVerySmallValue
+    let mp_d200k001e01g01 = mp_d200k1e01g01 |> EeInfModelParams.withK0 K0.defaultVerySmallValue
 
 
     member private _.getCallerName([<CallerMemberName; Optional; DefaultParameterValue("")>] ?memberName: string) =
@@ -431,6 +451,19 @@ type OdeTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.odePack_ShouldRun () : unit = odePackShouldRun mp_d100 op_default 0 (t.getCallerName())
+
+    // ===== 10K ===============
+
+    [<Fact>]
+    member t.d200k01e01g01_10K () : unit = odePackShouldRun mp_d200k01e01g01 op_10K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e01g01_10K_s2 () : unit = odePackShouldRun mp_d200k01e01g01 op_10K 2 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e01g01_10K_s5 () : unit = odePackShouldRun mp_d200k01e01g01 op_10K 5 (t.getCallerName())
 
     // ===== 50K ===============
 
@@ -464,6 +497,34 @@ type OdeTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.d200k01e01g01_50K () : unit = odePackShouldRun mp_d200k01e01g01 op_50K 1 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e01g01_50K_s2 () : unit = odePackShouldRun mp_d200k01e01g01 op_50K 2 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e01g01_50K_s5 () : unit = odePackShouldRun mp_d200k01e01g01 op_50K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k001e01g01_50K_s2 () : unit = odePackShouldRun mp_d200k001e01g01 op_50K 2 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k001e01g01_50K_s5 () : unit = odePackShouldRun mp_d200k001e01g01 op_50K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e005g01_50K_s5 () : unit = odePackShouldRun mp_d200k01e005g01 op_50K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k001e005g01_50K_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_50K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k0001e005g01_50K_s5 () : unit = odePackShouldRun mp_d200k0001e005g01 op_50K 5 (t.getCallerName())
 
     // ===== 100K ===============
 
@@ -499,52 +560,16 @@ type OdeTests (output : ITestOutputHelper) =
     member t.d200k01e01g01_100K () : unit = odePackShouldRun mp_d200k01e01g01 op_100K 1 (t.getCallerName())
 
 
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_Small_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmall defaultNonlinearOdeParams_50K 1 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_SmallNarrow_50K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmallNarrow defaultNonlinearOdeParams_50K 1 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_50K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_50K 0 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_65K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_65K 1 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_65K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_65K 0 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 1 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_Small_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmall defaultNonlinearOdeParams_100K 1 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_SmallNarrow_100K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValueSmallNarrow defaultNonlinearOdeParams_100K 1 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_100K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_100K 0 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_200K () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_200K 1 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_200K_NoShift () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue defaultNonlinearOdeParams_200K 0 (t.getCallerName())
-    //
-    //
-    // [<Fact>]
-    // member t.odePack_ShouldRunNonLinear_1M () : unit = odePackShouldRun EeInfModelParams.defaultNonlinearValue2 defaultNonlinearOdeParams_1M 1 (t.getCallerName())
+    [<Fact>]
+    member t.d200k01e005g01_100K_s5 () : unit = odePackShouldRun mp_d200k01e005g01 op_100K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k001e005g01_100K_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_100K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k0001e005g01_100K_s5 () : unit = odePackShouldRun mp_d200k0001e005g01 op_100K 5 (t.getCallerName())
 
 
     [<Fact>]

@@ -243,6 +243,7 @@ module Kernel =
         member r.value = let (K0 v) = r in v
         static member defaultValue = K0 0.1
         static member defaultSmallValue = K0 0.01
+        static member defaultVerySmallValue = K0 0.001
 
 
     /// ka portion of the kernel.
@@ -340,42 +341,6 @@ module Kernel =
 
             SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
-        // /// Same as above but using K0.defaultSmallValue instead of K0.defaultValue.
-        // static member defaultQuadraticSmallValue (d : Domain2D) =
-        //     let tEe =
-        //         {
-        //             x0 = 0.0
-        //             xScale = 1.0
-        //             coefficients = [| 1.0; 0.0; 1.0 |]
-        //         }
-        //
-        //     let tInf =
-        //         {
-        //             x0 = 0.0
-        //             xScale = twoThirdInfScale d
-        //             coefficients = [| 1.0; 0.0; 1.0 |]
-        //         }
-        //
-        //     SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
-
-        // /// Uses smaller quadratic coefficients both in ee and inf domains.
-        // static member defaultQuadraticValue2 (d : Domain2D) =
-        //     let tEe =
-        //         {
-        //             x0 = 0.0
-        //             xScale = 1.0
-        //             coefficients = [| 1.0; 0.0; 0.2 |]
-        //         }
-        //
-        //     let tInf =
-        //         {
-        //             x0 = 0.0
-        //             xScale = twoThirdInfScale d
-        //             coefficients = [| 1.0; 0.0; 0.2 |]
-        //         }
-        //
-        //     SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
-
 
     /// gamma0 multiplier in gamma.
     type Gamma0 =
@@ -405,7 +370,7 @@ module Kernel =
 
         member g.gammaFuncUnscaled (_ : Domain2D) : GammaFunc =
             match g with
-            | ScalarGamma e -> (fun _ _ _ -> 1.0)
+            | ScalarGamma _ -> (fun _ _ _ -> 1.0)
             | SeparableGamma e -> (fun _ a b -> separableFunc e.tEeInf a b)
             |> GammaFunc
 
@@ -438,23 +403,6 @@ module Kernel =
                 }
 
             SeparableGamma { eeInfScale = Gamma0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
-
-        // static member defaultNonlinearValue2 (d : Domain2D) =
-        //     let tEe =
-        //         {
-        //             x0 = 0.0
-        //             xScale = 1.0
-        //             coefficients = [| 1.0; GlobalAsymmetryFactor.defaultSmallValue.value |]
-        //         }
-        //
-        //     let tInf =
-        //         {
-        //             x0 = 0.0
-        //             xScale = twoThirdInfScale d
-        //             coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0|]
-        //         }
-        //
-        //     SeparableGamma { eeInfScale = Gamma0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
 
     type MutationProbabilityParams =
@@ -618,31 +566,6 @@ module Kernel =
         static member defaultQuadraticValue =
             let kp = KernelParams.defaultValue
             { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue (kp.domain2D()) }
-
-        // /// Same as above but with smaller eps.
-        // static member defaultNarrowValue =
-        //     let kp = KernelParams.defaultValue
-        //     { kp with
-        //         epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultNarrowValue.value
-        //         epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultNarrowValue.value
-        //     }
-        //
-        // /// Same as above but with wider eps.
-        // static member defaultWideValue =
-        //     let kp = KernelParams.defaultValue
-        //     { kp with epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultWideValue.value; epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultWideValue.value }
-        //
-        // static member defaultQuadraticValueSmall =
-        //     let kp = KernelParams.defaultValue
-        //     { kp with kaFuncValue = KaFuncValue.defaultQuadraticSmallValue (kp.domain2D()) }
-        //
-        // static member defaultQuadraticValueSmallNarrow =
-        //     let kp = KernelParams.defaultNarrowValue
-        //     { kp with kaFuncValue = KaFuncValue.defaultQuadraticSmallValue (kp.domain2D()) }
-
-        // static member defaultQuadraticValue2 =
-        //     let kp = KernelParams.defaultValue
-        //     { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue2 (kp.domain2D()) }
 
         static member withEps0 (eps0 : Eps0) (kp : KernelParams) =
             { kp with epsEeFuncValue = EpsFuncValue.ScalarEps eps0.value; epsInfFuncValue = EpsFuncValue.ScalarEps eps0.value }
