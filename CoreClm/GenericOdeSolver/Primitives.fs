@@ -139,17 +139,27 @@ module Primitives =
 
     type NegativeValuesCorrectorType =
         | DoNotCorrect
-        | UseNonNegative
+        | UseNonNegative of double
 
         member nc.value =
             match nc with
             | DoNotCorrect -> 0
-            | UseNonNegative -> 1
+            | UseNonNegative _ -> 1
+
+        member nc.correction =
+            match nc with
+            | DoNotCorrect -> 0.0
+            | UseNonNegative c -> c
 
 
     type SolverType =
         | AlgLib of AlgLibMethod
         | OdePack of OdePackMethod * CorrectorIteratorType * NegativeValuesCorrectorType
+
+        member t.correction =
+            match t with
+            | AlgLib _ -> 0.0
+            | OdePack (_, _, nc) -> nc.correction
 
 
     type OdeOutputParams =

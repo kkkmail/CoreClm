@@ -138,13 +138,16 @@ type OdeTests (output : ITestOutputHelper) =
     let errInvTolerance = 1.0e-3
     let outputFolder = @"C:\EeInf"
 
+    /// Treat all values of u less than this as zero.
+    let correctionValue = 1.0e-14
+
     let op_default =
         {
             startTime = 0.0
             endTime = 10.0
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
-            solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative)
+            solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative correctionValue)
             outputParams =
                 {
                     noOfOutputPoints = 4_000
@@ -397,7 +400,17 @@ type OdeTests (output : ITestOutputHelper) =
         r.result.Should().NotBeNull(nullString) |> ignore
         diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
 
-    let mp_d100 = EeInfModelParams.defaultValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 100)
+    /// All flat - to study "diffusion".
+    /// DomainIntervals 100
+    /// k0 = 0.1, ka - identity
+    /// eps0 = 0.01
+    /// gamma0 = 0.0 - no asymmetry.
+    /// global asymmetry factor = -0.01
+    let mp_d100k1e01a0 = EeInfModelParams.defaultValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 100) |> EeInfModelParams.withK0 K0.defaultValue
+    let mp_d200k1e01a0 = EeInfModelParams.defaultValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 200) |> EeInfModelParams.withK0 K0.defaultValue
+
+    /// eps0 = 0.005
+    let mp_d200k1e005a0 = mp_d200k1e01a0 |> EeInfModelParams.withEps0 Eps0.defaultNarrowValue
 
 
     /// DomainIntervals 100
@@ -448,9 +461,26 @@ type OdeTests (output : ITestOutputHelper) =
         let memberName = defaultArg memberName ""
         $"{memberName}__{now:yyyyMMdd_HHmm}"
 
+    // ===== Flat - to study diffution ===============
 
     [<Fact>]
-    member t.odePack_ShouldRun () : unit = odePackShouldRun mp_d100 op_default 0 (t.getCallerName())
+    member t.odePack_ShouldRun () : unit = odePackShouldRun mp_d100k1e01a0 op_default 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k1e01a0_50K () : unit = odePackShouldRun mp_d200k1e01a0 op_50K 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k1e01a0_100K () : unit = odePackShouldRun mp_d200k1e01a0 op_100K 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k1e005a0_50K () : unit = odePackShouldRun mp_d200k1e005a0 op_50K 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k1e005a0_100K () : unit = odePackShouldRun mp_d200k1e005a0 op_100K 0 (t.getCallerName())
 
     // ===== 10K ===============
 

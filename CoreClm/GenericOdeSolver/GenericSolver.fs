@@ -22,7 +22,10 @@ module Solver =
 
     // ================================================================ //
 
-    let private makeNonNegativeByRef (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> max 0.0 (NativePtr.get x i) |]
+    let private makeNonNegativeByRef (eps : double) (neq : int) (x : nativeptr<double>) : double[] =
+        let g v = if v < eps then 0.0 else v
+        [| for i in 0..(neq - 1) -> g (NativePtr.get x i) |]
+
     let private toArray (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> NativePtr.get x i |]
 
 
@@ -244,7 +247,7 @@ module Solver =
                                 x : nativeptr<double>,
                                 dx : nativeptr<double>) : unit =
 
-        let x1 = makeNonNegativeByRef neq x
+        let x1 = makeNonNegativeByRef nSolveParam.odeParams.solverType.correction neq x
         tryCallBack nSolveParam t x1
 
         match nSolveParam.derivative with
@@ -320,7 +323,7 @@ module Solver =
 
             let result =
                 match nc with
-                | UseNonNegative ->
+                | UseNonNegative _ ->
                     OdeSolver.RunFSharp(
                             (fun() -> createUseNonNegativeInterop n),
                             m.value,

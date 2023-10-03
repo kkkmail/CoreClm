@@ -376,13 +376,13 @@ module Kernel =
 
         member g.gamma0 =
             match g with
-            | ScalarGamma _ -> 1.0
+            | ScalarGamma e -> e
             | SeparableGamma e -> e.eeInfScale
             |> Gamma0
 
         static member withGamma0 (gamma0 : Gamma0) (g : GammaFuncValue) =
             match g with
-            | ScalarGamma _ -> g
+            | ScalarGamma _ -> ScalarGamma gamma0.value
             | SeparableGamma e -> SeparableGamma { e with eeInfScale = gamma0.value }
 
         static member defaultValue = ScalarGamma Gamma0.defaultValue.value
