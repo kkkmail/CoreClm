@@ -97,12 +97,13 @@ type OdeResultData =
                     $"{g e.statData.total}"
                     $"{g e.statData.food}"
                     $"{g e.statData.waste}"
+                    $"{g e.progressChart.callCount}"
                 ]
                 |> joinStrings ", "
 
             $"{{ {a} }}"
 
-        let chartTitles = $"{Nl}chartTitles = {{\"t\", \"eeMean\", \"eeStdDev\", \"infMean\", \"infStdDev\", \"invariant\", \"total\", \"food\", \"waste\"}};{Nl}"
+        let chartTitles = $"{Nl}chartTitles = {{\"t\", \"eeMean\", \"eeStdDev\", \"infMean\", \"infStdDev\", \"invariant\", \"total\", \"food\", \"waste\", \"callCount\"}};{Nl}"
 
         let chart =
             r.chartData.allChartData
@@ -139,7 +140,7 @@ type OdeTests (output : ITestOutputHelper) =
     let outputFolder = @"C:\EeInf"
 
     /// Treat all values of u less than this as zero.
-    let correctionValue = 1.0e-14
+    let correctionValue = 1.0e-12
 
     let op_default =
         {
@@ -595,7 +596,39 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     [<Fact>]
+    member t.d200k01e005g01_200K_s5 () : unit = odePackShouldRun mp_d200k01e005g01 op_200K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e005g01_200K_s0 () : unit = odePackShouldRun mp_d200k01e005g01 op_200K 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e005g01_1M_s5 () : unit = odePackShouldRun mp_d200k01e005g01 op_1M 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e005g01_1M_s0 () : unit = odePackShouldRun mp_d200k01e005g01 op_1M 0 (t.getCallerName())
+
+
+    [<Fact>]
     member t.d200k001e005g01_100K_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_100K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k001e005g01_200K_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_200K 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k001e005g01_200K_s0 () : unit = odePackShouldRun mp_d200k001e005g01 op_200K 0 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k001e005g01_1M_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_1M 5 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k001e005g01_1M_s0 () : unit = odePackShouldRun mp_d200k001e005g01 op_1M 0 (t.getCallerName())
 
 
     [<Fact>]
