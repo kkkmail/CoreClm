@@ -23,7 +23,6 @@ module SsaSolverMutable =
                 | false, _ -> d
 
 
-
     let createSubstanceMap (d : List<Species * NoOfMolecules>) : SubstanceMap = toDictionary d fst snd
     let getValueOrDefault (m : SubstanceMap) e d = m.getValueOrDefault e d
 
@@ -36,7 +35,6 @@ module SsaSolverMutable =
             |> List.map (fun e -> m.getValueOrDefault e NoOfMolecules.zero)
             |> List.map (fun e -> double e.value)
             |> List.fold (fun acc r -> acc * r) i.rate.value
-
 
 
     let evolveSubstances (m : SubstanceMap) r : SubstanceMap =
