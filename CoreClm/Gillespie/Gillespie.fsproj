@@ -20,6 +20,8 @@
         <Compile Include="SsaPrimitives.fs" />
         <Compile Include="SsaSolver.fs" />
         <Compile Include="SsaSolverMutable.fs" />
+        <Compile Include="TauLeaping.fs" />
+        <Compile Include="TauLeaping2.fs" />
         <Compile Include="LotkaVolterra.fs" />
         <Compile Include="ProtoCells.fs" />
     </ItemGroup>

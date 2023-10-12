@@ -65,6 +65,8 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "GenericOdeSolver", "Generic
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Primitives", "Primitives\Primitives.fsproj", "{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}"
 EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "GillespieTauLeapingExample", "GillespieTauLeapingExample\GillespieTauLeapingExample.fsproj", "{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -191,12 +193,17 @@ Global
 		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Debug|x64.Build.0 = Debug|x64
 		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Release|x64.ActiveCfg = Release|x64
 		{08161B72-6CE0-4ADE-A19A-A256F25BDA8A}.Release|x64.Build.0 = Release|x64
+		{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}.Debug|x64.ActiveCfg = Debug|x64
+		{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}.Debug|x64.Build.0 = Debug|x64
+		{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}.Release|x64.ActiveCfg = Release|x64
+		{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5DA6FF14-89EE-4E44-BF72-312931EE21F2} = {A498AEFF-9C98-43E9-95F0-01C9C4699FC0}
+		{CB340F74-F83A-4B33-9F17-0E7A0A8D7682} = {A498AEFF-9C98-43E9-95F0-01C9C4699FC0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C712381C-AF49-42FB-A12A-18C521329CBB}
