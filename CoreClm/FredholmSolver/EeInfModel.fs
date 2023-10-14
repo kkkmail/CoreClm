@@ -87,6 +87,32 @@ module EeInfModel =
         member d.unpack() = d.food, d.waste, d.protocell
 
 
+    type FoodIntData =
+        | FoodIntData of int64
+
+        member r.value = let (FoodIntData v) = r in v
+
+
+    type WasteIntData =
+        | WasteIntData of int64
+
+        member r.value = let (WasteIntData v) = r in v
+
+
+    type ProtocellIntData =
+        | ProtocellIntData of Matrix<int64>
+
+        member r.value = let (ProtocellIntData v) = r in v
+
+
+    type SubstanceIntData =
+        {
+            food : FoodIntData
+            waste : WasteIntData
+            protocell : ProtocellIntData
+        }
+
+
     /// We can only shift delta to a grid cell.
     type ProtocellInitParams =
         | DeltaEeShifted of int
@@ -164,69 +190,6 @@ module EeInfModel =
         static member withDomainIntervals d p = { p with kernelParams = p.kernelParams |> KernelParams.withDomainIntervals d }
 
 
-        // static member defaultNarrowValue =
-        //     {
-        //         kernelParams = KernelParams.defaultNarrowValue
-        //         gammaFuncValue = GammaFuncValue.defaultValue
-        //         numberOfMolecules = NumberOfMolecules.defaultValue
-        //         recyclingRate = RecyclingRate.defaultValue
-        //         initParams = EeInfInitParams.defaultValue
-        //         name = None
-        //     }
-        //
-        // static member defaultNonlinearValue =
-        //     let kp = KernelParams.defaultQuadraticValue
-        //     let d = kp.domain2D()
-        //
-        //     {
-        //         kernelParams = kp
-        //         gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
-        //         numberOfMolecules = NumberOfMolecules.defaultValue
-        //         recyclingRate = RecyclingRate.defaultValue
-        //         initParams = EeInfInitParams.defaultValue
-        //         name = None
-        //     }
-        //
-        // static member defaultNonlinearValueSmall =
-        //     let kp = KernelParams.defaultQuadraticValueSmall
-        //     let d = kp.domain2D()
-        //
-        //     {
-        //         kernelParams = kp
-        //         gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
-        //         numberOfMolecules = NumberOfMolecules.defaultValue
-        //         recyclingRate = RecyclingRate.defaultValue
-        //         initParams = EeInfInitParams.defaultValue
-        //         name = None
-        //     }
-        //
-        // static member defaultNonlinearValueSmallNarrow =
-        //     let kp = KernelParams.defaultQuadraticValueSmallNarrow
-        //     let d = kp.domain2D()
-        //
-        //     {
-        //         kernelParams = kp
-        //         gammaFuncValue = GammaFuncValue.defaultNonlinearValue d
-        //         numberOfMolecules = NumberOfMolecules.defaultValue
-        //         recyclingRate = RecyclingRate.defaultValue
-        //         initParams = EeInfInitParams.defaultValue
-        //         name = None
-        //     }
-        //
-        // static member defaultNonlinearValue2 =
-        //     let kp = KernelParams.defaultQuadraticValue
-        //     let d = kp.domain2D()
-        //
-        //     {
-        //         kernelParams = kp
-        //         gammaFuncValue = GammaFuncValue.defaultNonlinearValue2 d
-        //         numberOfMolecules = NumberOfMolecules.defaultValue2
-        //         recyclingRate = RecyclingRate.defaultValue
-        //         initParams = EeInfInitParams.defaultValue
-        //         name = None
-        //     }
-
-
     type EeInfModel =
         {
             kernelData : KernelData
@@ -239,20 +202,50 @@ module EeInfModel =
             let p = md.modelParams
             md.kernelData, md.gamma.value, p.numberOfMolecules.value, p.recyclingRate.value
 
+        /// Calculates a derivative.
         member md.derivative (x : SubstanceData) =
             let f, w, u = x.unpack()
             let k, g, n, s = md.unpack()
 
             let gamma_u = g * u
+            let int_gamma_u = k.domain2D.integrateValues gamma_u
             let int_k_u = k.integrateValues u
             let int_int_k_u = k.domain2D.integrateValues int_k_u
             let f_n = (pown f n)
 
-            let df = (double n) * (s * w - f_n * int_int_k_u)  |> FoodData
-            let dw = - s * w + (k.domain2D.integrateValues gamma_u) |> WasteData
+            let df = (double n) * (s * w - f_n * int_int_k_u) |> FoodData
+            let dw = - s * w + int_gamma_u |> WasteData
             let du = (f_n * int_k_u - gamma_u) |> ProtocellData
 
             let retVal = SubstanceData.create df dw du
+            retVal
+
+        /// Calculates a new state of the system after one epoch.
+        /// !!! This is different from a derivative above, which calculates the "difference" between states !!!
+        member md.evolve (p : PoissonSampler) (x : SubstanceIntData) =
+            let f = x.food.value
+            let w = x.waste.value
+            let u = x.protocell.value
+            let k, _, n, _ = md.unpack()
+
+            // If the amount of food falls below zero, then treat it as exact zero until enough waste is recycled.
+            let f_n = (pown (double (max f 0L)) n)
+            let gamma_u = md.gamma.evolve p u
+            let int_gamma_u = gamma_u.total()
+            let int_k_u = k.evolve p f_n u
+            let int_int_k_u = int_k_u.total()
+            let r = md.modelParams.recyclingRate.evolve p w
+
+            // Note that the food could be "eaten" beyond zero. If that happens, then it will be treated as exact zero until enough waste is recycled.
+            let df = (int64 n) * (r - int_int_k_u)
+            let dw = - r + int_gamma_u
+            let du = int_k_u - gamma_u
+
+            let f1 = f + df |> FoodIntData
+            let w1 = w + dw |> WasteIntData
+            let u1 = u + du |> ProtocellIntData
+
+            let retVal =  { food = f1; waste = w1; protocell = u1 }
             retVal
 
         member md.substanceData i x = LinearData<SubstanceType, double>.create i x |> SubstanceData

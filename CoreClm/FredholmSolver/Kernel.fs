@@ -117,6 +117,36 @@ module Kernel =
             let retVal = sum |> d.normalize
             retVal
 
+        /// Calculates how many protocells are created for a given "point".
+        member private d.evolve(p : PoissonSampler, multiplier : double, a : SparseArray2D<double>, b : Matrix<int64>) =
+            let g (e : SparseValue2D<double>) =
+                let n = b.value[e.i][e.j]
+
+                if n <= 0L then 0L
+                else
+                    let lambda = (double n) * e.value2D * multiplier
+                    let retVal = p.nextPoisson lambda
+                    retVal
+
+            let sum = a.value |> Array.map g |> Array.sum
+            sum
+
+        /// Calculates how many protocells are created for a given "point".
+        member private d.evolve(p : PoissonSampler, a : SparseArray2D<double>, b : LinearMatrix<int64>) =
+            let bValue = b.getValue
+
+            let g (e : SparseValue2D<double>) =
+                let n = bValue e.i e.j
+
+                if n <= 0L then 0L
+                else
+                    let lambda = (double n) * e.value2D
+                    let retVal = p.nextPoisson lambda
+                    retVal
+
+            let sum = a.value |> Array.map g |> Array.sum
+            sum
+
         member d.integrateValues (a : Matrix<double>) = d.integrateValues a.value
 
         member d.integrateValues (a : LinearMatrix<double>) =
@@ -152,6 +182,14 @@ module Kernel =
 
         member d.integrateValues (a : SparseArray4D<double>, b : LinearMatrix<double>) =
             a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b))) |> Matrix
+
+        /// Calculates how many protocells are created.
+        member d.evolve (p : PoissonSampler, multiplier : double, a : SparseArray4D<double>, b : Matrix<int64>) =
+            a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.evolve (p, multiplier, e, b))) |> Matrix
+
+        /// Calculates how many protocells are created.
+        member d.evolve (p : PoissonSampler, a : SparseArray4D<double>, b : LinearMatrix<int64>) =
+            a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.evolve (p, e, b))) |> Matrix
 
         member d.integrateValues (a : SparseArray4D<double>) =
             a.value |> Array.map (fun v -> v |> Array.map d.integrateValues) |> Matrix
@@ -604,6 +642,12 @@ module Kernel =
             let v = k.domain2D.integrateValues (k.kernel.value, u)
             v
 
+        /// Calculates how many protocells are created.
+        /// The multiplier carries the value in front of the integral (f^n).
+        member k.evolve (p : PoissonSampler) (multiplier : double) (u : Matrix<int64>) =
+            let v = k.domain2D.evolve (p, multiplier, k.kernel.value, u)
+            v
+
         static member create p =
             let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
 
@@ -645,6 +689,20 @@ module Kernel =
 
         member r.value = let (Gamma v) = r in v
 
+        /// Calculates how many protocells are destroyed.
+        member r.evolve (p : PoissonSampler) (u : Matrix<int64>) =
+            let m = r.value.value
+
+            let g i j v =
+                if v <= 0L then 0L
+                else
+                    let lambda = (double v) * m[i][j]
+                    let retVal = p.nextPoisson lambda
+                    min retVal v // Cannot destroy more than we have.
+
+            let retVal = u.value |> Array.mapi (fun i a -> a |> Array.mapi (fun j b -> g i j b)) |> Matrix
+            retVal
+
         static member create (d : Domain2D) (g : GammaFuncValue) : Gamma =
             let gamma =
                 d.eeDomain.points.value
@@ -672,3 +730,11 @@ module Kernel =
 
         member r.value = let (RecyclingRate v) = r in v
         static member defaultValue = RecyclingRate 1.0
+
+        /// Calculates how much waste is recycled.
+        member r.evolve (p : PoissonSampler) w =
+            if w <= 0L then 0L
+            else
+                let lambda = r.value * (double w)
+                let retVal = p.nextPoisson lambda
+                min retVal w // Cannot recycle more than we have.

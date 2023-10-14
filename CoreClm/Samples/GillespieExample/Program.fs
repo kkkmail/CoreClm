@@ -4,9 +4,24 @@ open Plotly.NET
 open Softellect.Sys.Core
 open Gillespie.SsaPrimitives
 open Gillespie.LotkaVolterra
+open MathNet.Numerics.Distributions
 
 //open Gillespie.SsaSolver
 open Gillespie.SsaSolverMutable
+open System.Diagnostics
+
+let noOfPoinssonSamles = 1_000_000
+let lambda = 1_000_000.00
+printfn "Sampling..."
+let sw = Stopwatch.StartNew()
+let x = [| for _ in 1 .. noOfPoinssonSamles -> Poisson.Sample(lambda)|]
+printfn $"Sampling {noOfPoinssonSamles} one by one took: {sw.Elapsed.TotalSeconds} seconds."
+printfn $"Average = {(x |> Array.map float |> Array.average)}."
+
+sw.Restart()
+Poisson.Samples(x, lambda)
+printfn $"Sampling {noOfPoinssonSamles} together took: {sw.Elapsed.TotalSeconds} seconds."
+printfn $"Average = {(x |> Array.map float |> Array.average)}."
 
 let noOfSteps = 1_000_000
 //let noOfSteps = 1_000

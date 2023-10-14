@@ -26,6 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\FredholmSolver\FredholmSolver.fsproj" />
       <ProjectReference Include="..\..\Gillespie\Gillespie.fsproj" />
     </ItemGroup>
     

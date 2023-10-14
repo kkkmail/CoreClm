@@ -4,6 +4,15 @@ open FSharp.Collections
 
 module Primitives =
 
+    /// Encapsulation of a Poisson distribution sampler.
+    /// It takes a value of lambda and returns next random number of events.
+    type PoissonSampler =
+        | PoissonSampler of (float -> int64)
+
+        member inline r.value = let (PoissonSampler v) = r in v
+        member r.nextPoisson (lambda : float) = r.value lambda
+
+
     /// Linear representation of a vector (array).
     type Vector<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         | Vector of 'T[]
@@ -28,8 +37,10 @@ module Primitives =
 
 
     /// Rectangular representation of a matrix.
-    type Matrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
+    type Matrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         | Matrix of 'T[][]
+
+        member inline r.total() = r.value |> Array.map (fun a -> a |> Array.sum) |> Array.sum
 
         member inline r.value = let (Matrix v) = r in v
 
@@ -72,7 +83,7 @@ module Primitives =
 
 
     /// Linear representation of a matrix to use with FORTRAN DLSODE ODE solver.
-    type LinearMatrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
+    type LinearMatrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         {
             start : int // Beginning of the matrix data in the array.
             d1 : int // Size of the fist dimension.
@@ -121,7 +132,7 @@ module Primitives =
             retVal
 
 
-    type Matrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)>
+    type Matrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)>
         with
         member inline m.toLinearMatrix() = LinearMatrix<'T>.create m.value
 
@@ -155,7 +166,7 @@ module Primitives =
     /// A collection of various data (of the same type) packed into an array to be used with FORTRAN DLSODE ODE solver.
     /// The type is generic to simplify tests so that integers can be used for exact comparison.
     /// Otherwise just double would do fine.
-    type LinearData<'K, 'T when 'K : comparison and  ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
+    type LinearData<'K, 'T when 'K : comparison and  ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         {
             dataInfo : LinearDataInfo<'K>
             data : 'T[]
@@ -265,7 +276,7 @@ module Primitives =
 
     /// See: https://github.com/dotnet/fsharp/issues/3302 for (*) operator.
     [<RequireQualifiedAccess>]
-    type SparseArray2D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
+    type SparseArray2D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         | SparseArray2D of SparseValue2D<'T>[]
 
         member inline r.value = let (SparseArray2D v) = r in v
@@ -321,7 +332,7 @@ module Primitives =
 
 
     /// Representation of non-zero value in a sparse 4D array.
-    type SparseValue4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
+    type SparseValue4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         {
             i : int
             j : int
@@ -353,7 +364,7 @@ module Primitives =
         static member inline createArray i j (x : SparseArray2D<'T>) = x.value |> Array.map (SparseValue4D.create i j)
 
 
-    type SparseValueArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
+    type SparseValueArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         | SparseValueArray4D of SparseValue4D<'T>[]
 
         member inline r.value = let (SparseValueArray4D v) = r in v
@@ -361,7 +372,7 @@ module Primitives =
 
     /// A 4D representation of 4D sparse tensor where the first two indexes are full ([][] is used)
     /// and the last two are in a SparseArray2D.
-    type SparseArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
+    type SparseArray4D<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         | SparseArray4D of SparseArray2D<'T>[][]
 
         member inline r.value = let (SparseArray4D v) = r in v
@@ -414,6 +425,6 @@ module Primitives =
 
 
     /// Performs a Cartesian multiplication of two 1D sparse arrays to obtain a 2D sparse array.
-    let inline cartesianMultiply<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> (a : SparseArray<'T>) (b : SparseArray<'T>) : SparseArray2D<'T> =
+    let inline cartesianMultiply<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> (a : SparseArray<'T>) (b : SparseArray<'T>) : SparseArray2D<'T> =
         let bValue = b.value
         a.value |> Array.map (fun e -> bValue |> Array.map (fun f -> { i = e.i; j = f.i; value2D = e.value1D * f.value1D })) |> Array.concat |> SparseArray2D<'T>.SparseArray2D
