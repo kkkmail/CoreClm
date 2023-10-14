@@ -40,9 +40,9 @@ module Primitives =
     type Matrix<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         | Matrix of 'T[][]
 
-        member inline r.total() = r.value |> Array.map (fun a -> a |> Array.sum) |> Array.sum
-
         member inline r.value = let (Matrix v) = r in v
+
+        member inline r.total() = r.value |> Array.map (fun a -> a |> Array.sum) |> Array.sum
 
         // /// Matrix multiplication (not implemented yet as it is not needed).
         // static member inline ( ** ) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
