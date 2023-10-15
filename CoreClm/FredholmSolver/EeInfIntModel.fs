@@ -1,7 +1,5 @@
 ﻿namespace FredholmSolver
 
-open Primitives.VersionInfo
-open Primitives.GeneralData
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 
@@ -23,6 +21,7 @@ module EeInfIntModel =
         | ProtocellIntData of Matrix<int64>
 
         member r.value = let (ProtocellIntData v) = r in v
+        member r.total() = r.value.total()
 
 
     type SubstanceIntData =
@@ -32,16 +31,61 @@ module EeInfIntModel =
             protocell : ProtocellIntData
         }
 
+
+    type EeInfIntInitParams =
+        {
+            uInitial : int64
+            protocellInitParams : EeInfDiffModel.ProtocellInitParams
+            totalMolecules : int64
+        }
+
+        static member defaultValue =
+            {
+                uInitial = 1_000L
+                protocellInitParams = EeInfDiffModel.ProtocellInitParams.defaultValue
+                totalMolecules = 1_000_000_000L
+            }
+
+        member p.shifted shift = { p with protocellInitParams = EeInfDiffModel.ProtocellInitParams.create shift }
+
+
+    type EeInfIntModelParams =
+        {
+            eeInfModelParams : EeInfModelParams
+            intInitParams : EeInfIntInitParams
+        }
+
+        member p.shifted shift = { p with intInitParams = p.intInitParams.shifted shift }
+        member p.named n = { p with eeInfModelParams = { p.eeInfModelParams with name = Some n } }
+
+        /// Default linear value, mostly for tests, as it does not have many practical purposes.
+        static member defaultValue =
+            {
+                eeInfModelParams = EeInfModelParams.defaultValue
+                intInitParams = EeInfIntInitParams.defaultValue
+            }
+
+        /// Default value with quadratic kernel and non-linear gamma.
+        /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
+        static member defaultNonLinearValue =
+            { EeInfIntModelParams.defaultValue with eeInfModelParams = EeInfModelParams.defaultNonLinearValue }
+
+        static member withK0 k0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withK0 k0 }
+        static member withEps0 eps0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withEps0 eps0 }
+        static member withGamma0 gamma0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withGamma0 gamma0 }
+        static member withDomainIntervals d p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withDomainIntervals d }
+
+
     type EeInfIntModel =
         {
             kernelData : KernelData
             gamma : Gamma
             intInitialValues : SubstanceIntData
-            intModelParams : EeInfModelParams // To keep all params used to create a model.
+            intModelParams : EeInfIntModelParams // To keep all params used to create a model.
         }
 
         member private md.unpack() =
-            let p = md.intModelParams
+            let p = md.intModelParams.eeInfModelParams
             md.kernelData, md.gamma, p.numberOfMolecules.value, p.recyclingRate.value
 
         /// Calculates a new state of the system after one epoch.
@@ -58,7 +102,7 @@ module EeInfIntModel =
             let int_gamma_u = gamma_u.total()
             let int_k_u = k.evolve p f_n u
             let int_int_k_u = int_k_u.total()
-            let r = md.intModelParams.recyclingRate.evolve p w
+            let r = md.intModelParams.eeInfModelParams.recyclingRate.evolve p w
 
             // Note that the food could be "eaten" beyond zero. If that happens, then it will be treated as exact zero until enough waste is recycled.
             let df = (int64 n) * (r - int_int_k_u)
@@ -72,25 +116,40 @@ module EeInfIntModel =
             let retVal =  { food = f1; waste = w1; protocell = u1 }
             retVal
 
-        // member md.invariant (v : SubstanceData) =
-        //     let f, w, u = v.unpack()
-        //     let k, _, n, _ = md.unpack()
-        //
-        //     let int_u = k.domain2D.integrateValues u
-        //     let inv = (double n) * (int_u + w) + f
-        //     inv
-        //
-        // static member create (mp : EeInfModelParams) : EeInfModel =
-        //     let k = KernelData.create mp.kernelParams
-        //
-        //     let f = FoodData (mp.initParams.total - (double mp.numberOfMolecules.value) * mp.initParams.eps)
-        //     let w = WasteData 0.0
-        //     let u = mp.initParams.protocellInitParams.getU mp.initParams.eps k.domain2D |> ProtocellData
-        //     let sd = SubstanceData.create f w u
-        //
-        //     {
-        //         kernelData = k
-        //         gamma = Gamma.create k.domain2D mp.gammaFuncValue
-        //         initialValues = sd
-        //         modelParams = mp
-        //     }
+        member md.invariant (x : SubstanceIntData) =
+            let f = x.food.value
+            let w = x.waste.value
+            let u = x.protocell.value
+            let n = md.intModelParams.eeInfModelParams.numberOfMolecules.value
+
+            let int_u = u.total()
+            let inv = (int64 n) * (int_u + w) + f
+            inv
+
+        static member create (mp : EeInfIntModelParams) : EeInfIntModel =
+            let totalMolecules = mp.intInitParams.totalMolecules
+            let n = mp.eeInfModelParams.numberOfMolecules.value
+
+            // Need to rescale kaFuncValue.
+            let kMult = pown (double totalMolecules) n
+            let kp = mp.eeInfModelParams.kernelParams
+            let k0 = kp.kaFuncValue.k0.value / kMult |> K0
+            let kpScaled = { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
+
+            let k = KernelData.create kpScaled
+
+            let f = totalMolecules - (int64 n) * mp.intInitParams.uInitial |> FoodIntData
+            let w = 0L |> WasteIntData
+            let u = mp.intInitParams.protocellInitParams.getIntU mp.intInitParams.uInitial k.domain2D |> ProtocellIntData
+
+            {
+                kernelData = k
+                gamma = Gamma.create k.domain2D mp.eeInfModelParams.gammaFuncValue
+                intInitialValues =
+                    {
+                        food = f
+                        waste = w
+                        protocell = u
+                    }
+                intModelParams = mp
+            }

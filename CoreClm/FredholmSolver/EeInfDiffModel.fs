@@ -1,7 +1,5 @@
 ﻿namespace FredholmSolver
 
-open Primitives.VersionInfo
-open Primitives.GeneralData
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open GenericOdeSolver.Primitives
@@ -86,7 +84,7 @@ module EeInfDiffModel =
 
         /// Creates a "delta" function centered near (0, 0) in the domain,
         /// which is a middle point in ee domain and 0-th point in inf domain.
-        member p.getU eps (domain : Domain2D) =
+        member private p.calculateU eps (getNorm : Matrix<double> -> double) (domain : Domain2D) =
             match p with
             | DeltaEeShifted eeShift ->
                 let domainIntervals = domain.eeDomain.noOfIntervals
@@ -97,8 +95,14 @@ module EeInfDiffModel =
                         if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (j = 0) then 1.0 else 0.0
 
                 let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
-                let norm = domain.integrateValues v
+                let norm = getNorm v
                 (eps / norm) * v
+
+        member p.getU eps (domain : Domain2D) = p.calculateU eps domain.integrateValues domain
+
+        member p.getIntU (uTotal : int64) (domain : Domain2D) =
+            let m = p.calculateU (double uTotal) (fun v -> v.total()) domain
+            m.convert int64
 
 
     type EeInfDiffInitParams =
@@ -137,8 +141,6 @@ module EeInfDiffModel =
         /// Default value with quadratic kernel and non-linear gamma.
         /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
         static member defaultNonLinearValue =
-            let kp = KernelParams.defaultQuadraticValue
-            let d = kp.domain2D()
             { EeInfDiffModelParams.defaultValue with eeInfModelParams = EeInfModelParams.defaultNonLinearValue }
 
         static member withK0 k0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withK0 k0 }

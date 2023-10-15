@@ -7,23 +7,23 @@ open Primitives.ChartPrimitives
 
 module EeInfCharts =
 
-    type EeInfPlotter(p : ChartData) =
+    type EeInfPlotter(p : ChartDiffData) =
         let getFileName (ct : ChartType) =
             let name =
-                match p.initData.modelParams.name with
+                match p.initData.baseData.modelParams.name with
                 | Some v -> v
-                | None -> $"{p.initData.resultId.value}"
+                | None -> $"{p.initData.baseData.resultId.value}"
 
             $@"C:\EeInf\{name}__{ct.fileSuffix}.html"
 
         let noOfOutputPoints = p.allChartData.Length - 1
         let allChartData = p.allChartData |> List.rev |> Array.ofList
-        let minMax = (0.0, float p.tLast)
+        let minMax = (0.0, float (getLastT p))
         let tIdx = [ for i in 0..noOfOutputPoints -> i ]
         let xAxisName = "t"
 
         let getDescription h =
-            $"{p.initData.modelParams}"
+            $"{p.initData.baseData.modelParams}"
             |> toDescription h
 
         // | PlotEeMu
@@ -56,8 +56,8 @@ module EeInfCharts =
             match p.allChartData |> List.tryHead |> Option.bind (fun e -> e.substanceData) with
             | Some d ->
                 // Axes are swapped.
-                let x = p.initData.domain2D.infDomain.points.value
-                let y = p.initData.domain2D.eeDomain.points.value
+                let x = p.initData.baseData.domain2D.infDomain.points.value
+                let y = p.initData.baseData.domain2D.eeDomain.points.value
                 let u = d.protocell.toMatrix().value
 
                 let surface =

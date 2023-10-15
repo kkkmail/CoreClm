@@ -70,6 +70,7 @@ module Primitives =
         member inline r.value = let (Matrix v) = r in v
 
         member inline r.total() = r.value |> Array.map (fun a -> a |> Array.sum) |> Array.sum
+        member inline r.convert converter = r.value |> Array.map (fun a -> a |> Array.map converter) |> Matrix
 
         // /// Matrix multiplication (not implemented yet as it is not needed).
         // static member inline ( ** ) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =

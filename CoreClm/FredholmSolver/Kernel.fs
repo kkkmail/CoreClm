@@ -206,6 +206,17 @@ module Kernel =
                 (mx, my)
             else (0.0, 0.0)
 
+        member d.mean (a : Matrix<int64>) =
+            let norm = a.total()
+            let b = a.convert double
+
+            if norm > 0L
+            then
+                let mx = (d.eeDomain.points * b).total() / (double norm)
+                let my = (b * d.infDomain.points).total() / (double norm)
+                (mx, my)
+            else (0.0, 0.0)
+
         member d.stdDev (a : LinearMatrix<double>) =
             let norm = d.norm a
 
@@ -214,6 +225,18 @@ module Kernel =
                 let mx, my = d.mean a
                 let m2x = (d.integrateValues (d.eeDomain.points * (d.eeDomain.points * a))) / norm
                 let m2y = (d.integrateValues ((a * d.infDomain.points) * d.infDomain.points)) / norm
+                (Math.Max(m2x - mx * mx, 0.0) |> Math.Sqrt, Math.Max(m2y - my * my, 0.0) |> Math.Sqrt)
+            else (0.0, 0.0)
+
+        member d.stdDev (a : Matrix<int64>) =
+            let norm = a.total()
+            let b = a.convert double
+
+            if norm > 0L
+            then
+                let mx, my = d.mean a
+                let m2x = (d.eeDomain.points * (d.eeDomain.points * b)).total() / (double norm)
+                let m2y = ((b * d.infDomain.points) * d.infDomain.points).total() / (double norm)
                 (Math.Max(m2x - mx * mx, 0.0) |> Math.Sqrt, Math.Max(m2y - my * my, 0.0) |> Math.Sqrt)
             else (0.0, 0.0)
 

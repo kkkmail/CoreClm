@@ -54,7 +54,7 @@ type OdeResultData =
         result : CallBackData
         getData : double[] -> SubstanceData
         invStart : double
-        chartData : ChartData
+        chartData : ChartDiffData
     }
 
     member r.toWolframData (odeParams : OdeParams) =
@@ -83,7 +83,7 @@ type OdeResultData =
         let gamma = r.modelData.gamma.value.value |> Array.map (fun a -> a |> Array.map (fun b -> b / gamma0))
         let gammaData = $"gamma = {(toWolframNotation gamma)};{Nl}{Nl}"
 
-        let w (e : ChartSliceData) =
+        let w (e : ChartSliceDiffData) =
             let g x = toWolframNotation x
 
             let a =
@@ -113,7 +113,7 @@ type OdeResultData =
 
         let chartData = $"chartData = {{ {chart} }};{Nl}{Nl}"
 
-        let uw (e : ChartSliceData) =
+        let uw (e : ChartSliceDiffData) =
             match e.substanceData with
             | Some v ->
                 let t = toWolframNotation e.tChart
@@ -183,7 +183,7 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     let outputResult md d (v : SubstanceData) r =
-        let sd = calculateStat md v
+        let sd = calculateDiffStat md v
 
         let s = $"t: {d.t}, call count: {d.progressData.callCount}, " +
                 $"progress: {d.progressData.progress}, " +
@@ -208,7 +208,7 @@ type OdeTests (output : ITestOutputHelper) =
         md.gamma.value |> outputMatrix md.kernelData.domain2D
 
 
-    let outputChart b (cd : ChartData) =
+    let outputChart b (cd : ChartDiffData) =
         if b then
             let f e =
                 $"{e.tChart},{e.statData.eeStatData.mean},{e.statData.eeStatData.stdDev}," +
@@ -319,16 +319,19 @@ type OdeTests (output : ITestOutputHelper) =
 
         let chartInitData =
             {
+                baseData =
+                    {
+                        resultId = RunQueueId.getNewId()
+                        modelParams = md.diffModelParams.eeInfModelParams
+                        domain2D = md.kernelData.domain2D
+                    }
                 y0 = 0.0M
                 tEnd = 0.0M
-                resultId = RunQueueId.getNewId()
-                modelParams = md.diffModelParams.eeInfModelParams
-                domain2D = md.kernelData.domain2D
             }
 
-        let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
+        let chartDataUpdater = AsyncChartDiffDataUpdater(ChartDiffDataUpdater(), chartInitData)
 
-        let getChartSliceData c b (d : CallBackData) : ChartSliceData =
+        let getChartSliceData c b (d : CallBackData) : ChartSliceDiffData =
             let g() = getData d.x
 
             let substanceData =
@@ -347,7 +350,7 @@ type OdeTests (output : ITestOutputHelper) =
             {
                 tChart = d.t
                 progressChart = d.progressData
-                statData = calculateStat md (getData d.x)
+                statData = calculateDiffStat md (getData d.x)
                 substanceData = substanceData
             }
 
@@ -462,7 +465,7 @@ type OdeTests (output : ITestOutputHelper) =
         let memberName = defaultArg memberName ""
         $"{memberName}__{now:yyyyMMdd_HHmm}"
 
-    // ===== Flat - to study diffution ===============
+    // ===== Flat - to study diffusion ===============
 
     [<Fact>]
     member t.odePack_ShouldRun () : unit = odePackShouldRun mp_d100k1e01a0 op_default 0 (t.getCallerName())
