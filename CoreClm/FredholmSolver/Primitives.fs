@@ -1,16 +1,31 @@
 ﻿namespace FredholmSolver
 
 open FSharp.Collections
+open MathNet.Numerics.Distributions
+open System
 
 module Primitives =
+
+    let poissonSample rnd lambda =
+        if lambda <= 2e9 then
+            // Use MathNet.Numerics.Distributions for small lambda
+            int64 (Poisson.Sample(rnd, lambda))
+        else
+            // Use Gaussian approximation for large lambda
+            let mu = lambda
+            let sigma = sqrt lambda
+            let sample = Normal.Sample(rnd, mu, sigma)
+            int64 (Math.Round(sample))
+
 
     /// Encapsulation of a Poisson distribution sampler.
     /// It takes a value of lambda and returns next random number of events.
     type PoissonSampler =
         | PoissonSampler of (float -> int64)
 
-        member inline r.value = let (PoissonSampler v) = r in v
-        member r.nextPoisson (lambda : float) = r.value lambda
+        member inline private r.value = let (PoissonSampler v) = r in v
+        member r.nextPoisson lambda = r.value lambda
+        static member create rnd = poissonSample rnd |> PoissonSampler
 
 
     /// Linear representation of a vector (array).
