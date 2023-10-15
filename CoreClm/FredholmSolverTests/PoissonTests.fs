@@ -34,10 +34,13 @@ type PoissonTests (output : ITestOutputHelper) =
     let outputFolder = @"C:\EeInf"
 
     [<Fact>]
-    member t.poissonEvolution_ShouldWork () : unit =
+    member t.poissonEvolution_ShouldKeepInvariant () : unit =
         let md = EeInfIntModelParams.defaultValue |> EeInfIntModelParams.withDomainIntervals (DomainIntervals 10) |> EeInfIntModelParams.withK0 K0.defaultVerySmallValue
         let model = EeInfIntModel.create md
         let initialValue = model.intInitialValues
+        let startInv = model.invariant initialValue
         let ps = Random 1 |> PoissonSampler.create
         let result = [|for _ in 1..10 -> () |] |> Array.fold (fun acc _ -> model.evolve ps acc) initialValue
-        result.Should().NotBeNull(nullString) |> ignore
+        let endInv = model.invariant result
+        writeLine $"startInv = {startInv}, endInv = {endInv}"
+        endInv.Should().Be(startInv, nullString) |> ignore
