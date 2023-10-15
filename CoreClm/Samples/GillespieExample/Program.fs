@@ -4,26 +4,26 @@ open Plotly.NET
 open Softellect.Sys.Core
 open Gillespie.SsaPrimitives
 open Gillespie.LotkaVolterra
-open MathNet.Numerics.Distributions
+open FredholmSolver.Primitives
+open System.Diagnostics
 
 //open Gillespie.SsaSolver
 open Gillespie.SsaSolverMutable
-open System.Diagnostics
 
-let noOfPoinssonSamles = 1_000_000
+let noOfPoissonSamples = 1_000_000
 let lambda = 2.0e12
 //let lambda = (float (Int32.MaxValue)) - 10.0 * (sqrt(float (Int32.MaxValue)))
 
 printfn $"Sampling for lambda = {lambda} ..."
 let rnd = new Random()
 let sw = Stopwatch.StartNew()
-let x = [| for _ in 1 .. noOfPoinssonSamles -> poissonSample rnd lambda |]
-printfn $"Sampling {noOfPoinssonSamles} one by one took: {sw.Elapsed.TotalSeconds} seconds."
+let x = [| for _ in 1 .. noOfPoissonSamples -> poissonSample rnd lambda |]
+printfn $"Sampling {noOfPoissonSamples} one by one took: {sw.Elapsed.TotalSeconds} seconds."
 printfn $"Average = {(x |> Array.map float |> Array.average)}."
 
 //sw.Restart()
 //Poisson.Samples(x, lambda)
-//printfn $"Sampling {noOfPoinssonSamles} together took: {sw.Elapsed.TotalSeconds} seconds."
+//printfn $"Sampling {noOfPoissonSamples} together took: {sw.Elapsed.TotalSeconds} seconds."
 //printfn $"Average = {(x |> Array.map float |> Array.average)}."
 
 let noOfSteps = 1_000_000

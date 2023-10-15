@@ -3,8 +3,20 @@
 open FSharp.Collections
 open MathNet.Numerics.Distributions
 open System
+open Primitives.VersionInfo
+open Primitives.GeneralData
 
 module Primitives =
+
+    [<Literal>]
+    let DefaultRootFolder = DefaultRootDrive + @":\" + ContGenBaseName + @"\Clm\"
+
+    [<Literal>]
+    let DefaultResultLocationFolder = DefaultRootFolder + "Results"
+
+    [<Literal>]
+    let DefaultFileStorageFolder = DefaultRootFolder + "FileStorage"
+
 
     let poissonSample rnd lambda =
         if lambda <= 2e9 then

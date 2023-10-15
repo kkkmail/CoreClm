@@ -738,3 +738,36 @@ module Kernel =
                 let lambda = r.value * (double w)
                 let retVal = p.nextPoisson lambda
                 min retVal w // Cannot recycle more than we have.
+
+
+    /// Common parameters between differential and Poisson based models.
+    type EeInfModelParams =
+        {
+            kernelParams : KernelParams
+            gammaFuncValue : GammaFuncValue
+            numberOfMolecules : NumberOfMolecules
+            recyclingRate : RecyclingRate
+            name : string option
+        }
+
+        /// Default linear value, mostly for tests, as it does not have many practical purposes.
+        static member defaultValue =
+            {
+                kernelParams = KernelParams.defaultValue
+                gammaFuncValue = GammaFuncValue.defaultValue
+                numberOfMolecules = NumberOfMolecules.defaultValue
+                recyclingRate = RecyclingRate.defaultValue
+                name = None
+            }
+
+        /// Default value with quadratic kernel and non-linear gamma.
+        /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
+        static member defaultNonLinearValue =
+            let kp = KernelParams.defaultQuadraticValue
+            let d = kp.domain2D()
+            { EeInfModelParams.defaultValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
+
+        static member withK0 k0 p = { p with kernelParams = p.kernelParams |> KernelParams.withK0 k0 }
+        static member withEps0 eps0 p = { p with kernelParams = p.kernelParams |> KernelParams.withEps0 eps0 }
+        static member withGamma0 gamma0 p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGamma0 gamma0 }
+        static member withDomainIntervals d p = { p with kernelParams = p.kernelParams |> KernelParams.withDomainIntervals d }

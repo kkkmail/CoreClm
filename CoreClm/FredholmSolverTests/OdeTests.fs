@@ -14,7 +14,7 @@ open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-open FredholmSolver.EeInfModel
+open FredholmSolver.EeInfDiffModel
 open FredholmSolver.EeInfChartData
 open Primitives.SolverRunnerErrors
 open Softellect.Sys.Core
@@ -49,7 +49,7 @@ type CallBackResults =
 
 type OdeResultData =
     {
-        modelData : EeInfModel
+        modelData : EeInfDiffModel
         callBackResults : CallBackResults
         result : CallBackData
         getData : double[] -> SubstanceData
@@ -60,11 +60,11 @@ type OdeResultData =
     member r.toWolframData (odeParams : OdeParams) =
         let a = $"""Get["C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m"];{Nl}{Nl}"""
         let b = $"""plotAll[1];{Nl}"""
-        let d = r.modelData.modelParams |> toOutputString |> toWolframNotation
+        let d = r.modelData.diffModelParams |> toOutputString |> toWolframNotation
         let o = odeParams |> toOutputString |> toWolframNotation
         let descr = $"descr ={Nl}\"{d}{Nl}{o}\";{Nl}{Nl}"
-        let gamma0 = r.modelData.modelParams.gammaFuncValue.gamma0.value
-        let k0 = r.modelData.modelParams.kernelParams.kaFuncValue.k0.value
+        let gamma0 = r.modelData.diffModelParams.eeInfModelParams.gammaFuncValue.gamma0.value
+        let k0 = r.modelData.diffModelParams.eeInfModelParams.kernelParams.kaFuncValue.k0.value
 
         let eta = r.modelData.kernelData.domain2D.eeDomain.points.value
         let zeta = r.modelData.kernelData.domain2D.infDomain.points.value
@@ -177,7 +177,7 @@ type OdeTests (output : ITestOutputHelper) =
         writeLine $"{Nl}===================================================================================={Nl}{Nl}"
 
 
-    let outputEeInfModelData (data : EeInfModelParams) (odeParams : OdeParams) =
+    let outputEeInfModelData (data : EeInfDiffModelParams) (odeParams : OdeParams) =
         writeLine $"data:{Nl}{(toOutputString data)}{Nl}"
         writeLine $"odeParams:{Nl}{(toOutputString odeParams)}"
 
@@ -198,12 +198,12 @@ type OdeTests (output : ITestOutputHelper) =
             v.protocell.toMatrix() |> outputMatrix md.kernelData.domain2D
 
 
-    let outputKa (md : EeInfModel) =
+    let outputKa (md : EeInfDiffModel) =
         writeLine "ka:"
         md.kernelData.ka.value |> outputMatrix md.kernelData.domain2D
 
 
-    let outputGamma (md : EeInfModel) =
+    let outputGamma (md : EeInfDiffModel) =
         writeLine "gamma:"
         md.gamma.value |> outputMatrix md.kernelData.domain2D
 
@@ -236,8 +236,8 @@ type OdeTests (output : ITestOutputHelper) =
 
 
     let nSolveParam p odeParams =
-        let md = EeInfModel.create p
-        let i = md.initialValues
+        let md = EeInfDiffModel.create p
+        let i = md.diffInitialValues
         // let f t v = outputResult md t v
         let f t v = ()
         let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
@@ -307,11 +307,11 @@ type OdeTests (output : ITestOutputHelper) =
         }
 
 
-    let odePackRun p cc odeParams =
+    let odePackRun (p : EeInfDiffModelParams) cc odeParams =
         let mutable cr = CallBackResults.defaultValue
         outputEeInfModelData p odeParams
 
-        let md = EeInfModel.create p
+        let md = EeInfDiffModel.create p
         let n, getData = nSolveParam p odeParams
         let outputResult b (d : CallBackData) = outputResult md d (getData d.x) b
 
@@ -322,7 +322,7 @@ type OdeTests (output : ITestOutputHelper) =
                 y0 = 0.0M
                 tEnd = 0.0M
                 resultId = RunQueueId.getNewId()
-                modelParams = md.modelParams
+                modelParams = md.diffModelParams.eeInfModelParams
                 domain2D = md.kernelData.domain2D
             }
 
@@ -387,9 +387,9 @@ type OdeTests (output : ITestOutputHelper) =
         odeResult
 
 
-    let odePackShouldRun p odeParams shift name =
-        let eeInfModelParams = { p with initParams = p.initParams.shifted shift; name = Some name }
-        let r = odePackRun eeInfModelParams (fun _ -> None) odeParams
+    let odePackShouldRun (p : EeInfDiffModelParams) odeParams shift name =
+        let eeInfDiffModelParams = { p.named name with diffInitParams = p.diffInitParams.shifted shift }
+        let r = odePackRun eeInfDiffModelParams (fun _ -> None) odeParams
 
         outputWolframData odeParams name r
 
@@ -407,11 +407,11 @@ type OdeTests (output : ITestOutputHelper) =
     /// eps0 = 0.01
     /// gamma0 = 0.0 - no asymmetry.
     /// global asymmetry factor = -0.01
-    let mp_d100k1e01a0 = EeInfModelParams.defaultValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 100) |> EeInfModelParams.withK0 K0.defaultValue
-    let mp_d200k1e01a0 = EeInfModelParams.defaultValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 200) |> EeInfModelParams.withK0 K0.defaultValue
+    let mp_d100k1e01a0 = EeInfDiffModelParams.defaultValue |> EeInfDiffModelParams.withDomainIntervals (DomainIntervals 100) |> EeInfDiffModelParams.withK0 K0.defaultValue
+    let mp_d200k1e01a0 = EeInfDiffModelParams.defaultValue |> EeInfDiffModelParams.withDomainIntervals (DomainIntervals 200) |> EeInfDiffModelParams.withK0 K0.defaultValue
 
     /// eps0 = 0.005
-    let mp_d200k1e005a0 = mp_d200k1e01a0 |> EeInfModelParams.withEps0 Eps0.defaultNarrowValue
+    let mp_d200k1e005a0 = mp_d200k1e01a0 |> EeInfDiffModelParams.withEps0 Eps0.defaultNarrowValue
 
 
     /// DomainIntervals 100
@@ -419,42 +419,42 @@ type OdeTests (output : ITestOutputHelper) =
     /// eps0 = 0.01
     /// gamma0 = 0.01
     /// global asymmetry factor = -0.01
-    let mp_d100k1e01g01 = EeInfModelParams.defaultNonLinearValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 100)
+    let mp_d100k1e01g01 = EeInfDiffModelParams.defaultNonLinearValue |> EeInfDiffModelParams.withDomainIntervals (DomainIntervals 100)
 
     /// DomainIntervals 200
-    let mp_d200k1e01g01 = EeInfModelParams.defaultNonLinearValue |> EeInfModelParams.withDomainIntervals (DomainIntervals 200)
+    let mp_d200k1e01g01 = EeInfDiffModelParams.defaultNonLinearValue |> EeInfDiffModelParams.withDomainIntervals (DomainIntervals 200)
 
 
     /// eps0 = 0.02
-    let mp_d100k1e02g01 = mp_d100k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultWideValue
-    let mp_d200k1e02g01 = mp_d200k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultWideValue
+    let mp_d100k1e02g01 = mp_d100k1e01g01 |> EeInfDiffModelParams.withEps0 Eps0.defaultWideValue
+    let mp_d200k1e02g01 = mp_d200k1e01g01 |> EeInfDiffModelParams.withEps0 Eps0.defaultWideValue
 
 
     /// eps0 = 0.005
-    let mp_d100k1e005g01 = mp_d100k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultNarrowValue
-    let mp_d200k1e005g01 = mp_d200k1e01g01 |> EeInfModelParams.withEps0 Eps0.defaultNarrowValue
+    let mp_d100k1e005g01 = mp_d100k1e01g01 |> EeInfDiffModelParams.withEps0 Eps0.defaultNarrowValue
+    let mp_d200k1e005g01 = mp_d200k1e01g01 |> EeInfDiffModelParams.withEps0 Eps0.defaultNarrowValue
 
 
     /// k0 = 0.01, ka - quadratic
-    let mp_d100k01e01g01 = mp_d100k1e01g01 |> EeInfModelParams.withK0 K0.defaultSmallValue
-    let mp_d200k01e01g01 = mp_d200k1e01g01 |> EeInfModelParams.withK0 K0.defaultSmallValue
+    let mp_d100k01e01g01 = mp_d100k1e01g01 |> EeInfDiffModelParams.withK0 K0.defaultSmallValue
+    let mp_d200k01e01g01 = mp_d200k1e01g01 |> EeInfDiffModelParams.withK0 K0.defaultSmallValue
 
     /// k0 = 0.01, ka - quadratic
     /// eps0 = 0.005
-    let mp_d200k01e005g01 = mp_d200k1e005g01 |> EeInfModelParams.withK0 K0.defaultSmallValue
+    let mp_d200k01e005g01 = mp_d200k1e005g01 |> EeInfDiffModelParams.withK0 K0.defaultSmallValue
 
     /// k0 = 0.001, ka - quadratic
     /// eps0 = 0.005
-    let mp_d200k001e005g01 = mp_d200k1e005g01 |> EeInfModelParams.withK0 (K0 0.001)
+    let mp_d200k001e005g01 = mp_d200k1e005g01 |> EeInfDiffModelParams.withK0 (K0 0.001)
 
     /// k0 = 0.0001, ka - quadratic
     /// eps0 = 0.005
-    let mp_d200k0001e005g01 = mp_d200k1e005g01 |> EeInfModelParams.withK0 (K0 0.0001)
+    let mp_d200k0001e005g01 = mp_d200k1e005g01 |> EeInfDiffModelParams.withK0 (K0 0.0001)
 
 
     /// k0 = 0.001, ka - quadratic
-    let mp_d100k001e01g01 = mp_d100k1e01g01 |> EeInfModelParams.withK0 K0.defaultVerySmallValue
-    let mp_d200k001e01g01 = mp_d200k1e01g01 |> EeInfModelParams.withK0 K0.defaultVerySmallValue
+    let mp_d100k001e01g01 = mp_d100k1e01g01 |> EeInfDiffModelParams.withK0 K0.defaultVerySmallValue
+    let mp_d200k001e01g01 = mp_d200k1e01g01 |> EeInfDiffModelParams.withK0 K0.defaultVerySmallValue
 
 
     member private _.getCallerName([<CallerMemberName; Optional; DefaultParameterValue("")>] ?memberName: string) =
@@ -638,7 +638,7 @@ type OdeTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.odePack_ShouldCallBack () : unit =
         let name = t.getCallerName()
-        let r = odePackRun { EeInfModelParams.defaultValue with name = Some name } (fun _ -> None) op_default
+        let r = odePackRun (EeInfDiffModelParams.defaultValue.named name) (fun _ -> None) op_default
 
         use _ = new AssertionScope()
         r.result.Should().NotBeNull(nullString) |> ignore
@@ -652,8 +652,8 @@ type OdeTests (output : ITestOutputHelper) =
     member t.odePack_ShouldCancel () : unit =
         let mutable cr = CallBackResults.defaultValue
 
-        let md = { EeInfModelParams.defaultValue with name = Some (t.getCallerName()) }
-        let model = EeInfModel.create md
+        let md = EeInfDiffModelParams.defaultValue.named (t.getCallerName())
+        let model = EeInfDiffModel.create md
         //let r = odePackRun md (fun _ -> None) defaultOdeParams
 
         let n, getData = nSolveParam md op_default
@@ -679,8 +679,8 @@ type OdeTests (output : ITestOutputHelper) =
     member _.odePack_ShouldAbort () : unit =
         let mutable cr = CallBackResults.defaultValue
 
-        let md = EeInfModelParams.defaultValue
-        let model = EeInfModel.create md
+        let md = EeInfDiffModelParams.defaultValue
+        let model = EeInfDiffModel.create md
 
         let n, getData = nSolveParam md op_default
         let outputResult b d = outputResult model d (getData d.x) b

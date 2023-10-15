@@ -6,17 +6,7 @@ open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open GenericOdeSolver.Primitives
 
-module EeInfModel =
-
-    [<Literal>]
-    let DefaultRootFolder = DefaultRootDrive + @":\" + ContGenBaseName + @"\Clm\"
-
-    [<Literal>]
-    let DefaultResultLocationFolder = DefaultRootFolder + "Results"
-
-    [<Literal>]
-    let DefaultFileStorageFolder = DefaultRootFolder + "FileStorage"
-
+module EeInfDiffModel =
 
     type SubstanceType =
         | Food
@@ -87,32 +77,6 @@ module EeInfModel =
         member d.unpack() = d.food, d.waste, d.protocell
 
 
-    type FoodIntData =
-        | FoodIntData of int64
-
-        member r.value = let (FoodIntData v) = r in v
-
-
-    type WasteIntData =
-        | WasteIntData of int64
-
-        member r.value = let (WasteIntData v) = r in v
-
-
-    type ProtocellIntData =
-        | ProtocellIntData of Matrix<int64>
-
-        member r.value = let (ProtocellIntData v) = r in v
-
-
-    type SubstanceIntData =
-        {
-            food : FoodIntData
-            waste : WasteIntData
-            protocell : ProtocellIntData
-        }
-
-
     /// We can only shift delta to a grid cell.
     type ProtocellInitParams =
         | DeltaEeShifted of int
@@ -137,7 +101,7 @@ module EeInfModel =
                 (eps / norm) * v
 
 
-    type EeInfInitParams =
+    type EeInfDiffInitParams =
         {
             eps : double
             protocellInitParams : ProtocellInitParams
@@ -154,27 +118,20 @@ module EeInfModel =
         member p.shifted shift = { p with protocellInitParams = ProtocellInitParams.create shift }
 
 
-    type EeInfModelParams =
+    type EeInfDiffModelParams =
         {
-            kernelParams : KernelParams
-            gammaFuncValue : GammaFuncValue
-            numberOfMolecules : NumberOfMolecules
-            recyclingRate : RecyclingRate
-            initParams : EeInfInitParams
-            name : string option
+            eeInfModelParams : EeInfModelParams
+            diffInitParams : EeInfDiffInitParams
         }
 
-        member p.shifted shift = { p with initParams = p.initParams.shifted shift }
+        member p.shifted shift = { p with diffInitParams = p.diffInitParams.shifted shift }
+        member p.named n = { p with eeInfModelParams = { p.eeInfModelParams with name = Some n } }
 
         /// Default linear value, mostly for tests, as it does not have many practical purposes.
         static member defaultValue =
             {
-                kernelParams = KernelParams.defaultValue
-                gammaFuncValue = GammaFuncValue.defaultValue
-                numberOfMolecules = NumberOfMolecules.defaultValue
-                recyclingRate = RecyclingRate.defaultValue
-                initParams = EeInfInitParams.defaultValue
-                name = None
+                eeInfModelParams = EeInfModelParams.defaultValue
+                diffInitParams = EeInfDiffInitParams.defaultValue
             }
 
         /// Default value with quadratic kernel and non-linear gamma.
@@ -182,24 +139,24 @@ module EeInfModel =
         static member defaultNonLinearValue =
             let kp = KernelParams.defaultQuadraticValue
             let d = kp.domain2D()
-            { EeInfModelParams.defaultValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
+            { EeInfDiffModelParams.defaultValue with eeInfModelParams = EeInfModelParams.defaultNonLinearValue }
 
-        static member withK0 k0 p = { p with kernelParams = p.kernelParams |> KernelParams.withK0 k0 }
-        static member withEps0 eps0 p = { p with kernelParams = p.kernelParams |> KernelParams.withEps0 eps0 }
-        static member withGamma0 gamma0 p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGamma0 gamma0 }
-        static member withDomainIntervals d p = { p with kernelParams = p.kernelParams |> KernelParams.withDomainIntervals d }
+        static member withK0 k0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withK0 k0 }
+        static member withEps0 eps0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withEps0 eps0 }
+        static member withGamma0 gamma0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withGamma0 gamma0 }
+        static member withDomainIntervals d p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withDomainIntervals d }
 
 
-    type EeInfModel =
+    type EeInfDiffModel =
         {
             kernelData : KernelData
             gamma : Gamma
-            initialValues : SubstanceData
-            modelParams : EeInfModelParams // To keep all params used to create a model.
+            diffInitialValues : SubstanceData
+            diffModelParams : EeInfDiffModelParams // To keep all params used to create a model.
         }
 
         member private md.unpack() =
-            let p = md.modelParams
+            let p = md.diffModelParams.eeInfModelParams
             md.kernelData, md.gamma.value, p.numberOfMolecules.value, p.recyclingRate.value
 
         /// Calculates a derivative.
@@ -218,34 +175,6 @@ module EeInfModel =
             let du = (f_n * int_k_u - gamma_u) |> ProtocellData
 
             let retVal = SubstanceData.create df dw du
-            retVal
-
-        /// Calculates a new state of the system after one epoch.
-        /// !!! This is different from a derivative above, which calculates the "difference" between states !!!
-        member md.evolve (p : PoissonSampler) (x : SubstanceIntData) =
-            let f = x.food.value
-            let w = x.waste.value
-            let u = x.protocell.value
-            let k, _, n, _ = md.unpack()
-
-            // If the amount of food falls below zero, then treat it as exact zero until enough waste is recycled.
-            let f_n = (pown (double (max f 0L)) n)
-            let gamma_u = md.gamma.evolve p u
-            let int_gamma_u = gamma_u.total()
-            let int_k_u = k.evolve p f_n u
-            let int_int_k_u = int_k_u.total()
-            let r = md.modelParams.recyclingRate.evolve p w
-
-            // Note that the food could be "eaten" beyond zero. If that happens, then it will be treated as exact zero until enough waste is recycled.
-            let df = (int64 n) * (r - int_int_k_u)
-            let dw = - r + int_gamma_u
-            let du = int_k_u - gamma_u
-
-            let f1 = f + df |> FoodIntData
-            let w1 = w + dw |> WasteIntData
-            let u1 = u + du |> ProtocellIntData
-
-            let retVal =  { food = f1; waste = w1; protocell = u1 }
             retVal
 
         member md.substanceData i x = LinearData<SubstanceType, double>.create i x |> SubstanceData
@@ -267,17 +196,17 @@ module EeInfModel =
             let inv = (double n) * (int_u + w) + f
             inv
 
-        static member create (mp : EeInfModelParams) : EeInfModel =
-            let k = KernelData.create mp.kernelParams
+        static member create (mp : EeInfDiffModelParams) : EeInfDiffModel =
+            let k = KernelData.create mp.eeInfModelParams.kernelParams
 
-            let f = FoodData (mp.initParams.total - (double mp.numberOfMolecules.value) * mp.initParams.eps)
+            let f = FoodData (mp.diffInitParams.total - (double mp.eeInfModelParams.numberOfMolecules.value) * mp.diffInitParams.eps)
             let w = WasteData 0.0
-            let u = mp.initParams.protocellInitParams.getU mp.initParams.eps k.domain2D |> ProtocellData
+            let u = mp.diffInitParams.protocellInitParams.getU mp.diffInitParams.eps k.domain2D |> ProtocellData
             let sd = SubstanceData.create f w u
 
             {
                 kernelData = k
-                gamma = Gamma.create k.domain2D mp.gammaFuncValue
-                initialValues = sd
-                modelParams = mp
+                gamma = Gamma.create k.domain2D mp.eeInfModelParams.gammaFuncValue
+                diffInitialValues = sd
+                diffModelParams = mp
             }

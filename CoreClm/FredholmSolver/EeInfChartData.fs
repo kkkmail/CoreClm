@@ -8,7 +8,7 @@ open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-open FredholmSolver.EeInfModel
+open FredholmSolver.EeInfDiffModel
 open Primitives.SolverRunnerErrors
 open Softellect.Sys.Core
 open Softellect.Sys.Logging
@@ -108,8 +108,8 @@ module EeInfChartData =
     type AsyncChartDataUpdater = AsyncUpdater<ChartInitData, ChartSliceData, ChartData>
 
 
-    let calculateStat (md : EeInfModel) (v : SubstanceData) =
-        let n = md.modelParams.numberOfMolecules.value
+    let calculateStat (md : EeInfDiffModel) (v : SubstanceData) =
+        let n = md.diffModelParams.eeInfModelParams.numberOfMolecules.value
         let u = v.protocell
         let total = md.kernelData.domain2D.integrateValues u
         let inv = md.invariant v
