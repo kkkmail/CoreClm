@@ -34,10 +34,10 @@ type PoissonTests (output : ITestOutputHelper) =
     let outputFolder = @"C:\EeInf"
 
     [<Fact>]
-    member t.poissonEvolution_ShouldKeepInvariant () : unit =
+    member t.poissonEvolution_ShouldKeepInvariant_10K () : unit =
         let noOfEpochs = 10_000
         let noOfDomainPoints = 100
-        let md = EeInfIntModelParams.defaultValue |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints) |> EeInfIntModelParams.withK0 K0.defaultVerySmallValue
+        let md = EeInfIntModelParams.defaultNonLinearValue |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints) |> EeInfIntModelParams.withK0 K0.defaultSmallValue
         let model = EeInfIntModel.create md
         let initialValue = model.intInitialValues
         let startInv = model.invariant initialValue
@@ -48,6 +48,55 @@ type PoissonTests (output : ITestOutputHelper) =
         let endStat = calculateIntStat model result
 
         use _ = new AssertionScope()
+        writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {noOfDomainPoints}"
+        writeLine $"startInv = {startInv}, endInv = {endInv}"
+        writeLine $"start: food = {startStat.food}, waste = {startStat.waste}, u = {startStat.total}"
+        writeLine $"start: ee mean = {startStat.eeStatData.mean}, ee stdDev = {startStat.eeStatData.stdDev}, inf mean = {startStat.infStatData.mean}, inf stdDev = {startStat.infStatData.stdDev}"
+        writeLine $"end: food = {endStat.food}, waste = {endStat.waste}, u = {endStat.total}"
+        writeLine $"end: ee mean = {endStat.eeStatData.mean}, ee stdDev = {endStat.eeStatData.stdDev}, inf mean = {endStat.infStatData.mean}, inf stdDev = {endStat.infStatData.stdDev}"
+        endInv.Should().Be(startInv, nullString) |> ignore
+
+
+    [<Fact>]
+    member t.poissonEvolution_ShouldKeepInvariant_100K () : unit =
+        let noOfEpochs = 100_000
+        let noOfDomainPoints = 100
+        let md = EeInfIntModelParams.defaultNonLinearValue |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints) |> EeInfIntModelParams.withK0 K0.defaultSmallValue
+        let model = EeInfIntModel.create md
+        let initialValue = model.intInitialValues
+        let startInv = model.invariant initialValue
+        let startStat = calculateIntStat model initialValue
+        let ps = Random 1 |> PoissonSampler.create
+        let result = [|for _ in 1..noOfEpochs -> () |] |> Array.fold (fun acc _ -> model.evolve ps acc) initialValue
+        let endInv = model.invariant result
+        let endStat = calculateIntStat model result
+
+        use _ = new AssertionScope()
+        writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {noOfDomainPoints}"
+        writeLine $"startInv = {startInv}, endInv = {endInv}"
+        writeLine $"start: food = {startStat.food}, waste = {startStat.waste}, u = {startStat.total}"
+        writeLine $"start: ee mean = {startStat.eeStatData.mean}, ee stdDev = {startStat.eeStatData.stdDev}, inf mean = {startStat.infStatData.mean}, inf stdDev = {startStat.infStatData.stdDev}"
+        writeLine $"end: food = {endStat.food}, waste = {endStat.waste}, u = {endStat.total}"
+        writeLine $"end: ee mean = {endStat.eeStatData.mean}, ee stdDev = {endStat.eeStatData.stdDev}, inf mean = {endStat.infStatData.mean}, inf stdDev = {endStat.infStatData.stdDev}"
+        endInv.Should().Be(startInv, nullString) |> ignore
+
+
+    [<Fact>]
+    member t.poissonEvolution_ShouldKeepInvariant_1M () : unit =
+        let noOfEpochs = 1_000_000
+        let noOfDomainPoints = 100
+        let md = EeInfIntModelParams.defaultNonLinearValue |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints) |> EeInfIntModelParams.withK0 K0.defaultSmallValue
+        let model = EeInfIntModel.create md
+        let initialValue = model.intInitialValues
+        let startInv = model.invariant initialValue
+        let startStat = calculateIntStat model initialValue
+        let ps = Random 1 |> PoissonSampler.create
+        let result = [|for _ in 1..noOfEpochs -> () |] |> Array.fold (fun acc _ -> model.evolve ps acc) initialValue
+        let endInv = model.invariant result
+        let endStat = calculateIntStat model result
+
+        use _ = new AssertionScope()
+        writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {noOfDomainPoints}"
         writeLine $"startInv = {startInv}, endInv = {endInv}"
         writeLine $"start: food = {startStat.food}, waste = {startStat.waste}, u = {startStat.total}"
         writeLine $"start: ee mean = {startStat.eeStatData.mean}, ee stdDev = {startStat.eeStatData.stdDev}, inf mean = {startStat.infStatData.mean}, inf stdDev = {startStat.infStatData.stdDev}"

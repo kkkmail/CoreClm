@@ -125,7 +125,7 @@ module Kernel =
                 if n <= 0L then 0L
                 else
                     let lambda = (double n) * e.value2D * multiplier
-                    let retVal = p.nextPoisson lambda
+                    let retVal = if lambda > 0.0 then p.nextPoisson lambda else 0L
                     retVal
 
             let sum = a.value |> Array.map g |> Array.sum
@@ -141,7 +141,7 @@ module Kernel =
                 if n <= 0L then 0L
                 else
                     let lambda = (double n) * e.value2D
-                    let retVal = p.nextPoisson lambda
+                    let retVal = if lambda > 0.0 then p.nextPoisson lambda else 0L
                     retVal
 
             let sum = a.value |> Array.map g |> Array.sum

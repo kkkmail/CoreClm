@@ -98,9 +98,9 @@ module EeInfIntModel =
             let k, _, n, _ = md.unpack()
 
             // If the amount of food falls below zero, then treat it as exact zero until enough waste is recycled.
-            let f_n = (pown (double (max f 0L)) n)
             let gamma_u = md.gamma.evolve p u
             let int_gamma_u = gamma_u.total()
+            let f_n = (pown (double (max f 0L)) n)
             let int_k_u = k.evolve p f_n u
             let int_int_k_u = int_k_u.total()
             let r = md.intModelParams.eeInfModelParams.recyclingRate.evolve p w

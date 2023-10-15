@@ -21,7 +21,10 @@ module Primitives =
     let poissonSample rnd lambda =
         if lambda <= 2e9 then
             // Use MathNet.Numerics.Distributions for small lambda
-            int64 (Poisson.Sample(rnd, lambda))
+            try
+                int64 (Poisson.Sample(rnd, lambda))
+            with e ->
+                failwith $"lambda: {lambda}, exception: {e}"
         else
             // Use Gaussian approximation for large lambda
             let mu = lambda
