@@ -110,6 +110,9 @@ type PoissonTests (output : ITestOutputHelper) =
     member t.mp_d200k001e01g01_1M () : unit = runPoissonEvolution 1_000_000 200 K0.defaultVerySmallValue (t.getCallerName())
 
     [<Fact>]
+    member t.mp_d100k01e01g01_10K () : unit = runPoissonEvolution 10_000 100 K0.defaultSmallValue (t.getCallerName())
+
+    [<Fact>]
     member t.mp_d200k01e01g01_10K () : unit = runPoissonEvolution 10_000 200 K0.defaultSmallValue (t.getCallerName())
 
     [<Fact>]
