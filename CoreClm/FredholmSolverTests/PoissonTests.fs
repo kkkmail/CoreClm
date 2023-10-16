@@ -43,6 +43,11 @@ type PoissonTests (output : ITestOutputHelper) =
 
         md
 
+    /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI1
+    let toI1 (mp : EeInfIntModelParams) =
+        let domain2D = Domain2D.create mp.eeInfModelParams.kernelParams.domainIntervals.value mp.eeInfModelParams.kernelParams.infMaxValue.value
+        mp |> EeInfIntModelParams.withKaFunc (KaFuncValue.defaultQuadraticWithLinearInfValueI1 domain2D)
+
     // Flat
     let mp_d100k01e01a0 = createModelData EeInfIntModelParams.defaultValue 100 K0.defaultSmallValue id
 
@@ -51,10 +56,15 @@ type PoissonTests (output : ITestOutputHelper) =
     let mp_d200k001e01g01 = createModelData EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultVerySmallValue id
     let mp_d200k01e01g01 = createModelData EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultSmallValue id
 
-    // Quadratic  with small linear factor in inf space.
+    // Quadratic with small linear factor in inf space.
     let mp_d100k01e01g01i01 = createModelData EeInfIntModelParams.defaultQuadraticWithLinearInfValue 100 K0.defaultSmallValue id
     let mp_d200k001e01g01i01 = createModelData EeInfIntModelParams.defaultQuadraticWithLinearInfValue 200 K0.defaultVerySmallValue id
     let mp_d200k01e01g01i01 = createModelData EeInfIntModelParams.defaultQuadraticWithLinearInfValue 200 K0.defaultSmallValue id
+
+    // Quadratic with larger linear factor in inf space.
+    let mp_d100k01e01g01i1 = toI1 mp_d100k01e01g01i01
+    let mp_d200k001e01g01i1 = toI1 mp_d200k001e01g01i01
+    let mp_d200k01e01g01i1 = toI1 mp_d200k01e01g01i01
 
     let createModel (mp : EeInfIntModelParams) name =
         let md = mp.named name
@@ -107,7 +117,12 @@ type PoissonTests (output : ITestOutputHelper) =
 
         let u = (norm * (substanceData.protocell.value.convert double)).value
         let uData = $"uData = {(toWolframNotation u)};{Nl}{Nl}"
-        let ka = model.kernelData.ka.value.value |> Array.map (fun a -> a |> Array.map (fun b -> b / k0))
+
+        // Need to rescale ka back.
+        let totalMolecules = model.intModelParams.intInitParams.totalMolecules
+        let n = model.intModelParams.eeInfModelParams.numberOfMolecules.value
+        let kMult = pown (double totalMolecules) n
+        let ka = model.kernelData.ka.value.value |> Array.map (fun a -> a |> Array.map (fun b -> b * kMult / k0))
 
         let kaData = $"ka = {(toWolframNotation ka)};{Nl}{Nl}"
 
@@ -245,3 +260,10 @@ type PoissonTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.d200k01e01g01i01_100K () : unit = runPoissonEvolution mp_d200k01e01g01i01 100_000 (t.getCallerName())
+
+    // Quadratic with larger linear factor in inf space.
+    [<Fact>]
+    member t.d200k001e01g01i1_10K () : unit = runPoissonEvolution mp_d200k001e01g01i1 10_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k001e01g01i1_100K () : unit = runPoissonEvolution mp_d200k001e01g01i1 100_000 (t.getCallerName())

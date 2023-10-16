@@ -90,7 +90,7 @@ module Primitives =
         /// This is NOT a matrix multiplication but element by element multiplication.
         /// The index of a Vector matches the FIRST index of a Matrix.
         static member inline (*) (a : Vector<'T>, b : Matrix<'T>) : Matrix<'T> =
-            let retVal = b.value |> Array.mapi (fun i e -> e |> Array.map (fun v -> a.value[i] * v)) |> Matrix
+            let retVal = b.value |> Array.Parallel.mapi (fun i e -> e |> Array.map (fun v -> a.value[i] * v)) |> Matrix
             retVal
 
         /// This is NOT a matrix multiplication but element by element multiplication.
@@ -105,11 +105,11 @@ module Primitives =
             retVal
 
         static member inline (+) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
-            let retVal = a.value |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> v + b.value[i][j])) |> Matrix
+            let retVal = a.value |> Array.Parallel.mapi (fun i e -> e |> Array.mapi (fun j v -> v + b.value[i][j])) |> Matrix
             retVal
 
         static member inline (-) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
-            let retVal = a.value |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> v - b.value[i][j])) |> Matrix
+            let retVal = a.value |> Array.Parallel.mapi (fun i e -> e |> Array.mapi (fun j v -> v - b.value[i][j])) |> Matrix
             retVal
 
 
@@ -159,7 +159,7 @@ module Primitives =
 
         /// This is NOT a matrix multiplication but element by element multiplication.
         static member inline (*) (a : LinearMatrix<'T>, b : Matrix<'T>) : Matrix<'T> =
-            let retVal = b.value |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> (a.getValue i j) * v)) |> Matrix
+            let retVal = b.value |> Array.Parallel.mapi (fun i e -> e |> Array.mapi (fun j v -> (a.getValue i j) * v)) |> Matrix
             retVal
 
 

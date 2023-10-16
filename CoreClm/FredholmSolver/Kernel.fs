@@ -402,7 +402,7 @@ module Kernel =
 
             SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
-        /// Quadratic growth from (0, 0) point with a small linear growth in inf space.
+        /// Quadratic growth from (0, 0) point with a 0.01 linear growth in inf space.
         static member defaultQuadraticWithLinearInfValue (d : Domain2D) =
             let tEe =
                 {
@@ -416,6 +416,24 @@ module Kernel =
                     x0 = 0.0
                     xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.01; 1.0 |]
+                }
+
+            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+
+        /// Quadratic growth from (0, 0) point with a 0.1 linear growth in inf space.
+        static member defaultQuadraticWithLinearInfValueI1 (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    xScale = 1.0
+                    coefficients = [| 1.0; 0.0; 1.0 |]
+                }
+
+            let tInf =
+                {
+                    x0 = 0.0
+                    xScale = twoThirdInfScale d
+                    coefficients = [| 1.0; 0.1; 1.0 |]
                 }
 
             SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
@@ -653,11 +671,9 @@ module Kernel =
         static member withEps0 (eps0 : Eps0) (kp : KernelParams) =
             { kp with epsEeFuncValue = EpsFuncValue.ScalarEps eps0.value; epsInfFuncValue = EpsFuncValue.ScalarEps eps0.value }
 
-        static member withK0 (k0 : K0) (kp : KernelParams) =
-            { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
-
-        static member withDomainIntervals (d : DomainIntervals) (kp : KernelParams) =
-            { kp with domainIntervals = d }
+        static member withK0 (k0 : K0) (kp : KernelParams) = { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
+        static member withKaFunc (ka : KaFuncValue) (kp : KernelParams) = { kp with kaFuncValue = ka }
+        static member withDomainIntervals (d : DomainIntervals) (kp : KernelParams) = { kp with domainIntervals = d }
 
 
     type Ka =
@@ -818,6 +834,7 @@ module Kernel =
             { EeInfModelParams.defaultValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
 
         static member withK0 k0 p = { p with kernelParams = p.kernelParams |> KernelParams.withK0 k0 }
+        static member withKaFunc (ka : KaFuncValue) p = { p with kernelParams = p.kernelParams |> KernelParams.withKaFunc ka }
         static member withEps0 eps0 p = { p with kernelParams = p.kernelParams |> KernelParams.withEps0 eps0 }
         static member withGamma0 gamma0 p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGamma0 gamma0 }
         static member withDomainIntervals d p = { p with kernelParams = p.kernelParams |> KernelParams.withDomainIntervals d }
