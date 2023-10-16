@@ -470,18 +470,14 @@ type OdeTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.odePack_ShouldRun () : unit = odePackShouldRun mp_d100k1e01a0 op_default 0 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k1e01a0_50K () : unit = odePackShouldRun mp_d200k1e01a0 op_50K 0 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k1e01a0_100K () : unit = odePackShouldRun mp_d200k1e01a0 op_100K 0 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k1e005a0_50K () : unit = odePackShouldRun mp_d200k1e005a0 op_50K 0 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k1e005a0_100K () : unit = odePackShouldRun mp_d200k1e005a0 op_100K 0 (t.getCallerName())
@@ -491,10 +487,8 @@ type OdeTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.d200k01e01g01_10K () : unit = odePackShouldRun mp_d200k01e01g01 op_10K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k01e01g01_10K_s2 () : unit = odePackShouldRun mp_d200k01e01g01 op_10K 2 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k01e01g01_10K_s5 () : unit = odePackShouldRun mp_d200k01e01g01 op_10K 5 (t.getCallerName())
@@ -504,58 +498,44 @@ type OdeTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.d100k1e01g01_50K () : unit = odePackShouldRun mp_d100k1e01g01 op_50K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d100k1e02g01_50K () : unit = odePackShouldRun mp_d100k1e02g01 op_50K 1 (t.getCallerName())
-
 
     [<Fact>]
     member t.d100k1e005g01_50K () : unit = odePackShouldRun mp_d100k1e005g01 op_50K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d100k01e01g01_50K () : unit = odePackShouldRun mp_d100k01e01g01 op_50K 1 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k1e01g01_50K () : unit = odePackShouldRun mp_d200k1e01g01 op_50K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k1e02g01_50K () : unit = odePackShouldRun mp_d200k1e02g01 op_50K 1 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k1e005g01_50K () : unit = odePackShouldRun mp_d200k1e005g01 op_50K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k01e01g01_50K () : unit = odePackShouldRun mp_d200k01e01g01 op_50K 1 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k01e01g01_50K_s2 () : unit = odePackShouldRun mp_d200k01e01g01 op_50K 2 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k01e01g01_50K_s5 () : unit = odePackShouldRun mp_d200k01e01g01 op_50K 5 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k001e01g01_50K_s2 () : unit = odePackShouldRun mp_d200k001e01g01 op_50K 2 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k001e01g01_50K_s5 () : unit = odePackShouldRun mp_d200k001e01g01 op_50K 5 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k01e005g01_50K_s5 () : unit = odePackShouldRun mp_d200k01e005g01 op_50K 5 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k001e005g01_50K_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_50K 5 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k0001e005g01_50K_s5 () : unit = odePackShouldRun mp_d200k0001e005g01 op_50K 5 (t.getCallerName())
@@ -565,78 +545,59 @@ type OdeTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.d100k1e01g01_100K () : unit = odePackShouldRun mp_d100k1e01g01 op_100K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d100k1e02g01_100K () : unit = odePackShouldRun mp_d100k1e02g01 op_100K 1 (t.getCallerName())
-
 
     [<Fact>]
     member t.d100k1e005g01_100K () : unit = odePackShouldRun mp_d100k1e005g01 op_100K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d100k01e01g01_100K () : unit = odePackShouldRun mp_d100k01e01g01 op_100K 1 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k1e01g01_100K () : unit = odePackShouldRun mp_d200k1e01g01 op_100K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k1e02g01_100K () : unit = odePackShouldRun mp_d200k1e02g01 op_100K 1 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k1e005g01_100K () : unit = odePackShouldRun mp_d200k1e005g01 op_100K 1 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k01e01g01_100K () : unit = odePackShouldRun mp_d200k01e01g01 op_100K 1 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k01e005g01_100K_s5 () : unit = odePackShouldRun mp_d200k01e005g01 op_100K 5 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k01e005g01_200K_s5 () : unit = odePackShouldRun mp_d200k01e005g01 op_200K 5 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k01e005g01_200K_s0 () : unit = odePackShouldRun mp_d200k01e005g01 op_200K 0 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k01e005g01_1M_s5 () : unit = odePackShouldRun mp_d200k01e005g01 op_1M 5 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k01e005g01_1M_s0 () : unit = odePackShouldRun mp_d200k01e005g01 op_1M 0 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k001e005g01_100K_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_100K 5 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k001e005g01_200K_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_200K 5 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k001e005g01_200K_s0 () : unit = odePackShouldRun mp_d200k001e005g01 op_200K 0 (t.getCallerName())
-
 
     [<Fact>]
     member t.d200k001e005g01_1M_s5 () : unit = odePackShouldRun mp_d200k001e005g01 op_1M 5 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k001e005g01_1M_s0 () : unit = odePackShouldRun mp_d200k001e005g01 op_1M 0 (t.getCallerName())
 
-
     [<Fact>]
     member t.d200k0001e005g01_100K_s5 () : unit = odePackShouldRun mp_d200k0001e005g01 op_100K 5 (t.getCallerName())
-
 
     [<Fact>]
     member t.odePack_ShouldCallBack () : unit =
@@ -649,7 +610,6 @@ type OdeTests (output : ITestOutputHelper) =
         r.callBackResults.completedCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
         r.callBackResults.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
         r.callBackResults.chartCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
-
 
     [<Fact>]
     member t.odePack_ShouldCancel () : unit =
@@ -677,7 +637,6 @@ type OdeTests (output : ITestOutputHelper) =
         cr.cancelledCallBackCount.Should().Be(1, nullString) |> ignore
         cr.abortedCallBackCount.Should().Be(0, nullString) |> ignore
 
-
     [<Fact>]
     member _.odePack_ShouldAbort () : unit =
         let mutable cr = CallBackResults.defaultValue
@@ -703,7 +662,6 @@ type OdeTests (output : ITestOutputHelper) =
         cr.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
         cr.abortedCallBackCount.Should().Be(1, nullString) |> ignore
 
-
     [<Fact>]
     member _.integrate_ShouldWork () : unit =
 
@@ -727,7 +685,6 @@ type OdeTests (output : ITestOutputHelper) =
         let grid = Array.init xSteps (fun x -> Array.init ySteps (fun y -> float x * dx * float y * dy))
         let result = integrate2D grid dx dy
         result.Should().BeApproximately(0.25, 0.001, nullString) |> ignore
-
 
     [<Fact>]
     member t.chart_ShouldWork() : unit =

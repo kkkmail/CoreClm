@@ -33,19 +33,58 @@ type PoissonTests (output : ITestOutputHelper) =
     let errInvTolerance = 1.0e-3
     let outputFolder = @"C:\EeInf"
 
-    [<Fact>]
-    member t.poissonEvolution_ShouldKeepInvariant_10K () : unit =
-        let noOfEpochs = 10_000
-        let noOfDomainPoints = 100
-        let md = EeInfIntModelParams.defaultNonLinearValue |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints) |> EeInfIntModelParams.withK0 K0.defaultSmallValue
+    let runPoissonEvolution noOfEpochs noOfDomainPoints k0 name =
+        let md =
+            EeInfIntModelParams.defaultNonLinearValue.named name
+            |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints)
+            |> EeInfIntModelParams.withK0 k0
+
         let model = EeInfIntModel.create md
         let initialValue = model.intInitialValues
         let startInv = model.invariant initialValue
         let startStat = calculateIntStat model initialValue
         let ps = Random 1 |> PoissonSampler.create
-        let result = [|for _ in 1..noOfEpochs -> () |] |> Array.fold (fun acc _ -> model.evolve ps acc) initialValue
+
+        let chartInitData =
+            {
+                baseData =
+                    {
+                        resultId = RunQueueId.getNewId()
+                        modelParams = model.intModelParams.eeInfModelParams
+                        domain2D = model.kernelData.domain2D
+                    }
+                totalMolecules = model.intModelParams.intInitParams.totalMolecules
+                noOfEpochs = noOfEpochs
+            }
+
+        let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData)
+
+        let getChartSliceData e i : ChartSliceIntData =
+            {
+                epochNumber = i
+                progress = 0.0m
+                statData  = calculateIntStat model e
+                substanceData  = None
+            }
+
+        let outputChart (chartData : ChartIntData) =
+            writeLine "epochNumber,food,waste,total,invariant,eeMean,eeStdDev,infMean,infStdDev"
+
+            chartData.allChartData
+            |> List.rev
+            |> List.map (fun e -> writeLine $"{e.epochNumber},{e.statData.food},{e.statData.waste},{e.statData.total},{e.statData.invariant},{e.statData.eeStatData.mean},{e.statData.eeStatData.stdDev},{e.statData.infStatData.mean},{e.statData.infStatData.stdDev}")
+            |> ignore
+
+        let evolve e i =
+            let e1 = model.evolve ps e
+            getChartSliceData e1 i |> chartDataUpdater.addContent
+            e1
+
+        let result = [|for i in 1..noOfEpochs -> i |] |> Array.fold evolve initialValue
         let endInv = model.invariant result
         let endStat = calculateIntStat model result
+        let chartData = chartDataUpdater.getContent()
+        chartData |> outputChart
 
         use _ = new AssertionScope()
         writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {noOfDomainPoints}"
@@ -56,50 +95,25 @@ type PoissonTests (output : ITestOutputHelper) =
         writeLine $"end: ee mean = {endStat.eeStatData.mean}, ee stdDev = {endStat.eeStatData.stdDev}, inf mean = {endStat.infStatData.mean}, inf stdDev = {endStat.infStatData.stdDev}"
         endInv.Should().Be(startInv, nullString) |> ignore
 
+    member private _.getCallerName([<CallerMemberName; Optional; DefaultParameterValue("")>] ?memberName: string) =
+        let now = DateTime.Now
+        let memberName = defaultArg memberName ""
+        $"{memberName}__{now:yyyyMMdd_HHmm}"
 
     [<Fact>]
-    member t.poissonEvolution_ShouldKeepInvariant_100K () : unit =
-        let noOfEpochs = 100_000
-        let noOfDomainPoints = 100
-        let md = EeInfIntModelParams.defaultNonLinearValue |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints) |> EeInfIntModelParams.withK0 K0.defaultSmallValue
-        let model = EeInfIntModel.create md
-        let initialValue = model.intInitialValues
-        let startInv = model.invariant initialValue
-        let startStat = calculateIntStat model initialValue
-        let ps = Random 1 |> PoissonSampler.create
-        let result = [|for _ in 1..noOfEpochs -> () |] |> Array.fold (fun acc _ -> model.evolve ps acc) initialValue
-        let endInv = model.invariant result
-        let endStat = calculateIntStat model result
-
-        use _ = new AssertionScope()
-        writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {noOfDomainPoints}"
-        writeLine $"startInv = {startInv}, endInv = {endInv}"
-        writeLine $"start: food = {startStat.food}, waste = {startStat.waste}, u = {startStat.total}"
-        writeLine $"start: ee mean = {startStat.eeStatData.mean}, ee stdDev = {startStat.eeStatData.stdDev}, inf mean = {startStat.infStatData.mean}, inf stdDev = {startStat.infStatData.stdDev}"
-        writeLine $"end: food = {endStat.food}, waste = {endStat.waste}, u = {endStat.total}"
-        writeLine $"end: ee mean = {endStat.eeStatData.mean}, ee stdDev = {endStat.eeStatData.stdDev}, inf mean = {endStat.infStatData.mean}, inf stdDev = {endStat.infStatData.stdDev}"
-        endInv.Should().Be(startInv, nullString) |> ignore
-
+    member t.mp_d200k001e01g01_10K () : unit = runPoissonEvolution 10_000 200 K0.defaultVerySmallValue (t.getCallerName())
 
     [<Fact>]
-    member t.poissonEvolution_ShouldKeepInvariant_1M () : unit =
-        let noOfEpochs = 1_000_000
-        let noOfDomainPoints = 100
-        let md = EeInfIntModelParams.defaultNonLinearValue |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints) |> EeInfIntModelParams.withK0 K0.defaultSmallValue
-        let model = EeInfIntModel.create md
-        let initialValue = model.intInitialValues
-        let startInv = model.invariant initialValue
-        let startStat = calculateIntStat model initialValue
-        let ps = Random 1 |> PoissonSampler.create
-        let result = [|for _ in 1..noOfEpochs -> () |] |> Array.fold (fun acc _ -> model.evolve ps acc) initialValue
-        let endInv = model.invariant result
-        let endStat = calculateIntStat model result
+    member t.mp_d200k001e01g01_100K () : unit = runPoissonEvolution 100_000 200 K0.defaultVerySmallValue (t.getCallerName())
 
-        use _ = new AssertionScope()
-        writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {noOfDomainPoints}"
-        writeLine $"startInv = {startInv}, endInv = {endInv}"
-        writeLine $"start: food = {startStat.food}, waste = {startStat.waste}, u = {startStat.total}"
-        writeLine $"start: ee mean = {startStat.eeStatData.mean}, ee stdDev = {startStat.eeStatData.stdDev}, inf mean = {startStat.infStatData.mean}, inf stdDev = {startStat.infStatData.stdDev}"
-        writeLine $"end: food = {endStat.food}, waste = {endStat.waste}, u = {endStat.total}"
-        writeLine $"end: ee mean = {endStat.eeStatData.mean}, ee stdDev = {endStat.eeStatData.stdDev}, inf mean = {endStat.infStatData.mean}, inf stdDev = {endStat.infStatData.stdDev}"
-        endInv.Should().Be(startInv, nullString) |> ignore
+    [<Fact>]
+    member t.mp_d200k001e01g01_1M () : unit = runPoissonEvolution 1_000_000 200 K0.defaultVerySmallValue (t.getCallerName())
+
+    [<Fact>]
+    member t.mp_d200k01e01g01_10K () : unit = runPoissonEvolution 10_000 200 K0.defaultSmallValue (t.getCallerName())
+
+    [<Fact>]
+    member t.mp_d200k01e01g01_100K () : unit = runPoissonEvolution 100_000 200 K0.defaultSmallValue (t.getCallerName())
+
+    [<Fact>]
+    member t.mp_d200k01e01g01_1M () : unit = runPoissonEvolution 1_000_000 200 K0.defaultSmallValue (t.getCallerName())

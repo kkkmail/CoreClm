@@ -98,24 +98,45 @@ module EeInfIntModel =
             let k, _, n, _ = md.unpack()
 
             // If the amount of food falls below zero, then treat it as exact zero until enough waste is recycled.
+            let r = md.intModelParams.eeInfModelParams.recyclingRate.evolve p w
             let gamma_u = md.gamma.evolve p u
             let int_gamma_u = gamma_u.total()
             let f_n = (pown (double (max f 0L)) n)
             let int_k_u = k.evolve p f_n u
             let int_int_k_u = int_k_u.total()
-            let r = md.intModelParams.eeInfModelParams.recyclingRate.evolve p w
 
             // Note that the food could be "eaten" beyond zero. If that happens, then it will be treated as exact zero until enough waste is recycled.
             let df = (int64 n) * (r - int_int_k_u)
             let dw = - r + int_gamma_u
             let du = int_k_u - gamma_u
 
-            let f1 = f + df |> FoodIntData
-            let w1 = w + dw |> WasteIntData
-            let u1 = u + du |> ProtocellIntData
+            if f + df >= 0L then
+                let f1 = f + df |> FoodIntData
+                let w1 = w + dw |> WasteIntData
+                let u1 = u + du |> ProtocellIntData
 
-            let retVal =  { food = f1; waste = w1; protocell = u1 }
-            retVal
+                let retVal =  { food = f1; waste = w1; protocell = u1 }
+                retVal
+            else
+                // We get here if the food is getting eaten too fast.
+                // Here is what we do:
+                //   1. Adjust f_n.
+                let c = (double int_int_k_u) / f_n
+                let f_n1 = max (min (((double f) + (double r) * (double n)) / (c * (double n))) f_n) 0.0
+
+                //   2. Recalculate df and du.
+                let int_k_u = k.evolve p f_n1 u
+                let int_int_k_u = int_k_u.total()
+
+                let df = (int64 n) * (r - int_int_k_u)
+                let du = int_k_u - gamma_u
+
+                let f1 = f + df |> FoodIntData
+                let w1 = w + dw |> WasteIntData
+                let u1 = u + du |> ProtocellIntData
+
+                let retVal =  { food = f1; waste = w1; protocell = u1 }
+                retVal
 
         member md.invariant (x : SubstanceIntData) =
             let f = x.food.value
