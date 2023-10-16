@@ -408,8 +408,7 @@ type OdeTests (output : ITestOutputHelper) =
     /// DomainIntervals 100
     /// k0 = 0.1, ka - identity
     /// eps0 = 0.01
-    /// gamma0 = 0.0 - no asymmetry.
-    /// global asymmetry factor = -0.01
+    /// global asymmetry factor = 0 - no asymmetry
     let mp_d100k1e01a0 = EeInfDiffModelParams.defaultValue |> EeInfDiffModelParams.withDomainIntervals (DomainIntervals 100) |> EeInfDiffModelParams.withK0 K0.defaultValue
     let mp_d200k1e01a0 = EeInfDiffModelParams.defaultValue |> EeInfDiffModelParams.withDomainIntervals (DomainIntervals 200) |> EeInfDiffModelParams.withK0 K0.defaultValue
 

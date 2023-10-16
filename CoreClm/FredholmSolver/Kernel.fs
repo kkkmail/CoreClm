@@ -402,6 +402,24 @@ module Kernel =
 
             SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
+        /// Quadratic growth from (0, 0) point with a small linear growth in inf space.
+        static member defaultQuadraticWithLinearInfValue (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    xScale = 1.0
+                    coefficients = [| 1.0; 0.0; 1.0 |]
+                }
+
+            let tInf =
+                {
+                    x0 = 0.0
+                    xScale = twoThirdInfScale d
+                    coefficients = [| 1.0; 0.01; 1.0 |]
+                }
+
+            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+
 
     /// gamma0 multiplier in gamma.
     type Gamma0 =
@@ -628,6 +646,10 @@ module Kernel =
             let kp = KernelParams.defaultValue
             { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue (kp.domain2D()) }
 
+        static member defaultQuadraticWithLinearInfValue =
+            let kp = KernelParams.defaultValue
+            { kp with kaFuncValue = KaFuncValue.defaultQuadraticWithLinearInfValue (kp.domain2D()) }
+
         static member withEps0 (eps0 : Eps0) (kp : KernelParams) =
             { kp with epsEeFuncValue = EpsFuncValue.ScalarEps eps0.value; epsInfFuncValue = EpsFuncValue.ScalarEps eps0.value }
 
@@ -787,6 +809,11 @@ module Kernel =
         /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
         static member defaultNonLinearValue =
             let kp = KernelParams.defaultQuadraticValue
+            let d = kp.domain2D()
+            { EeInfModelParams.defaultValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
+
+        static member defaultQuadraticWithLinearInfValue =
+            let kp = KernelParams.defaultQuadraticWithLinearInfValue
             let d = kp.domain2D()
             { EeInfModelParams.defaultValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
 
