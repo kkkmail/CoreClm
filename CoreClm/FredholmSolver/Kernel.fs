@@ -400,7 +400,7 @@ module Kernel =
                     coefficients = [| 1.0; 0.0; 1.0 |]
                 }
 
-            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+            SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
         /// Quadratic growth from (0, 0) point with a 0.01 linear growth in inf space.
         static member defaultQuadraticWithLinearInfValue (d : Domain2D) =
@@ -418,7 +418,7 @@ module Kernel =
                     coefficients = [| 1.0; 0.01; 1.0 |]
                 }
 
-            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+            SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
         /// Quadratic growth from (0, 0) point with a 0.1 linear growth in inf space.
         static member defaultQuadraticWithLinearInfValueI1 (d : Domain2D) =
@@ -434,6 +434,24 @@ module Kernel =
                     x0 = 0.0
                     xScale = twoThirdInfScale d
                     coefficients = [| 1.0; 0.1; 1.0 |]
+                }
+
+            SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+
+        /// Quadratic growth from (0, 0) point with a 1.0 linear growth in inf space.
+        static member defaultQuadraticWithLinearInfValueI10 (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    xScale = 1.0
+                    coefficients = [| 1.0; 0.0; 1.0 |]
+                }
+
+            let tInf =
+                {
+                    x0 = 0.0
+                    xScale = twoThirdInfScale d
+                    coefficients = [| 1.0; 1.0; 1.0 |]
                 }
 
             SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }

@@ -32,22 +32,35 @@ module EeInfIntModel =
         }
 
 
+    type MoleculeCount =
+        | MoleculeCount of int64
+
+        member r.value = let (MoleculeCount v) = r in v
+        static member OneThousand = MoleculeCount 1_000L // 10^3
+        static member OneMillion = MoleculeCount 1_000_000L // 10^6
+        static member OneBillion = MoleculeCount 1_000_000_000L // 10^9
+        static member OneTrillion = MoleculeCount 1_000_000_000_000L // 10^12
+        static member OneQuadrillion = MoleculeCount 1_000_000_000_000_000L // 10^15
+        static member OneQuintillion = MoleculeCount 1_000_000_000_000_000_000L // 10^18
+
 
     type EeInfIntInitParams =
         {
-            uInitial : int64
+            uInitial : MoleculeCount
             protocellInitParams : EeInfDiffModel.ProtocellInitParams
-            totalMolecules : int64
+            totalMolecules : MoleculeCount
         }
 
         static member defaultValue =
             {
-                uInitial = 1_000L
+                uInitial = MoleculeCount.OneThousand
                 protocellInitParams = EeInfDiffModel.ProtocellInitParams.defaultValue
-                totalMolecules = 1_000_000_000L
+                totalMolecules = MoleculeCount.OneBillion
             }
 
         member p.shifted shift = { p with protocellInitParams = EeInfDiffModel.ProtocellInitParams.create shift }
+        member p.withTotalMolecules totalMolecules = { p with totalMolecules = totalMolecules }
+        member p.withUInitial uInitial = { p with uInitial = uInitial }
 
 
     type EeInfIntModelParams =
@@ -58,6 +71,8 @@ module EeInfIntModel =
 
         member p.shifted shift = { p with intInitParams = p.intInitParams.shifted shift }
         member p.named n = { p with eeInfModelParams = { p.eeInfModelParams with name = Some n } }
+        member p.withTotalMolecules totalMolecules = { p with intInitParams = p.intInitParams.withTotalMolecules totalMolecules }
+        member p.withUInitial uInitial = { p with intInitParams = p.intInitParams.withUInitial uInitial }
 
         /// Default linear value, mostly for tests, as it does not have many practical purposes.
         static member defaultValue =
@@ -153,7 +168,7 @@ module EeInfIntModel =
             inv
 
         static member create (mp : EeInfIntModelParams) : EeInfIntModel =
-            let totalMolecules = mp.intInitParams.totalMolecules
+            let totalMolecules = mp.intInitParams.totalMolecules.value
             let n = mp.eeInfModelParams.numberOfMolecules.value
 
             // Need to rescale kaFuncValue.
@@ -164,9 +179,9 @@ module EeInfIntModel =
 
             let k = KernelData.create kpScaled
 
-            let f = totalMolecules - (int64 n) * mp.intInitParams.uInitial |> FoodIntData
+            let f = totalMolecules - (int64 n) * mp.intInitParams.uInitial.value |> FoodIntData
             let w = 0L |> WasteIntData
-            let u = mp.intInitParams.protocellInitParams.getIntU mp.intInitParams.uInitial k.domain2D |> ProtocellIntData
+            let u = mp.intInitParams.protocellInitParams.getIntU mp.intInitParams.uInitial.value k.domain2D |> ProtocellIntData
 
             {
                 kernelData = k

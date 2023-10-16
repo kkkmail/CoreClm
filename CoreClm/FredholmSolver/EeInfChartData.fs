@@ -66,7 +66,7 @@ module EeInfChartData =
     type ChartInitIntData =
         {
             baseData : ChartInitBaseData
-            totalMolecules : int64
+            totalMolecules : MoleculeCount
             noOfEpochs : int
         }
 

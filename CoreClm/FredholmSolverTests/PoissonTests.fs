@@ -27,6 +27,17 @@ open Primitives.ChartPrimitives
 open Primitives.WolframPrimitives
 
 
+/// Naming conventions (all must be specified unless noted otherwise).
+/// All numbers smaller than 1 are prefixed with a relevant letter, e.g. k0 = 0.01 becomes k01.
+/// Current exceptions are domain points, which is just an integer, e.g. for 200 points use d200 and
+/// inf space linear factor. If it larger than one then add a zero at the end, e.g. i = 1.0 becomes i10.
+///     1. d - domain points, e.g. d200.
+///     2. k - k0, e.g. k01.
+///     3. e - eps in mutation probability, e.g. e01.
+///     4. g - gamma0, default is 0.01.
+///     5. a - asymmetry factor, default is 0.01. Can be skipped in the name if default is used.
+///     6. i - inf space linear factor, default is 0.0. Can be skipped in the name if default is used.
+///     7. f - total amount of all (mostly food) molecules, e.g. f1T for 10^12 molecules. Default is 1B. Can be skipped in the name if default is used.
 type PoissonTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
@@ -43,10 +54,23 @@ type PoissonTests (output : ITestOutputHelper) =
 
         md
 
-    /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI1
+    /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI1 but keeps K0
     let toI1 (mp : EeInfIntModelParams) =
         let domain2D = Domain2D.create mp.eeInfModelParams.kernelParams.domainIntervals.value mp.eeInfModelParams.kernelParams.infMaxValue.value
-        mp |> EeInfIntModelParams.withKaFunc (KaFuncValue.defaultQuadraticWithLinearInfValueI1 domain2D)
+        let k0 = mp.eeInfModelParams.kernelParams.kaFuncValue.k0
+
+        mp
+        |> EeInfIntModelParams.withKaFunc (KaFuncValue.defaultQuadraticWithLinearInfValueI1 domain2D)
+        |> EeInfIntModelParams.withK0 k0
+
+    /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI10 but keeps K0
+    let toI10 (mp : EeInfIntModelParams) =
+        let domain2D = Domain2D.create mp.eeInfModelParams.kernelParams.domainIntervals.value mp.eeInfModelParams.kernelParams.infMaxValue.value
+        let k0 = mp.eeInfModelParams.kernelParams.kaFuncValue.k0
+
+        mp
+        |> EeInfIntModelParams.withKaFunc (KaFuncValue.defaultQuadraticWithLinearInfValueI10 domain2D)
+        |> EeInfIntModelParams.withK0 k0
 
     // Flat
     let mp_d100k01e01a0 = createModelData EeInfIntModelParams.defaultValue 100 K0.defaultSmallValue id
@@ -65,6 +89,19 @@ type PoissonTests (output : ITestOutputHelper) =
     let mp_d100k01e01g01i1 = toI1 mp_d100k01e01g01i01
     let mp_d200k001e01g01i1 = toI1 mp_d200k001e01g01i01
     let mp_d200k01e01g01i1 = toI1 mp_d200k01e01g01i01
+
+    // Quadratic with even larger linear factor in inf space.
+    let mp_d100k01e01g01i10 = toI10 mp_d100k01e01g01i01
+    let mp_d200k001e01g01i10 = toI10 mp_d200k001e01g01i01
+    let mp_d200k01e01g01i10 = toI10 mp_d200k01e01g01i01
+
+    // ===================================================================================
+
+    // 1T
+    let mp_d200k01e01g01i1f1T = mp_d200k01e01g01i1.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d200k01e01g01i10f1T = mp_d200k01e01g01i10.withTotalMolecules MoleculeCount.OneTrillion
+
+    // ===================================================================================
 
     let createModel (mp : EeInfIntModelParams) name =
         let md = mp.named name
@@ -106,7 +143,8 @@ type PoissonTests (output : ITestOutputHelper) =
         let descr = $"descr ={Nl}\"{d}{Nl}noOfEpochs = {noOfEpochs}\";{Nl}{Nl}"
         let gamma0 = model.intModelParams.eeInfModelParams.gammaFuncValue.gamma0.value
         let k0 = model.intModelParams.eeInfModelParams.kernelParams.kaFuncValue.k0.value
-        let norm = 100.0 / (double model.intModelParams.intInitParams.totalMolecules) // Use values in %.
+        let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
+        let norm = 100.0 / (double totalMolecules) // Use values in %.
 
         let eta = model.kernelData.domain2D.eeDomain.points.value
         let zeta = model.kernelData.domain2D.infDomain.points.value
@@ -119,7 +157,6 @@ type PoissonTests (output : ITestOutputHelper) =
         let uData = $"uData = {(toWolframNotation u)};{Nl}{Nl}"
 
         // Need to rescale ka back.
-        let totalMolecules = model.intModelParams.intInitParams.totalMolecules
         let n = model.intModelParams.eeInfModelParams.numberOfMolecules.value
         let kMult = pown (double totalMolecules) n
         let ka = model.kernelData.ka.value.value |> Array.map (fun a -> a |> Array.map (fun b -> b * kMult / k0))
@@ -263,7 +300,24 @@ type PoissonTests (output : ITestOutputHelper) =
 
     // Quadratic with larger linear factor in inf space.
     [<Fact>]
-    member t.d200k001e01g01i1_10K () : unit = runPoissonEvolution mp_d200k001e01g01i1 10_000 (t.getCallerName())
+    member t.d200k01e01g01i1_10K () : unit = runPoissonEvolution mp_d200k01e01g01i1 10_000 (t.getCallerName())
 
     [<Fact>]
-    member t.d200k001e01g01i1_100K () : unit = runPoissonEvolution mp_d200k001e01g01i1 100_000 (t.getCallerName())
+    member t.d200k01e01g01i1_100K () : unit = runPoissonEvolution mp_d200k01e01g01i1 100_000 (t.getCallerName())
+
+
+    // Quadratic with even larger linear factor in inf space.
+    [<Fact>]
+    member t.d200k01e01g01i10_10K () : unit = runPoissonEvolution mp_d200k01e01g01i10 10_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k01e01g01i10_100K () : unit = runPoissonEvolution mp_d200k01e01g01i10 100_000 (t.getCallerName())
+
+    // ===================================================================================
+
+    [<Fact>]
+    member t.d200k01e01g01i1f1T_100K () : unit = runPoissonEvolution mp_d200k01e01g01i1f1T 100_000 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e01g01i10f1T_100K () : unit = runPoissonEvolution mp_d200k01e01g01i10f1T 100_000 (t.getCallerName())
