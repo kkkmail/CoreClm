@@ -96,6 +96,7 @@ type PoissonTests (output : ITestOutputHelper) =
         let descr = $"descr ={Nl}\"{d}{Nl}noOfEpochs = {noOfEpochs}\";{Nl}{Nl}"
         let gamma0 = model.intModelParams.eeInfModelParams.gammaFuncValue.gamma0.value
         let k0 = model.intModelParams.eeInfModelParams.kernelParams.kaFuncValue.k0.value
+        let norm = 100.0 / (double model.intModelParams.intInitParams.totalMolecules) // Use values in %.
 
         let eta = model.kernelData.domain2D.eeDomain.points.value
         let zeta = model.kernelData.domain2D.infDomain.points.value
@@ -104,7 +105,7 @@ type PoissonTests (output : ITestOutputHelper) =
         let k0Data = $"k0 = {(toWolframNotation k0)};{Nl}{Nl}"
         let gamma0Data = $"gamma0 = {(toWolframNotation gamma0)};{Nl}{Nl}"
 
-        let u = substanceData.protocell.value
+        let u = (norm * (substanceData.protocell.value.convert double)).value
         let uData = $"uData = {(toWolframNotation u)};{Nl}{Nl}"
         let ka = model.kernelData.ka.value.value |> Array.map (fun a -> a |> Array.map (fun b -> b / k0))
 
@@ -118,15 +119,15 @@ type PoissonTests (output : ITestOutputHelper) =
 
             let a =
                 [
-                    $"{(g e.epochNumber)}"
+                    $"{(g (int e.epochNumber))}"
                     $"{g e.statData.eeStatData.mean}"
                     $"{g e.statData.eeStatData.stdDev}"
                     $"{g e.statData.infStatData.mean}"
                     $"{g e.statData.infStatData.stdDev}"
-                    $"{g e.statData.invariant}"
-                    $"{g e.statData.total}"
-                    $"{g e.statData.food}"
-                    $"{g e.statData.waste}"
+                    $"{g (norm * (double e.statData.invariant))}"
+                    $"{g (norm * (double e.statData.total))}"
+                    $"{g (norm * (double e.statData.food))}"
+                    $"{g (norm * (double e.statData.waste))}"
                     $"{g e.progress}"
                 ]
                 |> joinStrings ", "
@@ -146,8 +147,8 @@ type PoissonTests (output : ITestOutputHelper) =
         let uw (e : ChartSliceIntData) =
             match e.substanceData with
             | Some v ->
-                let t = toWolframNotation e.epochNumber
-                let u = v.protocell.value |> toWolframNotation
+                let t = toWolframNotation (int e.epochNumber)
+                let u = (norm * (v.protocell.value.convert double)).value |> toWolframNotation
                 $"{{ {t}, {u} }}" |> Some
             | None -> None
 
