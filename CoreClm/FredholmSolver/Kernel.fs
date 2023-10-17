@@ -730,7 +730,7 @@ module Kernel =
         static member create p =
             let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
 
-            let mp =
+            let mp2 =
                 {
                     eeMutationProbabilityParams =
                         {
@@ -747,7 +747,7 @@ module Kernel =
                         }
                 }
 
-            let mp = MutationProbability4D.create mp
+            let mp4 = MutationProbability4D.create mp2
             let kaFunc = p.kaFuncValue.kaFunc domain2D
 
             let ka =
@@ -755,7 +755,7 @@ module Kernel =
                 |> Array.map (fun x -> domain2D.infDomain.points.value |> Array.map (fun y -> kaFunc.invoke domain2D x y))
                 |> Matrix
 
-            let kernel = mp.xy_x1y1 * ka |> Kernel
+            let kernel = mp4.xy_x1y1 * ka |> Kernel
 
             {
                 kernel = kernel

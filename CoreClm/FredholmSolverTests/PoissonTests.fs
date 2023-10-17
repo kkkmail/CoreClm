@@ -103,6 +103,18 @@ type PoissonTests (output : ITestOutputHelper) =
 
     // ===================================================================================
 
+    // 1P
+    let mp_d200k01e01g01i1f1P = mp_d200k01e01g01i1.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d200k01e01g01i10f1P = mp_d200k01e01g01i10.withTotalMolecules MoleculeCount.OneQuadrillion
+
+    // ===================================================================================
+
+    // 1E
+    let mp_d200k01e01g01i1f1E = mp_d200k01e01g01i1.withTotalMolecules MoleculeCount.OneQuintillion
+    let mp_d200k01e01g01i10f1E = mp_d200k01e01g01i10.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+
     let createModel (mp : EeInfIntModelParams) name =
         let md = mp.named name
         let model = EeInfIntModel.create md
@@ -321,3 +333,21 @@ type PoissonTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.d200k01e01g01i10f1T_100K () : unit = runPoissonEvolution mp_d200k01e01g01i10f1T 100_000 (t.getCallerName())
+
+    // ===================================================================================
+
+    [<Fact>]
+    member t.d200k01e01g01i1f1P_100K () : unit = runPoissonEvolution mp_d200k01e01g01i1f1P 100_000 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e01g01i10f1P_100K () : unit = runPoissonEvolution mp_d200k01e01g01i10f1P 100_000 (t.getCallerName())
+
+    // ===================================================================================
+
+    [<Fact>]
+    member t.d200k01e01g01i1f1E_100K () : unit = runPoissonEvolution mp_d200k01e01g01i1f1E 100_000 (t.getCallerName())
+
+
+    [<Fact>]
+    member t.d200k01e01g01i10f1E_100K () : unit = runPoissonEvolution mp_d200k01e01g01i10f1E 100_000 (t.getCallerName())

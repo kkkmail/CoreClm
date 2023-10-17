@@ -36,12 +36,12 @@ module EeInfIntModel =
         | MoleculeCount of int64
 
         member r.value = let (MoleculeCount v) = r in v
-        static member OneThousand = MoleculeCount 1_000L // 10^3
-        static member OneMillion = MoleculeCount 1_000_000L // 10^6
-        static member OneBillion = MoleculeCount 1_000_000_000L // 10^9
-        static member OneTrillion = MoleculeCount 1_000_000_000_000L // 10^12
-        static member OneQuadrillion = MoleculeCount 1_000_000_000_000_000L // 10^15
-        static member OneQuintillion = MoleculeCount 1_000_000_000_000_000_000L // 10^18
+        static member OneThousand = MoleculeCount 1_000L // 10^3 - K
+        static member OneMillion = MoleculeCount 1_000_000L // 10^6 - M
+        static member OneBillion = MoleculeCount 1_000_000_000L // 10^9 - G
+        static member OneTrillion = MoleculeCount 1_000_000_000_000L // 10^12 - T
+        static member OneQuadrillion = MoleculeCount 1_000_000_000_000_000L // 10^15 - P
+        static member OneQuintillion = MoleculeCount 1_000_000_000_000_000_000L // 10^18 - E
 
 
     type EeInfIntInitParams =
