@@ -14,6 +14,7 @@ open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
+open FredholmSolver
 open FredholmSolver.EeInfIntModel
 open FredholmSolver.EeInfChartData
 open Primitives.SolverRunnerErrors
@@ -45,14 +46,14 @@ type PoissonTests (output : ITestOutputHelper) =
     let outputFolder = @"C:\EeInf"
     let noOfCharts = 20
 
-    let createModelData mp noOfDomainPoints k0 modifier =
-        let md =
+    let createModelParams mp noOfDomainPoints k0 modifier : EeInfIntModelParams =
+        let mp1 =
             mp
             |> EeInfIntModelParams.withDomainIntervals (DomainIntervals noOfDomainPoints)
             |> EeInfIntModelParams.withK0 k0
             |> modifier
 
-        md
+        mp1
 
     /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI1 but keeps K0
     let toI1 (mp : EeInfIntModelParams) =
@@ -73,17 +74,17 @@ type PoissonTests (output : ITestOutputHelper) =
         |> EeInfIntModelParams.withK0 k0
 
     // Flat
-    let mp_d100k01e01a0 = createModelData EeInfIntModelParams.defaultValue 100 K0.defaultSmallValue id
+    let mp_d100k01e01a0 = createModelParams EeInfIntModelParams.defaultValue 100 K0.defaultSmallValue id
 
     // Quadratic in inf space
-    let mp_d100k01e01g01 = createModelData EeInfIntModelParams.defaultNonLinearValue 100 K0.defaultSmallValue id
-    let mp_d200k001e01g01 = createModelData EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultVerySmallValue id
-    let mp_d200k01e01g01 = createModelData EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultSmallValue id
+    let mp_d100k01e01g01 = createModelParams EeInfIntModelParams.defaultNonLinearValue 100 K0.defaultSmallValue id
+    let mp_d200k001e01g01 = createModelParams EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultVerySmallValue id
+    let mp_d200k01e01g01 = createModelParams EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultSmallValue id
 
     // Quadratic with small linear factor in inf space.
-    let mp_d100k01e01g01i01 = createModelData EeInfIntModelParams.defaultQuadraticWithLinearInfValue 100 K0.defaultSmallValue id
-    let mp_d200k001e01g01i01 = createModelData EeInfIntModelParams.defaultQuadraticWithLinearInfValue 200 K0.defaultVerySmallValue id
-    let mp_d200k01e01g01i01 = createModelData EeInfIntModelParams.defaultQuadraticWithLinearInfValue 200 K0.defaultSmallValue id
+    let mp_d100k01e01g01i01 = createModelParams EeInfIntModelParams.defaultQuadraticWithLinearInfValue 100 K0.defaultSmallValue id
+    let mp_d200k001e01g01i01 = createModelParams EeInfIntModelParams.defaultQuadraticWithLinearInfValue 200 K0.defaultVerySmallValue id
+    let mp_d200k01e01g01i01 = createModelParams EeInfIntModelParams.defaultQuadraticWithLinearInfValue 200 K0.defaultSmallValue id
 
     // Quadratic with larger linear factor in inf space.
     let mp_d100k01e01g01i1 = toI1 mp_d100k01e01g01i01
@@ -274,7 +275,7 @@ type PoissonTests (output : ITestOutputHelper) =
     member t.mutationProbability2D_ShouldCreate () : unit =
         let model = createModel mp_d100k01e01g01 "No name"
         let p = model.intModelParams.eeInfModelParams.kernelParams
-        let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
+        // let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
 
         // From KernelData.create.
         let mp2 =
@@ -294,7 +295,7 @@ type PoissonTests (output : ITestOutputHelper) =
                     }
             }
 
-        let mp4 = MutationProbability4D.create mp2
+        let mp4 = MutationProbability4D.create EvolutionType.DiscreteEvolution mp2
 
         mp4.Should().NotBeNull(nullString) |> ignore
 
@@ -303,6 +304,19 @@ type PoissonTests (output : ITestOutputHelper) =
     // Flat.
     [<Fact>]
     member t.d100k01e01a0_100K () : unit = runPoissonEvolution mp_d100k01e01a0 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d100k01e01a0_100K_inf2 () : unit =
+        let mp = mp_d100k01e01a0.withInfMaxValue (InfMaxValue 2.0)
+        runPoissonEvolution mp 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d100k01e01a0_100K_inf2_deltaMiddle () : unit =
+        let mp = mp_d100k01e01a0.withInfMaxValue (InfMaxValue 2.0)
+        let mp1 = mp.withProtocellInitParams (EeInfDiffModel.ProtocellInitParams.DeltaEeInfShifted (0, 0))
+        runPoissonEvolution mp1 100_000 (t.getCallerName())
+
+    // ===================================================================================
 
     // Quadratic in inf space.
     [<Fact>]

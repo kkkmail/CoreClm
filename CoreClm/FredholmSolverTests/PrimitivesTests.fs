@@ -64,7 +64,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
     let mutationProbability4D_ShouldIntegrateToOneImpl data =
         let domain = domain2D data
         let sw = Stopwatch.StartNew()
-        let p = MutationProbability4D.create data.mutationProbabilityData2D
+        let p = MutationProbability4D.create EvolutionType.DifferentialEvolution data.mutationProbabilityData2D
         writeLine $"Took: {sw.Elapsed.TotalSeconds} seconds to create MutationProbability4D."
         sw.Restart()
 
@@ -167,8 +167,8 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
         let domain = domain2D data
         let sw = Stopwatch.StartNew()
-        let p = MutationProbability4D.create data.mutationProbabilityData2D
-        let kernel = KernelData.create data
+        let p = MutationProbability4D.create EvolutionType.DifferentialEvolution data.mutationProbabilityData2D
+        let kernel = KernelData.create EvolutionType.DifferentialEvolution data
         writeLine $"{sw.Elapsed.TotalSeconds}."
 
         let x1 = domain.integrateValues kernel.kernel.value

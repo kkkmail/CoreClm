@@ -43,6 +43,11 @@ module Primitives =
         static member create rnd = poissonSample rnd |> PoissonSampler
 
 
+    type EvolutionType =
+        | DifferentialEvolution
+        | DiscreteEvolution
+
+
     /// Linear representation of a vector (array).
     type Vector<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T)> =
         | Vector of 'T[]
@@ -284,12 +289,13 @@ module Primitives =
 
 
     [<RequireQualifiedAccess>]
-    type SparseArray<'T> =
+    type SparseArray<'T when ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         | SparseArray of SparseValue<'T>[]
 
-        member r.value = let (SparseArray v) = r in v
+        member inline r.value = let (SparseArray v) = r in v
+        member inline r.total() = r.value |> Array.map (fun e -> e.value1D) |> Array.sum
 
-        static member create (ZeroThreshold z) v =
+        static member inline create (ZeroThreshold z) v =
             v
             |> Array.mapi (fun i e -> if e >= z then Some { i = i; value1D = e } else None)
             |> Array.choose id

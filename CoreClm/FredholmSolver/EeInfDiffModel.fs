@@ -78,6 +78,7 @@ module EeInfDiffModel =
     /// We can only shift delta to a grid cell.
     type ProtocellInitParams =
         | DeltaEeShifted of int
+        | DeltaEeInfShifted of (int * int)
 
         static member create shift = DeltaEeShifted shift
         static member defaultValue = ProtocellInitParams.create 0
@@ -93,6 +94,17 @@ module EeInfDiffModel =
                     | true -> if ((i + eeShift) * 2 = domainIntervals) && (j = 0) then 1.0 else 0.0
                     | false ->
                         if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (j = 0) then 1.0 else 0.0
+
+                let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
+                let norm = getNorm v
+                (eps / norm) * v
+            | DeltaEeInfShifted (eeShift, infShift) ->
+                let domainIntervals = domain.eeDomain.noOfIntervals
+                let g i j =
+                    match domainIntervals % 2 = 0 with
+                    | true -> if ((i + eeShift) * 2 = domainIntervals) && ((j + infShift) * 2 = domainIntervals) then 1.0 else 0.0
+                    | false ->
+                        if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (((j + infShift) * 2 = domainIntervals - 1) || ((j + infShift) * 2 = domainIntervals + 1)) then 1.0 else 0.0
 
                 let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
                 let norm = getNorm v
@@ -128,6 +140,7 @@ module EeInfDiffModel =
             diffInitParams : EeInfDiffInitParams
         }
 
+        member _.evolutionType = EvolutionType.DifferentialEvolution
         member p.shifted shift = { p with diffInitParams = p.diffInitParams.shifted shift }
         member p.named n = { p with eeInfModelParams = { p.eeInfModelParams with name = Some n } }
 
@@ -199,7 +212,7 @@ module EeInfDiffModel =
             inv
 
         static member create (mp : EeInfDiffModelParams) : EeInfDiffModel =
-            let k = KernelData.create mp.eeInfModelParams.kernelParams
+            let k = KernelData.create mp.evolutionType mp.eeInfModelParams.kernelParams
 
             let f = FoodData (mp.diffInitParams.total - (double mp.eeInfModelParams.numberOfMolecules.value) * mp.diffInitParams.eps)
             let w = WasteData 0.0

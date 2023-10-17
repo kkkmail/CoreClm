@@ -290,6 +290,7 @@ module Kernel =
         }
 
 
+    /// TODO kk:20231017 - Only scalar eps is supported for now.
     /// Type to describe a function used to calculate eps in mutation probability calculations.
     type EpsFunc =
         | EpsFunc of (Domain -> double -> double)
@@ -536,16 +537,28 @@ module Kernel =
         member r.value = let (MutationProbability v) = r in v
 
         /// m is a real (unscaled) value but e is scaled to the half of the range.
-        static member create (data : MutationProbabilityParams) mean =
-            let domain = data.domainParams.domain()
-            let ef = data.epsFuncValue.epsFunc domain
-            let epsFunc x = (ef.invoke domain x) * domain.range / 2.0
-            let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
-            let values = domain.points.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
-            let norm = domain.integrateValues values
-            let p = values.value |> Array.map (fun v -> { v with value1D = v.value1D / norm }) |> SparseArray.SparseArray |> MutationProbability
-            p
-
+        /// i is an index in the domain.
+        static member create (e : EvolutionType) (data : MutationProbabilityParams) (i : int) =
+            match e with
+            | DifferentialEvolution ->
+                let domain = data.domainParams.domain()
+                let mean = domain.points.value.[i]
+                let ef = data.epsFuncValue.epsFunc domain
+                let epsFunc x = (ef.invoke domain x) * domain.range / 2.0
+                let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
+                let values = domain.points.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
+                let norm = domain.integrateValues values
+                let p = values.value |> Array.map (fun v -> { v with value1D = v.value1D / norm }) |> SparseArray.SparseArray |> MutationProbability
+                p
+            | DiscreteEvolution ->
+                let domain = data.domainParams.domain()
+                let ef = data.epsFuncValue.epsFunc domain
+                let epsFunc (i1 : int) = (ef.invoke domain domain.points.value.[i1]) * ( double domain.points.value.Length) / 2.0
+                let f (i1 : int) : double = exp (- pown ((double (i1 - i)) / (epsFunc i1)) 2)
+                let values = domain.points.value |> Array.mapi (fun i1 _ -> f i1) |> SparseArray<double>.create data.zeroThreshold
+                let norm = values.total()
+                let p = values.value |> Array.map (fun v -> { v with value1D = v.value1D / norm }) |> SparseArray.SparseArray |> MutationProbability
+                p
 
     type MutationProbabilityParams2D =
         {
@@ -565,9 +578,10 @@ module Kernel =
 
         member r.value = let (MutationProbability2D v) = r in v
 
-        static member create (data : MutationProbabilityParams2D) eeMean infMean =
-            let p1 = MutationProbability.create data.eeMutationProbabilityParams eeMean
-            let p2 = MutationProbability.create data.infMutationProbabilityParams infMean
+        /// i and j are indices in the domain.
+        static member create (e : EvolutionType) (data : MutationProbabilityParams2D) (i : int) (j : int) =
+            let p1 = MutationProbability.create e data.eeMutationProbabilityParams i
+            let p2 = MutationProbability.create e data.infMutationProbabilityParams j
             let p = cartesianMultiply p1.value p2.value // |> MutationProbability2D
             p
 
@@ -584,14 +598,14 @@ module Kernel =
             xy_x1y1 : SparseArray4D<double>
         }
 
-        static member create (data : MutationProbabilityParams2D) =
+        static member create (e : EvolutionType) (data : MutationProbabilityParams2D) =
             let domain2D = data.domain2D()
             let eeMu = domain2D.eeDomain.points.value
             let infMu = domain2D.infDomain.points.value
 
             // These are the values where integration by (x, y) should yield 1 for each (x1, y1).
             // So [][] is by (x1, y1) and the underlying SparseArray2D is by (x, y).
-            let x1y1_xy = eeMu |> Array.map (fun a -> infMu |> Array.map (MutationProbability2D.create data a))
+            let x1y1_xy = eeMu |> Array.mapi (fun i _ -> infMu |> Array.mapi (fun j _ -> MutationProbability2D.create e data i j))
 
             let xy_x1y1_Map =
                 [| for i in 0..(eeMu.Length - 1) -> [| for j in 0..(infMu.Length - 1) -> SparseValue4D.createArray i j (x1y1_xy[i][j]) |] |]
@@ -727,7 +741,7 @@ module Kernel =
             let v = k.domain2D.evolve (p, multiplier, k.kernel.value, u)
             v
 
-        static member create p =
+        static member create (e : EvolutionType) p =
             let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
 
             let mp2 =
@@ -747,7 +761,7 @@ module Kernel =
                         }
                 }
 
-            let mp4 = MutationProbability4D.create mp2
+            let mp4 = MutationProbability4D.create e mp2
             let kaFunc = p.kaFuncValue.kaFunc domain2D
 
             let ka =
@@ -856,3 +870,4 @@ module Kernel =
         static member withEps0 eps0 p = { p with kernelParams = p.kernelParams |> KernelParams.withEps0 eps0 }
         static member withGamma0 gamma0 p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGamma0 gamma0 }
         static member withDomainIntervals d p = { p with kernelParams = p.kernelParams |> KernelParams.withDomainIntervals d }
+        static member withInfMaxValue infMaxValue p = { p with kernelParams = { p.kernelParams with infMaxValue = infMaxValue } }

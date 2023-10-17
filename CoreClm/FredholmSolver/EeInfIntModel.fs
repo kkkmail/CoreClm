@@ -69,10 +69,13 @@ module EeInfIntModel =
             intInitParams : EeInfIntInitParams
         }
 
+        member _.evolutionType = EvolutionType.DiscreteEvolution
         member p.shifted shift = { p with intInitParams = p.intInitParams.shifted shift }
         member p.named n = { p with eeInfModelParams = { p.eeInfModelParams with name = Some n } }
         member p.withTotalMolecules totalMolecules = { p with intInitParams = p.intInitParams.withTotalMolecules totalMolecules }
         member p.withUInitial uInitial = { p with intInitParams = p.intInitParams.withUInitial uInitial }
+        member p.withInfMaxValue infMaxValue = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withInfMaxValue infMaxValue }
+        member p.withProtocellInitParams protocellInitParams = { p with intInitParams = { p.intInitParams with protocellInitParams = protocellInitParams } }
 
         /// Default linear value, mostly for tests, as it does not have many practical purposes.
         static member defaultValue =
@@ -177,7 +180,7 @@ module EeInfIntModel =
             let k0 = kp.kaFuncValue.k0.value / kMult |> K0
             let kpScaled = { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
 
-            let k = KernelData.create kpScaled
+            let k = KernelData.create mp.evolutionType kpScaled
 
             let f = totalMolecules - (int64 n) * mp.intInitParams.uInitial.value |> FoodIntData
             let w = 0L |> WasteIntData
