@@ -268,6 +268,38 @@ type PoissonTests (output : ITestOutputHelper) =
         let memberName = defaultArg memberName ""
         $"{memberName}__{now:yyyyMMdd_HHmm}"
 
+    // ===================================================================================
+
+    [<Fact>]
+    member t.mutationProbability2D_ShouldCreate () : unit =
+        let model = createModel mp_d100k01e01g01 "No name"
+        let p = model.intModelParams.eeInfModelParams.kernelParams
+        let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
+
+        // From KernelData.create.
+        let mp2 =
+            {
+                eeMutationProbabilityParams =
+                    {
+                        domainParams = p.eeDomainParams
+                        zeroThreshold = p.zeroThreshold
+                        epsFuncValue = p.epsEeFuncValue
+                    }
+
+                infMutationProbabilityParams =
+                    {
+                        domainParams = p.infDomainParams
+                        zeroThreshold = p.zeroThreshold
+                        epsFuncValue = p.epsInfFuncValue
+                    }
+            }
+
+        let mp4 = MutationProbability4D.create mp2
+
+        mp4.Should().NotBeNull(nullString) |> ignore
+
+    // ===================================================================================
+
     // Flat.
     [<Fact>]
     member t.d100k01e01a0_100K () : unit = runPoissonEvolution mp_d100k01e01a0 100_000 (t.getCallerName())
