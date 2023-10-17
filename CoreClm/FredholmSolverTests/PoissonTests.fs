@@ -74,6 +74,8 @@ type PoissonTests (output : ITestOutputHelper) =
         |> EeInfIntModelParams.withK0 k0
 
     // Flat
+    let mp_d100k10e01a0 = createModelParams EeInfIntModelParams.defaultValue 100 K0.defaultIdentityValue id
+    let mp_d100k1e01a0 = createModelParams EeInfIntModelParams.defaultValue 100 K0.defaultValue id
     let mp_d100k01e01a0 = createModelParams EeInfIntModelParams.defaultValue 100 K0.defaultSmallValue id
 
     // Quadratic in inf space
@@ -272,7 +274,7 @@ type PoissonTests (output : ITestOutputHelper) =
     // ===================================================================================
 
     [<Fact>]
-    member t.mutationProbability2D_ShouldCreate () : unit =
+    member _.mutationProbability2D_ShouldCreate () : unit =
         let model = createModel mp_d100k01e01g01 "No name"
         let p = model.intModelParams.eeInfModelParams.kernelParams
         // let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
@@ -313,6 +315,40 @@ type PoissonTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.d100k01e01a0_100K_inf2_deltaMiddle () : unit =
         let mp = mp_d100k01e01a0.withInfMaxValue (InfMaxValue 2.0)
+        let mp1 = mp.withProtocellInitParams (EeInfDiffModel.ProtocellInitParams.DeltaEeInfShifted (0, 0))
+        runPoissonEvolution mp1 100_000 (t.getCallerName())
+
+    // ===================================================================================
+
+    // Flat.
+    [<Fact>]
+    member t.d100k1e01a0_100K () : unit = runPoissonEvolution mp_d100k1e01a0 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d100k1e01a0_100K_inf2 () : unit =
+        let mp = mp_d100k1e01a0.withInfMaxValue (InfMaxValue 2.0)
+        runPoissonEvolution mp 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d100k1e01a0_100K_inf2_deltaMiddle () : unit =
+        let mp = mp_d100k1e01a0.withInfMaxValue (InfMaxValue 2.0)
+        let mp1 = mp.withProtocellInitParams (EeInfDiffModel.ProtocellInitParams.DeltaEeInfShifted (0, 0))
+        runPoissonEvolution mp1 100_000 (t.getCallerName())
+
+    // ===================================================================================
+
+    // Flat.
+    [<Fact>]
+    member t.d100k10e01a0_100K () : unit = runPoissonEvolution mp_d100k10e01a0 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d100k10e01a0_100K_inf2 () : unit =
+        let mp = mp_d100k10e01a0.withInfMaxValue (InfMaxValue 2.0)
+        runPoissonEvolution mp 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d100k10e01a0_100K_inf2_deltaMiddle () : unit =
+        let mp = mp_d100k10e01a0.withInfMaxValue (InfMaxValue 2.0)
         let mp1 = mp.withProtocellInitParams (EeInfDiffModel.ProtocellInitParams.DeltaEeInfShifted (0, 0))
         runPoissonEvolution mp1 100_000 (t.getCallerName())
 

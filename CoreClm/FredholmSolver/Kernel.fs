@@ -303,6 +303,7 @@ module Kernel =
         | K0 of double
 
         member r.value = let (K0 v) = r in v
+        static member defaultIdentityValue = K0 1.0
         static member defaultValue = K0 0.1
         static member defaultSmallValue = K0 0.01
         static member defaultVerySmallValue = K0 0.001
