@@ -73,25 +73,41 @@ type PoissonTests (output : ITestOutputHelper) =
         |> EeInfIntModelParams.withKaFunc (KaFuncValue.defaultQuadraticWithLinearInfValueI10 domain2D)
         |> EeInfIntModelParams.withK0 k0
 
+    // ===================================================================================
+
     // Flat
     let mp_d100k10e01a0 = createModelParams EeInfIntModelParams.defaultValue 100 K0.defaultIdentityValue id
     let mp_d100k1e01a0 = createModelParams EeInfIntModelParams.defaultValue 100 K0.defaultValue id
     let mp_d100k01e01a0 = createModelParams EeInfIntModelParams.defaultValue 100 K0.defaultSmallValue id
 
+    // ===================================================================================
+
     // Quadratic in inf space
     let mp_d100k10e01g01 = createModelParams EeInfIntModelParams.defaultNonLinearValue 100 K0.defaultIdentityValue id
+
+    /// This is the main one.
     let mp_d200k1e01g01 = createModelParams EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultValue id
+
+    let mp_d200k1e01g01a001 = mp_d200k1e01g01 |> EeInfIntModelParams.withGlobalAsymmetryFactor GlobalAsymmetryFactor.defaultSmallValue
+    let mp_d200k1e01g01a0001 = mp_d200k1e01g01 |> EeInfIntModelParams.withGlobalAsymmetryFactor GlobalAsymmetryFactor.defaultVerySmallValue
+
     let mp_d200k10e01g01 = createModelParams EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultIdentityValue id
+
+    // ===================================================================================
 
     // Quadratic with small linear factor in inf space.
     let mp_d100k10e01g01i01 = createModelParams EeInfIntModelParams.defaultQuadraticWithLinearInfValue 100 K0.defaultIdentityValue id
     let mp_d200k1e01g01i01 = createModelParams EeInfIntModelParams.defaultQuadraticWithLinearInfValue 200 K0.defaultValue id
     let mp_d200k10e01g01i01 = createModelParams EeInfIntModelParams.defaultQuadraticWithLinearInfValue 200 K0.defaultIdentityValue id
 
+    // ===================================================================================
+
     // Quadratic with larger linear factor in inf space.
     let mp_d100k10e01g01i1 = toI1 mp_d100k10e01g01i01
     let mp_d200k1e01g01i1 = toI1 mp_d200k1e01g01i01
     let mp_d200k10e01g01i1 = toI1 mp_d200k10e01g01i01
+
+    // ===================================================================================
 
     // Quadratic with even larger linear factor in inf space.
     let mp_d100k10e01g01i10 = toI10 mp_d100k10e01g01i01
@@ -104,6 +120,8 @@ type PoissonTests (output : ITestOutputHelper) =
     let mp_d200k1e01g01f1T = mp_d200k1e01g01.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d200k10e01g01i1f1T = mp_d200k10e01g01i1.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d200k10e01g01i10f1T = mp_d200k10e01g01i10.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d200k1e01g01a001f1T = mp_d200k1e01g01a001.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d200k1e01g01a0001f1T = mp_d200k1e01g01a0001.withTotalMolecules MoleculeCount.OneTrillion
 
     // ===================================================================================
 
@@ -111,6 +129,8 @@ type PoissonTests (output : ITestOutputHelper) =
     let mp_d200k1e01g01f1P = mp_d200k1e01g01.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d200k10e01g01i1f1P = mp_d200k10e01g01i1.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d200k10e01g01i10f1P = mp_d200k10e01g01i10.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d200k1e01g01a001f1P = mp_d200k1e01g01a001.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d200k1e01g01a0001f1P = mp_d200k1e01g01a0001.withTotalMolecules MoleculeCount.OneQuadrillion
 
     // ===================================================================================
 
@@ -118,6 +138,8 @@ type PoissonTests (output : ITestOutputHelper) =
     let mp_d200k1e01g01f1E = mp_d200k1e01g01.withTotalMolecules MoleculeCount.OneQuintillion
     let mp_d200k10e01g01i1f1E = mp_d200k10e01g01i1.withTotalMolecules MoleculeCount.OneQuintillion
     let mp_d200k10e01g01i10f1E = mp_d200k10e01g01i10.withTotalMolecules MoleculeCount.OneQuintillion
+    let mp_d200k1e01g01a001f1E = mp_d200k1e01g01a001.withTotalMolecules MoleculeCount.OneQuintillion
+    let mp_d200k1e01g01a0001f1E = mp_d200k1e01g01a0001.withTotalMolecules MoleculeCount.OneQuintillion
 
     // ===================================================================================
 
@@ -385,8 +407,62 @@ type PoissonTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.d200k1e01g01f1E_100K () : unit = runPoissonEvolution mp_d200k1e01g01f1E 100_000 (t.getCallerName())
 
+    // a = 0.001
+
+    [<Fact>]
+    member t.d200k1e01g01a001_50K () : unit = runPoissonEvolution mp_d200k1e01g01a001 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a001_100K () : unit = runPoissonEvolution mp_d200k1e01g01a001 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a001f1T_50K () : unit = runPoissonEvolution mp_d200k1e01g01a001f1T 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a001f1T_100K () : unit = runPoissonEvolution mp_d200k1e01g01a001f1T 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a001f1P_50K () : unit = runPoissonEvolution mp_d200k1e01g01a001f1P 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a001f1P_100K () : unit = runPoissonEvolution mp_d200k1e01g01a001f1P 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a001f1E_50K () : unit = runPoissonEvolution mp_d200k1e01g01a001f1E 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a001f1E_100K () : unit = runPoissonEvolution mp_d200k1e01g01a001f1E 100_000 (t.getCallerName())
+
+    // a = 0.0001
+
+    [<Fact>]
+    member t.d200k1e01g01a0001_50K () : unit = runPoissonEvolution mp_d200k1e01g01a0001 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001_100K () : unit = runPoissonEvolution mp_d200k1e01g01a0001 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1T_50K () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1T 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1T_100K () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1T 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1P_50K () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1P 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1P_100K () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1P 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1E_50K () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1E 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1E_100K () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1E 100_000 (t.getCallerName())
+
     // [<Fact>]
     // member t.d200k1e01g01_1M () : unit = runPoissonEvolution mp_d200k1e01g01 1_000_000 (t.getCallerName())
+
+    // Larger k0.
 
     [<Fact>]
     member t.d100k10e01g01_10K () : unit = runPoissonEvolution mp_d100k10e01g01 10_000 (t.getCallerName())
@@ -402,7 +478,11 @@ type PoissonTests (output : ITestOutputHelper) =
 
     // ===================================================================================
 
-    // Quadratic  with small linear factor in inf space.
+    // Quadratic in inf space, smaller gamma.
+
+    // ===================================================================================
+
+    // Quadratic with small linear factor in inf space.
     [<Fact>]
     member t.d200k1e01g01i01_10K () : unit = runPoissonEvolution mp_d200k1e01g01i01 10_000 (t.getCallerName())
 
@@ -425,6 +505,7 @@ type PoissonTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.d200k10e01g01i1_100K () : unit = runPoissonEvolution mp_d200k10e01g01i1 100_000 (t.getCallerName())
 
+    // ===================================================================================
 
     // Quadratic with even larger linear factor in inf space.
     [<Fact>]

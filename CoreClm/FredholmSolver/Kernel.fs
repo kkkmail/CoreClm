@@ -473,6 +473,7 @@ module Kernel =
         member r.value = let (GlobalAsymmetryFactor v) = r in v
         static member defaultValue = GlobalAsymmetryFactor -0.01
         static member defaultSmallValue = GlobalAsymmetryFactor -0.001
+        static member defaultVerySmallValue = GlobalAsymmetryFactor -0.0001
 
 
     type GammaFuncValue =
@@ -520,6 +521,11 @@ module Kernel =
                 }
 
             SeparableGamma { eeInfScale = Gamma0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+
+        static member withGlobalAsymmetryFactor (a : GlobalAsymmetryFactor) (g : GammaFuncValue) =
+            match g with
+            | ScalarGamma _ -> failwith "Cannot set global asymmetry factor for scalar gamma."
+            | SeparableGamma e -> SeparableGamma { e with tEeInf = { e.tEeInf with tEe = { e.tEeInf.tEe with coefficients = [| 1.0; a.value |] } } }
 
 
     type MutationProbabilityParams =
@@ -872,3 +878,4 @@ module Kernel =
         static member withGamma0 gamma0 p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGamma0 gamma0 }
         static member withDomainIntervals d p = { p with kernelParams = p.kernelParams |> KernelParams.withDomainIntervals d }
         static member withInfMaxValue infMaxValue p = { p with kernelParams = { p.kernelParams with infMaxValue = infMaxValue } }
+        static member withGlobalAsymmetryFactor a p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGlobalAsymmetryFactor a }

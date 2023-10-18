@@ -97,6 +97,7 @@ module EeInfIntModel =
         static member withEps0 eps0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withEps0 eps0 }
         static member withGamma0 gamma0 p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withGamma0 gamma0 }
         static member withDomainIntervals d p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withDomainIntervals d }
+        static member withGlobalAsymmetryFactor a p = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withGlobalAsymmetryFactor a }
 
 
     type EeInfIntModel =
