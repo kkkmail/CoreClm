@@ -101,18 +101,21 @@ type PoissonTests (output : ITestOutputHelper) =
     // ===================================================================================
 
     // 1T
+    let mp_d200k1e01g01f1T = mp_d200k1e01g01.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d200k10e01g01i1f1T = mp_d200k10e01g01i1.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d200k10e01g01i10f1T = mp_d200k10e01g01i10.withTotalMolecules MoleculeCount.OneTrillion
 
     // ===================================================================================
 
     // 1P
+    let mp_d200k1e01g01f1P = mp_d200k1e01g01.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d200k10e01g01i1f1P = mp_d200k10e01g01i1.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d200k10e01g01i10f1P = mp_d200k10e01g01i10.withTotalMolecules MoleculeCount.OneQuadrillion
 
     // ===================================================================================
 
     // 1E
+    let mp_d200k1e01g01f1E = mp_d200k1e01g01.withTotalMolecules MoleculeCount.OneQuintillion
     let mp_d200k10e01g01i1f1E = mp_d200k10e01g01i1.withTotalMolecules MoleculeCount.OneQuintillion
     let mp_d200k10e01g01i10f1E = mp_d200k10e01g01i10.withTotalMolecules MoleculeCount.OneQuintillion
 
@@ -359,7 +362,28 @@ type PoissonTests (output : ITestOutputHelper) =
     member t.d200k1e01g01_10K () : unit = runPoissonEvolution mp_d200k1e01g01 10_000 (t.getCallerName())
 
     [<Fact>]
+    member t.d200k1e01g01_50K () : unit = runPoissonEvolution mp_d200k1e01g01 50_000 (t.getCallerName())
+
+    [<Fact>]
     member t.d200k1e01g01_100K () : unit = runPoissonEvolution mp_d200k1e01g01 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01f1T_50K () : unit = runPoissonEvolution mp_d200k1e01g01f1T 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01f1T_100K () : unit = runPoissonEvolution mp_d200k1e01g01f1T 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01f1P_50K () : unit = runPoissonEvolution mp_d200k1e01g01f1P 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01f1P_100K () : unit = runPoissonEvolution mp_d200k1e01g01f1P 100_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01f1E_50K () : unit = runPoissonEvolution mp_d200k1e01g01f1E 50_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01f1E_100K () : unit = runPoissonEvolution mp_d200k1e01g01f1E 100_000 (t.getCallerName())
 
     // [<Fact>]
     // member t.d200k1e01g01_1M () : unit = runPoissonEvolution mp_d200k1e01g01 1_000_000 (t.getCallerName())
@@ -375,6 +399,8 @@ type PoissonTests (output : ITestOutputHelper) =
 
     // [<Fact>]
     // member t.d200k10e01g01_1M () : unit = runPoissonEvolution mp_d200k10e01g01 1_000_000 (t.getCallerName())
+
+    // ===================================================================================
 
     // Quadratic  with small linear factor in inf space.
     [<Fact>]
