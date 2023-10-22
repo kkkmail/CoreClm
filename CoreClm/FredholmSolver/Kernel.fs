@@ -2,8 +2,18 @@
 
 open System
 open FredholmSolver.Primitives
+open Primitives.WolframPrimitives
+open Primitives.GeneralData
 
 module Kernel =
+
+    /// Max value of the range in inf space.
+    type InfMaxValue =
+        | InfMaxValue of double
+
+        member r.value = let (InfMaxValue v) = r in v
+        static member defaultValue = InfMaxValue 25.0
+
 
     /// Describes a function domain suitable for integral approximation.
     /// Equidistant grid is used to reduce the number of multiplications.
@@ -243,6 +253,8 @@ module Kernel =
         static member eeMinValue = -1.0
         static member eeMaxValue = 1.0
         static member infDefaultMinValue = 0.0
+        static member defaultRanges = [| Domain2D.eeMinValue; Domain2D.eeMaxValue; Domain2D.infDefaultMinValue; InfMaxValue.defaultValue.value |]
+        member d.ranges = [| d.eeDomain.points.value[0]; Array.last d.eeDomain.points.value; d.infDomain.points.value[0]; Array.last d.infDomain.points.value |]
 
         static member create noOfIntervals l2 =
             let eeDomain = Domain.create noOfIntervals Domain2D.eeMinValue Domain2D.eeMaxValue
@@ -252,6 +264,18 @@ module Kernel =
                 eeDomain = eeDomain
                 infDomain = infDomain
             }
+
+        static member defaultValue = Domain2D.create 100 InfMaxValue.defaultValue.value
+
+        member d.modelString =
+            let a =
+                if d.eeDomain.noOfIntervals = d.infDomain.noOfIntervals
+                then $"d{d.eeDomain.noOfIntervals}"
+                else $"d{d.eeDomain.noOfIntervals}x{d.infDomain.noOfIntervals}"
+
+            match toModelStringArray Domain2D.defaultRanges d.ranges with
+            | Some b -> $"{a}_{b}"
+            | None -> a
 
 
     let factorial n = [ 1..n ] |> List.fold (*) 1
@@ -275,6 +299,8 @@ module Kernel =
 
             retVal
 
+        member ta.comparisonFactors = [| ta.x0; ta.xScale |]
+
 
     type EeInfTaylorApproximation =
         {
@@ -285,9 +311,11 @@ module Kernel =
 
     type ScaledEeInfTaylorApproximation =
         {
-            tEeInf : EeInfTaylorApproximation
             eeInfScale : double
+            tEeInf : EeInfTaylorApproximation
         }
+
+        member ta.comparisonFactors = Array.concat [| ta.tEeInf.tEe.comparisonFactors;  ta.tEeInf.tInf.comparisonFactors |]
 
 
     /// TODO kk:20231017 - Only scalar eps is supported for now.
@@ -330,6 +358,7 @@ module Kernel =
         static member defaultValue = Eps0 0.01
         static member defaultNarrowValue = Eps0 0.005
         static member defaultWideValue = Eps0 0.02
+        member e.modelString = $"e{toModelString e.value}"
 
 
     type EpsFuncValue =
@@ -339,6 +368,9 @@ module Kernel =
             match ef with
             | ScalarEps e -> EpsFunc (fun _ _ -> e)
 
+        member ef.modelString =
+            match ef with
+            | ScalarEps e -> $"e{toModelString e}"
 
     let separableFunc (v : EeInfTaylorApproximation) a b =
         let eeVal = v.tEe.calculate a
@@ -383,8 +415,15 @@ module Kernel =
             | IdentityKa _ -> IdentityKa k0.value
             | SeparableKa v -> SeparableKa { v with eeInfScale = k0.value }
 
+        member k.comparisonFactors =
+            match k with
+            | IdentityKa _ -> [||]
+            | SeparableKa v -> v.comparisonFactors
+
         /// Default value is 1.0 on all domain.
         static member defaultValue = IdentityKa 1.0
+
+        static member defaultQuadraticCoefficients = [| 1.0; 0.0; 1.0 |]
 
         /// Quadratic growth from (0, 0) point.
         static member defaultQuadraticValue (d : Domain2D) =
@@ -392,14 +431,14 @@ module Kernel =
                 {
                     x0 = 0.0
                     xScale = 1.0
-                    coefficients = [| 1.0; 0.0; 1.0 |]
+                    coefficients = KaFuncValue.defaultQuadraticCoefficients
                 }
 
             let tInf =
                 {
                     x0 = 0.0
                     xScale = twoThirdInfScale d
-                    coefficients = [| 1.0; 0.0; 1.0 |]
+                    coefficients = KaFuncValue.defaultQuadraticCoefficients
                 }
 
             SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
@@ -458,6 +497,18 @@ module Kernel =
 
             SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
+        /// defaultQuadraticValue for a default Domain2D is the comparison value here.
+        member k.modelString =
+            match k with
+            | IdentityKa v -> $"kI{(toDoubleString v)}"
+            | SeparableKa v ->
+                let a = $"k{toModelString v.eeInfScale}"
+                let b = toModelStringArray KaFuncValue.defaultQuadraticCoefficients v.tEeInf.tEe.coefficients |> bindPrefix "_"
+                let c = toModelStringArray KaFuncValue.defaultQuadraticCoefficients v.tEeInf.tInf.coefficients |> bindPrefix "i"
+                let d = toModelStringArray (KaFuncValue.defaultQuadraticValue Domain2D.defaultValue).comparisonFactors k.comparisonFactors |> bindPrefix "@"
+                let e = [| b; c; d |] |> Array.choose id |> joinStrings EmptyString
+                $"{a}{e}"
+
 
     /// gamma0 multiplier in gamma.
     type Gamma0 =
@@ -498,26 +549,33 @@ module Kernel =
             | SeparableGamma e -> e.eeInfScale
             |> Gamma0
 
+        member g.comparisonFactors =
+            match g with
+            | ScalarGamma _ -> [||]
+            | SeparableGamma v -> v.comparisonFactors
+
         static member withGamma0 (gamma0 : Gamma0) (g : GammaFuncValue) =
             match g with
             | ScalarGamma _ -> ScalarGamma gamma0.value
             | SeparableGamma e -> SeparableGamma { e with eeInfScale = gamma0.value }
 
         static member defaultValue = ScalarGamma Gamma0.defaultValue.value
+        static member defaultNonLinearEeCoefficients = [| 1.0; GlobalAsymmetryFactor.defaultValue.value |]
+        static member defaultNonLinearInfCoefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0 |]
 
         static member defaultNonLinearValue (d : Domain2D) =
             let tEe =
                 {
                     x0 = 0.0
                     xScale = 1.0
-                    coefficients = [| 1.0; GlobalAsymmetryFactor.defaultValue.value |]
+                    coefficients = GammaFuncValue.defaultNonLinearEeCoefficients
                 }
 
             let tInf =
                 {
                     x0 = 0.0
                     xScale = twoThirdInfScale d
-                    coefficients = [| 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1000.0 |]
+                    coefficients = GammaFuncValue.defaultNonLinearInfCoefficients
                 }
 
             SeparableGamma { eeInfScale = Gamma0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
@@ -526,6 +584,17 @@ module Kernel =
             match g with
             | ScalarGamma _ -> failwith "Cannot set global asymmetry factor for scalar gamma."
             | SeparableGamma e -> SeparableGamma { e with tEeInf = { e.tEeInf with tEe = { e.tEeInf.tEe with coefficients = [| 1.0; a.value |] } } }
+
+        member g.modelString =
+            match g with
+            | ScalarGamma e -> $"gS{(toDoubleString e)}"
+            | SeparableGamma e ->
+                let a = $"g{toModelString e.eeInfScale}"
+                let b = toModelStringArray GammaFuncValue.defaultNonLinearEeCoefficients e.tEeInf.tEe.coefficients |> bindPrefix "a"
+                let c = toModelStringArray GammaFuncValue.defaultNonLinearInfCoefficients e.tEeInf.tInf.coefficients |> bindPrefix "_"
+                let d = toModelStringArray (GammaFuncValue.defaultNonLinearValue Domain2D.defaultValue).comparisonFactors g.comparisonFactors |> bindPrefix "@"
+                let e = [| b; c; d |] |> Array.choose id |> joinStrings EmptyString
+                $"{a}{e}".Replace("-", "") // We don't care about the sign as the only negative coefficient is asymmetry factor (due to historical reasons).
 
 
     type MutationProbabilityParams =
@@ -630,14 +699,6 @@ module Kernel =
                 x1y1_xy = SparseArray4D x1y1_xy
                 xy_x1y1 = SparseArray4D xy_x1y1
             }
-
-
-    /// Max value of the range in inf space.
-    type InfMaxValue =
-        | InfMaxValue of double
-
-        member r.value = let (InfMaxValue v) = r in v
-        static member defaultValue = InfMaxValue 25.0
 
 
     type KernelParams =
@@ -831,6 +892,11 @@ module Kernel =
         member r.value = let (RecyclingRate v) = r in v
         static member defaultValue = RecyclingRate 1.0
 
+        member w.modelString =
+            toModelString RecyclingRate.defaultValue.value w.value
+            |> bindPrefix "w"
+            |> Option.defaultValue EmptyString
+
         /// Calculates how much waste is recycled.
         member r.evolve (p : PoissonSampler) w =
             if w <= 0L then 0L
@@ -849,6 +915,18 @@ module Kernel =
             recyclingRate : RecyclingRate
             name : string option
         }
+
+        member mp.modelString =
+            let domain = mp.kernelParams.domain2D()
+
+            [|
+                domain.modelString
+                mp.kernelParams.kaFuncValue.modelString
+                mp.kernelParams.epsEeFuncValue.modelString
+                mp.gammaFuncValue.modelString
+                mp.recyclingRate.modelString
+            |]
+            |> joinStrings EmptyString
 
         /// Default linear value, mostly for tests, as it does not have many practical purposes.
         static member defaultValue =

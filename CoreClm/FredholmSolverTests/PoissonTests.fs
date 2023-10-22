@@ -38,7 +38,13 @@ open Primitives.WolframPrimitives
 ///     4. g - gamma0, default is 0.01.
 ///     5. a - asymmetry factor, default is 0.01. Can be skipped in the name if default is used.
 ///     6. i - inf space linear factor, default is 0.0. Can be skipped in the name if default is used.
-///     7. f - total amount of all (mostly food) molecules, e.g. f1T for 10^12 molecules. Default is 1B. Can be skipped in the name if default is used.
+///     7. w - waste rate, default is 0.01. Can be skipped if default is used.
+///
+///     8. f - total number of all (mostly food) molecules, e.g. f1T for 10^12 molecules. Default is 10^9. Can be skipped in the name if default is used.
+///     9. u - total number of initial u molecules.
+///    10. s - shift in the initial delta distribution of u, default is (0, 0). Can be skipped in the name if default is used.
+///    11. r - random seed value, default is 1. Can be skipped in the name if default is used.
+///    12. t - number of steps in time.
 type PoissonTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
@@ -262,14 +268,15 @@ type PoissonTests (output : ITestOutputHelper) =
         let startStat = calculateIntStat model initialValue
         let ps = Random 1 |> PoissonSampler.create
         let chartMod = noOfEpochs / noOfCharts
+        let chartFrequency = if noOfEpochs <= 100_000 then 1 else noOfEpochs / 100_000
 
-        let chartInitData = getChartInitData model noOfEpochs
+        let chartInitData = getChartInitData model (NoOfEpochs noOfEpochs)
         let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData)
         let getChartSliceData = getChartSliceData model noOfEpochs chartMod
 
         let evolve e i =
             let e1 = model.evolve ps e
-            getChartSliceData e1 i |> chartDataUpdater.addContent
+            if i % chartFrequency = 0 then getChartSliceData e1 i |> chartDataUpdater.addContent
             e1
 
         let result = [|for i in 0..noOfEpochs -> i |] |> Array.fold evolve initialValue
@@ -461,6 +468,15 @@ type PoissonTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.d200k1e01g01a0001f1E_200K () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1E 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1E_500K () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1E 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1E_1M () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1E 1_000_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e01g01a0001f1E_2M () : unit = runPoissonEvolution mp_d200k1e01g01a0001f1E 2_000_000 (t.getCallerName())
 
     // [<Fact>]
     // member t.d200k1e01g01_1M () : unit = runPoissonEvolution mp_d200k1e01g01 1_000_000 (t.getCallerName())

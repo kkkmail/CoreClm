@@ -2,8 +2,16 @@
 
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
+open Primitives.WolframPrimitives
+open Primitives.GeneralData
 
 module EeInfIntModel =
+
+    type NoOfEpochs =
+        | NoOfEpochs of int
+
+        member r.value = let (NoOfEpochs v) = r in v
+
 
     type FoodIntData =
         | FoodIntData of int64
@@ -49,6 +57,7 @@ module EeInfIntModel =
             uInitial : MoleculeCount
             protocellInitParams : EeInfDiffModel.ProtocellInitParams
             totalMolecules : MoleculeCount
+            seedValue : int
         }
 
         static member defaultValue =
@@ -56,7 +65,16 @@ module EeInfIntModel =
                 uInitial = MoleculeCount.OneThousand
                 protocellInitParams = EeInfDiffModel.ProtocellInitParams.defaultValue
                 totalMolecules = MoleculeCount.OneBillion
+                seedValue = 1
             }
+
+        member p.modelString =
+            let df = EeInfIntInitParams.defaultValue
+            let f =  toModelStringInt64 df.totalMolecules.value p.totalMolecules.value |> bindPrefix "f"
+            let u =  toModelStringInt64 df.uInitial.value p.uInitial.value |> bindPrefix "u"
+            let s = p.protocellInitParams.modelString
+            let r =  if df.seedValue = p.seedValue then None else Some p.seedValue |> bindPrefix "f"
+            [| f; u; s; r |] |> Array.choose id |> joinStrings EmptyString
 
         member p.shifted shift = { p with protocellInitParams = EeInfDiffModel.ProtocellInitParams.create shift }
         member p.withTotalMolecules totalMolecules = { p with totalMolecules = totalMolecules }
@@ -76,8 +94,9 @@ module EeInfIntModel =
         member p.withUInitial uInitial = { p with intInitParams = p.intInitParams.withUInitial uInitial }
         member p.withInfMaxValue infMaxValue = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withInfMaxValue infMaxValue }
         member p.withProtocellInitParams protocellInitParams = { p with intInitParams = { p.intInitParams with protocellInitParams = protocellInitParams } }
+        member p.modelString = $"{p.eeInfModelParams.modelString}{p.intInitParams.modelString}"
 
-        /// Default linear value, mostly for tests, as it does not have many practical purposes.
+        /// Default linear value, mostly for tests, as it does not have many practical usages.
         static member defaultValue =
             {
                 eeInfModelParams = EeInfModelParams.defaultValue
@@ -111,6 +130,8 @@ module EeInfIntModel =
         member private md.unpack() =
             let p = md.intModelParams.eeInfModelParams
             md.kernelData, md.gamma, p.numberOfMolecules.value, p.recyclingRate.value
+
+        member md.modelString = md.intModelParams.modelString
 
         /// Calculates a new state of the system after one epoch.
         /// !!! This is different from a derivative above, which calculates the "difference" between states !!!

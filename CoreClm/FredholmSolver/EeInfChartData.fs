@@ -67,7 +67,7 @@ module EeInfChartData =
         {
             baseData : ChartInitBaseData
             totalMolecules : MoleculeCount
-            noOfEpochs : int
+            noOfEpochs : NoOfEpochs
         }
 
 
@@ -102,17 +102,6 @@ module EeInfChartData =
                 initData = i
                 allChartData = []
             }
-
-        // /// Last calculated value of tEnd.
-        // member cd.tLast =
-        //     match cd.allChartData |> List.tryHead with
-        //     | Some c -> c.tChart
-        //     | None -> 0.0
-        //     |> decimal
-        //
-        // member cd.progress =
-        //     let tEnd = cd.initData.tEnd
-        //     min (max (if tEnd > 0.0m then cd.tLast / tEnd else 0.0m) 0.0m) 1.0m
 
     type ChartDiffData = ChartData<ChartInitDiffData, ChartSliceDiffData>
     type ChartIntData = ChartData<ChartInitIntData, ChartSliceIntData>

@@ -5,6 +5,8 @@ open MathNet.Numerics.Distributions
 open System
 open Primitives.VersionInfo
 open Primitives.GeneralData
+open Primitives.WolframPrimitives
+
 
 module Primitives =
 
@@ -16,6 +18,78 @@ module Primitives =
 
     [<Literal>]
     let DefaultFileStorageFolder = DefaultRootFolder + "FileStorage"
+
+    let bindPrefix p v = v |> Option.bind (fun e -> Some $"{p}{e}")
+
+
+    let toDoubleString (actualValue: double) : string =
+        let actualValDec = decimal actualValue
+        let roundedActualVal = Decimal.Round(actualValDec, 10)
+
+        // Local function to extract decimal part from a decimal number.
+        let extractDecimalPart (decValue: decimal) =
+            if decValue = 0.0M then "0"
+            else
+                let str = string decValue
+                str.Split('.').[1]
+
+        if roundedActualVal < 1.0M then extractDecimalPart roundedActualVal
+        else
+            // If actualValue is greater than or equal to 1.
+            let wholePart = int roundedActualVal
+            let decimalPartStr = extractDecimalPart (roundedActualVal - decimal wholePart)
+            $"%d{wholePart}_%s{decimalPartStr}"
+
+
+    /// Return an optional string to be used in model name generation.
+    let toModelString (defaultValue: double) (actualValue: double) : string option =
+        let epsilon = 1e-10M // tolerance for comparing decimals
+
+        // Convert doubles to decimals and round to eliminate noise.
+        let defaultValDec = decimal defaultValue
+        let actualValDec = decimal actualValue
+        let roundedActualVal = Decimal.Round(actualValDec, 10)
+
+        // Check if the values are effectively the same.
+        if Math.Abs (defaultValDec - roundedActualVal) < epsilon then None
+        else toDoubleString actualValue |> Some
+
+
+    let private powers = [ ("K", 1_000L); ("M", 1_000_000L); ("G", 1_000_000_000L); ("T", 1_000_000_000_000L); ("P", 1_000_000_000_000_000L); ("E", 1_000_000_000_000_000_000L) ]
+
+
+    /// Return an optional string to be used in model name generation.
+    let toModelStringInt64 (defaultValue: int64) (actualValue: int64) : string option =
+        if defaultValue = actualValue then None
+        else
+            let suffix, power = powers |> List.find (fun (_, power) -> (actualValue / power) / 1000L = 0L)
+            let adjustedValue = double actualValue / double power
+            let formattedString = toDoubleString adjustedValue
+            formattedString.Replace("_", suffix) |> Some
+
+
+    /// Return an optional string to be used in model name generation.
+    let toModelStringArray (defaultValues: double array) (actualValues: double array) : string option =
+        let separator = "#"
+        let pairOptionToStr opt = opt |> Option.defaultValue EmptyString
+        let toCommonStr a b = Array.map2 toModelString a b |> Array.map pairOptionToStr |> joinStrings "#"
+
+        if defaultValues.Length = actualValues.Length then
+            let pairedOptions = Array.map2 toModelString defaultValues actualValues
+
+            match pairedOptions |> Array.findIndex (fun x -> x.IsSome) with
+            | 1 -> pairedOptions[1]
+            | _ -> Array.map pairOptionToStr pairedOptions |> joinStrings separator |> Some
+        else if defaultValues.Length > actualValues.Length then
+            let defaultValuesShort = defaultValues |> Array.take actualValues.Length
+            let commonStr = toCommonStr defaultValuesShort actualValues
+            let missingDefaults = defaultValues[actualValues.Length..] |> Array.map toDoubleString |> joinStrings "#"
+            Some $"!{commonStr}{separator}{missingDefaults}"
+        else
+            let actualValuesShort = actualValues |> Array.take defaultValues.Length
+            let commonStr = toCommonStr defaultValues actualValuesShort
+            let extraActuals = actualValues[defaultValues.Length..] |> Array.map toDoubleString |> joinStrings "#"
+            Some $"{commonStr}{separator}{extraActuals}"
 
 
     let poissonSample rnd lambda =

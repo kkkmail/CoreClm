@@ -3,6 +3,7 @@
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open GenericOdeSolver.Primitives
+open Primitives.GeneralData
 
 module EeInfDiffModel =
 
@@ -82,6 +83,16 @@ module EeInfDiffModel =
 
         static member create shift = DeltaEeShifted shift
         static member defaultValue = ProtocellInitParams.create 0
+
+        member p.modelString =
+            match p with
+            | DeltaEeShifted eeShift -> if eeShift = 0 then None else Some $"s{eeShift}"
+            | DeltaEeInfShifted (eeShift, infShift) ->
+                match eeShift, infShift with
+                | 0, 0 -> None
+                | _, 0 -> Some $"s{eeShift}"
+                | 0, _ -> Some $"s#{infShift}"
+                | _ -> Some $"s{eeShift}#{infShift}"
 
         /// Creates a "delta" function centered near (0, 0) in the domain,
         /// which is a middle point in ee domain and 0-th point in inf domain.

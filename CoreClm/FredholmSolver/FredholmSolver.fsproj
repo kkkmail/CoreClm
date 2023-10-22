@@ -28,6 +28,7 @@
     <Compile Include="EeInfIntModel.fs" />
     <Compile Include="EeInfChartData.fs" />
     <Compile Include="EeInfCharts.fs" />
+    <Compile Include="PoissonSolver.fs" />
   </ItemGroup>
 
   <ItemGroup>

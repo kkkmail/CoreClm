@@ -14,7 +14,7 @@ open GenericOdeSolver.Primitives
 
 module Solver =
 
-    /// Note that it шs compiled into a static variable, which means that you cannot run many instances of the solver in parallel.
+    /// Note that it is compiled into a static variable, which means that you cannot run many instances of the solver in parallel.
     /// Currently this is not an issue since parallel running is not needed (by design).
     /// Note (2) - it cannot be moved inside nSolve because that will require moving fUseNonNegative inside nSolve,
     /// which is not allowed by IL design.
