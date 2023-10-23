@@ -3,7 +3,6 @@
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open GenericOdeSolver.Primitives
-open Primitives.GeneralData
 
 module EeInfDiffModel =
 
@@ -78,15 +77,14 @@ module EeInfDiffModel =
 
     /// We can only shift delta to a grid cell.
     type ProtocellInitParams =
-        | DeltaEeShifted of int
         | DeltaEeInfShifted of (int * int)
 
-        static member create shift = DeltaEeShifted shift
+        static member create shift = DeltaEeInfShifted (shift, 0)
         static member defaultValue = ProtocellInitParams.create 0
 
         member p.modelString =
             match p with
-            | DeltaEeShifted eeShift -> if eeShift = 0 then None else Some $"s{eeShift}"
+            // | DeltaEeShifted eeShift -> if eeShift = 0 then None else Some $"s{eeShift}"
             | DeltaEeInfShifted (eeShift, infShift) ->
                 match eeShift, infShift with
                 | 0, 0 -> None
@@ -98,17 +96,17 @@ module EeInfDiffModel =
         /// which is a middle point in ee domain and 0-th point in inf domain.
         member private p.calculateU eps (getNorm : Matrix<double> -> double) (domain : Domain2D) =
             match p with
-            | DeltaEeShifted eeShift ->
-                let domainIntervals = domain.eeDomain.noOfIntervals
-                let g i j =
-                    match domainIntervals % 2 = 0 with
-                    | true -> if ((i + eeShift) * 2 = domainIntervals) && (j = 0) then 1.0 else 0.0
-                    | false ->
-                        if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (j = 0) then 1.0 else 0.0
-
-                let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
-                let norm = getNorm v
-                (eps / norm) * v
+            // | DeltaEeShifted eeShift ->
+            //     let domainIntervals = domain.eeDomain.noOfIntervals
+            //     let g i j =
+            //         match domainIntervals % 2 = 0 with
+            //         | true -> if ((i + eeShift) * 2 = domainIntervals) && (j = 0) then 1.0 else 0.0
+            //         | false ->
+            //             if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (j = 0) then 1.0 else 0.0
+            //
+            //     let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
+            //     let norm = getNorm v
+            //     (eps / norm) * v
             | DeltaEeInfShifted (eeShift, infShift) ->
                 let domainIntervals = domain.eeDomain.noOfIntervals
                 let g i j =
