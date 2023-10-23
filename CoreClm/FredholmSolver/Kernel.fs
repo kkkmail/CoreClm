@@ -459,7 +459,7 @@ module Kernel =
                     coefficients = [| 1.0; 0.01; 1.0 |]
                 }
 
-            SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
         /// Quadratic growth from (0, 0) point with a 0.1 linear growth in inf space.
         static member defaultQuadraticWithLinearInfValueI1 (d : Domain2D) =
@@ -477,7 +477,7 @@ module Kernel =
                     coefficients = [| 1.0; 0.1; 1.0 |]
                 }
 
-            SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
         /// Quadratic growth from (0, 0) point with a 1.0 linear growth in inf space.
         static member defaultQuadraticWithLinearInfValueI10 (d : Domain2D) =
@@ -502,7 +502,7 @@ module Kernel =
             match k with
             | IdentityKa v -> $"kI{(toDoubleString v)}"
             | SeparableKa v ->
-                let a = toModelString K0.defaultSmallValue.value v.eeInfScale |> bindPrefix "k"
+                let a = toModelString K0.defaultValue.value v.eeInfScale |> bindPrefix "k"
                 let b = toModelStringArray KaFuncValue.defaultQuadraticCoefficients v.tEeInf.tEe.coefficients |> bindPrefix "_"
                 let c = toModelStringArray KaFuncValue.defaultQuadraticCoefficients v.tEeInf.tInf.coefficients |> bindPrefix "i"
                 let d = toModelStringArray (KaFuncValue.defaultQuadraticValue Domain2D.defaultValue).comparisonFactors k.comparisonFactors |> bindPrefix "@"

@@ -65,7 +65,11 @@ module Primitives =
             let suffix, power = powers |> List.find (fun (_, power) -> (actualValue / power) / 1000L = 0L)
             let adjustedValue = double actualValue / double power
             let formattedString = toDoubleString adjustedValue
-            formattedString.Replace("_", suffix) |> Some
+
+            if formattedString.EndsWith("_0")
+            then formattedString.Replace("_0", suffix)
+            else formattedString.Replace("_", suffix)
+            |> Some
 
 
     /// Return an optional string to be used in model name generation.
