@@ -77,9 +77,12 @@ module Primitives =
         if defaultValues.Length = actualValues.Length then
             let pairedOptions = Array.map2 toModelString defaultValues actualValues
 
-            match pairedOptions |> Array.findIndex (fun x -> x.IsSome) with
-            | 1 -> pairedOptions[1]
-            | _ -> Array.map pairOptionToStr pairedOptions |> joinStrings separator |> Some
+            match pairedOptions |> Array.tryFindIndex (fun x -> x.IsSome) with
+            | Some i ->
+                match i with
+                | 1 -> pairedOptions[1]
+                | _ -> Array.map pairOptionToStr pairedOptions |> joinStrings separator |> Some
+            | None -> None
         else if defaultValues.Length > actualValues.Length then
             let defaultValuesShort = defaultValues |> Array.take actualValues.Length
             let commonStr = toCommonStr defaultValuesShort actualValues

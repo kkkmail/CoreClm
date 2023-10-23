@@ -358,19 +358,19 @@ module Kernel =
         static member defaultValue = Eps0 0.01
         static member defaultNarrowValue = Eps0 0.005
         static member defaultWideValue = Eps0 0.02
-        member e.modelString = $"e{toModelString e.value}"
+        member e.modelString = toModelString Eps0.defaultValue.value e.value |> bindPrefix "e"
 
 
     type EpsFuncValue =
-        | ScalarEps of double
+        | ScalarEps of Eps0
 
         member ef.epsFunc (_ : Domain) : EpsFunc =
             match ef with
-            | ScalarEps e -> EpsFunc (fun _ _ -> e)
+            | ScalarEps e -> EpsFunc (fun _ _ -> e.value)
 
         member ef.modelString =
             match ef with
-            | ScalarEps e -> $"e{toModelString e}"
+            | ScalarEps e -> e.modelString |> Option.defaultValue EmptyString
 
     let separableFunc (v : EeInfTaylorApproximation) a b =
         let eeVal = v.tEe.calculate a
@@ -441,7 +441,7 @@ module Kernel =
                     coefficients = KaFuncValue.defaultQuadraticCoefficients
                 }
 
-            SeparableKa { eeInfScale = K0.defaultSmallValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
         /// Quadratic growth from (0, 0) point with a 0.01 linear growth in inf space.
         static member defaultQuadraticWithLinearInfValue (d : Domain2D) =
@@ -502,12 +502,12 @@ module Kernel =
             match k with
             | IdentityKa v -> $"kI{(toDoubleString v)}"
             | SeparableKa v ->
-                let a = $"k{toModelString v.eeInfScale}"
+                let a = toModelString K0.defaultSmallValue.value v.eeInfScale |> bindPrefix "k"
                 let b = toModelStringArray KaFuncValue.defaultQuadraticCoefficients v.tEeInf.tEe.coefficients |> bindPrefix "_"
                 let c = toModelStringArray KaFuncValue.defaultQuadraticCoefficients v.tEeInf.tInf.coefficients |> bindPrefix "i"
                 let d = toModelStringArray (KaFuncValue.defaultQuadraticValue Domain2D.defaultValue).comparisonFactors k.comparisonFactors |> bindPrefix "@"
-                let e = [| b; c; d |] |> Array.choose id |> joinStrings EmptyString
-                $"{a}{e}"
+                let e = [| a; b; c; d |] |> Array.choose id |> joinStrings EmptyString
+                e
 
 
     /// gamma0 multiplier in gamma.
@@ -589,12 +589,12 @@ module Kernel =
             match g with
             | ScalarGamma e -> $"gS{(toDoubleString e)}"
             | SeparableGamma e ->
-                let a = $"g{toModelString e.eeInfScale}"
+                let a = toModelString Gamma0.defaultValue.value e.eeInfScale |> bindPrefix "g"
                 let b = toModelStringArray GammaFuncValue.defaultNonLinearEeCoefficients e.tEeInf.tEe.coefficients |> bindPrefix "a"
                 let c = toModelStringArray GammaFuncValue.defaultNonLinearInfCoefficients e.tEeInf.tInf.coefficients |> bindPrefix "_"
                 let d = toModelStringArray (GammaFuncValue.defaultNonLinearValue Domain2D.defaultValue).comparisonFactors g.comparisonFactors |> bindPrefix "@"
-                let e = [| b; c; d |] |> Array.choose id |> joinStrings EmptyString
-                $"{a}{e}".Replace("-", "") // We don't care about the sign as the only negative coefficient is asymmetry factor (due to historical reasons).
+                let e = [| a; b; c; d |] |> Array.choose id |> joinStrings EmptyString
+                e.Replace("-", "") // We don't care about the sign as the only negative coefficient is asymmetry factor (due to historical reasons).
 
 
     type MutationProbabilityParams =
@@ -618,7 +618,7 @@ module Kernel =
             match e with
             | DifferentialEvolution ->
                 let domain = data.domainParams.domain()
-                let mean = domain.points.value.[i]
+                let mean = domain.points.value[i]
                 let ef = data.epsFuncValue.epsFunc domain
                 let epsFunc x = (ef.invoke domain x) * domain.range / 2.0
                 let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
@@ -629,7 +629,7 @@ module Kernel =
             | DiscreteEvolution ->
                 let domain = data.domainParams.domain()
                 let ef = data.epsFuncValue.epsFunc domain
-                let epsFunc (i1 : int) = (ef.invoke domain domain.points.value.[i1]) * ( double domain.points.value.Length) / 2.0
+                let epsFunc (i1 : int) = (ef.invoke domain domain.points.value[i1]) * ( double domain.points.value.Length) / 2.0
                 let f (i1 : int) : double = exp (- pown ((double (i1 - i)) / (epsFunc i1)) 2)
                 let values = domain.points.value |> Array.mapi (fun i1 _ -> f i1) |> SparseArray<double>.create data.zeroThreshold
                 let norm = values.total()
@@ -754,8 +754,8 @@ module Kernel =
                 domainIntervals = DomainIntervals.defaultValue
                 infMaxValue = InfMaxValue.defaultValue
                 zeroThreshold = ZeroThreshold.defaultValue
-                epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue.value
-                epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue.value
+                epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue
+                epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue
                 kaFuncValue = KaFuncValue.IdentityKa 1.0
             }
 
@@ -769,7 +769,7 @@ module Kernel =
             { kp with kaFuncValue = KaFuncValue.defaultQuadraticWithLinearInfValue (kp.domain2D()) }
 
         static member withEps0 (eps0 : Eps0) (kp : KernelParams) =
-            { kp with epsEeFuncValue = EpsFuncValue.ScalarEps eps0.value; epsInfFuncValue = EpsFuncValue.ScalarEps eps0.value }
+            { kp with epsEeFuncValue = EpsFuncValue.ScalarEps eps0; epsInfFuncValue = EpsFuncValue.ScalarEps eps0 }
 
         static member withK0 (k0 : K0) (kp : KernelParams) = { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
         static member withKaFunc (ka : KaFuncValue) (kp : KernelParams) = { kp with kaFuncValue = ka }
