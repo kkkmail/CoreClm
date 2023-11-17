@@ -523,10 +523,10 @@ type PoissonTests (output : ITestOutputHelper) =
     // e = 0.005, a = 0.0001, i = 1.0
 
     [<Fact>]
-    member t.d200k1e005g01a0001i01_200K () : unit = runPoissonEvolution mp_d200k1e005g01a0001i10 200_000 (t.getCallerName())
+    member t.d200k1e005g01a0001i10_200K () : unit = runPoissonEvolution mp_d200k1e005g01a0001i10 200_000 (t.getCallerName())
 
     [<Fact>]
-    member t.d200k1e005g01a0001i01f1T_200K () : unit = runPoissonEvolution mp_d200k1e005g01a0001i10f1T 200_000 (t.getCallerName())
+    member t.d200k1e005g01a0001i10f1T_200K () : unit = runPoissonEvolution mp_d200k1e005g01a0001i10f1T 200_000 (t.getCallerName())
 
     [<Fact>]
     member t.d200k1e005g01a0001i10f1P200K () : unit = runPoissonEvolution mp_d200k1e005g01a0001i10f1P 200_000 (t.getCallerName())
