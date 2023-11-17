@@ -13,6 +13,7 @@ module PoissonTestData =
 
         mp1
 
+
     /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI1 but keeps K0
     let toI1 (mp : EeInfIntModelParams) =
         let domain2D = Domain2D.create mp.eeInfModelParams.kernelParams.domainIntervals.value mp.eeInfModelParams.kernelParams.infMaxValue.value
@@ -21,6 +22,7 @@ module PoissonTestData =
         mp
         |> EeInfIntModelParams.withKaFunc (KaFuncValue.defaultQuadraticWithLinearInfValueI1 domain2D)
         |> EeInfIntModelParams.withK0 k0
+
 
     /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI10 but keeps K0
     let toI10 (mp : EeInfIntModelParams) =
@@ -100,3 +102,24 @@ module PoissonTestData =
     let mp_d200k1e01g01a0001f1E = mp_d200k1e01g01a0001.withTotalMolecules MoleculeCount.OneQuintillion
 
     // ===================================================================================
+    // ===================================================================================
+
+    // e = 0.005
+
+    /// This is the main one for e = 0.005, a = 0.0001.
+    let mp_d200k1e005g01a0001 =
+        createModelParams EeInfIntModelParams.defaultNonLinearValue 200 K0.defaultValue (EeInfIntModelParams.withEps0 Eps0.defaultNarrowValue)
+        |> EeInfIntModelParams.withGlobalAsymmetryFactor GlobalAsymmetryFactor.defaultVerySmallValue
+
+    let mp_d200k1e005g01a0001f1T = mp_d200k1e005g01a0001.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d200k1e005g01a0001f1P = mp_d200k1e005g01a0001.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d200k1e005g01a0001f1E = mp_d200k1e005g01a0001.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+
+    /// This is the main one for e = 0.005, a = 0.0001, i = 0.1.
+    let mp_d200k1e005g01a0001i1 = toI1 mp_d200k1e005g01a0001
+
+    let mp_d200k1e005g01a0001i1f1T = mp_d200k1e005g01a0001i1.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d200k1e005g01a0001i1f1P = mp_d200k1e005g01a0001i1.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d200k1e005g01a0001i1f1E = mp_d200k1e005g01a0001i1.withTotalMolecules MoleculeCount.OneQuintillion

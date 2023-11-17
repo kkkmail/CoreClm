@@ -7,6 +7,28 @@ open Primitives.GeneralData
 
 module EeInfIntModel =
 
+    type SolutionMethod =
+        | Euler    // https://en.wikipedia.org/wiki/Euler_method
+        | MidPoint // https://en.wikipedia.org/wiki/Midpoint_method - Not implemented yet.
+
+
+    /// All parameterization of the solution method.
+    type SolutionMethodParams =
+        {
+            solutionMethod : SolutionMethod
+        }
+
+        static member defaultValue =
+            {
+                solutionMethod = Euler
+            }
+
+        member s.modelString =
+            match s.solutionMethod with
+            | Euler -> EmptyString
+            | MidPoint -> "_mp"
+
+
     type NoOfEpochs =
         | NoOfEpochs of int
 
@@ -85,6 +107,7 @@ module EeInfIntModel =
         {
             eeInfModelParams : EeInfModelParams
             intInitParams : EeInfIntInitParams
+            solutionMethodParams : SolutionMethodParams
         }
 
         member _.evolutionType = EvolutionType.DiscreteEvolution
@@ -94,13 +117,14 @@ module EeInfIntModel =
         member p.withUInitial uInitial = { p with intInitParams = p.intInitParams.withUInitial uInitial }
         member p.withInfMaxValue infMaxValue = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withInfMaxValue infMaxValue }
         member p.withProtocellInitParams protocellInitParams = { p with intInitParams = { p.intInitParams with protocellInitParams = protocellInitParams } }
-        member p.modelString = $"{p.eeInfModelParams.modelString}{p.intInitParams.modelString}"
+        member p.modelString = $"{p.eeInfModelParams.modelString}{p.solutionMethodParams.modelString}{p.intInitParams.modelString}"
 
         /// Default linear value, mostly for tests, as it does not have many practical usages.
         static member defaultValue =
             {
                 eeInfModelParams = EeInfModelParams.defaultValue
                 intInitParams = EeInfIntInitParams.defaultValue
+                solutionMethodParams = SolutionMethodParams.defaultValue
             }
 
         /// Default value with quadratic kernel and non-linear gamma.

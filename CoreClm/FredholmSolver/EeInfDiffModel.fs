@@ -111,9 +111,8 @@ module EeInfDiffModel =
                 let domainIntervals = domain.eeDomain.noOfIntervals
                 let g i j =
                     match domainIntervals % 2 = 0 with
-                    | true -> if ((i + eeShift) * 2 = domainIntervals) && ((j + infShift) * 2 = domainIntervals) then 1.0 else 0.0
-                    | false ->
-                        if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (((j + infShift) * 2 = domainIntervals - 1) || ((j + infShift) * 2 = domainIntervals + 1)) then 1.0 else 0.0
+                    | true -> if ((i + eeShift) * 2 = domainIntervals) && (j = infShift) then 1.0 else 0.0
+                    | false -> if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (j = infShift) then 1.0 else 0.0
 
                 let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
                 let norm = getNorm v
