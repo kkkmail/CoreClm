@@ -123,3 +123,12 @@ module PoissonTestData =
     let mp_d200k1e005g01a0001i1f1T = mp_d200k1e005g01a0001i1.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d200k1e005g01a0001i1f1P = mp_d200k1e005g01a0001i1.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d200k1e005g01a0001i1f1E = mp_d200k1e005g01a0001i1.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+
+    /// This is the main one for e = 0.005, a = 0.0001, i = 1.0.
+    let mp_d200k1e005g01a0001i10 = toI10 mp_d200k1e005g01a0001
+
+    let mp_d200k1e005g01a0001i10f1T = mp_d200k1e005g01a0001i10.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d200k1e005g01a0001i10f1P = mp_d200k1e005g01a0001i10.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d200k1e005g01a0001i10f1E = mp_d200k1e005g01a0001i10.withTotalMolecules MoleculeCount.OneQuintillion
