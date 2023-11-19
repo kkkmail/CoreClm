@@ -551,3 +551,94 @@ type PoissonTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.d200k1e005g01a0001i10f1E_2M () : unit = runPoissonEvolution mp_d200k1e005g01a0001i10f1E 2_000_000 (t.getCallerName())
+
+    // ===================================================================================
+    // ===================================================================================
+
+    // e = 0.005, a = 0.001
+
+    [<Fact>]
+    member t.d200k1e005g01a001_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001f1T_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001f1T 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001f1P_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001f1P 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001f1E_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001f1E 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001f1T_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001f1T 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001f1P_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001f1P 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001f1E_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001f1E 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001f1E_2M () : unit = runPoissonEvolution mp_d200k1e005g01a001f1E 2_000_000 (t.getCallerName())
+
+    // ===================================================================================
+
+    // e = 0.005, a = 0.001, i = 0.1
+
+    [<Fact>]
+    member t.d200k1e005g01a001i1_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001i1 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i1f1T_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001i1f1T 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i1f1P200K () : unit = runPoissonEvolution mp_d200k1e005g01a001i1f1P 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i1f1E_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001i1f1E 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i1_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001i1 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i1f1T_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001i1f1T 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i1f1P_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001i1f1P 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i1f1E_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001i1f1E 500_000 (t.getCallerName())
+
+    // ===================================================================================
+
+    // e = 0.005, a = 0.001, i = 1.0
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001i10 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10f1T_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001i10f1T 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10f1P200K () : unit = runPoissonEvolution mp_d200k1e005g01a001i10f1P 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10f1E_200K () : unit = runPoissonEvolution mp_d200k1e005g01a001i10f1E 200_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001i10 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10f1T_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001i10f1T 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10f1P_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001i10f1P 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10f1E_500K () : unit = runPoissonEvolution mp_d200k1e005g01a001i10f1E 500_000 (t.getCallerName())
+
+    [<Fact>]
+    member t.d200k1e005g01a001i10f1E_2M () : unit = runPoissonEvolution mp_d200k1e005g01a001i10f1E 2_000_000 (t.getCallerName())
