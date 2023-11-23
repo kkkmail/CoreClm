@@ -164,3 +164,17 @@ module PoissonTestData =
     let mp_d200k1e005g01a001i10f1T = mp_d200k1e005g01a001i10.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d200k1e005g01a001i10f1P = mp_d200k1e005g01a001i10.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d200k1e005g01a001i10f1E = mp_d200k1e005g01a001i10.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    // D = 300 !!!, e = 0.005
+
+    /// This is the main one for D = 300, e = 0.005, a = 0.0001.
+    let mp_d300k1e005g01a0001 =
+        createModelParams EeInfIntModelParams.defaultNonLinearValue 300 K0.defaultValue (EeInfIntModelParams.withEps0 Eps0.defaultNarrowValue)
+        |> EeInfIntModelParams.withGlobalAsymmetryFactor GlobalAsymmetryFactor.defaultVerySmallValue
+
+    let mp_d300k1e005g01a0001f1T = mp_d300k1e005g01a0001.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d300k1e005g01a0001f1P = mp_d300k1e005g01a0001.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d300k1e005g01a0001f1E = mp_d300k1e005g01a0001.withTotalMolecules MoleculeCount.OneQuintillion
