@@ -659,3 +659,44 @@ type PoissonTests (output : ITestOutputHelper) =
 
     [<Fact>]
     member t.d300k1e005g01a0001f1E_200K () : unit = runPoissonEvolution mp_d300k1e005g01a0001f1E 200_000 (t.getCallerName())
+
+    // ===================================================================================
+    // ===================================================================================
+
+    // D = 500, e = 0.005, a = 0.0001
+
+    member private t.d500k1e005g01a0001_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001f1T_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001f1T 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001f1P_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001f1P 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001f1E_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001f1E 200_000 (t.getCallerName())
+
+    // ===================================================================================
+    // ===================================================================================
+
+    // D = 500, e = 0.005, a = 0.001
+
+    member private t.d500k1e005g01a001_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a001f1T_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001f1T 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a001f1P_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001f1P 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a001f1E_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001f1E 200_000 (t.getCallerName())
+
+    // ===================================================================================
+    // ===================================================================================
+
+    [<Fact>]
+    member t.d500_round_1() : unit =
+        let tests =
+            [
+                async { t.d500k1e005g01a0001_200K() }
+                async { t.d500k1e005g01a0001f1T_200K() }
+                async { t.d500k1e005g01a0001f1P_200K() }
+                async { t.d500k1e005g01a0001f1E_200K() }
+                async { t.d500k1e005g01a001_200K() }
+                async { t.d500k1e005g01a001f1T_200K() }
+                async { t.d500k1e005g01a001f1P_200K() }
+                async { t.d500k1e005g01a001f1E_200K() }
+            ]
+
+        Async.Parallel tests
+        |> Async.RunSynchronously
+        |> ignore
