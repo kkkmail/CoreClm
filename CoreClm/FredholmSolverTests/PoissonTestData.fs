@@ -200,3 +200,23 @@ module PoissonTestData =
     let mp_d500k1e005g01a001f1T = mp_d500k1e005g01a001.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d500k1e005g01a001f1P = mp_d500k1e005g01a001.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d500k1e005g01a001f1E = mp_d500k1e005g01a001.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    /// D = 500, e = 0.005, a = 0.0001, i = 1.0.
+    let mp_d500k1e005g01a0001i10 = toI10 mp_d500k1e005g01a0001
+
+    let mp_d500k1e005g01a0001i10f1T = mp_d500k1e005g01a0001i10.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e005g01a0001i10f1P = mp_d500k1e005g01a0001i10.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e005g01a0001i10f1E = mp_d500k1e005g01a0001i10.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    /// D = 500, e = 0.005, a = 0.001, i = 1.0.
+    let mp_d500k1e005g01a001i10 = toI10 mp_d500k1e005g01a001
+
+    let mp_d500k1e005g01a001i10f1T = mp_d500k1e005g01a001i10.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e005g01a001i10f1P = mp_d500k1e005g01a001i10.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e005g01a001i10f1E = mp_d500k1e005g01a001i10.withTotalMolecules MoleculeCount.OneQuintillion

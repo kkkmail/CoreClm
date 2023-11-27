@@ -700,3 +700,45 @@ type PoissonTests (output : ITestOutputHelper) =
         Async.Parallel tests
         |> Async.RunSynchronously
         |> ignore
+
+
+    // ===================================================================================
+    // ===================================================================================
+
+    // D = 500, e = 0.005, a = 0.0001, i = 1.0
+
+    member private t.d500k1e005g01a0001i10_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001i10f1T_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10f1T 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001i10f1P_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10f1P 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001i10f1E_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10f1E 200_000 (t.getCallerName())
+
+    // ===================================================================================
+    // ===================================================================================
+
+    // D = 500, e = 0.005, a = 0.001, i = 1.0
+
+    member private t.d500k1e005g01a001i10_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001i10 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a001i10f1T_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1T 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a001i10f1P_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1P 200_000 (t.getCallerName())
+    member private t.d500k1e005g01a001i10f1E_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1E 200_000 (t.getCallerName())
+
+    // ===================================================================================
+    // ===================================================================================
+
+    [<Fact>]
+    member t.d500_round_2() : unit =
+        let tests =
+            [
+                async { t.d500k1e005g01a0001i10_200K() }
+                async { t.d500k1e005g01a0001i10f1T_200K() }
+                async { t.d500k1e005g01a0001i10f1P_200K() }
+                async { t.d500k1e005g01a0001i10f1E_200K() }
+                async { t.d500k1e005g01a001i10_200K() }
+                async { t.d500k1e005g01a001i10f1T_200K() }
+                async { t.d500k1e005g01a001i10f1P_200K() }
+                async { t.d500k1e005g01a001i10f1E_200K() }
+            ]
+
+        Async.Parallel tests
+        |> Async.RunSynchronously
+        |> ignore
