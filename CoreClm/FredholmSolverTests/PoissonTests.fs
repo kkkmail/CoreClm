@@ -670,6 +670,10 @@ type PoissonTests (output : ITestOutputHelper) =
     member private t.d500k1e005g01a0001f1P_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001f1P 200_000 (t.getCallerName())
     member private t.d500k1e005g01a0001f1E_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001f1E 200_000 (t.getCallerName())
 
+    member private t.d500k1e005g01a0001f1E_500K () : unit = runPoissonEvolution mp_d500k1e005g01a0001f1E 500_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001f1E_1M () : unit = runPoissonEvolution mp_d500k1e005g01a0001f1E 1_000_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001f1E_2M () : unit = runPoissonEvolution mp_d500k1e005g01a0001f1E 2_000_000 (t.getCallerName())
+
     // ===================================================================================
     // ===================================================================================
 
@@ -679,6 +683,10 @@ type PoissonTests (output : ITestOutputHelper) =
     member private t.d500k1e005g01a001f1T_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001f1T 200_000 (t.getCallerName())
     member private t.d500k1e005g01a001f1P_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001f1P 200_000 (t.getCallerName())
     member private t.d500k1e005g01a001f1E_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001f1E 200_000 (t.getCallerName())
+
+    member private t.d500k1e005g01a001f1E_500K () : unit = runPoissonEvolution mp_d500k1e005g01a001f1E 500_000 (t.getCallerName())
+    member private t.d500k1e005g01a001f1E_1M () : unit = runPoissonEvolution mp_d500k1e005g01a001f1E 1_000_000 (t.getCallerName())
+    member private t.d500k1e005g01a001f1E_2M () : unit = runPoissonEvolution mp_d500k1e005g01a001f1E 2_000_000 (t.getCallerName())
 
     // ===================================================================================
     // ===================================================================================
@@ -712,6 +720,10 @@ type PoissonTests (output : ITestOutputHelper) =
     member private t.d500k1e005g01a0001i10f1P_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10f1P 200_000 (t.getCallerName())
     member private t.d500k1e005g01a0001i10f1E_200K () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10f1E 200_000 (t.getCallerName())
 
+    member private t.d500k1e005g01a0001i10f1E_500K () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10f1E 500_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001i10f1E_1M () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10f1E 1_000_000 (t.getCallerName())
+    member private t.d500k1e005g01a0001i10f1E_2M () : unit = runPoissonEvolution mp_d500k1e005g01a0001i10f1E 2_000_000 (t.getCallerName())
+
     // ===================================================================================
     // ===================================================================================
 
@@ -721,6 +733,10 @@ type PoissonTests (output : ITestOutputHelper) =
     member private t.d500k1e005g01a001i10f1T_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1T 200_000 (t.getCallerName())
     member private t.d500k1e005g01a001i10f1P_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1P 200_000 (t.getCallerName())
     member private t.d500k1e005g01a001i10f1E_200K () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1E 200_000 (t.getCallerName())
+
+    member private t.d500k1e005g01a001i10f1E_500K () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1E 500_000 (t.getCallerName())
+    member private t.d500k1e005g01a001i10f1E_1M () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1E 1_000_000 (t.getCallerName())
+    member private t.d500k1e005g01a001i10f1E_2M () : unit = runPoissonEvolution mp_d500k1e005g01a001i10f1E 2_000_000 (t.getCallerName())
 
     // ===================================================================================
     // ===================================================================================
@@ -737,6 +753,32 @@ type PoissonTests (output : ITestOutputHelper) =
                 async { t.d500k1e005g01a001i10f1T_200K() }
                 async { t.d500k1e005g01a001i10f1P_200K() }
                 async { t.d500k1e005g01a001i10f1E_200K() }
+            ]
+
+        Async.Parallel tests
+        |> Async.RunSynchronously
+        |> ignore
+
+    // ===================================================================================
+    // ===================================================================================
+
+
+    [<Fact>]
+    member t.d500_round_3() : unit =
+        let tests =
+            [
+                async { t.d500k1e005g01a0001f1E_500K() }
+                async { t.d500k1e005g01a0001f1E_1M() }
+                async { t.d500k1e005g01a0001f1E_2M() }
+                async { t.d500k1e005g01a001f1E_500K() }
+                async { t.d500k1e005g01a001f1E_1M() }
+                async { t.d500k1e005g01a001f1E_2M() }
+                async { t.d500k1e005g01a0001i10f1E_500K() }
+                async { t.d500k1e005g01a0001i10f1E_1M() }
+                async { t.d500k1e005g01a0001i10f1E_2M() }
+                async { t.d500k1e005g01a001i10f1E_500K() }
+                async { t.d500k1e005g01a001i10f1E_1M() }
+                async { t.d500k1e005g01a001i10f1E_2M() }
             ]
 
         Async.Parallel tests
