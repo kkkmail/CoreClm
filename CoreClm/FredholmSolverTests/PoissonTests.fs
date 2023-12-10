@@ -817,6 +817,15 @@ type PoissonTests (output : ITestOutputHelper) =
     member t.d500_round_1_3() : unit =
         let tests =
             [
+                // d = 100
+                async { t.d100k01e01a0_100K () }
+
+                // d = 200
+                async { t.d200k1e005g01a0001f1E_200K () }
+                async { t.d200k1e005g01a0001f1E_500K () }
+                async { t.d200k1e005g01a0001f1E_2M () }
+
+                // d = 500
                 async { t.d500k1e005g01a0001_200K() }
                 async { t.d500k1e005g01a0001f1T_200K() }
                 async { t.d500k1e005g01a0001f1P_200K() }
