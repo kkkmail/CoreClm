@@ -50,12 +50,17 @@ type PoissonTests (output : ITestOutputHelper) =
     let nullString : string = null
     let errInvTolerance = 1.0e-3
     let outputFolder = @"C:\EeInf"
+    let dataFolder = outputFolder + @"\Data"
     let noOfCharts = 20
+    let noOfFrames = 2000
+    let duration = 50 // seconds.
 
     let createModel (mp : EeInfIntModelParams) name =
         let md = mp.named name
         let model = EeInfIntModel.create md
         model
+
+    let getNamePrefix name = $"{name}__"
 
     let getChartInitData model noOfEpochs =
         {
@@ -76,6 +81,18 @@ type PoissonTests (output : ITestOutputHelper) =
             statData  = calculateIntStat model e
             substanceData  = if i % chartMod = 0 then Some e else None
         }
+
+    let outputFrameData (model : EeInfIntModel) noOfEpochs (substanceData : SubstanceIntData) i =
+        let name = model.intModelParams.eeInfModelParams.name |> Option.defaultValue $"{Guid.NewGuid():N}"
+        let wolframFileName = $@"{dataFolder}\{(getNamePrefix name)}{i:D8}.m"
+        let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
+        let norm = 100.0 / (double totalMolecules) // Use values in %.
+        let eta = model.kernelData.domain2D.eeDomain.points.value
+        let zeta = model.kernelData.domain2D.infDomain.points.value
+        let u = (norm * (substanceData.protocell.value.convert double)).value
+        let xyz = eta |> Array.mapi (fun i a-> zeta |> Array.mapi (fun j b -> [ a; b; u[i][j] ])) |> Array.concat
+        let wolframData = $"{(toWolframNotation xyz)}{Nl}{Nl}"
+        File.WriteAllText(wolframFileName, wolframData)
 
     let outputChart (chartData : ChartIntData) =
         writeLine "epochNumber,food,waste,total,invariant,eeMean,eeStdDev,infMean,infStdDev"
@@ -164,6 +181,11 @@ type PoissonTests (output : ITestOutputHelper) =
 
         $"{a}{descr}{k0Data}{gamma0Data}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartDataStr}{uDataT}{b}"
 
+    let toWolframAnimation name duration =
+        let a = $"""Get["C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m"];{Nl}"""
+        let b = $"""createAnimation["{(getNamePrefix name)}", Large, {duration}];{Nl}"""
+        $"{a}{b}"
+
     let runPoissonEvolution mp noOfEpochs name =
         let model = createModel mp name
         let initialValue = model.intInitialValues
@@ -171,15 +193,18 @@ type PoissonTests (output : ITestOutputHelper) =
         let startStat = calculateIntStat model initialValue
         let ps = Random 1 |> PoissonSampler.create
         let chartMod = noOfEpochs / noOfCharts
+        let frameMod = max (noOfEpochs / noOfFrames) 1
         let chartFrequency = if noOfEpochs <= 100_000 then 1 else noOfEpochs / 100_000
 
         let chartInitData = getChartInitData model (NoOfEpochs noOfEpochs)
         let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData)
         let getChartSliceData = getChartSliceData model noOfEpochs chartMod
+        let outputFrameData = outputFrameData model noOfEpochs
 
         let evolve e i =
             let e1 = model.evolve ps e
             if i % chartFrequency = 0 then getChartSliceData e1 i |> chartDataUpdater.addContent
+            if i % frameMod = 0 then outputFrameData e1 i
             e1
 
         let result = [|for i in 0..noOfEpochs -> i |] |> Array.fold evolve initialValue
@@ -191,6 +216,10 @@ type PoissonTests (output : ITestOutputHelper) =
         let wolframFileName = $@"{outputFolder}\{name}.m"
         let wolframData = toWolframData model noOfEpochs result chartData
         File.WriteAllText(wolframFileName, wolframData)
+
+        let wolframAnimationFileName = $@"{outputFolder}\{getNamePrefix name}animation.m"
+        let wolframAnimationData = toWolframAnimation name duration
+        File.WriteAllText(wolframAnimationFileName, wolframAnimationData)
 
         use _ = new AssertionScope()
         writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {mp.eeInfModelParams.kernelParams.domainIntervals}"
@@ -762,11 +791,50 @@ type PoissonTests (output : ITestOutputHelper) =
     // ===================================================================================
     // ===================================================================================
 
-
     [<Fact>]
     member t.d500_round_3() : unit =
         let tests =
             [
+                async { t.d500k1e005g01a0001f1E_500K() }
+                async { t.d500k1e005g01a0001f1E_1M() }
+                async { t.d500k1e005g01a0001f1E_2M() }
+                async { t.d500k1e005g01a001f1E_500K() }
+                async { t.d500k1e005g01a001f1E_1M() }
+                async { t.d500k1e005g01a001f1E_2M() }
+                async { t.d500k1e005g01a0001i10f1E_500K() }
+                async { t.d500k1e005g01a0001i10f1E_1M() }
+                async { t.d500k1e005g01a0001i10f1E_2M() }
+                async { t.d500k1e005g01a001i10f1E_500K() }
+                async { t.d500k1e005g01a001i10f1E_1M() }
+                async { t.d500k1e005g01a001i10f1E_2M() }
+            ]
+
+        Async.Parallel tests
+        |> Async.RunSynchronously
+        |> ignore
+
+    [<Fact>]
+    member t.d500_round_1_3() : unit =
+        let tests =
+            [
+                async { t.d500k1e005g01a0001_200K() }
+                async { t.d500k1e005g01a0001f1T_200K() }
+                async { t.d500k1e005g01a0001f1P_200K() }
+                async { t.d500k1e005g01a0001f1E_200K() }
+                async { t.d500k1e005g01a001_200K() }
+                async { t.d500k1e005g01a001f1T_200K() }
+                async { t.d500k1e005g01a001f1P_200K() }
+                async { t.d500k1e005g01a001f1E_200K() }
+
+                async { t.d500k1e005g01a0001i10_200K() }
+                async { t.d500k1e005g01a0001i10f1T_200K() }
+                async { t.d500k1e005g01a0001i10f1P_200K() }
+                async { t.d500k1e005g01a0001i10f1E_200K() }
+                async { t.d500k1e005g01a001i10_200K() }
+                async { t.d500k1e005g01a001i10f1T_200K() }
+                async { t.d500k1e005g01a001i10f1P_200K() }
+                async { t.d500k1e005g01a001i10f1E_200K() }
+
                 async { t.d500k1e005g01a0001f1E_500K() }
                 async { t.d500k1e005g01a0001f1E_1M() }
                 async { t.d500k1e005g01a0001f1E_2M() }

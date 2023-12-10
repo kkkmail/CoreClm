@@ -91,7 +91,7 @@ getImagePadding[g_] :=
   Module[{options, imagePadding, retVal},
    options = AbsoluteOptions[g, ImagePadding];
    imagePadding = ImagePadding /. options;
-   retVal = If[imagePadding === Automatic || imagePadding === ImagePadding, {0, 0}, {First[First[imagePadding]], First[Last[imagePadding]]}];
+   retVal = If[imagePadding === All || imagePadding === Automatic || imagePadding === ImagePadding, {0, 0}, {First[First[imagePadding]], First[Last[imagePadding]]}];
    Return[retVal];
 ];
 
