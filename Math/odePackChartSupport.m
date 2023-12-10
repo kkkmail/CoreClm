@@ -1,3 +1,24 @@
+(* Constants and constant-like data functions *)
+
+ffmpegFolder = "C:\\FFMpeg\\bin";
+workingFolder = "C:\\EeInf";
+animationExtension = ".avi";
+getListPlotOptions3D[resolution_]:= { ImageSize -> resolution, PlotTheme -> {"Classic", "ClassicLights"}, AxesLabel -> {"\[Eta]", "\[Zeta]", "u"}, PlotRange -> All, LabelStyle -> {FontSize -> 16, Bold, Black} };
+
+(* ========================================= *)
+(* Location of .m frame files. *)
+dataFolder := workingFolder <> "\\Data"
+
+(* Location of .png frame files. *)
+framesFolder := workingFolder <> "\\Frames"
+
+ffmpegExecutable := FileNameJoin[{ffmpegFolder, "ffmpeg"}];
+
+startTime = AbsoluteTime[];
+startMemory = MemoryInUse[];
+
+(* ========================================= *)
+
 sep = "=========================================";
 
 plot3DChart[x_, y_, z_, zName_, descr_] := Module[{xLen, yLen, data},
@@ -61,3 +82,81 @@ plotAll[divisor_] := Module[{xLen, yLen, kaDivGamma},
 
     plotUT[uDataT];
 ];
+
+(* ==================================================== *)
+
+createFolder[folderName_?StringQ]:= If[Not[DirectoryQ[folderName]], CreateDirectory[folderName]];
+
+getImagePadding[g_] :=
+  Module[{options, imagePadding, retVal},
+   options = AbsoluteOptions[g, ImagePadding];
+   imagePadding = ImagePadding /. options;
+   retVal = If[imagePadding === Automatic || imagePadding === ImagePadding, {0, 0}, {First[First[imagePadding]], First[Last[imagePadding]]}];
+   Return[retVal];
+];
+
+getFilePadding[fullDataFileName_, resolution_] :=
+  Module[{retVal, frameData, chart, options},
+   Print["Loading file: ", fullDataFileName, ". Memory used: ", Round[(MemoryInUse[] - startMemory)/10^9, 0.001], "GB, time taken: ", Round[AbsoluteTime[] - startTime], " seconds."];
+   frameData = Import[fullDataFileName];
+   options = getListPlotOptions3D[resolution];
+   chart = ListPlot3D[frameData, Sequence @@ options];
+   retVal = getImagePadding[chart];
+   Return[retVal];
+   ];
+
+exportPngFile[fullDataFileName_, resolution_, xPadding_, yPadding_] :=
+  Module[{frameData, fileNameWithExtension, fullFramesFileName, options},
+   fileNameWithExtension = FileNameTake[fullDataFileName];
+   fullFramesFileName = FileNameJoin[{framesFolder, StringReplace[fileNameWithExtension, ".m" -> ".png"]}];
+   options = Join[{ ImagePadding -> {{xPadding, 0}, {yPadding, 0}} }, getListPlotOptions3D[resolution]];
+   Print["Exporting: ", fullDataFileName, " into : ", fullFramesFileName, ". Memory used: ", Round[(MemoryInUse[] - startMemory)/10^9, 0.001], "GB, time taken: ", Round[AbsoluteTime[] - startTime], " seconds."];
+   frameData = Import[fullDataFileName];
+   Export[fullFramesFileName, ListPlot3D[frameData, Sequence @@ options], "PNG"];
+   Return[0];
+];
+
+createAnimation[filePrefix_, resolution_, duration_] :=
+  Module[{files, frames, animation, frameData, endTime, endMemory, memoryUsed, timeTaken, paddings, xPadding, yPadding, noOfFiles, frameRate, ffmpegCommand, result, concatFileName, filesList, fileName, outputFile},
+   Print["Starting..."];
+   createFolder[dataFolder];
+   createFolder[framesFolder];
+
+   files = FileNames[FileNameJoin[{dataFolder, filePrefix <> "*.m"}]];
+   (* files=Take[Sort[files],20]; *)
+   files = Sort[files];
+   noOfFiles = Length[files];
+   frameRate = N[noOfFiles/duration];
+   Print["Duration; ", duration, ", frame rate: ", frameRate, "."];
+
+   Print["Loading ", noOfFiles, " files..."];
+   paddings = Table[getFilePadding[fileName, resolution], {fileName, files}];
+   xPadding = Max[Table[paddings[[i, 1]], {i, 1, noOfFiles}]];
+   yPadding = Max[Table[paddings[[i, 2]], {i, 1, noOfFiles}]];
+   Print["xPadding = ", xPadding, ", yPadding = ", yPadding];
+
+   Print["Exporting ", noOfFiles, " files..."];
+   Table[exportPngFile[fileName, resolution, xPadding, yPadding], {fileName, files}];
+   Print["Exported ", noOfFiles, " frames."];
+
+   concatFileName = FileNameJoin[{workingFolder, filePrefix <> "concat.txt"}];
+   filesList = Sort[FileNames[FileNameJoin[{framesFolder, filePrefix <> "*.png"}]]];
+   Print["filesList = ", filesList]
+   Export[concatFileName, "ffconcat version 1.0\n" <> StringJoin["file " <> StringReplace[#, "\\" -> "\\\\"] <> "\n" & /@ filesList], "Text"];
+   outputFile = FileNameJoin[{workingFolder, filePrefix <> "animation" <> animationExtension}];
+   ffmpegCommand = StringJoin[ffmpegExecutable, " -y -f concat -safe 0 -r ", ToString[frameRate], " -i ", concatFileName, " -framerate ", ToString[frameRate], " ", outputFile];
+
+   Print["Running ffmpeg with command: ", ffmpegCommand];
+   result = RunProcess[{"cmd", "/c", ffmpegCommand}];
+   Print["result = ", result];
+
+   endTime = AbsoluteTime[];
+   endMemory = MemoryInUse[];
+   timeTaken = Round[endTime - startTime];
+   memoryUsed = Round[(endMemory - startMemory)/10^9, 0.001];
+   Print["Time taken: ", timeTaken, " seconds."];
+   Print["Memory used: ", memoryUsed, " GB."];
+   Print["xPadding = ", xPadding, ", yPadding = ", yPadding];
+   Print["Exported animation."];
+];
+
