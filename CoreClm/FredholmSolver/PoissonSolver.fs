@@ -2,37 +2,31 @@
 
 open System.Diagnostics
 open System.IO
-open System.Runtime.CompilerServices
-open System.Runtime.InteropServices
-open FredholmSolver.EeInfCharts
 open Primitives.GeneralData
 open System
-open GenericOdeSolver.Primitives
-open GenericOdeSolver.Solver
 open Primitives.GeneralPrimitives
-open Primitives.SolverPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver
 open FredholmSolver.EeInfIntModel
 open FredholmSolver.EeInfChartData
-open Primitives.SolverRunnerErrors
-open Softellect.Sys.Core
-open Softellect.Sys.Logging
-open Plotly.NET
-open Analytics.ChartExt
-open Primitives.ChartPrimitives
 open Primitives.WolframPrimitives
 
 module PoissonSolver =
 
+    let getNamePrefix name = $"{name}__"
+
+
     type PoissonEvolutionParam =
         {
             noOfEpochs : NoOfEpochs
-            noOfCharts : int
+            noOfCharts : int option
             maxChartPoints : int
-            name : string option
+            noOfFrames : int option
+            duration : int // Clip duration in seconds.
+            name : string
             outputFolder : string
+            dataFolder : string
             odePackChartSupportFolder : string
         }
 
@@ -44,17 +38,20 @@ module PoissonSolver =
             evolutionParam : PoissonEvolutionParam
         }
 
-        static member defaultValue mp n =
+        static member defaultValue mp n name =
             {
                 runQueueId = RunQueueId.getNewId()
                 intModelParams = mp
                 evolutionParam =
                     {
                         noOfEpochs = n
-                        noOfCharts = 20
+                        noOfCharts = Some 20
                         maxChartPoints = 100_000
-                        name = None
+                        noOfFrames = Some 2_000
+                        duration = 50
+                        name = name
                         outputFolder = @"C:\EeInf"
+                        dataFolder = @"C:\EeInf\Data"
                         odePackChartSupportFolder = @"C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m" // Need \\ for Wolfram.
                     }
             }
@@ -64,7 +61,7 @@ module PoissonSolver =
             let b = p.evolutionParam.noOfEpochs.value |> int64 |> toModelStringInt64 0L |> Option.defaultValue EmptyString
             $"{a}_{b}"
 
-        member p.fullName = p.evolutionParam.name |> Option.defaultValue $"{p.runQueueId}"
+        member p.fullName = p.evolutionParam.name // |> Option.defaultValue $"{p.runQueueId}"
 
 
     let createModel (mp : EeInfIntModelParams) name =
@@ -91,7 +88,10 @@ module PoissonSolver =
             epochNumber = i
             progress = (decimal i) / (decimal noOfEpochs)
             statData  = calculateIntStat model e
-            substanceData  = if i % chartMod = 0 then Some e else None
+            substanceData  =
+                match chartMod with
+                | Some v -> if i % v = 0 then Some e else None
+                | None -> None
         }
 
     let outputProgress (sw : Stopwatch) noOfEpochs progressFreq i =
@@ -182,34 +182,79 @@ module PoissonSolver =
         $"{a}{descr}{k0Data}{gamma0Data}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartDataStr}{uDataT}{b}"
 
 
-    let runPoissonEvolution (p : PoissonParam) =
+    let outputFrameData (model : EeInfIntModel) (p : PoissonParam) (substanceData : SubstanceIntData) i =
+        let name = model.intModelParams.eeInfModelParams.name
+        let wolframFileName = $@"{p.evolutionParam.dataFolder}\{(getNamePrefix name)}{i:D8}.m"
+        let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
+        let norm = 100.0 / (double totalMolecules) // Use values in %.
+        let eta = model.kernelData.domain2D.eeDomain.points.value
+        let zeta = model.kernelData.domain2D.infDomain.points.value
+        let u = (norm * (substanceData.protocell.value.convert double)).value
+        let xyz = eta |> Array.mapi (fun i a-> zeta |> Array.mapi (fun j b -> [ a; b; u[i][j] ])) |> Array.concat
+        let wolframData = $"{(toWolframNotation xyz)}{Nl}{Nl}"
+        File.WriteAllText(wolframFileName, wolframData)
+
+
+    let toWolframAnimation name duration =
+        let a = $"""Get["C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m"];{Nl}"""
+        let b = $"""createAnimation["{(getNamePrefix name)}", Large, {duration}];{Nl}"""
+        $"{a}{b}"
+
+
+    let outputChart writeLine (chartData : ChartIntData) =
+        writeLine "epochNumber,food,waste,total,invariant,eeMean,eeStdDev,infMean,infStdDev"
+
+        chartData.allChartData
+        |> List.rev
+        |> List.map (fun e -> writeLine $"{e.epochNumber},{e.statData.food},{e.statData.waste},{e.statData.total},{e.statData.invariant},{e.statData.eeStatData.mean},{e.statData.eeStatData.stdDev},{e.statData.infStatData.mean},{e.statData.infStatData.stdDev}")
+        |> ignore
+
+    let runPoissonEvolution writeLine (p : PoissonParam) =
         let model = createModel p.intModelParams p.fullName
         let noOfEpochs = p.evolutionParam.noOfEpochs.value
         let progressFreq = noOfEpochs / 100
         let initialValue = model.intInitialValues
-        // let startInv = model.invariant initialValue
-        // let startStat = calculateIntStat model initialValue
+        let startInv = model.invariant initialValue
+        let startStat = calculateIntStat model initialValue
         let ps = Random p.intModelParams.intInitParams.seedValue |> PoissonSampler.create
-        let chartMod = noOfEpochs / p.evolutionParam.noOfCharts
+        let chartMod = p.evolutionParam.noOfCharts |> Option.bind (fun v -> noOfEpochs / v |> Some)
+        let frameMod = p.evolutionParam.noOfFrames |> Option.bind (fun v ->  max (noOfEpochs / v) 1 |> Some)
         let chartFrequency = if noOfEpochs <= p.evolutionParam.maxChartPoints then 1 else noOfEpochs / p.evolutionParam.maxChartPoints
 
         let chartInitData = getChartInitData model p.evolutionParam.noOfEpochs
         let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData)
         let getChartSliceData = getChartSliceData model noOfEpochs chartMod
+        let outputFrameData = outputFrameData model p
+        let outputChart = outputChart writeLine
         let sw = Stopwatch.StartNew()
 
         let evolve e i =
             let e1 = model.evolve ps e
             outputProgress sw noOfEpochs progressFreq i
             if i % chartFrequency = 0 then getChartSliceData e1 i |> chartDataUpdater.addContent
+
+            match frameMod with
+            | Some v -> if i % v = 0 then outputFrameData e1 i
+            | None -> ()
+
             e1
 
         let result = [|for i in 0..noOfEpochs -> i |] |> Array.fold evolve initialValue
-        // let endInv = model.invariant result
-        // let endStat = calculateIntStat model result
+        let endInv = model.invariant result
+        let endStat = calculateIntStat model result
         let chartData = chartDataUpdater.getContent()
-        // chartData |> outputChart
+        chartData |> outputChart
 
         let wolframFileName = $@"{p.evolutionParam.outputFolder}\{p.fullName}.m"
         let wolframData = toWolframData model p.evolutionParam result chartData
         File.WriteAllText(wolframFileName, wolframData)
+
+        writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {p.intModelParams.eeInfModelParams.kernelParams.domainIntervals}"
+        writeLine $"startInv = {startInv}, endInv = {endInv}"
+        writeLine $"start: food = {startStat.food}, waste = {startStat.waste}, u = {startStat.total}"
+        writeLine $"start: ee mean = {startStat.eeStatData.mean}, ee stdDev = {startStat.eeStatData.stdDev}, inf mean = {startStat.infStatData.mean}, inf stdDev = {startStat.infStatData.stdDev}"
+        writeLine $"end: food = {endStat.food}, waste = {endStat.waste}, u = {endStat.total}"
+        writeLine $"end: ee mean = {endStat.eeStatData.mean}, ee stdDev = {endStat.eeStatData.stdDev}, inf mean = {endStat.infStatData.mean}, inf stdDev = {endStat.infStatData.stdDev}"
+
+        // TODO kk:20231216 - Temporarily return this. Decide what to do with that.
+        startInv, endInv

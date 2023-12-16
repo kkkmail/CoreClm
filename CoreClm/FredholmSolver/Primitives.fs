@@ -124,6 +124,33 @@ module Primitives =
         static member create rnd = poissonSample rnd |> PoissonSampler
 
 
+    // /// Encapsulation of a Poisson distribution sampler factory suitable for both sequential and parallel code.
+    // type PoissonSamplerFactory =
+    //     {
+    //         /// Global seed value.
+    //         seed : int
+    //
+    //         /// Combines the seed value and the number of the sampler to create a new deterministic PoissonSampler.
+    //         sampler : int -> PoissonSampler
+    //     }
+    //
+    //     /// XORs a seed with a number to create a new seed.
+    //     static member getSeed (seed : int) (i : int) = seed ^^^ i
+    //
+    //     static member defaultValue seed =
+    //         {
+    //             seed = seed
+    //             sampler = fun i -> Random(PoissonSamplerFactory.getSeed seed i) |> PoissonSampler.create
+    //         }
+    //
+    //
+    // // /// Encapsulation of a Poisson distribution sampler factory suitable for both sequential and parallel code.
+    // // type PoissonSamplerFactory =
+    // //     | PoissonSamplerFactory of PoissonSamplerFactoryData
+    // //
+    // //     member inline private r.value = let (PoissonSamplerFactory v) = r in v
+
+
     type EvolutionType =
         | DifferentialEvolution
         | DiscreteEvolution
@@ -176,7 +203,7 @@ module Primitives =
         /// This is NOT a matrix multiplication but element by element multiplication.
         /// The index of a Vector matches the FIRST index of a Matrix.
         static member inline (*) (a : Vector<'T>, b : Matrix<'T>) : Matrix<'T> =
-            let retVal = b.value |> Array.Parallel.mapi (fun i e -> e |> Array.map (fun v -> a.value[i] * v)) |> Matrix
+            let retVal = b.value |> Array.mapi (fun i e -> e |> Array.map (fun v -> a.value[i] * v)) |> Matrix
             retVal
 
         /// This is NOT a matrix multiplication but element by element multiplication.
@@ -191,11 +218,11 @@ module Primitives =
             retVal
 
         static member inline (+) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
-            let retVal = a.value |> Array.Parallel.mapi (fun i e -> e |> Array.mapi (fun j v -> v + b.value[i][j])) |> Matrix
+            let retVal = a.value |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> v + b.value[i][j])) |> Matrix
             retVal
 
         static member inline (-) (a : Matrix<'T>, b : Matrix<'T>) : Matrix<'T> =
-            let retVal = a.value |> Array.Parallel.mapi (fun i e -> e |> Array.mapi (fun j v -> v - b.value[i][j])) |> Matrix
+            let retVal = a.value |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> v - b.value[i][j])) |> Matrix
             retVal
 
 
@@ -245,7 +272,7 @@ module Primitives =
 
         /// This is NOT a matrix multiplication but element by element multiplication.
         static member inline (*) (a : LinearMatrix<'T>, b : Matrix<'T>) : Matrix<'T> =
-            let retVal = b.value |> Array.Parallel.mapi (fun i e -> e |> Array.mapi (fun j v -> (a.getValue i j) * v)) |> Matrix
+            let retVal = b.value |> Array.mapi (fun i e -> e |> Array.mapi (fun j v -> (a.getValue i j) * v)) |> Matrix
             retVal
 
 

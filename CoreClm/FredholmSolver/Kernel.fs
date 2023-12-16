@@ -198,8 +198,16 @@ module Kernel =
             a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.evolve (p, multiplier, e, b))) |> Matrix
 
         /// Calculates how many protocells are created.
+        member d.parallelEvolve (p : PoissonSampler[], multiplier : double, a : SparseArray4D<double>, b : Matrix<int64>) =
+            a.value |> Array.Parallel.mapi (fun i v -> v |> Array.map (fun e -> d.evolve (p[i], multiplier, e, b))) |> Matrix
+
+        /// Calculates how many protocells are created.
         member d.evolve (p : PoissonSampler, a : SparseArray4D<double>, b : LinearMatrix<int64>) =
             a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.evolve (p, e, b))) |> Matrix
+
+        // /// Calculates how many protocells are created.
+        // member d.parallelEvolve (p : PoissonSampler[], a : SparseArray4D<double>, b : LinearMatrix<int64>) =
+        //     a.value |> Array.Parallel.mapi (fun i v -> v |> Array.map (fun e -> d.evolve (p[i], e, b))) |> Matrix
 
         member d.integrateValues (a : SparseArray4D<double>) =
             a.value |> Array.map (fun v -> v |> Array.map d.integrateValues) |> Matrix
@@ -913,7 +921,7 @@ module Kernel =
             gammaFuncValue : GammaFuncValue
             numberOfMolecules : NumberOfMolecules
             recyclingRate : RecyclingRate
-            name : string option
+            name : string
         }
 
         member mp.modelString =
@@ -935,7 +943,7 @@ module Kernel =
                 gammaFuncValue = GammaFuncValue.defaultValue
                 numberOfMolecules = NumberOfMolecules.defaultValue
                 recyclingRate = RecyclingRate.defaultValue
-                name = None
+                name = EmptyString
             }
 
         /// Default value with quadratic kernel and non-linear gamma.

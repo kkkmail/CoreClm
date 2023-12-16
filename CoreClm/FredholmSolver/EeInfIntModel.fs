@@ -112,7 +112,7 @@ module EeInfIntModel =
 
         member _.evolutionType = EvolutionType.DiscreteEvolution
         member p.shifted shift = { p with intInitParams = p.intInitParams.shifted shift }
-        member p.named n = { p with eeInfModelParams = { p.eeInfModelParams with name = Some n } }
+        member p.named n = { p with eeInfModelParams.name = n }
         member p.withTotalMolecules totalMolecules = { p with intInitParams = p.intInitParams.withTotalMolecules totalMolecules }
         member p.withUInitial uInitial = { p with intInitParams = p.intInitParams.withUInitial uInitial }
         member p.withInfMaxValue infMaxValue = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withInfMaxValue infMaxValue }

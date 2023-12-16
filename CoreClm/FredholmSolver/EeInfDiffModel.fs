@@ -150,7 +150,7 @@ module EeInfDiffModel =
 
         member _.evolutionType = EvolutionType.DifferentialEvolution
         member p.shifted shift = { p with diffInitParams = p.diffInitParams.shifted shift }
-        member p.named n = { p with eeInfModelParams = { p.eeInfModelParams with name = Some n } }
+        member p.named n = { p with eeInfModelParams.name = n }
 
         /// Default linear value, mostly for tests, as it does not have many practical purposes.
         static member defaultValue =

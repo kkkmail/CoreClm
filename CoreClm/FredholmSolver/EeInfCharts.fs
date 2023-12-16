@@ -9,10 +9,10 @@ module EeInfCharts =
 
     type EeInfPlotter(p : ChartDiffData) =
         let getFileName (ct : ChartType) =
-            let name =
-                match p.initData.baseData.modelParams.name with
-                | Some v -> v
-                | None -> $"{p.initData.baseData.resultId.value}"
+            let name = p.initData.baseData.modelParams.name
+                // match p.initData.baseData.modelParams.name with
+                // | Some v -> v
+                // | None -> $"{p.initData.baseData.resultId.value}"
 
             $@"C:\EeInf\{name}__{ct.fileSuffix}.html"
 
