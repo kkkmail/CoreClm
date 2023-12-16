@@ -249,6 +249,10 @@ module PoissonSolver =
         let wolframData = toWolframData model p.evolutionParam result chartData
         File.WriteAllText(wolframFileName, wolframData)
 
+        let elapsedTime = sw.Elapsed
+        let formattedTime = $"%02d{elapsedTime.Days} %02d{elapsedTime.Hours}:%02d{elapsedTime.Minutes}:%02d{elapsedTime.Seconds}"
+        writeLine $"Elapsed Time: {formattedTime}."
+
         writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {p.intModelParams.eeInfModelParams.kernelParams.domainIntervals}"
         writeLine $"startInv = {startInv}, endInv = {endInv}"
         writeLine $"start: food = {startStat.food}, waste = {startStat.waste}, u = {startStat.total}"
@@ -256,5 +260,5 @@ module PoissonSolver =
         writeLine $"end: food = {endStat.food}, waste = {endStat.waste}, u = {endStat.total}"
         writeLine $"end: ee mean = {endStat.eeStatData.mean}, ee stdDev = {endStat.eeStatData.stdDev}, inf mean = {endStat.infStatData.mean}, inf stdDev = {endStat.infStatData.stdDev}"
 
-        // TODO kk:20231216 - Temporarily return this. Decide what to do with that.
+        // TODO kk:20231216 - Temporarily return this. Decide what to do with the return value. It is not really needed except for tests.
         startInv, endInv
