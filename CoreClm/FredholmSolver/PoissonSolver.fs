@@ -216,7 +216,8 @@ module PoissonSolver =
         let initialValue = model.intInitialValues
         let startInv = model.invariant initialValue
         let startStat = calculateIntStat model initialValue
-        let ps = Random p.intModelParams.intInitParams.seedValue |> PoissonSampler.create
+        let psCount = p.intModelParams.eeInfModelParams.kernelParams.domainIntervals.value + 1
+        let ps = Random p.intModelParams.intInitParams.seedValue |> PoissonSampler.createMultiSampler psCount
         let chartMod = p.evolutionParam.noOfCharts |> Option.bind (fun v -> noOfEpochs / v |> Some)
         let frameMod = p.evolutionParam.noOfFrames |> Option.bind (fun v ->  max (noOfEpochs / v) 1 |> Some)
         let chartFrequency = if noOfEpochs <= p.evolutionParam.maxChartPoints then 1 else noOfEpochs / p.evolutionParam.maxChartPoints

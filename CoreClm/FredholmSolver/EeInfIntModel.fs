@@ -16,11 +16,13 @@ module EeInfIntModel =
     type SolutionMethodParams =
         {
             solutionMethod : SolutionMethod
+            useParallel : bool
         }
 
         static member defaultValue =
             {
                 solutionMethod = Euler
+                useParallel = true
             }
 
         member s.modelString =
@@ -164,13 +166,15 @@ module EeInfIntModel =
             let w = x.waste.value
             let u = x.protocell.value
             let k, _, n, _ = md.unpack()
+            let s = p.sampler
+            let useParallel = md.intModelParams.solutionMethodParams.useParallel
 
             // If the amount of food falls below zero, then treat it as exact zero until enough waste is recycled.
-            let r = md.intModelParams.eeInfModelParams.recyclingRate.evolve p w
-            let gamma_u = md.gamma.evolve p u
+            let r = md.intModelParams.eeInfModelParams.recyclingRate.evolve s w
+            let gamma_u = md.gamma.evolve s u
             let int_gamma_u = gamma_u.total()
             let f_n = (pown (double (max f 0L)) n)
-            let int_k_u = k.evolve p f_n u
+            let int_k_u = k.evolve useParallel p f_n u
             let int_int_k_u = int_k_u.total()
 
             // Note that the food could be "eaten" beyond zero. If that happens, then it will be treated as exact zero until enough waste is recycled.
@@ -193,7 +197,7 @@ module EeInfIntModel =
                 let f_n1 = max (min (((double f) + (double r) * (double n)) / (c * (double n))) f_n) 0.0
 
                 //   2. Recalculate df and du.
-                let int_k_u = k.evolve p f_n1 u
+                let int_k_u = k.evolve useParallel p f_n1 u
                 let int_int_k_u = int_k_u.total()
 
                 let df = (int64 n) * (r - int_int_k_u)

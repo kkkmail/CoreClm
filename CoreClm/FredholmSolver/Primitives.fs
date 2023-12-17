@@ -116,39 +116,52 @@ module Primitives =
 
     /// Encapsulation of a Poisson distribution sampler.
     /// It takes a value of lambda and returns next random number of events.
-    type PoissonSampler =
-        | PoissonSampler of (float -> int64)
+    type PoissonSingleSampler =
+        | PoissonSingleSampler of (float -> int64)
 
-        member inline private r.value = let (PoissonSampler v) = r in v
+        member inline private r.value = let (PoissonSingleSampler v) = r in v
         member r.nextPoisson lambda = r.value lambda
-        static member create rnd = poissonSample rnd |> PoissonSampler
+        static member create rnd = poissonSample rnd |> PoissonSingleSampler
 
 
-    // /// Encapsulation of a Poisson distribution sampler factory suitable for both sequential and parallel code.
-    // type PoissonSamplerFactory =
-    //     {
-    //         /// Global seed value.
-    //         seed : int
-    //
-    //         /// Combines the seed value and the number of the sampler to create a new deterministic PoissonSampler.
-    //         sampler : int -> PoissonSampler
-    //     }
-    //
-    //     /// XORs a seed with a number to create a new seed.
-    //     static member getSeed (seed : int) (i : int) = seed ^^^ i
-    //
-    //     static member defaultValue seed =
-    //         {
-    //             seed = seed
-    //             sampler = fun i -> Random(PoissonSamplerFactory.getSeed seed i) |> PoissonSampler.create
-    //         }
-    //
-    //
-    // // /// Encapsulation of a Poisson distribution sampler factory suitable for both sequential and parallel code.
-    // // type PoissonSamplerFactory =
-    // //     | PoissonSamplerFactory of PoissonSamplerFactoryData
-    // //
-    // //     member inline private r.value = let (PoissonSamplerFactory v) = r in v
+    /// Encapsulation of a Poisson distribution sampler factory suitable for both sequential and parallel code.
+    type PoissonMultiSampler =
+        {
+            sampler : PoissonSingleSampler
+            parallelSampler : PoissonSingleSampler[]
+        }
+
+        static member create n (rnd : Random) =
+            let r() = Random(rnd.Next())
+            let sampler = PoissonSingleSampler.create (r())
+            let parallelSampler = [| for _ in 0..(n - 1) -> PoissonSingleSampler.create (r()) |]
+            {
+                sampler = sampler
+                parallelSampler = parallelSampler
+            }
+
+
+    type PoissonSampler =
+        | SingleSampler of PoissonSingleSampler
+        | MultiSampler of PoissonMultiSampler
+
+        member p.sampler =
+            match p with
+            | SingleSampler s -> s
+            | MultiSampler s -> s.sampler
+
+        member p.getSampler i =
+            match p with
+            | SingleSampler s -> s
+            | MultiSampler s -> s.parallelSampler[i]
+
+        member p.length =
+            match p with
+            | SingleSampler _ -> 0
+            | MultiSampler s -> s.parallelSampler.Length
+
+        static member createMultiSampler n rnd = PoissonMultiSampler.create n rnd |> MultiSampler
+        static member createSingleSampler rnd = PoissonSingleSampler.create rnd |> SingleSampler
 
 
     type EvolutionType =

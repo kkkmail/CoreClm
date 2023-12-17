@@ -1,6 +1,7 @@
 ﻿namespace FredholmSolver
 
 open System
+open System.Threading.Tasks
 open FredholmSolver.Primitives
 open Primitives.WolframPrimitives
 open Primitives.GeneralData
@@ -72,7 +73,6 @@ module Kernel =
         member dd.domain() =
             Domain.create dd.domainIntervals.value dd.domainRange.minValue dd.domainRange.maxValue
 
-
     /// Data that describes a rectangle in ee * inf space.
     /// ee space is naturally limited to [-1, 1] unless we use a conformal-like transformation to extend it to [-Infinity, Infinity].
     /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
@@ -128,7 +128,7 @@ module Kernel =
             retVal
 
         /// Calculates how many protocells are created for a given "point".
-        member private d.evolve(p : PoissonSampler, multiplier : double, a : SparseArray2D<double>, b : Matrix<int64>) =
+        member private d.evolve(p : PoissonSingleSampler, multiplier : double, a : SparseArray2D<double>, b : Matrix<int64>) =
             let g (e : SparseValue2D<double>) =
                 let n = b.value[e.i][e.j]
 
@@ -142,7 +142,7 @@ module Kernel =
             sum
 
         /// Calculates how many protocells are created for a given "point".
-        member private d.evolve(p : PoissonSampler, a : SparseArray2D<double>, b : LinearMatrix<int64>) =
+        member private d.evolve(p : PoissonSingleSampler, a : SparseArray2D<double>, b : LinearMatrix<int64>) =
             let bValue = b.getValue
 
             let g (e : SparseValue2D<double>) =
@@ -194,20 +194,25 @@ module Kernel =
             a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b))) |> Matrix
 
         /// Calculates how many protocells are created.
-        member d.evolve (p : PoissonSampler, multiplier : double, a : SparseArray4D<double>, b : Matrix<int64>) =
-            a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.evolve (p, multiplier, e, b))) |> Matrix
+        // member d.evolve (useParallel: bool, p : PoissonSampler, multiplier : double, a : SparseArray4D<double>, b : Matrix<int64>) =
+        //     let evolveFunc i v = v |> Array.map (fun e -> d.evolve (p.getSampler i, multiplier, e, b))
+        //
+        //     if useParallel then
+        //         let result = Array.zeroCreate a.value.Length
+        //         let parallelOptions = ParallelOptions()
+        //         parallelOptions.MaxDegreeOfParallelism <- 18 // Set the number of cores to use
+        //         Parallel.For(0, a.value.Length, parallelOptions, fun i -> result.[i] <- evolveFunc i a.value[i]) |> ignore
+        //         result |> Matrix
+        //     else
+        //         a.value |> Array.mapi evolveFunc |> Matrix
 
-        /// Calculates how many protocells are created.
-        member d.parallelEvolve (p : PoissonSampler[], multiplier : double, a : SparseArray4D<double>, b : Matrix<int64>) =
-            a.value |> Array.Parallel.mapi (fun i v -> v |> Array.map (fun e -> d.evolve (p[i], multiplier, e, b))) |> Matrix
-
-        /// Calculates how many protocells are created.
-        member d.evolve (p : PoissonSampler, a : SparseArray4D<double>, b : LinearMatrix<int64>) =
-            a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.evolve (p, e, b))) |> Matrix
+        member d.evolve (useParallel: bool, p : PoissonSampler, multiplier : double, a : SparseArray4D<double>, b : Matrix<int64>) =
+            let mapi = if useParallel then Array.Parallel.mapi else Array.mapi
+            a.value |> mapi (fun i v -> v |> Array.map (fun e -> d.evolve (p.getSampler i, multiplier, e, b))) |> Matrix
 
         // /// Calculates how many protocells are created.
-        // member d.parallelEvolve (p : PoissonSampler[], a : SparseArray4D<double>, b : LinearMatrix<int64>) =
-        //     a.value |> Array.Parallel.mapi (fun i v -> v |> Array.map (fun e -> d.evolve (p[i], e, b))) |> Matrix
+        // member d.evolve (p : PoissonSampler, a : SparseArray4D<double>, b : LinearMatrix<int64>) =
+        //     a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.evolve (p, e, b))) |> Matrix
 
         member d.integrateValues (a : SparseArray4D<double>) =
             a.value |> Array.map (fun v -> v |> Array.map d.integrateValues) |> Matrix
@@ -813,8 +818,8 @@ module Kernel =
 
         /// Calculates how many protocells are created.
         /// The multiplier carries the value in front of the integral (f^n).
-        member k.evolve (p : PoissonSampler) (multiplier : double) (u : Matrix<int64>) =
-            let v = k.domain2D.evolve (p, multiplier, k.kernel.value, u)
+        member k.evolve (useParallel : bool) (p : PoissonSampler) (multiplier : double) (u : Matrix<int64>) =
+            let v = k.domain2D.evolve (useParallel, p, multiplier, k.kernel.value, u)
             v
 
         static member create (e : EvolutionType) p =
@@ -859,7 +864,7 @@ module Kernel =
         member r.value = let (Gamma v) = r in v
 
         /// Calculates how many protocells are destroyed.
-        member r.evolve (p : PoissonSampler) (u : Matrix<int64>) =
+        member r.evolve (p : PoissonSingleSampler) (u : Matrix<int64>) =
             let m = r.value.value
 
             let g i j v =
@@ -906,7 +911,7 @@ module Kernel =
             |> Option.defaultValue EmptyString
 
         /// Calculates how much waste is recycled.
-        member r.evolve (p : PoissonSampler) w =
+        member r.evolve (p : PoissonSingleSampler) w =
             if w <= 0L then 0L
             else
                 let lambda = r.value * (double w)
