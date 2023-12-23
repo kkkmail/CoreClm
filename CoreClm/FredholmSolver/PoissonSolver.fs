@@ -250,6 +250,10 @@ module PoissonSolver =
         let wolframData = toWolframData model p.evolutionParam result chartData
         File.WriteAllText(wolframFileName, wolframData)
 
+        let wolframAnimationFileName = $@"{p.evolutionParam.outputFolder}\{getNamePrefix p.fullName}animation.m"
+        let wolframAnimationData = toWolframAnimation p.fullName p.evolutionParam.duration
+        File.WriteAllText(wolframAnimationFileName, wolframAnimationData)
+
         let elapsedTime = sw.Elapsed
         let formattedTime = $"%02d{elapsedTime.Days} %02d{elapsedTime.Hours}:%02d{elapsedTime.Minutes}:%02d{elapsedTime.Seconds}"
         writeLine $"Elapsed Time: {formattedTime}."
