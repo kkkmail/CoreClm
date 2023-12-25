@@ -1,16 +1,16 @@
 (* Constants and constant-like data functions *)
 
-ffmpegFolder = "C:\\FFMpeg\\bin";
-workingFolder = "C:\\EeInf";
-animationExtension = ".avi";
+ffmpegFolder := "C:\\FFMpeg\\bin";
+workingFolder := "C:\\EeInf";
+animationExtension := ".mp4";
 getListPlotOptions3D[resolution_]:= { ImageSize -> resolution, PlotTheme -> {"Classic", "ClassicLights"}, AxesLabel -> {"\[Eta]", "\[Zeta]", "u"}, PlotRange -> All, LabelStyle -> {FontSize -> 16, Bold, Black} };
 
 (* ========================================= *)
 (* Location of .m frame files. *)
-dataFolder := workingFolder <> "\\Data"
+dataFolder := "C:\\EeInf\\Data";
 
 (* Location of .png frame files. *)
-framesFolder := workingFolder <> "\\Frames"
+framesFolder := workingFolder <> "\\Frames";
 
 ffmpegExecutable := FileNameJoin[{ffmpegFolder, "ffmpeg"}];
 
