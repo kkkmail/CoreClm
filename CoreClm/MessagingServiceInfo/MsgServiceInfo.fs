@@ -2,6 +2,8 @@
 
 open System
 
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.Sys
 open Softellect.Sys.Primitives
 open Softellect.Sys.AppSettings
@@ -15,7 +17,7 @@ open Softellect.Sys.MessagingServiceErrors
 
 open ClmSys.MessagingData
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
@@ -26,7 +28,7 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open Clm.ChartData
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open ClmSys.SolverData
 
 module ServiceInfo =
@@ -79,18 +81,18 @@ module ServiceInfo =
             ||> bindBool
 
 
-    /// Any rule can be satisfied.        
+    /// Any rule can be satisfied.
     type AnyRule =
         | AnyRule of list<EarlyExitRule>
 
         member e.value = let (AnyRule v) = e in v
-    
+
 
     /// Outer list - all collections must be satisfied, inner list (from AnyRule) - at least one rule must be satisfied.
     type EarlyExitRuleCollection =
         | AllOfAny of list<AnyRule>
 
-    
+
     type EarlyExitStrategy =
         | AnyRuleCollection of list<EarlyExitRuleCollection> // Any of the collections can be satisfied.
 
@@ -139,7 +141,7 @@ module ServiceInfo =
                     ProgressExceeds p
                 ]
                 |> AnyRule
-                
+
                 [
                     MaxWeightedAverageAbsEeExceeds e
                     MaxLastEeExceeds e
@@ -157,7 +159,7 @@ module ServiceInfo =
 
         static member slowValue p =
                 EarlyExitStrategy.getEeValue p.slowProgress p.slowMinEe
-                
+
         static member longRunningValue p =
             [
                 [ RunTimeExceeds p.maxRunTime ] |> AnyRule
@@ -180,8 +182,8 @@ module ServiceInfo =
             frequency : EarlyExitCheckFrequency
             earlyExitStrategy : EarlyExitStrategy
         }
-        
-        static member getValue p = 
+
+        static member getValue p =
             {
                 frequency = p.earlyExitCheckFreq
                 earlyExitStrategy = EarlyExitStrategy.getValue p

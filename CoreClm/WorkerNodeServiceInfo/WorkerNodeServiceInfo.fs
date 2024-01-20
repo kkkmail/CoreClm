@@ -3,8 +3,10 @@
 open System
 open System.Threading
 
+open ClmSys
 open ClmSys.SolverData
 open ClmSys.SolverRunnerPrimitives
+open OdeSolver.Solver
 open Softellect.Sys
 open Softellect.Sys.Primitives
 open Softellect.Sys.MessagingPrimitives
@@ -13,8 +15,8 @@ open Softellect.Wcf.Common
 open Softellect.Wcf.Client
 open Softellect.Messaging.ServiceInfo
 
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
+open Primitives.VersionInfo
+open Primitives.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
@@ -40,14 +42,14 @@ module ServiceInfo =
 
     type RunnerState =
         {
-            progressData : ProgressData
+            progressData : ClmProgressData
             started : DateTime
             lastUpdated : DateTime
         }
 
         static member defaultValue =
             {
-                progressData = ProgressData.defaultValue
+                progressData = ClmProgressData.defaultValue
                 started = DateTime.Now
                 lastUpdated = DateTime.Now
             }
@@ -60,7 +62,7 @@ module ServiceInfo =
                 | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
-            $"T: %s{s};%s{estCompl} %A{r.progressData.progress}"
+            $"T: %s{s};%s{estCompl} %A{r.progressData.progressData.progress}"
 
 
     type WorkerNodeState =

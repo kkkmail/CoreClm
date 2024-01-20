@@ -11,7 +11,7 @@ open Clm.ReactionTypes
 open Clm.ReactionRatesBase
 open Clm.ReactionRates
 open Clm.ModelParams
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open Clm.CalculationData
 open Clm.Generator.FSharpCodeExt
 open Clm.Generator.ClmModelData

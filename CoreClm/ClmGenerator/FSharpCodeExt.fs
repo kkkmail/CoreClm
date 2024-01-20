@@ -8,7 +8,7 @@ open Clm.ReactionRateParams
 open Clm.ModelParams
 open Clm.ReactionTypes
 open ClmSys.DistributionData
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open ClmSys.ContGenPrimitives
 open ClmSys.ModelData
 
@@ -101,10 +101,10 @@ module FSharpCodeExt =
 
         member this.toFSharpCode =
             "{ " +
-            "threshold = " + (doubleOptFSharpString this.threshold) + "; " +
-            "scale = " + (doubleOptFSharpString this.scale) + "; " +
-            "shift = " + (doubleOptFSharpString this.shift) +
-            " }"
+            "    threshold = " + (doubleOptFSharpString this.threshold) + "; " +
+            "    scale = " + (doubleOptFSharpString this.scale) + "; " +
+            "    shift = " + (doubleOptFSharpString this.shift) +
+            "}"
 
 
     type DistributionParamsWithType
@@ -112,9 +112,9 @@ module FSharpCodeExt =
 
         member this.toFSharpCode =
             "{ " +
-            "distributionType = " + this.distributionType.ToString() + "; " +
-            "distributionParams = " + this.distributionParams.toFSharpCode +
-            " }"
+            "    distributionType = " + this.distributionType.ToString() + "; " +
+            "    distributionParams = " + this.distributionParams.toFSharpCode +
+            "}"
 
 
     type Distribution

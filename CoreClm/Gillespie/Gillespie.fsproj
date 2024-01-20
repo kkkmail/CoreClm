@@ -20,6 +20,8 @@
         <Compile Include="SsaPrimitives.fs" />
         <Compile Include="SsaSolver.fs" />
         <Compile Include="SsaSolverMutable.fs" />
+        <Compile Include="TauLeaping.fs" />
+        <Compile Include="TauLeaping2.fs" />
         <Compile Include="LotkaVolterra.fs" />
         <Compile Include="ProtoCells.fs" />
     </ItemGroup>
@@ -30,7 +32,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="FSharp.Core" Version="7.0.200" />
+        <PackageReference Update="FSharp.Core" Version="7.0.400" />
     </ItemGroup>
 
 </Project>

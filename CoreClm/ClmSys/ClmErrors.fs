@@ -1,5 +1,7 @@
 ﻿namespace ClmSys
 
+open Primitives.GeneralErrors
+open Primitives.SolverPrimitives
 open Softellect.Sys.WcfErrors
 open Softellect.Sys.TimerErrors
 open Softellect.Sys.Rop
@@ -11,8 +13,7 @@ open WorkerNodeErrors
 open ModelGeneratorErrors
 open ModelRunnerErrors
 open ContGenErrors
-open SolverRunnerPrimitives
-open SolverRunnerErrors
+open Primitives.SolverRunnerErrors
 
 module ClmErrors =
 
@@ -87,7 +88,7 @@ module ClmErrors =
         }
 
 
-    /// We have to resort to throwing a specific exception in order
-    /// to perform early termination from deep inside C# ODE solver.
-    /// There seems to be no other easy and clean way. Revisit if that changes.
-    exception ComputationAbortedException of (ProgressData * CancellationType)
+    // /// We have to resort to throwing a specific exception in order
+    // /// to perform early termination from deep inside C# ODE solver.
+    // /// There seems to be no other easy and clean way. Revisit if that changes.
+    // exception ComputationAbortedException of (ProgressData * CancellationType)

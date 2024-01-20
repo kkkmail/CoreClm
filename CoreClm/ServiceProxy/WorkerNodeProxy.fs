@@ -1,16 +1,16 @@
 ﻿namespace ServiceProxy
 
 open ClmSys.WorkerNodeData
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
+open Primitives.SolverRunnerErrors
 open ServiceProxy.SolverProcessProxy
 open Softellect.Messaging.Primitives
 
 open NoSql.FileSystemTypes
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.GeneralPrimitives
-open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
-open ClmSys.ContGenPrimitives
-open ClmSys.SolverRunnerErrors
 open ClmSys.WorkerNodePrimitives
 open DbData.WorkerNodeDatabaseTypes
 

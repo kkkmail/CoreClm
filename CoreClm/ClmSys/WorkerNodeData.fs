@@ -2,17 +2,16 @@
 
 open System
 
-open ClmSys.GeneralPrimitives
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.Sys.Core
 open Softellect.Wcf.Common
 open Softellect.Messaging.ServiceInfo
-
-open ClmSys.GeneralData
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodeErrors
 open ClmSys.ClmErrors
-open ClmSys.SolverRunnerPrimitives
+open Primitives.GeneralData
 
 module WorkerNodeData =
 

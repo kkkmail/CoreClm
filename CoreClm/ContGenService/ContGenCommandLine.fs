@@ -11,7 +11,7 @@ open Softellect.Messaging.Primitives
 open Softellect.Messaging.Client
 
 open ClmSys.ClmWorker
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.Logging
 open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo

@@ -1,6 +1,7 @@
 ﻿namespace ServiceProxy
 
 open ClmSys.ContGenData
+open Primitives.GeneralPrimitives
 open Softellect.Messaging.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives

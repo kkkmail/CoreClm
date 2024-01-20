@@ -6,29 +6,15 @@ open Microsoft.FSharp.Core
 open ClmSys.ContGenPrimitives
 open Clm.ModelParams
 open Clm.ChartData
-open Plotly.NET
-open Plotly.NET.GenericChart
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
+open Primitives.GeneralPrimitives
+open Primitives.ChartPrimitives
+open Plotly.NET
+open Plotly.NET.GenericChart
+open Giraffe.ViewEngine
 
 module ChartExt =
-
-    let toDescription h t =
-        {
-            Heading = h
-            Text = t
-        }
-
-
-    let toEmbeddedHtmlWithDescription (description : ChartDescription) gChart =
-         let chartMarkup =
-             toChartHTML gChart
-
-         HTML.doc
-             .Replace("[CHART]", chartMarkup)
-             .Replace("[DESCRIPTION]", description.Text)
-             .Replace("[ADDITIONAL_HEAD_TAGS]", description.Heading)
-
 
     type Chart with
 
@@ -75,7 +61,7 @@ module ChartExt =
             | PlotTotalSubst -> "ts"
 
         member private ct.getFileNameImpl (i : PlotDataInfo) (modelDataId : ModelDataId) (y0 : decimal) (tEnd : decimal) =
-            let suff = ct.fileSuffix
+            let suffix = ct.fileSuffix
 
             let fileName =
                 [
@@ -83,7 +69,7 @@ module ChartExt =
                     i.resultInfo.separator
                     (int y0).ToString().PadLeft(3, '0')
                     (int tEnd).ToString().PadLeft(5, '0')
-                    suff
+                    suffix
                 ]
                 |> String.concat i.resultInfo.separator
 
@@ -98,13 +84,6 @@ module ChartExt =
         match i.useTempFolder with
         | true -> Chart.ShowWithDescription1 show
         | false -> Chart.ShowFileWithDescription show fileName
-
-
-    let getChart fileName d ch =
-        {
-            htmlContent = toEmbeddedHtmlWithDescription d ch
-            fileName = fileName
-        }
 
 
     let showHtmlChart chart =

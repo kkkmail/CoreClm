@@ -8,13 +8,13 @@ open Softellect.Wcf.Common
 
 open ClmSys
 open GeneralPrimitives
-open GeneralData
 open ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
 open ClmSys.ModelData
 open ClmSys.SolverData
+open Primitives.GeneralData
 
 module ContGenData =
 
