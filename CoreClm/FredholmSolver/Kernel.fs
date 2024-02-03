@@ -315,6 +315,42 @@ module Kernel =
         member ta.comparisonFactors = [| ta.x0; ta.xScale |]
 
 
+    /// Uses: x1 = xScale * (x - x0) and y1 = yScale * (y - y0) in Taylor expansion.
+    ///
+    /// Each sub-array should contain the coefficients for all terms of a particular total order.
+    /// For example, if the highest order is 2, coefficients should be be initialized as
+    /// [| [|a00|]; [|a10; a01|]; [|a20; a11; a02|] |],
+    /// where a20 is the coefficient of x^2, a11 of x * y, etc.
+    /// Note that the binomial coefficient is not included in the coefficients.
+    type TaylorApproximation2D =
+        {
+            x0 : double
+            y0 : double
+            xScale : double
+            yScale : double
+            coefficients : double[][]
+        }
+
+        member ta.calculate (x, y) =
+            let x1 = ta.xScale * (x - ta.x0)
+            let y1 = ta.yScale * (y - ta.y0)
+
+            let retVal =
+                ta.coefficients
+                |> Array.mapi (fun i row ->
+                    row
+                    |> Array.mapi (fun j e ->
+                        let binomial = factorial(i) / (factorial(j) * factorial(i - j)) |> double
+                        (pown x1 j) * (pown y1 (i - j)) *  binomial * e / (factorial i |> double)))
+                |> Array.concat
+                |> Array.sum
+
+            retVal
+
+        member ta.comparisonFactors = [| ta.x0; ta.xScale; ta.y0; ta.yScale |]
+
+
+    /// Separate Taylor approximations for ee and inf spaces.
     type EeInfTaylorApproximation =
         {
             tEe : TaylorApproximation
@@ -329,6 +365,15 @@ module Kernel =
         }
 
         member ta.comparisonFactors = Array.concat [| ta.tEeInf.tEe.comparisonFactors;  ta.tEeInf.tInf.comparisonFactors |]
+
+
+    type ScaledEeInfTaylorApproximation2D =
+        {
+            eeInfScale : double
+            tEeInf2D : TaylorApproximation2D
+        }
+
+        member ta.comparisonFactors = ta.tEeInf2D.comparisonFactors
 
 
     /// TODO kk:20231017 - Only scalar eps is supported for now.
