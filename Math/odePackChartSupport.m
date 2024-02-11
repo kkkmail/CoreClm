@@ -278,8 +278,7 @@ createAnimationQuick[filePrefix_, resolution_, duration_] :=
    memoryUsed = Round[(endMemory - startMemory)/10^9, 0.001];
    Print["Time taken: ", timeTaken, " seconds."];
    Print["Memory used: ", memoryUsed, " GB."];
-   Print["xPadding = ", xPadding, ", yPadding = ", yPadding];
-   Print["Exported animation."];
+   Print["Exported animation: \"", outputFile, "\"."];
 ];
 
 createAllAnimationsQuick[] := Module[{files, fileNames, prefixes, uniquePrefixes},
