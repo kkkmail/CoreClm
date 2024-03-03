@@ -292,7 +292,7 @@ createAllAnimationsQuick[] := Module[{files, fileNames, prefixes, uniquePrefixes
     Print["Found: ", Length[uniquePrefixes], " prefixes."];
     Print[uniquePrefixes // MatrixForm];
 
-    Do[createAnimationQuick[prefix, "Large", 50], {prefix, uniquePrefixes}];
+    Do[createAnimationQuick[prefix <> "__", "Large", 50], {prefix, uniquePrefixes}];
 ]
 
 
