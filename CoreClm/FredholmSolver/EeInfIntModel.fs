@@ -22,13 +22,17 @@ module EeInfIntModel =
         static member defaultValue =
             {
                 solutionMethod = Euler
-                useParallel = true
+                useParallel = false
             }
 
         member s.modelString =
-            match s.solutionMethod with
-            | Euler -> EmptyString
-            | MidPoint -> "_mp"
+            let sm =
+                match s.solutionMethod with
+                | Euler -> EmptyString
+                | MidPoint -> "_mp"
+
+            let p = if s.useParallel then "_p" else EmptyString
+            sm + p
 
 
     type NoOfEpochs =

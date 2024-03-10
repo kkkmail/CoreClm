@@ -216,6 +216,30 @@ module PoissonTestData =
     // ===================================================================================
     // ===================================================================================
 
+    /// D = 500, e = 0.005, a = 0.002.
+    let mp_d500k1e005g01a002 =
+        createModelParams EeInfIntModelParams.defaultNonLinearValue 500 K0.defaultValue (EeInfIntModelParams.withEps0 Eps0.defaultNarrowValue)
+        |> EeInfIntModelParams.withGlobalAsymmetryFactor GlobalAsymmetryFactor.defaultSmallValueX2
+
+    let mp_d500k1e005g01a002f1T = mp_d500k1e005g01a002.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e005g01a002f1P = mp_d500k1e005g01a002.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e005g01a002f1E = mp_d500k1e005g01a002.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    /// D = 500, e = 0.005, a = 0.005.
+    let mp_d500k1e005g01a005 =
+        createModelParams EeInfIntModelParams.defaultNonLinearValue 500 K0.defaultValue (EeInfIntModelParams.withEps0 Eps0.defaultNarrowValue)
+        |> EeInfIntModelParams.withGlobalAsymmetryFactor GlobalAsymmetryFactor.defaultSmallValueX5
+
+    let mp_d500k1e005g01a005f1T = mp_d500k1e005g01a005.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e005g01a005f1P = mp_d500k1e005g01a005.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e005g01a005f1E = mp_d500k1e005g01a005.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
     /// D = 500, e = 0.01, a = 0.001.
     let mp_d500k1e01g01a001 =
         createModelParams EeInfIntModelParams.defaultNonLinearValue 500 K0.defaultValue (EeInfIntModelParams.withEps0 Eps0.defaultValue)
@@ -224,6 +248,30 @@ module PoissonTestData =
     let mp_d500k1e01g01a001f1T = mp_d500k1e01g01a001.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d500k1e01g01a001f1P = mp_d500k1e01g01a001.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d500k1e01g01a001f1E = mp_d500k1e01g01a001.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    /// D = 500, e = 0.01, a = 0.002.
+    let mp_d500k1e01g01a002 =
+        createModelParams EeInfIntModelParams.defaultNonLinearValue 500 K0.defaultValue (EeInfIntModelParams.withEps0 Eps0.defaultValue)
+        |> EeInfIntModelParams.withGlobalAsymmetryFactor GlobalAsymmetryFactor.defaultSmallValueX2
+
+    let mp_d500k1e01g01a002f1T = mp_d500k1e01g01a002.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e01g01a002f1P = mp_d500k1e01g01a002.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e01g01a002f1E = mp_d500k1e01g01a002.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    /// D = 500, e = 0.01, a = 0.005.
+    let mp_d500k1e01g01a005 =
+        createModelParams EeInfIntModelParams.defaultNonLinearValue 500 K0.defaultValue (EeInfIntModelParams.withEps0 Eps0.defaultValue)
+        |> EeInfIntModelParams.withGlobalAsymmetryFactor GlobalAsymmetryFactor.defaultSmallValueX5
+
+    let mp_d500k1e01g01a005f1T = mp_d500k1e01g01a005.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e01g01a005f1P = mp_d500k1e01g01a005.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e01g01a005f1E = mp_d500k1e01g01a005.withTotalMolecules MoleculeCount.OneQuintillion
 
     // ===================================================================================
     // ===================================================================================
@@ -258,9 +306,49 @@ module PoissonTestData =
     // ===================================================================================
     // ===================================================================================
 
+    /// D = 500, e = 0.005, a = 0.002, i = 1.0.
+    let mp_d500k1e005g01a002i10 = toI10 mp_d500k1e005g01a002
+
+    let mp_d500k1e005g01a002i10f1T = mp_d500k1e005g01a002i10.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e005g01a002i10f1P = mp_d500k1e005g01a002i10.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e005g01a002i10f1E = mp_d500k1e005g01a002i10.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    /// D = 500, e = 0.005, a = 0.005, i = 1.0.
+    let mp_d500k1e005g01a005i10 = toI10 mp_d500k1e005g01a005
+
+    let mp_d500k1e005g01a005i10f1T = mp_d500k1e005g01a005.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e005g01a005i10f1P = mp_d500k1e005g01a005.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e005g01a005i10f1E = mp_d500k1e005g01a002i10.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
     /// D = 500, e = 0.01, a = 0.001, i = 1.0.
     let mp_d500k1e01g01a001i10 = toI10 mp_d500k1e01g01a001
 
     let mp_d500k1e01g01a001i10f1T = mp_d500k1e01g01a001i10.withTotalMolecules MoleculeCount.OneTrillion
     let mp_d500k1e01g01a001i10f1P = mp_d500k1e01g01a001i10.withTotalMolecules MoleculeCount.OneQuadrillion
     let mp_d500k1e01g01a001i10f1E = mp_d500k1e01g01a001i10.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    /// D = 500, e = 0.01, a = 0.002, i = 1.0.
+    let mp_d500k1e01g01a002i10 = toI10 mp_d500k1e01g01a002
+
+    let mp_d500k1e01g01a002i10f1T = mp_d500k1e01g01a002i10.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e01g01a002i10f1P = mp_d500k1e01g01a002i10.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e01g01a002i10f1E = mp_d500k1e01g01a002i10.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+
+    /// D = 500, e = 0.01, a = 0.005, i = 1.0.
+    let mp_d500k1e01g01a005i10 = toI10 mp_d500k1e01g01a005
+
+    let mp_d500k1e01g01a005i10f1T = mp_d500k1e01g01a005.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e01g01a005i10f1P = mp_d500k1e01g01a005.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e01g01a005i10f1E = mp_d500k1e01g01a005.withTotalMolecules MoleculeCount.OneQuintillion

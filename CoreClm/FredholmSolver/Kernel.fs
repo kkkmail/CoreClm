@@ -581,6 +581,8 @@ module Kernel =
 
         member r.value = let (GlobalAsymmetryFactor v) = r in v
         static member defaultValue = GlobalAsymmetryFactor -0.01
+        static member defaultSmallValueX5 = GlobalAsymmetryFactor -0.005
+        static member defaultSmallValueX2 = GlobalAsymmetryFactor -0.002
         static member defaultSmallValue = GlobalAsymmetryFactor -0.001
         static member defaultVerySmallValue = GlobalAsymmetryFactor -0.0001
 
