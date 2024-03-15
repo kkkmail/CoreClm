@@ -995,3 +995,16 @@ type PoissonTests (output : ITestOutputHelper) =
         Async.Parallel tests
         |> Async.RunSynchronously
         |> ignore
+
+
+    [<Fact>]
+    member t.d500_round_1_6() : unit =
+        let tests =
+            [
+                async { t.d500k1e01g01a005i10f1E_200K() }
+                async { t.d500k1e01g01a005i10f1E_1M() }
+            ]
+
+        Async.Parallel tests
+        |> Async.RunSynchronously
+        |> ignore
