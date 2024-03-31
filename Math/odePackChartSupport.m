@@ -3,6 +3,8 @@
 ffmpegFolder := "C:\\FFMpeg\\bin";
 workingFolder := "C:\\EeInf";
 animationExtension := ".mp4";
+xPaddingValue := 70.05;
+yPaddingValue := 20.45;
 getListPlotOptions3D[resolution_]:= { ImageSize -> resolution, PlotTheme -> {"Classic", "ClassicLights"}, AxesLabel -> {"\[Eta]", "\[Zeta]", "u"}, PlotRange -> All, LabelStyle -> {FontSize -> 16, Bold, Black} };
 
 (* ========================================= *)
@@ -52,13 +54,27 @@ exportListPlot3D[x_, y_, z_, zName_, suffix_] :=
     Return[0];
 ];
 
-plotChart[d_, colIdx_, yName_, divisor_] := Module[{xVal, xLen, data},
-    Print[yName];
+getData[d_, colIdx_, divisor_] := Module[{xVal, xLen, data},
     xVal =  Transpose[d][[1]];
     xLen = Floor[ Length[xVal] / divisor];
-    data=Table[{xVal[[ii]],d[[ii,colIdx]]},{ii,1,xLen}];
+    data = Table[{xVal[[ii]],d[[ii,colIdx]]},{ii,1,xLen}];
+    Return[data];
+];
+
+plotChart[d_, colIdx_, yName_, divisor_] := Module[{data},
+    Print[yName];
+    data = getData[d, colIdx, divisor];
     (* data = Table[{xVal[[ii]], d[[ii, colIdx]]}, {ii, Length[xVal] - xLen + 1, Length[xVal]}]; *)
     Print[ListPlot[data, FrameLabel -> {{yName, None}, {"t", None}}, PlotRange -> All, Frame -> True, GridLines -> Automatic, Joined -> True, LabelStyle -> {FontSize -> 16, Bold, Black}, ImageSize -> Large, PlotStyle -> {Thickness[0.005]}]];
+    Print[sep];
+    Print[""];
+];
+
+plotCombinedChart[d_, colIdx_, yName_, divisor_] := Module[{len, data},
+    Print[yName];
+    len = Length[d];
+    data = Table[getData[d[[ii]], colIdx, divisor],{ii, 1, len}];
+    Print[ListPlot[data, PlotLegends -> Table[ToString[i], {i, 1, Length[data]}], FrameLabel -> {{yName, None}, {"t", None}}, PlotRange -> All, Frame -> True, GridLines -> Automatic, Joined -> True, LabelStyle -> {FontSize -> 16, Bold, Black}, ImageSize -> Large, PlotStyle -> {Thickness[0.005]}]];
     Print[sep];
     Print[""];
 ];
@@ -178,16 +194,6 @@ getExportFileName[fullDataFileName_] := Module[{fileNameWithExtension, fullFrame
     Return[fullFramesFileName];
 ];
 
-exportPngFile[fullDataFileName_, resolution_] :=
-  Module[{frameData, fullFramesFileName, options},
-   fullFramesFileName = getExportFileName[fullDataFileName];
-   options = getListPlotOptions3D[resolution];
-   Print["Exporting: ", fullDataFileName, " into : ", fullFramesFileName, ". Memory used: ", Round[(MemoryInUse[] - startMemory)/10^9, 0.001], "GB, time taken: ", Round[AbsoluteTime[] - startTime], " seconds."];
-   frameData = Import[fullDataFileName];
-   Export[fullFramesFileName, ListPlot3D[frameData, Sequence @@ options], "PNG"];
-   Return[0];
-];
-
 exportPngFile[fullDataFileName_, resolution_, xPadding_, yPadding_] :=
   Module[{frameData, fullFramesFileName, options},
    fullFramesFileName = getExportFileName[fullDataFileName];
@@ -197,6 +203,8 @@ exportPngFile[fullDataFileName_, resolution_, xPadding_, yPadding_] :=
    Export[fullFramesFileName, ListPlot3D[frameData, Sequence @@ options], "PNG"];
    Return[0];
 ];
+
+exportPngFile[fullDataFileName_, resolution_] := exportPngFile[fullDataFileName, resolution, xPaddingValue, yPaddingValue];
 
 createAnimation[filePrefix_, resolution_, duration_] :=
   Module[{files, frames, animation, frameData, endTime, endMemory, memoryUsed, timeTaken, paddings, xPadding, yPadding, noOfFiles, frameRate, ffmpegCommand, result, concatFileName, filesList, fileName, outputFile},
@@ -293,6 +301,4 @@ createAllAnimationsQuick[] := Module[{files, fileNames, prefixes, uniquePrefixes
     Print[uniquePrefixes // MatrixForm];
 
     Do[createAnimationQuick[prefix <> "__", "Large", 50], {prefix, uniquePrefixes}];
-]
-
-
+];
