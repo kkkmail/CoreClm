@@ -302,7 +302,7 @@ createAllAnimationsQuick[] := Module[{files, fileNames, prefixes, uniquePrefixes
 
     prefixes = StringJoin[Riffle[Take[StringSplit[#, {"__"}], 2], "__"]] & /@ fileNames;
     uniquePrefixes = Sort[DeleteDuplicates[prefixes]];
-    uniquePrefixesWithNoOfFiles = Table[{prefix, Length[getFiles[prefix]}, {prefix, uniquePrefixes}];
+    uniquePrefixesWithNoOfFiles = Table[{prefix, Length[getFiles[prefix]]}, {prefix, uniquePrefixes}];
     Print["Found: ", Length[uniquePrefixes], " prefixes."];
     Print[uniquePrefixesWithNoOfFiles // MatrixForm];
 
