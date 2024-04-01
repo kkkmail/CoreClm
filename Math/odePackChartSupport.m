@@ -250,6 +250,12 @@ createAnimation[filePrefix_, resolution_, duration_] :=
    Print["Exported animation."];
 ];
 
+getFiles[filePrefix_] := Module[{files},
+    files = FileNames[FileNameJoin[{dataFolder, filePrefix <> "*.m"}]];
+    files = Sort[files];
+    Return[files];
+];
+
 (* Same as above but does not calculate padding first. *)
 (* This is faster but could result in some jerkiness in the video. *)
 (* This also does not rewrite PNG files. So, if you restart it, then it will not process already existing files. *)
@@ -259,8 +265,7 @@ createAnimationQuick[filePrefix_, resolution_, duration_] :=
    createFolder[dataFolder];
    createFolder[framesFolder];
 
-   files = FileNames[FileNameJoin[{dataFolder, filePrefix <> "*.m"}]];
-   files = Sort[files];
+   files = getFiles[filePrefix];
    noOfFiles = Length[files];
    frameRate = N[noOfFiles/duration];
    Print["Duration; ", duration, ", frame rate: ", frameRate, "."];
@@ -289,7 +294,7 @@ createAnimationQuick[filePrefix_, resolution_, duration_] :=
    Print["Exported animation: \"", outputFile, "\"."];
 ];
 
-createAllAnimationsQuick[] := Module[{files, fileNames, prefixes, uniquePrefixes},
+createAllAnimationsQuick[] := Module[{files, fileNames, prefixes, uniquePrefixes, uniquePrefixesWithNoOfFiles},
     Print["Processing files in: \"", dataFolder, "\" folder."];
     files = FileNames[FileNameJoin[{dataFolder, "*.m"}]];
     fileNames = FileNameTake /@ files;
@@ -297,8 +302,9 @@ createAllAnimationsQuick[] := Module[{files, fileNames, prefixes, uniquePrefixes
 
     prefixes = StringJoin[Riffle[Take[StringSplit[#, {"__"}], 2], "__"]] & /@ fileNames;
     uniquePrefixes = Sort[DeleteDuplicates[prefixes]];
+    uniquePrefixesWithNoOfFiles = Table[{prefix, Length[getFiles[prefix]}, {prefix, uniquePrefixes}];
     Print["Found: ", Length[uniquePrefixes], " prefixes."];
-    Print[uniquePrefixes // MatrixForm];
+    Print[uniquePrefixesWithNoOfFiles // MatrixForm];
 
     Do[createAnimationQuick[prefix <> "__", "Large", 50], {prefix, uniquePrefixes}];
 ];
