@@ -319,9 +319,9 @@ module PoissonTestData =
     /// D = 500, e = 0.005, a = 0.005, i = 1.0.
     let mp_d500k1e005g01a005i10 = toI10 mp_d500k1e005g01a005
 
-    let mp_d500k1e005g01a005i10f1T = mp_d500k1e005g01a005.withTotalMolecules MoleculeCount.OneTrillion
-    let mp_d500k1e005g01a005i10f1P = mp_d500k1e005g01a005.withTotalMolecules MoleculeCount.OneQuadrillion
-    let mp_d500k1e005g01a005i10f1E = mp_d500k1e005g01a002i10.withTotalMolecules MoleculeCount.OneQuintillion
+    let mp_d500k1e005g01a005i10f1T = mp_d500k1e005g01a005i10.withTotalMolecules MoleculeCount.OneTrillion
+    let mp_d500k1e005g01a005i10f1P = mp_d500k1e005g01a005i10.withTotalMolecules MoleculeCount.OneQuadrillion
+    let mp_d500k1e005g01a005i10f1E = mp_d500k1e005g01a005i10.withTotalMolecules MoleculeCount.OneQuintillion
 
     // ===================================================================================
     // ===================================================================================
