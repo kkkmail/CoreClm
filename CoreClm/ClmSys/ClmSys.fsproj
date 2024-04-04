@@ -47,9 +47,9 @@
     <PackageReference Include="log4net" Version="2.0.17" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
-    <PackageReference Include="Softellect.Messaging" Version="8.0.0.1" />
-    <PackageReference Include="Softellect.Sys" Version="8.0.0.1" />
-    <PackageReference Include="Softellect.Wcf" Version="8.0.0.1" />
+    <PackageReference Include="Softellect.Messaging" Version="8.0.200.1" />
+    <PackageReference Include="Softellect.Sys" Version="8.0.200.1" />
+    <PackageReference Include="Softellect.Wcf" Version="8.0.200.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageReference Update="FSharp.Core" Version="8.0.200" />
   </ItemGroup>
