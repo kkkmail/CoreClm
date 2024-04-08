@@ -5,6 +5,7 @@ workingFolder := "C:\\EeInf";
 animationExtension := ".mp4";
 xPaddingValue := 70.05;
 yPaddingValue := 20.45;
+yScale := 0.01;
 getListPlotOptions3D[resolution_]:= { ImageSize -> resolution, PlotTheme -> {"Classic", "ClassicLights"}, AxesLabel -> {"\[Eta]", "\[Zeta]", "u"}, PlotRange -> All, LabelStyle -> {FontSize -> 16, Bold, Black} };
 
 (* ========================================= *)
@@ -70,11 +71,82 @@ plotChart[d_, colIdx_, yName_, divisor_] := Module[{data},
     Print[""];
 ];
 
-plotCombinedChart[d_, colIdx_, yName_, divisor_] := Module[{len, data},
+getLineStyle[lineNumber_, totalLines_] := Module[{colors, baseStyle},
+    colors = {Black, Red, Green, Blue}; (* Very distinct colors *)
+    baseStyle = If[totalLines > 4 && lineNumber > 4, Dashed, Solid]; (* Determine base style based on line number and total lines *)
+
+    (* Ensure color cycles through the list without causing Mod[0,0] *)
+    (* Mod with Length[colors] ensures cycling through colors without error *)
+    {colors[[Mod[lineNumber - 1, Length[colors]] + 1]], baseStyle}
+];
+
+plotCombinedChart[d_, colIdx_, yName_, divisor_, shift_:{}] := Module[
+    {len, data, plotStyles, legendOptions, legendPlacement},
+
     Print[yName];
     len = Length[d];
-    data = Table[getData[d[[ii]], colIdx, divisor],{ii, 1, len}];
-    Print[ListPlot[data, PlotLegends -> Table[ToString[i], {i, 1, Length[data]}], FrameLabel -> {{yName, None}, {"t", None}}, PlotRange -> All, Frame -> True, GridLines -> Automatic, Joined -> True, LabelStyle -> {FontSize -> 16, Bold, Black}, ImageSize -> Large, PlotStyle -> {Thickness[0.005]}]];
+    data = Table[getData[d[[ii]], colIdx, divisor], {ii, 1, len}];
+
+    plotStyles = Table[getLineStyle[ii, len], {ii, 1, len}];
+
+    (* Determine legend placement based on shift parameter *)
+    legendPlacement = Switch[Length[shift],
+        0, Right, (* Legend outside the chart by default *)
+        1, {shift[[1]], 0.75}, (* If one parameter is provided, use it as x shift *)
+        2, shift, (* If two parameters are provided, use them as x and y shifts *)
+        _, {0.75, 0.75} (* Default to {0.75, 0.75} if the list has an unexpected length *)
+    ];
+
+    legendOptions = If[Length[shift] > 0,
+        Placed[LineLegend[Automatic, Table[ToString[i], {i, 1, Length[data]}], LegendMarkerSize -> {15, 3}], legendPlacement],
+        LineLegend[Automatic, Table[ToString[i], {i, 1, Length[data]}], LegendMarkerSize -> {15, 3}]
+    ];
+
+    (* Generate and print the plot with the configured legend options *)
+    Print[ListPlot[data,
+      PlotLegends -> legendOptions,
+      FrameLabel -> {{yName, None}, {"t", None}},
+      PlotRange -> All, Frame -> True, GridLines -> Automatic,
+      Joined -> True, LabelStyle -> {FontSize -> 16, Bold, Black},
+      ImageSize -> Large,
+      PlotStyle -> Table[{plotStyles[[ii, 1]], plotStyles[[ii, 2]], Thickness[0.005]}, {ii, 1, len}]
+    ]];
+    Print[sep];
+    Print[""];
+];
+
+(* Set yScale before usage. *)
+plotCombinedChartScaled[d_, colIdx_, yName_, divisor_, shift_:{}] := Module[
+    {len, data, plotStyles, legendOptions, legendPlacement},
+
+    Print[yName];
+    len = Length[d];
+    data = Table[getData[d[[ii]], colIdx, divisor], {ii, 1, len}];
+
+    plotStyles = Table[getLineStyle[ii, len], {ii, 1, len}];
+
+    (* Determine legend placement based on shift parameter *)
+    legendPlacement = Switch[Length[shift],
+        0, Right, (* Legend outside the chart by default *)
+        1, {shift[[1]], 0.75}, (* If one parameter is provided, use it as x shift *)
+        2, shift, (* If two parameters are provided, use them as x and y shifts *)
+        _, {0.75, 0.75} (* Default to {0.75, 0.75} if the list has an unexpected length *)
+    ];
+
+    legendOptions = If[Length[shift] > 0,
+        Placed[LineLegend[Automatic, Table[ToString[i], {i, 1, Length[data]}], LegendMarkerSize -> {15, 3}], legendPlacement],
+        LineLegend[Automatic, Table[ToString[i], {i, 1, Length[data]}], LegendMarkerSize -> {15, 3}]
+    ];
+
+    (* Generate and print the plot with the configured legend options *)
+    Print[ListPlot[data,
+      PlotLegends -> legendOptions,
+      FrameLabel -> {{yName, None}, {"t", None}},
+      PlotRange -> {Automatic, yScale}, Frame -> True, GridLines -> Automatic,
+      Joined -> True, LabelStyle -> {FontSize -> 16, Bold, Black},
+      ImageSize -> Large,
+      PlotStyle -> Table[{plotStyles[[ii, 1]], plotStyles[[ii, 2]], Thickness[0.005]}, {ii, 1, len}]
+    ]];
     Print[sep];
     Print[""];
 ];
