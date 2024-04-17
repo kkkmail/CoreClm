@@ -10,9 +10,11 @@ getListPlotOptions3D[resolution_]:= { ImageSize -> resolution, PlotTheme -> {"Cl
 
 (* ========================================= *)
 
-extractScriptName[descr_String] := Module[{matches},
+extractScriptName[descr_String] := Module[{matches, retVal},
     matches = StringCases[descr, "name = Some \"" ~~ Shortest[name__] ~~ "\"" :> name];
-    If[Length[matches] > 0, First[matches], Indeterminate]
+    matches = If[Length[matches] > 0, matches, StringCases[descr, "name = \"" ~~ Shortest[name__] ~~ "\"" :> name]];
+    retVal = If[Length[matches] > 0, First[matches], Indeterminate];
+    Return[retVal];
 ];
 
 (* ========================================= *)
@@ -205,7 +207,10 @@ plotAll[divisor_] := Module[{xLen, yLen, kaDivGamma},
     exportListPlot3D[etaData, zetaData, gamma, "\[Gamma]", "gamma"];
 
     plot3DChart[etaData, zetaData, kaDivGamma, Subscript["k", "a"] / "\[Gamma]", "k0 = " <> ToString[k0] <> ", gamma0 = " <> ToString[gamma0]];
+
     plot3DChart[etaData, zetaData, uData, "u", "u (as is)"];
+    exportListPlot3D[etaData, zetaData, uData, "u", "u"];
+
     plot3DChart[etaData, zetaData, Chop[uData], "u", "u (chopped)"];
 
     plotChart[chartData, 2, Subscript["\[Mu]", "\[Eta]"], divisor];
