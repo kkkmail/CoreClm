@@ -17,7 +17,8 @@ open ClmSys.ModelRunnerErrors
 open MessagingServiceInfo.ServiceInfo
 open ClmSys.WorkerNodePrimitives
 open ClmSys.Logging
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open ServiceProxy.MsgProcessorProxy
 open ModelGenerator
 

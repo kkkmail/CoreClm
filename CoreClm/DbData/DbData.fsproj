@@ -16,13 +16,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Configuration2.fs" />
-    <Compile Include="DatabaseTypes2.fs" />
+    <Compile Include="Configuration.fs" />
+    <Compile Include="dbo\DatabaseTypesDbo.fs" />
+    <Compile Include="clm\DatabaseTypesClm.fs" />
+    <Compile Include="eeinf\DatabaseTypesEeinf.fs" />
     <Compile Include="MsgSvcDatabaseTypes2.fs" />
     <Compile Include="WorkerNodeDatabaseTypes2.fs" />
-    <Content Include="MsgClient.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>

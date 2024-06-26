@@ -4,7 +4,8 @@ open System.Diagnostics
 open System.Threading
 open ContGenServiceInfo.ServiceInfo
 open DbData.Configuration
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open Clm.ModelParams
 open System
 open ContGenAdm.AdmCommandLine

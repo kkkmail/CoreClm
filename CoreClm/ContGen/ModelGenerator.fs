@@ -14,7 +14,8 @@ open ClmSys.ModelGeneratorErrors
 open ServiceProxy.ModelGeneratorProxy
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open ClmSys.Logging
 open ClmSys.TimerEvents
 

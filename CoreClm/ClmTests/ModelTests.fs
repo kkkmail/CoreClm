@@ -9,7 +9,8 @@ open Softellect.OdePackInterop
 open Xunit
 open Xunit.Abstractions
 open FluentAssertions
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open DbData.Configuration
 open Clm.Model.ModelData
 open Clm.CalculationData

@@ -14,7 +14,8 @@ open Clm.ModelParams
 open Clm.CalculationData
 open ContGenServiceInfo.ServiceInfo
 open MessagingServiceInfo.ServiceInfo
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open ServiceProxy.MsgProcessorProxy
 open NoSql.FileSystemTypes
 
