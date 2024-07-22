@@ -5,21 +5,21 @@ open Primitives.VersionInfo
 
 module GeneralData =
 
-    /// String.Empty is not a const.
-    [<Literal>]
-    let EmptyString = ""
+    ///// String.Empty is not a const.
+    //[<Literal>]
+    //let EmptyString = ""
 
 
-    /// Environment.NewLine is too long and it is not a const.
-    [<Literal>]
-    let Nl = "\r\n"
+    ///// Environment.NewLine is too long and it is not a const.
+    //[<Literal>]
+    //let Nl = "\r\n"
 
 
-    [<Literal>]
-    let DefaultRootDrive = "C"
+    //[<Literal>]
+    //let DefaultRootDrive = "C"
 
 
-    let appSettingsFile = "appsettings.json"
+    //let appSettingsFile = "appsettings.json"
 
 
     let getVersionImpl getter p =
@@ -28,8 +28,8 @@ module GeneralData =
         | None -> versionNumberValue
 
 
-    let toValidServiceName (serviceName : string) =
-        serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
+    //let toValidServiceName (serviceName : string) =
+    //    serviceName.Replace(" ", "").Replace("-", "").Replace(".", "")
 
 
     let timedImpl l n f = timedImplementation true l n f

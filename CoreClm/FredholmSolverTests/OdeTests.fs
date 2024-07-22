@@ -25,6 +25,7 @@ open Plotly.NET
 open Analytics.ChartExt
 open Primitives.ChartPrimitives
 open Primitives.WolframPrimitives
+open Softellect.Sys.Primitives
 
 type CallBackResults =
     {

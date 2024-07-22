@@ -5,6 +5,7 @@ open System.Threading.Tasks
 open FredholmSolver.Primitives
 open Primitives.WolframPrimitives
 open Primitives.GeneralData
+open Softellect.Sys.Primitives
 
 module Kernel =
 

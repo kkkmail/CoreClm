@@ -20,7 +20,10 @@ module ContGenWcfService =
 
     let private tryCreateModelRunner() =
         match contGenServiceData.Value with
-        | Ok data -> ModelRunner.create None data.modelRunnerData
+        | Ok data ->
+            match ModelRunner.create None data.modelRunnerData with
+            | Ok v -> Ok v
+            | Error e -> TryCreateModelRunnerErr e |> ContGenServiceErr |> Error
         | Error e -> Error e
 
 
@@ -34,9 +37,9 @@ module ContGenWcfService =
 
 
     type ContGenWcfService() =
-        let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> TryCancelRunQueueErr |> ContGenServiceErr
-        let toRequestResultsError f = f |> TryRequestResultsWcfErr |> TryRequestResultsErr |> ContGenServiceErr
-        let toResetError f = f |> TryResetWcfErr |> TryResetErr |> ContGenServiceErr
+        let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> ContGenServiceErr
+        let toRequestResultsError f = f |> TryRequestResultsWcfErr |> ContGenServiceErr
+        let toResetError f = f |> TryResetWcfErr |> ContGenServiceErr
         let tryCancelRunQueue (q, c) = modelRunner.Value |> Rop.bind (fun e -> e.tryCancelRunQueue q c)
         let tryRequestResults (q, c) = modelRunner.Value |> Rop.bind (fun e -> e.tryRequestResults q c)
         let tryReset q = modelRunner.Value |> Rop.bind (fun e -> e.tryReset q)

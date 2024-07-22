@@ -5,6 +5,7 @@ open System
 open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
 open Softellect.Sys.Core
+open Softellect.Sys.Primitives
 open Softellect.Wcf.Common
 open Softellect.Messaging.ServiceInfo
 open ClmSys.WorkerNodePrimitives
@@ -79,7 +80,7 @@ module WorkerNodeData =
 
             match r with
             | true, _ -> Ok()
-            | false, s -> s |> InvalidSettings |> WrkSettingsErr |> WorkerNodeErr |> Error
+            | false, s -> s |> InvalidSettings |> Error
 
 
     type SolverRunnerInfo =

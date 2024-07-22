@@ -11,6 +11,7 @@ open FredholmSolver
 open FredholmSolver.EeInfIntModel
 open FredholmSolver.EeInfChartData
 open Primitives.WolframPrimitives
+open Softellect.Sys.Primitives
 
 module PoissonSolver =
 

@@ -21,6 +21,7 @@ open ClmSys.SolverData
 open Clm.CalculationData
 open Primitives.GeneralData
 open GenericOdeSolver.Solver
+open Softellect.Sys.Primitives
 
 module Solver =
 

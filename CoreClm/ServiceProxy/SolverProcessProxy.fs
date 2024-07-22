@@ -12,6 +12,7 @@ open MessagingServiceInfo.ServiceInfo
 open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
 open Primitives.SolverRunnerErrors
+open Softellect.Messaging.ServiceInfo
 
 module SolverProcessProxy =
 
@@ -132,7 +133,7 @@ module SolverProcessProxy =
     type SendMessageProxy =
         {
             partitionerId : PartitionerId
-            sendMessage : MessageInfo -> UnitResult
+            sendMessage : MessageInfo -> MessagingUnitResult
         }
 
 

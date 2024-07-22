@@ -4,6 +4,7 @@ open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open Primitives.WolframPrimitives
 open Primitives.GeneralData
+open Softellect.Sys.Primitives
 
 module EeInfIntModel =
 

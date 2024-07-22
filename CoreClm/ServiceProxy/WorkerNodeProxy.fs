@@ -13,6 +13,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.ClmErrors
 open ClmSys.WorkerNodePrimitives
 open DbData.WorkerNodeDatabaseTypes
+open Softellect.Sys.Primitives
 
 module WorkerNodeProxy =
 

@@ -7,6 +7,7 @@ open Softellect.Messaging.Primitives
 open Softellect.Messaging.Client
 
 open Clm.ModelParams
+open Softellect.Messaging.ServiceInfo
 open ContGenServiceInfo.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
@@ -20,6 +21,7 @@ open ClmSys.Logging
 open DbData.DatabaseTypesDbo
 open DbData.DatabaseTypesClm
 open ServiceProxy.MsgProcessorProxy
+open Softellect.Messaging.Errors
 open ModelGenerator
 
 module ModelRunner =
@@ -36,16 +38,19 @@ module ModelRunner =
     let onGetMessages = onGetMessages<unit>
 
 
-    let runModel (proxy : RunModelProxy) (q : RunQueue) =
+    let runModel (proxy : RunModelProxy) (q : RunQueue) : UnitResult =
         match q.toMessageInfoOpt proxy.loadModelData proxy.controlData with
-        | Ok (Some m) -> proxy.sendRunModelMessage m
-        | Ok None -> q.runQueueId |> MissingWorkerNodeErr |> toError RunModelErr
-        | Error e -> (addError RunModelErr) (UnableToLoadModelDataErr (q.runQueueId, q.info.modelDataId )) e
+        | Ok (Some m) ->
+            match proxy.sendRunModelMessage m with
+            | Ok v -> Ok v
+            | Error e -> MessagingRunnerErr e |> toError RunModelRunnerErr
+        | Ok None -> q.runQueueId |> MissingWorkerNodeRunnerErr |> toError RunModelRunnerErr
+        | Error e -> (addError RunModelRunnerErr) (UnableToLoadModelDataRunnerErr (q.runQueueId, q.info.modelDataId )) e
 
 
     /// Tries to run the first not scheduled run queue entry using the first available worker node.
     let tryRunFirstModel (proxy : TryRunFirstModelProxy) =
-        let addError = addError TryRunFirstModelErr
+        let addError = addError TryRunFirstModelRunnerErr
 
         match proxy.tryLoadFirstRunQueue() with
         | Ok (Some q) ->
@@ -59,34 +64,39 @@ module ModelRunner =
                     | Ok() -> Ok WorkScheduled
                     | Error e ->
                         match proxy.upsertRunQueue { q1 with runQueueStatus = FailedRunQueue } with
-                        | Ok() -> addError UnableToRunModelErr e
-                        | Error f -> addError UnableToRunModelAndUpsertStatusErr (f + e)
-                | Error e -> addError UpsertRunQueueErr e
+                        | Ok() -> addError UnableToRunModelRunnerErr e
+                        | Error f -> addError UnableToRunModelAndUpsertStatusRunnerErr (f + e)
+                | Error e -> addError UpsertRunQueueRunnerErr e
             | Ok None -> Ok NoAvailableWorkerNodes
-            | Error e -> addError TryGetAvailableWorkerNodeErr e
+            | Error e -> addError UnableToGetWorkerNodeRunnerErr e
         | Ok None -> Ok NoWork
-        | Error e -> addError TryLoadFirstRunQueueErr e
+        | Error e -> addError TryLoadFirstRunQueueRunnerErr e
 
 
     let tryCancelRunQueue (proxy : TryCancelRunQueueProxy) (q, c) =
-        let addError = addError TryCancelRunQueueErr
-        let toError = toError TryCancelRunQueueErr
+        let addError = addError TryCancelRunQueueRunnerErr
+        let toError = toError TryCancelRunQueueRunnerErr
 
         match proxy.tryLoadRunQueue q with
         | Ok (Some r) ->
             let r1 =
                 match r.workerNodeIdOpt with
                 | Some w ->
-                    {
-                        recipientInfo =
-                            {
-                                recipient = w.messagingClientId
-                                deliveryType = GuaranteedDelivery
-                            }
+                    let r11 =
+                        {
+                            recipientInfo =
+                                {
+                                    recipient = w.messagingClientId
+                                    deliveryType = GuaranteedDelivery
+                                }
 
-                        messageData = (q, c) |> CancelRunWrkMsg |> WorkerNodeMsg |> UserMsg
-                    }
-                    |> proxy.sendCancelRunQueueMessage
+                            messageData = (q, c) |> CancelRunWrkMsg |> WorkerNodeMsg |> UserMsg
+                        }
+                        |> proxy.sendCancelRunQueueMessage
+
+                    match r11 with
+                    | Ok v -> Ok v
+                    | Error e -> TryCancelRunQueueRunnerError.MessagingTryCancelRunQueueRunnerErr e |> toError
                 | None -> Ok()
 
             let r2 =
@@ -95,34 +105,39 @@ module ModelRunner =
                 | RunRequestedRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
                 | InProgressRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
                 | CancelRequestedRunQueue -> { r with runQueueStatus = CancelRequestedRunQueue } |> proxy.upsertRunQueue
-                | _ -> q |> TryCancelRunQueueError.InvalidRunQueueStatusErr |> toError
+                | _ -> q |> TryCancelRunQueueRunnerError.InvalidRunQueueStatusRunnerErr |> toError
 
             combineUnitResults r1 r2
-        | Ok None -> toError (TryCancelRunQueueError.TryLoadRunQueueErr q)
-        | Error e -> addError (TryCancelRunQueueError.TryLoadRunQueueErr q) e
+        | Ok None -> toError (TryCancelRunQueueRunnerError.TryLoadRunQueueRunnerErr q)
+        | Error e -> addError (TryCancelRunQueueRunnerError.TryLoadRunQueueRunnerErr q) e
 
 
     let tryRequestResults (proxy : TryRequestResultsProxy) (q, c) =
-        let addError = addError TryRequestResultsErr
-        let toError = toError TryRequestResultsErr
+        let addError = addError TryRequestResultsRunnerErr
+        let toError = toError TryRequestResultsRunnerErr
 
         match proxy.tryLoadRunQueue q with
         | Ok (Some r) ->
             match r.workerNodeIdOpt with
             | Some w ->
-                {
-                    recipientInfo =
-                        {
-                            recipient = w.messagingClientId
-                            deliveryType = GuaranteedDelivery
-                        }
+                let r1 =
+                    {
+                        recipientInfo =
+                            {
+                                recipient = w.messagingClientId
+                                deliveryType = GuaranteedDelivery
+                            }
 
-                    messageData = (q, c) |> RequestResultWrkMsg |> WorkerNodeMsg |> UserMsg
-                }
-                |> proxy.sendRequestResultsMessage
+                        messageData = (q, c) |> RequestResultWrkMsg |> WorkerNodeMsg |> UserMsg
+                    }
+                    |> proxy.sendRequestResultsMessage
+
+                match r1 with
+                | Ok v -> Ok v
+                | Error e -> MessagingTryRequestResultsRunnerErr e |> toError
             | None -> Ok()
-        | Ok None -> toError (TryRequestResultsError.TryLoadRunQueueErr q)
-        | Error e -> addError (TryRequestResultsError.TryLoadRunQueueErr q) e
+        | Ok None -> toError (TryRequestResultsRunnerError.TryLoadRunQueueRunnerErr q)
+        | Error e -> addError (TryRequestResultsRunnerError.TryLoadRunQueueRunnerErr q) e
 
 
     let tryReset (proxy : TryResetProxy) q =
@@ -138,15 +153,15 @@ module ModelRunner =
                 | WorkScheduled -> doWork()
                 | NoWork -> Ok()
                 | NoAvailableWorkerNodes -> Ok()
-            | Error e -> addError TryRunAllModelsErr UnableToTryRunFirstModelErr e
+            | Error e -> addError TryRunAllModelsRunnerErr UnableToTryRunFirstModelRunnerErr e
 
         doWork()
 
 
     let updateProgress (proxy : UpdateProgressProxy) (i : ProgressUpdateInfo) =
         printDebug $"updateProgress: i = %A{i}"
-        let addError = addError UpdateProgressErr
-        let toError = toError UpdateProgressErr
+        let addError = addError UpdateProgressRunnerErr
+        let toError = toError UpdateProgressRunnerErr
 
         match proxy.tryLoadRunQueue i.runQueueId with
         | Ok (Some q) ->
@@ -157,34 +172,34 @@ module ModelRunner =
 
                 match proxy.upsertRunQueue q2 with
                 | Ok() -> Ok()
-                | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
+                | Error e -> addError (UnableToLoadRunQueueRunnerErr i.runQueueId) e
                 // (r, addError (UnableToLoadRunQueueErr i.runQueueId) e) ||> combineUnitResults
 
             match i.updatedRunQueueStatus with
             | Some s -> { q1 with runQueueStatus = s }
             | None -> q1
             |> upsert
-        | Ok None -> toError (UnableToFindLoadRunQueueErr i.runQueueId)
-        | Error e -> addError (UnableToLoadRunQueueErr i.runQueueId) e
+        | Ok None -> toError (UnableToFindLoadRunQueueRunnerErr i.runQueueId)
+        | Error e -> addError (UnableToLoadRunQueueRunnerErr i.runQueueId) e
 
 
     let register (proxy : RegisterProxy) (r : WorkerNodeInfo) =
         //printfn "register: r = %A" r
-        proxy.upsertWorkerNodeInfo r |> bindError (addError RegisterErr (UnableToUpsertWorkerNodeInfoErr r.workerNodeId))
+        proxy.upsertWorkerNodeInfo r |> bindError (addError RegisterRunnerErr (UnableToUpsertWorkerNodeInfoRunnerErr r.workerNodeId))
 
 
     let unregister (proxy : UnregisterProxy) (r : WorkerNodeId) =
         //printfn "unregister: r = %A" r
-        let addError = addError UnregisterErr
+        let addError = addError UnregisterRunnerErr
 
         match proxy.loadWorkerNodeInfo r with
-        | Ok w -> proxy.upsertWorkerNodeInfo { w with noOfCores = 0 } |> bindError (addError (UnableToUpsertWorkerNodeInfoOnUnregisterErr r))
-        | Error e -> addError (UnableToLoadWorkerNodeInfoErr r) e
+        | Ok w -> proxy.upsertWorkerNodeInfo { w with noOfCores = 0 } |> bindError (addError (UnableToUpsertWorkerNodeInfoOnUnregisterRunnerErr r))
+        | Error e -> addError (UnableToLoadWorkerNodeInfoRunnerErr r) e
 
 
     let saveCharts (proxy : SaveChartsProxy) (c : ChartInfo) =
         printfn $"saveCharts: c.runQueueId = %A{c.runQueueId}"
-        proxy.saveCharts c |> bindError (addError SaveChartsErr (UnableToSaveCharts c.runQueueId))
+        proxy.saveCharts c |> bindError (addError SaveChartsRunnerErr (UnableToSaveChartsRunnerErr c.runQueueId))
 
 
     let processMessage (proxy : ProcessMessageProxy) (m : Message) =
@@ -198,8 +213,8 @@ module ModelRunner =
                 | SaveChartsPrtMsg c -> proxy.saveCharts c
                 | RegisterWorkerNodePrtMsg r -> proxy.register r
                 | UnregisterWorkerNodePrtMsg r -> proxy.unregister r
-                |> bindError (addError ProcessMessageErr (ErrorWhenProcessingMessageErr m.messageDataInfo.messageId))
-            | _ -> toError ProcessMessageErr (InvalidMessageTypeErr m.messageDataInfo.messageId)
+                |> bindError (addError ProcessMessageRunnerErr (ErrorWhenProcessingMessageRunnerErr m.messageDataInfo.messageId))
+            | _ -> toError ProcessMessageRunnerErr (InvalidMessageTypeRunnerErr m.messageDataInfo.messageId)
 
         match r with
         | Ok() -> ()
@@ -272,14 +287,22 @@ module ModelRunner =
 
     let onGetMessagesProxy c p resultLocation w : OnGetMessagesProxy<unit> =
         let proxy = ProcessMessageProxy.create c p resultLocation
-        let p () m = (), processMessage proxy m
+
+        // TODO kk:20240722 - Deelevation happens here. This is not good.
+        // See: https://github.com/kkkmail/CoreClm/issues/40
+        let p () m =
+            let r =
+                match processMessage proxy m with
+                | Ok v -> Ok v
+                | Error e ->
+                    printfn $"onGetMessagesProxy - error: '{e}'."
+                    OnGetMessagesErr FailedToProcessErr |> Error
+            (),r
 
         {
             tryProcessMessage = onTryProcessMessage w
             onProcessMessage = p
             maxMessages = maxMessages
-            onError = fun f -> f |> OnGetMessagesErr |> ProcessMessageErr |> ModelRunnerErr
-            addError = ClmError.addError
         }
 
 
@@ -288,7 +311,7 @@ module ModelRunner =
         | TryCancelRunQueue of AsyncReplyChannel<UnitResult> * RunQueueId * CancellationType
         | TryRequestResults of AsyncReplyChannel<UnitResult> * RunQueueId * ResultNotificationType
         | TryReset of AsyncReplyChannel<UnitResult> * RunQueueId
-        | ProcessMessages of AsyncReplyChannel<UnitResult>
+        | ProcessMessages of AsyncReplyChannel<MessagingUnitResult>
 
 
     type Runner (i : RunnerDataWithProxy) =
@@ -336,7 +359,12 @@ module ModelRunner =
     /// If you don't call it, then you have to operate it by hands.
     let createModelRunnerMessageProcessor (logger : Logger) (r : Runner) =
         logger.logInfoString "createModelRunnerMessageProcessor: Creating message processor..."
-        let e = fun () -> r.processMessages()
+
+        let e : (unit -> UnitResult) = fun () ->
+            match r.processMessages() with
+            | Ok v -> Ok v
+            | Error e -> CreateModelRunnerMessageProcessorErr e |> Error
+
         let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelRunnerMessageProcessor - onGetMessages")
         h
 

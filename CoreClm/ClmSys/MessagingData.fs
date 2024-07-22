@@ -2,11 +2,12 @@
 
 open Softellect.Sys.Core
 open Softellect.Wcf.Common
-open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.Errors
 open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
 open Primitives.GeneralData
 open ClmSys.ClmErrors
+open Softellect.Sys.Primitives
 
 module MessagingData =
 
@@ -33,4 +34,4 @@ module MessagingData =
 
             match r with
             | true, _ -> Ok()
-            | false, s -> s |> InvalidSettings |> MsgSettingsErr |> MessagingServiceErr |> Error
+            | false, s -> s |> InvalidSettings |> Error

@@ -9,7 +9,9 @@ open System
 open Primitives.GeneralPrimitives
 open Softellect.Sys
 open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
+open Softellect.Sys.Rop
+open Softellect.Sys.DataAccess
 
 open Clm.Substances
 open Clm.ModelParams
@@ -52,26 +54,40 @@ module DatabaseTypesClm =
         }
 
 
-    let loadClmDefaultValue c (ClmDefaultValueId clmDefaultValueId) =
+    let private mapOption f e =
+        match e with
+        | Some v -> Ok v
+        | None -> f()
+
+
+    let loadClmDefaultValue c (clmDefaultValueId : ClmDefaultValueId) =
+        let elevate e = e |> LoadClmDefaultValueErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> LoadClmDefaultValueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
             let x =
                 query {
                     for c in ctx.Clm.DefaultValue do
-                    where (c.DefaultValueId = clmDefaultValueId)
+                    where (c.DefaultValueId = clmDefaultValueId.value)
                     select (Some c)
                     exactlyOneOrDefault
                 }
 
             x
             |> Option.map createClmDefaultValue
-            |> mapDbError LoadClmDefaultValueErr clmDefaultValueId
+            |> mapOption (fun () -> (CannotLoadClmDefaultValue clmDefaultValueId |> toError))
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let upsertClmDefaultValue c (p : ClmDefaultValue) =
+        let elevate e = e |> UpsertClmDefaultValueErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> UpsertClmDefaultValueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -80,9 +96,10 @@ module DatabaseTypesClm =
                             ``@defaultRateParams`` = (p.defaultRateParams |> JsonConvert.SerializeObject),
                             ``@description`` = (match p.description with | Some d -> d | None -> null))
 
-            r.ResultSet |> bindIntScalar UpsertClmDefaultValueErr p.clmDefaultValueId.value
+            let x = bindIntScalar (fun a -> CannotUpsertClmDefaultValue a |> elevate) (p.clmDefaultValueId) r.ResultSet
+            x
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private createModelCommandLineParam (r : CommandLineParamEntity) =
@@ -94,6 +111,10 @@ module DatabaseTypesClm =
 
 
     let loadCommandLineParams c (ClmTaskId clmTaskId) =
+        let elevate e = e |> LoadCommandLineParamsErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> LoadCommandLineParamsDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -110,7 +131,7 @@ module DatabaseTypesClm =
             |> List.map createModelCommandLineParam
             |> Ok
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private addCommandLineParamRow (ctx : ClmContext) (ClmTaskId clmTaskId) (p : ModelCommandLineParam) =
@@ -125,19 +146,28 @@ module DatabaseTypesClm =
 
 
     let addCommandLineParams c clmTaskId (p : ModelCommandLineParam) =
+        let elevate e = e |> AddCommandLineParamsErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> AddCommandLineParamsDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
             let row = addCommandLineParamRow ctx clmTaskId p
             ctx.SubmitUpdates()
             Ok()
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private tryCreateClmTask c (r : ClmTaskEntity) =
+        let elevate e = e |> TryCreateClmTaskErr
+        let toError e = e |> elevate |> Error
+        //let fromDbError e = e |> TryCreateClmTaskDbErr |> elevate
+
+        let clmTaskId = r.TaskId |> ClmTaskId
+
         match r.NumberOfAminoAcids |> NumberOfAminoAcids.tryCreate, r.MaxPeptideLength |> MaxPeptideLength.tryCreate with
         | Some n, Some m ->
-            let clmTaskId = r.TaskId |> ClmTaskId
 
             match c clmTaskId with
             | Ok p ->
@@ -160,30 +190,38 @@ module DatabaseTypesClm =
                     createdOn = r.CreatedOn
                 }
                 |> Ok
-            | Error e -> addError ClmTaskTryCreatErr r.TaskId e
-        | _ -> toError ClmTaskTryCreatErr r.TaskId
+            | Error e -> addError (ErrorWhenCreatingClmTask clmTaskId |> toError) e
+        | _ -> toError (CannotCreateClmTask clmTaskId)
 
 
-    let loadClmTask c (ClmTaskId clmTaskId) =
+    let loadClmTask c (clmTaskId : ClmTaskId) =
+        let elevate e = e |> LoadClmTaskErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> LoadClmTaskDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
             let x =
                 query {
                     for c in ctx.Clm.Task do
-                    where (c.TaskId = clmTaskId)
+                    where (c.TaskId = clmTaskId.value)
                     select (Some c)
                     exactlyOneOrDefault
                 }
 
             match x with
             | Some v -> tryCreateClmTask (loadCommandLineParams c) v
-            | None -> toError LoadClmTaskErr clmTaskId
+            | None -> toError (CannotLoadClmTask clmTaskId)
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let loadIncompleteClmTasks c =
+        let elevate e = e |> LoadIncompleteClmTasksErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> LoadIncompleteClmTasksDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -199,7 +237,7 @@ module DatabaseTypesClm =
             |> List.map (fun r -> tryCreateClmTask (loadCommandLineParams c) r)
             |> Ok
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private addClmTaskRow  (ctx : ClmContext) (r : ClmTask) =
@@ -217,6 +255,10 @@ module DatabaseTypesClm =
 
 
     let addClmTask c (clmTask : ClmTask) =
+        let elevate e = e |> AddClmTaskErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> AddClmTaskDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
             let row = addClmTaskRow ctx clmTask
@@ -229,11 +271,15 @@ module DatabaseTypesClm =
 
             result
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     /// Updates remainingRepetitions of ClmTask.
     let updateClmTask c (clmTask : ClmTask) =
+        let elevate e = e |> UpdateClmTaskErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> UpdateClmTaskDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -245,12 +291,18 @@ module DatabaseTypesClm =
 
             match m with
             | Some 1 -> Ok ()
-            | _ -> toError UpdateClmTaskErr clmTask.clmTaskInfo.clmTaskId.value
+            | _ -> toError (CannotUpdateClmTask clmTask.clmTaskInfo.clmTaskId)
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private tryCreateModelData (c : ClmTaskId -> ClmResult<ClmTask>) (r : ModelDataEntity) =
+        let elevate e = e |> TryCreateModelDataErr
+        let toError e = e |> elevate |> Error
+        //let fromDbError e = e |> TryCreateModelDataDbErr |> elevate
+
+        let modelDataId = r.ModelDataId |> ModelDataId
+
         match r.TaskId |> ClmTaskId |> c with
         | Ok i ->
             let rawData =
@@ -264,34 +316,42 @@ module DatabaseTypesClm =
                 }
 
             {
-                modelDataId = r.ModelDataId |> ModelDataId
+                modelDataId = modelDataId
                 clmTaskInfo = i.clmTaskInfo
                 data = rawData
             }
             |> Ok
-        | Error e ->  addError ModelDataTryCreateErr r.ModelDataId e
+        | Error e ->  addError (ErrorWhenCreatingModelData modelDataId |> toError) e
 
 
-    let loadModelData c (ModelDataId modelDataId) =
+    let loadModelData c (modelDataId : ModelDataId) =
+        let elevate e = e |> LoadModelDataErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> LoadModelDataDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
             let x =
                 query {
                     for m in ctx.Clm.ModelData do
-                    where (m.ModelDataId = modelDataId)
+                    where (m.ModelDataId = modelDataId.value)
                     select (Some m)
                     exactlyOneOrDefault
                 }
 
             match x with
             | Some v -> tryCreateModelData (loadClmTask c) v
-            | None -> toError LoadModelDataError modelDataId
+            | None -> toError (CannotLoadModelData modelDataId)
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let upsertModelData c (m : ModelData) =
+        let elevate e = e |> UpsertModelDataErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> UpsertModelDataDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -308,16 +368,22 @@ module DatabaseTypesClm =
 
             match x with
             | Some 1 -> Ok ()
-            | _ -> toError UpdateModelDataErr m.modelDataId.value
+            | _ -> toError (CannotUpsertModelData m.modelDataId)
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private mapRunQueue (r: RunQueueTableData) =
+        let elevate e = e |> MapRunQueueErr
+        let toError e = e |> elevate |> Error
+        //let fromDbError e = e |> MapRunQueueDbErr |> elevate
+
+        let runQueueId = RunQueueId r.runQueue.RunQueueId
+
         match RunQueueStatus.tryCreate r.runQueue.RunQueueStatusId with
         | Some s ->
             {
-                runQueueId = RunQueueId r.runQueue.RunQueueId
+                runQueueId = runQueueId
 
                 info =
                     {
@@ -357,7 +423,7 @@ module DatabaseTypesClm =
                 createdOn = r.runQueue.CreatedOn
             }
             |> Ok
-        | None -> toError MapRunQueueErr (r.runQueue.RunQueueId)
+        | None -> toError (CannotMapRunQueue runQueueId)
 
 
     let private mapRunQueueResults x =
@@ -369,6 +435,10 @@ module DatabaseTypesClm =
 
     /// Loads all not started RunQueue.
     let loadRunQueue c =
+        let elevate e = e |> LoadRunQueueErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> LoadRunQueueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -384,12 +454,16 @@ module DatabaseTypesClm =
 
             mapRunQueueResults x |> Ok
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     /// Loads all currently running models == total progress.
     /// RunQueueStatusId = 2 is InProgressRunQueue.
     let loadRunQueueProgress c =
+        let elevate e = e |> LoadRunQueueProgressErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> LoadRunQueueProgressDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -407,11 +481,15 @@ module DatabaseTypesClm =
 
             mapRunQueueResults x |> Ok
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     /// Loads first not started RunQueue.
     let tryLoadFirstRunQueue c =
+        let elevate e = e |> TryLoadFirstRunQueueErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> TryLoadFirstRunQueueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -429,11 +507,15 @@ module DatabaseTypesClm =
 
             mapRunQueueResults x |> List.tryHead |> Ok
 
-        tryDbFun g |> Rop.unwrapResultOption
+        tryDbFun fromDbError g |> Rop.unwrapResultOption
 
 
     /// Loads RunQueue by runQueueId.
     let tryLoadRunQueue c (q : RunQueueId) =
+        let elevate e = e |> TryLoadRunQueueErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> TryLoadRunQueueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -449,7 +531,7 @@ module DatabaseTypesClm =
 
             mapRunQueueResults x |> List.tryHead |> Ok
 
-        tryDbFun g |> Rop.unwrapResultOption
+        tryDbFun fromDbError g |> Rop.unwrapResultOption
 
 
     ///// Tries to reset RunQueue.

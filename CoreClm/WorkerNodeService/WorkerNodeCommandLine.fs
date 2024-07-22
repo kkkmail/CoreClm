@@ -4,12 +4,13 @@ open System
 open Argu
 
 open Softellect.Sys.Primitives
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.ClmWorker
 open WorkerNodeServiceInfo.ServiceInfo
+open Softellect.Sys.Worker
 
 module SvcCommandLine =
 

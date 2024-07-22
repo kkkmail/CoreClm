@@ -3,6 +3,7 @@
 open System
 
 open Softellect.Sys.Core
+open Softellect.Sys.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Wcf.Common
 
@@ -71,4 +72,4 @@ module ContGenData =
 
             match r with
             | true, _ -> Ok()
-            | false, s -> s |> InvalidSettings |> ContGenSettingsErr |> ContGenServiceErr |> Error
+            | false, s -> s |> InvalidSettings |> Error

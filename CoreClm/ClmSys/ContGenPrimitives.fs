@@ -3,7 +3,7 @@
 open System
 
 open Primitives.GeneralPrimitives
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.Primitives
 
 open GeneralPrimitives

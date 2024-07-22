@@ -8,7 +8,7 @@ open Microsoft.Extensions.Logging
 open Softellect.Sys.Logging
 open Softellect.Wcf.Common
 open Softellect.Wcf.Service
-open Softellect.Sys.WcfErrors
+open Softellect.Wcf.Errors
 
 open WorkerNodeService.WorkerNodeWcfService
 open WorkerNodeService.ServiceImplementation

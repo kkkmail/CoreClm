@@ -5,6 +5,7 @@ open ClmSys.ClmErrors
 open ClmSys.WorkerNodeData
 open WorkerNodeService.SvcCommandLine
 open ClmSys.ClmWorker
+open Softellect.Sys.Worker
 
 module ServiceTasks =
 

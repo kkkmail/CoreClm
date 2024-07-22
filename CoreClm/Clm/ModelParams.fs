@@ -13,6 +13,7 @@ open Clm.ReactionRates
 open ClmSys.SolverRunnerPrimitives
 open Primitives.GeneralPrimitives
 open Primitives.GeneralData
+open Softellect.Sys.Primitives
 
 module ModelParams =
 

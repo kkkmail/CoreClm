@@ -9,7 +9,10 @@ open System
 open Primitives.GeneralPrimitives
 open Softellect.Sys
 open Softellect.Sys.Core
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Sys.Rop
+open Softellect.Sys.DataAccess
+open Softellect.Messaging.Primitives
+open Softellect.Sys.Primitives
 
 open Clm.ModelParams
 
@@ -20,6 +23,7 @@ open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodePrimitives
 open ClmSys.WorkerNodeData
 open ClmSys.PartitionerData
+open ClmSys.ClmErrors
 
 // ! Must be the last to open !
 open DbData.Configuration
@@ -42,6 +46,10 @@ module DatabaseTypesDbo =
 
     /// Tries to reset RunQueue.
     let tryResetRunQueue c (q : RunQueueId) =
+        let elevate e = e |> TryResetRunQueueErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> TryResetRunQueueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
             let r = ctx.Procedures.TryResetRunQueue.Invoke q.value
@@ -49,9 +57,9 @@ module DatabaseTypesDbo =
 
             match m with
             | Some 1 -> Ok ()
-            | _ -> toError ResetRunQueueEntryErr q
+            | _ -> ResetRunQueueEntryErr q |> toError
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private addRunQueueRow (ctx : ClmContext) (r : RunQueue) =
@@ -85,6 +93,10 @@ module DatabaseTypesDbo =
 
 
     let saveRunQueue c modelDataId defaultValueId p =
+        let elevate e = e |> SaveRunQueueErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> SaveRunQueueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
             let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
@@ -92,10 +104,14 @@ module DatabaseTypesDbo =
             ctx.SubmitUpdates()
             row.RunQueueId |> RunQueueId |> Ok
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let deleteRunQueue c (q : RunQueueId) =
+        let elevate e = e |> DeleteRunQueueErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> DeleteRunQueueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
             let r = ctx.Procedures.DeleteRunQueue.Invoke q.value
@@ -103,9 +119,9 @@ module DatabaseTypesDbo =
 
             match m with
             | Some 1 -> Ok ()
-            | _ -> toError DeleteRunQueueEntryErr q
+            | _ -> DeleteRunQueueEntryErr q |> toError
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     /// The following transitions are allowed here:
@@ -133,7 +149,11 @@ module DatabaseTypesDbo =
     ///
     /// All others are not allowed and / or out of scope of this function.
     let private tryUpdateRunQueueRow (r : RunQueueEntity) (q : RunQueue) =
-        let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
+        let elevate e = e |> TryUpdateRunQueueRowErr
+        let toError e = e |> elevate |> Error
+        //let fromDbError e = e |> TryUpdateRunQueueRowDbErr |> elevate
+
+        //let toError e = e |> RunQueueTryUpdateRowErr |> DbErr |> Error
 
         let g s u =
             //r.RunQueueId <- q.runQueueId.value
@@ -201,6 +221,10 @@ module DatabaseTypesDbo =
 
 
     let upsertRunQueue c (w : RunQueue) =
+        let elevate e = e |> UpsertRunQueueErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> UpsertRunQueueDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -220,7 +244,7 @@ module DatabaseTypesDbo =
             ctx.SubmitUpdates()
             result
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private createWorkerNodeInfo p (r : WorkerNodeEntity) =
@@ -236,6 +260,10 @@ module DatabaseTypesDbo =
 
 
     let loadWorkerNodeInfo c p (i : WorkerNodeId) =
+        let elevate e = e |> LoadWorkerNodeInfoErr
+        let toError e = e |> elevate |> Error
+        let fromDbError e = e |> LoadWorkerNodeInfoDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -249,9 +277,9 @@ module DatabaseTypesDbo =
 
             match x with
             | Some v -> v |> createWorkerNodeInfo p |> Ok
-            | None -> toError LoadWorkerNodeInfoErr i.value.value
+            | None -> UnableToLoadWorkerNodeErr i |> toError
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let private updateWorkerNodeRow (r : WorkerNodeEntity) (w : WorkerNodeInfo) =
@@ -277,6 +305,10 @@ module DatabaseTypesDbo =
 
 
     let upsertWorkerNodeInfo c (w : WorkerNodeInfo) =
+        let elevate e = e |> UpsertWorkerNodeInfoErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> UpsertWorkerNodeInfoDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -296,20 +328,28 @@ module DatabaseTypesDbo =
             ctx.SubmitUpdates()
             result
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     let upsertWorkerNodeErr c p i =
+        let elevate e = e |> UpsertWorkerNodeErrErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> UpsertWorkerNodeErrDbErr |> elevate
+
         let g() =
             match loadWorkerNodeInfo c p i with
             | Ok w -> upsertWorkerNodeInfo c { w with lastErrorDateOpt = Some DateTime.Now }
             | Error e -> Error e
 
-        tryDbFun g
+        tryDbFun fromDbError g
 
 
     /// Gets the first available worker node to schedule work.
     let tryGetAvailableWorkerNode c (LastAllowedNodeErr m) =
+        let elevate e = e |> TryGetAvailableWorkerNodeErr
+        //let toError e = e |> elevate |> Error
+        let fromDbError e = e |> TryGetAvailableWorkerNodeDbErr |> elevate
+
         let g() =
             let ctx = getDbContext c
 
@@ -328,4 +368,4 @@ module DatabaseTypesDbo =
             | Some r -> r.WorkerNodeId |> MessagingClientId |> WorkerNodeId |> Some |> Ok
             | None -> Ok None
 
-        tryDbFun g
+        tryDbFun fromDbError g

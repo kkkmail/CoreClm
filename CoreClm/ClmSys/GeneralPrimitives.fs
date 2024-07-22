@@ -2,47 +2,48 @@
 
 open System
 open Primitives.VersionInfo
+open Softellect.Sys.Primitives
 
 module GeneralPrimitives =
 
-    [<Measure>] type millisecond
-    [<Measure>] type second
-    [<Measure>] type minute
-    [<Measure>] type hour
+    //[<Measure>] type millisecond
+    //[<Measure>] type second
+    //[<Measure>] type minute
+    //[<Measure>] type hour
 
 
-    let millisecondsPerSecond = 1_000<millisecond/second>
-    let secondsPerMinute = 60<second/minute>
-    let minutesPerHour = 60<minute/hour>
+    //let millisecondsPerSecond = 1_000<millisecond/second>
+    //let secondsPerMinute = 60<second/minute>
+    //let minutesPerHour = 60<minute/hour>
 
-    let localHost = "127.0.0.1"
-
-
-    let defaultContGenNetTcpServicePort = defaultServicePort
-    let defaultContGenHttpServicePort = defaultContGenNetTcpServicePort + 1
-    let defaultContGenServiceAddress = localHost
+    //let localHost = "127.0.0.1"
 
 
-    let defaultWorkerNodeNetTcpServicePort = 20000 + defaultServicePort
-    let defaultWorkerNodeHttpServicePort = defaultWorkerNodeNetTcpServicePort + 1
-    let defaultWorkerNodeServiceAddress = localHost
+    let defaultContGenNetTcpServicePort = defaultServicePort |> ServicePort
+    let defaultContGenHttpServicePort = defaultContGenNetTcpServicePort.value + 1 |> ServicePort
+    let defaultContGenServiceAddress = LocalHost |> ServiceAddress
 
 
-    let defaultMessagingNetTcpServicePort = 40000 + defaultServicePort
-    let defaultMessagingHttpServicePort = defaultMessagingNetTcpServicePort + 1
-    let defaultMessagingServiceAddress = localHost
+    let defaultWorkerNodeNetTcpServicePort = 20000 + defaultServicePort |> ServicePort
+    let defaultWorkerNodeHttpServicePort = defaultWorkerNodeNetTcpServicePort.value + 1 |> ServicePort
+    let defaultWorkerNodeServiceAddress = LocalHost |> ServiceAddress
 
 
-    type ConnectionString =
-        | ConnectionString of string
+    //let defaultMessagingNetTcpServicePort = 40000 + defaultServicePort
+    //let defaultMessagingHttpServicePort = defaultMessagingNetTcpServicePort + 1
+    //let defaultMessagingServiceAddress = localHost
 
-        member this.value = let (ConnectionString v) = this in v
+
+    //type ConnectionString =
+    //    | ConnectionString of string
+
+    //    member this.value = let (ConnectionString v) = this in v
 
 
-    type SqliteConnectionString =
-        | SqliteConnectionString of string
+    //type SqliteConnectionString =
+    //    | SqliteConnectionString of string
 
-        member this.value = let (SqliteConnectionString v) = this in v
+    //    member this.value = let (SqliteConnectionString v) = this in v
 
 
     // type RunQueueId =

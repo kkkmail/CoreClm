@@ -1,7 +1,9 @@
 namespace SolverRunner
 
 open Argu
+open Softellect.Sys.Rop
 open ClmSys.ClmErrors
+open ClmSys.GeneralErrors
 open ClmSys.ExitErrorCodes
 open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerPrimitives
@@ -27,6 +29,8 @@ open DbData.MsgSvcDatabaseTypes
 open System.Diagnostics
 open Primitives.VersionInfo
 open Primitives.SolverRunnerErrors
+open Softellect.Messaging.DataAccess
+open Softellect.Sys.ExitErrorCodes
 
 module SolverRunnerImplementation =
 
@@ -48,13 +52,18 @@ module SolverRunnerImplementation =
         | GeneratedCharts c ->
             printfn $"onSaveCharts: Sending charts with runQueueId = %A{c.runQueueId}."
 
-            {
-                partitionerRecipient = proxy.partitionerId
-                deliveryType = GuaranteedDelivery
-                messageData = c |> SaveChartsPrtMsg
-            }.getMessageInfo()
-            |> proxy.sendMessage
-            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.runQueueId)))
+            let result =
+                {
+                    partitionerRecipient = proxy.partitionerId
+                    deliveryType = GuaranteedDelivery
+                    messageData = c |> SaveChartsPrtMsg
+                }.getMessageInfo()
+                |> proxy.sendMessage
+
+            match result with
+            | Ok v -> Ok v
+            | Error e -> OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.runQueueId, e)) |> SolverRunnerErr |> Error
+            //|> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.runQueueId)))
         | NotGeneratedCharts ->
             printfn "onSaveCharts: No charts."
             Ok()
@@ -81,14 +90,19 @@ module SolverRunnerImplementation =
         let t, completed = toDeliveryType p
         let r0 = proxy.tryUpdateProgressData p.progressData
 
-        let r1 =
+        let r11 =
             {
                 partitionerRecipient = proxy.sendMessageProxy.partitionerId
                 deliveryType = t
                 messageData = UpdateProgressPrtMsg p
             }.getMessageInfo()
             |> proxy.sendMessageProxy.sendMessage
-            |> Rop.bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
+
+        let r1 =
+            match r11 with
+            | Ok v -> Ok v
+            | Error e -> OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId) |> SolverRunnerErr |> Error
+            //|> Rop.bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
         let result =
             if completed
@@ -135,7 +149,8 @@ module SolverRunnerImplementation =
     // Send the message directly to local database.
     let private sendMessage c m i =
         createMessage messagingDataVersion m i
-        |> saveMessage c
+        |> saveMessage c messagingDataVersion
+        //|> bindError (fun e -> MessagingErr e |> SendMessageErr |> Error)
 
 
     let private tryStartRunQueue c q =

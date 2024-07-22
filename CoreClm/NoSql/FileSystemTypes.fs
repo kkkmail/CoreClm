@@ -8,7 +8,6 @@ open Primitives.SolverRunnerErrors
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Sys.Retry
-open Softellect.Sys.MessagingPrimitives
 open Softellect.Messaging.Primitives
 
 open ClmSys.GeneralErrors

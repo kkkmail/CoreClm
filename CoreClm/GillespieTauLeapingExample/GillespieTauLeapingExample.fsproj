@@ -24,4 +24,8 @@
     <ProjectReference Include="..\Gillespie\Gillespie.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.301" />
+  </ItemGroup>
+
 </Project>

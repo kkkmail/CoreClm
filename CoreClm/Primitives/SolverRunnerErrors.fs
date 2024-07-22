@@ -3,7 +3,8 @@
 open GeneralPrimitives
 open SolverPrimitives
 open GeneralErrors
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.Errors
 
 module SolverRunnerErrors =
 
@@ -22,7 +23,7 @@ module SolverRunnerErrors =
             }
 
     type OnSaveChartsError =
-        | SendChartMessageErr of (MessagingClientId * RunQueueId)
+        | SendChartMessageErr of (MessagingClientId * RunQueueId * MessagingError)
 
 
     type OnUpdateProgressError =

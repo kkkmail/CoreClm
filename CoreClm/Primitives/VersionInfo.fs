@@ -1,6 +1,6 @@
 ﻿namespace Primitives
 
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 
 module VersionInfo =
 
@@ -32,16 +32,17 @@ module VersionInfo =
     let ContGenBaseName = "clm" + VersionNumberNumericalValue
 
 
-    [<Literal>]
-    let MsgSvcBaseName = "msg" + VersionNumberNumericalValue
+    //[<Literal>]
+    //let MsgSvcBaseName = "msg" + VersionNumberNumericalValue
 
 
     [<Literal>]
     let WorkerNodeSvcBaseName = "wns" + VersionNumberNumericalValue
 
 
+    /// TODO kk:20240717 - Define this.
     /// Default port on which messaging communication is performed.
-    let defaultServicePort = 5000 + messagingDataVersion.value
+    let defaultServicePort : int = 5000 + messagingDataVersion.value
 
 
     [<Literal>]

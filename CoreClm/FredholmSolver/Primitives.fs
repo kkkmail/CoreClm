@@ -6,7 +6,7 @@ open System
 open Primitives.VersionInfo
 open Primitives.GeneralData
 open Primitives.WolframPrimitives
-
+open Softellect.Sys.Primitives
 
 module Primitives =
 

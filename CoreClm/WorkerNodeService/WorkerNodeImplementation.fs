@@ -4,6 +4,7 @@ open System
 open Argu
 
 open Primitives.GeneralPrimitives
+open Primitives.VersionInfo
 open Softellect.Sys.Core
 open Softellect.Sys
 open Softellect.Messaging.ServiceInfo
@@ -29,7 +30,13 @@ open ClmSys.WorkerNodeErrors
 open ClmSys.WorkerNodePrimitives
 open ServiceProxy.SolverProcessProxy
 open DbData.Configuration
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.Proxy
+open Softellect.Messaging.ServiceProxy
+open Softellect.Messaging.Errors
 
+// TODO kk:20240722 - WorkNode error types are now inconsistent and conflict with messaging error types.
+// See: https://github.com/kkkmail/CoreClm/issues/40
 module ServiceImplementation =
 
     let private toError g f = f |> g |> WorkerNodeErr |> Error
@@ -42,7 +49,7 @@ module ServiceImplementation =
         results |> getServiceAccessInfo
 
 
-    type WorkerNodeMessageResult = MessageProcessorResult<WorkerNodeRunnerState * UnitResult, ClmError>
+    type WorkerNodeMessageResult = MessageProcessorResult<WorkerNodeRunnerState * UnitResult>
 
 
     type WorkerNodeRunnerState
@@ -127,7 +134,7 @@ module ServiceImplementation =
 
 
     type OnGetMessagesProxy = OnGetMessagesProxy<WorkerNodeRunnerState>
-    let private onGetMessages = onGetMessages<WorkerNodeRunnerState>
+    let private onGetMessages = onGetMessages<WorkerNodeRunnerState, ClmMessageData>
     type OnConfigureWorkerProxy = OnRegisterProxy
 
     let onGetState (s : WorkerNodeRunnerState) =
@@ -150,9 +157,9 @@ module ServiceImplementation =
 
     type WorkerNodeMessage =
         | Start of OnStartProxy * AsyncReplyChannel<UnitResult>
-        | Register of AsyncReplyChannel<UnitResult>
-        | Unregister of AsyncReplyChannel<UnitResult>
-        | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<UnitResult>
+        | Register of AsyncReplyChannel<MessagingUnitResult>
+        | Unregister of AsyncReplyChannel<MessagingUnitResult>
+        | GetMessages of OnGetMessagesProxy * AsyncReplyChannel<MessagingUnitResult>
         | GetState of AsyncReplyChannel<WorkerNodeMonitorResponse>
 
 
@@ -176,7 +183,10 @@ module ServiceImplementation =
                 )
 
         member w.start() = messageLoop.PostAndReply (fun reply -> Start (w.onStartProxy, reply))
-        member _.register() = messageLoop.PostAndReply Register
+        member _.register() =
+            match messageLoop.PostAndReply Register with
+            | Ok v -> Ok v
+            | Error e -> e |> UnableToREgisterWorkerNodeErr |> WorkerNodeServiceErr |> Error
         member _.unregister() = messageLoop.PostAndReply Unregister
         member w.getMessages() = messageLoop.PostAndReply (fun reply -> GetMessages (w.onGetMessagesProxy, reply))
         member _.getState() = messageLoop.PostAndReply GetState
@@ -190,10 +200,18 @@ module ServiceImplementation =
         member _.onGetMessagesProxy =
             {
                 tryProcessMessage = onTryProcessMessage i.messageProcessorProxy
-                onProcessMessage = fun w m -> w, onProcessMessage i.workerNodeProxy.onProcessMessageProxy m
+                onProcessMessage = fun w m ->
+                    let r = onProcessMessage i.workerNodeProxy.onProcessMessageProxy m
+
+                    let r1 =
+                        match r with
+                        | Ok v -> Ok v
+                        | Error e ->
+                            printfn $"onGetMessagesProxy - error: '{e}'."
+                            OnGetMessagesErr FailedToProcessErr |> Error
+
+                    w, r1
                 maxMessages = WorkerNodeRunnerState.maxMessages
-                onError = fun f -> f |> OnGetMessagesErr |> WorkerNodeErr
-                addError = fun a b -> a + b
             }
 
 
@@ -206,7 +224,12 @@ module ServiceImplementation =
             logger.logInfoString "createServiceImpl: Registering..."
             match w.register >-> w.start |> evaluate with
             | Ok() ->
-                let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger w.getMessages "WorkerNodeRunner - getMessages")
+                let getMessages() =
+                    match w.getMessages() with
+                    | Ok () -> Ok ()
+                    | Error e -> CreateServiceImplWorkerNodeErr e |> WorkerNodeServiceErr |> Error
+
+                let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger getMessages "WorkerNodeRunner - getMessages")
                 do h.start()
 
                 // Attempt to restart solvers in case they did not start (due to whatever reason) or got killed.
@@ -219,7 +242,7 @@ module ServiceImplementation =
             logger.logInfoString "createServiceImpl: Unregistering..."
             match w.unregister() with
             | Ok() -> failwith "createServiceImpl for inactive worker node is not implemented yet."
-            | Error e -> Error e
+            | Error e -> CreateServiceImplWorkerNodeErr e |> WorkerNodeServiceErr |> Error
 
 
     type WorkerNodeRunner
@@ -238,18 +261,20 @@ module ServiceImplementation =
             | Ok i ->
                 let w =
                     let messagingClientAccessInfo = i.messagingClientAccessInfo
+                    let getMessageSize (m : ClmMessageData) = m.getMessageSize()
 
                     let j =
                         {
                             messagingClientName = WorkerNodeServiceName.netTcpServiceName.value.value |> MessagingClientName
                             storageType = c |> MsSqlDatabase
+                            messagingDataVersion = messagingDataVersion
                         }
 
                     let messagingClientData =
                         {
                             msgAccessInfo = messagingClientAccessInfo
                             communicationType = NetTcpCommunication
-                            msgClientProxy = createMessagingClientProxy j messagingClientAccessInfo.msgClientId
+                            msgClientProxy = createMessagingClientProxy getMessageSize j messagingClientAccessInfo.msgClientId
                             expirationTime = MessagingClientData.defaultExpirationTime
                             logOnError = true
                         }
@@ -269,7 +294,7 @@ module ServiceImplementation =
                         match n with
                         | Ok v -> Ok v
                         | Error e -> addError UnableToCreateWorkerNodeServiceErr e
-                    | Error e -> addError UnableToStartMessagingClientErr e
+                    | Error e -> UnableToStartMessagingClientErr e |> WorkerNodeServiceErr |> Error
 
                 w
             | Error e -> Error e

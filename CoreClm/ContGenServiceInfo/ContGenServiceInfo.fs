@@ -11,11 +11,16 @@ open ClmSys.SolverData
 open Primitives.GeneralPrimitives
 open Primitives.SolverPrimitives
 open Softellect.Sys
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
 open Softellect.Sys.Primitives
 open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Settings
+open Softellect.Sys.Core
+open Softellect.Wcf.Common
+open Softellect.Wcf.AppSettings
+open Softellect.Sys.Rop
 
 open Primitives.VersionInfo
 open ClmSys.MessagingPrimitives
@@ -120,10 +125,10 @@ module ServiceInfo =
     let contGenServiceNetTcpPort = ConfigKey "ContGenServiceNetTcpPort"
     let contGenServiceCommunicationType = ConfigKey "ContGenServiceCommunicationType"
 
-    let messagingServiceAddress = ConfigKey "MessagingServiceAddress"
-    let messagingHttpServicePort = ConfigKey "MessagingHttpServicePort"
-    let messagingNetTcpServicePort = ConfigKey "MessagingNetTcpServicePort"
-    let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
+    //let messagingServiceAddress = ConfigKey "MessagingServiceAddress"
+    //let messagingHttpServicePort = ConfigKey "MessagingHttpServicePort"
+    //let messagingNetTcpServicePort = ConfigKey "MessagingNetTcpServicePort"
+    //let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
 
     let minUsefulEe = ConfigKey "MinUsefulEe"
     let partitionerId = ConfigKey "PartitionerId"
@@ -133,7 +138,7 @@ module ServiceInfo =
     let absoluteTolerance = ConfigKey "AbsoluteTolerance"
 
 
-    let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
+    let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType) =
         let h = c.value.httpServiceInfo
         let n = c.value.netTcpServiceInfo
 
@@ -143,14 +148,15 @@ module ServiceInfo =
         provider.trySet contGenServiceCommunicationType ct.value |> ignore
 
 
-    let updateMessagingSettings (provider : AppSettingsProvider) (m : MessagingServiceAccessInfo) (ct : WcfCommunicationType)  =
-        let mh = m.messagingServiceAccessInfo.httpServiceInfo
-        let mn = m.messagingServiceAccessInfo.netTcpServiceInfo
+    //let updateMessagingSettings (provider : AppSettingsProvider) (m : MessagingServiceAccessInfo) (ct : WcfCommunicationType) =
+    //    let mh = m.messagingServiceAccessInfo.httpServiceInfo
+    //    let mn = m.messagingServiceAccessInfo.netTcpServiceInfo
 
-        provider.trySet messagingServiceAddress mn.netTcpServiceAddress.value |> ignore
-        provider.trySet messagingHttpServicePort mh.httpServicePort.value |> ignore
-        provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
-        provider.trySet messagingServiceCommunicationType ct.value |> ignore
+    //    provider.trySet messagingServiceAddress mn.netTcpServiceAddress.value |> ignore
+    //    provider.trySet messagingHttpServicePort mh.httpServicePort.value |> ignore
+    //    provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
+    //    provider.trySet messagingServiceCommunicationType ct.value |> ignore
+
 
     let sugSynthCollKey = ConfigKey "SugSynthColl"
     let catSynthCollKey = ConfigKey "CatSynthColl"
@@ -231,9 +237,9 @@ module ServiceInfo =
         with
 
         member w.trySaveSettings() =
-            let toErr e = e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
+            let toErr e = e |> SettingExn |> Error
 
-            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
+            match w.isValid(), AppSettingsProvider.tryCreate AppSettingsFile with
             | Ok(), Ok provider ->
                 try
                     updateContGenSettings provider w.contGenSvcInfo w.contGenCommType
@@ -261,47 +267,47 @@ module ServiceInfo =
             | _, Error e -> toErr e
 
 
-    type AppSettingsProviderResult = Result<AppSettingsProvider, exn>
+    //type AppSettingsProviderResult = Result<AppSettingsProvider, exn>
 
 
-    let getServiceAddress (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetString n with
-            | Ok (Some EmptyString) -> d
-            | Ok (Some s) -> s
-            | _ -> d
-        | _ -> d
-        |> ServiceAddress
+    //let getServiceAddress (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetString n with
+    //        | Ok (Some EmptyString) -> d
+    //        | Ok (Some s) -> s
+    //        | _ -> d
+    //    | _ -> d
+    //    |> ServiceAddress
 
 
-    let getServiceHttpPort (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetInt n with
-            | Ok (Some k) when k > 0 -> k
-            | _ -> d
-        | _ -> d
-        |> ServicePort
+    //let getServiceHttpPort (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetInt n with
+    //        | Ok (Some k) when k > 0 -> k
+    //        | _ -> d
+    //    | _ -> d
+    //    |> ServicePort
 
 
-    let getServiceNetTcpPort (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetInt n with
-            | Ok (Some k) when k > 0 -> k
-            | _ -> d
-        | _ -> d
-        |> ServicePort
+    //let getServiceNetTcpPort (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetInt n with
+    //        | Ok (Some k) when k > 0 -> k
+    //        | _ -> d
+    //    | _ -> d
+    //    |> ServicePort
 
 
-    let getCommunicationType (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetString n with
-            | Ok (Some s) -> WcfCommunicationType.tryCreate s |> Option.defaultValue NetTcpCommunication
-            | _ -> d
-        | _ -> d
+    //let getCommunicationType (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetString n with
+    //        | Ok (Some s) -> WcfCommunicationType.tryCreate s |> Option.defaultValue NetTcpCommunication
+    //        | _ -> d
+    //    | _ -> d
 
 
     let getPartitionerId (providerRes : AppSettingsProviderResult) n d =
@@ -345,18 +351,18 @@ module ServiceInfo =
         }
 
 
-    let loadMessagingSettings providerRes =
-        let messagingServiceCommunicationType = getCommunicationType providerRes messagingServiceCommunicationType NetTcpCommunication
-        let serviceAddress = getServiceAddress providerRes messagingServiceAddress defaultMessagingServiceAddress
-        let httpServicePort = getServiceHttpPort providerRes messagingHttpServicePort defaultMessagingHttpServicePort
-        let netTcpServicePort = getServiceNetTcpPort providerRes messagingNetTcpServicePort defaultMessagingNetTcpServicePort
+    //let loadMessagingSettings providerRes =
+    //    let messagingServiceCommunicationType = getCommunicationType providerRes messagingServiceCommunicationType NetTcpCommunication
+    //    let serviceAddress = getServiceAddress providerRes messagingServiceAddress defaultMessagingServiceAddress
+    //    let httpServicePort = getServiceHttpPort providerRes messagingHttpServicePort defaultMessagingHttpServicePort
+    //    let netTcpServicePort = getServiceNetTcpPort providerRes messagingNetTcpServicePort defaultMessagingNetTcpServicePort
 
-        let h = HttpServiceAccessInfo.create serviceAddress httpServicePort messagingHttpServiceName.value
-        let n = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort messagingNetTcpServiceName.value WcfSecurityMode.defaultValue
-        let m = ServiceAccessInfo.create h n
-        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion m
+    //    let h = HttpServiceAccessInfo.create serviceAddress httpServicePort messagingHttpServiceName.value
+    //    let n = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort messagingNetTcpServiceName.value WcfSecurityMode.defaultValue
+    //    let m = ServiceAccessInfo.create h n
+    //    let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion m
 
-        messagingSvcInfo, messagingServiceCommunicationType
+    //    messagingSvcInfo, messagingServiceCommunicationType
 
 
     let loadContGenServiceSettings providerRes =
@@ -370,13 +376,13 @@ module ServiceInfo =
         (contGenSvcInfo, contGenServiceCommunicationType)
 
 
-    /// Gets the value out of provider's result or default.
-    let toValueOrDefault m d v =
-        v
-        |> Rop.toOption
-        |> Option.flatten
-        |> Option.map m
-        |> Option.defaultValue d
+    ///// Gets the value out of provider's result or default.
+    //let toValueOrDefault m d v =
+    //    v
+    //    |> Rop.toOption
+    //    |> Option.flatten
+    //    |> Option.map m
+    //    |> Option.defaultValue d
 
 
     let loadEarlyExitParam (provider : AppSettingsProvider) =
@@ -400,7 +406,7 @@ module ServiceInfo =
 
 
     let loadContGenSettings() =
-        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
+        let providerRes = AppSettingsProvider.tryCreate AppSettingsFile
 
         let contGenInfo =
             match providerRes with
@@ -458,7 +464,7 @@ module ServiceInfo =
                 }
 
         let contGenSvcInfo, contGenServiceCommunicationType = loadContGenServiceSettings providerRes
-        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
+        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes messagingDataVersion
 
         let w =
             {

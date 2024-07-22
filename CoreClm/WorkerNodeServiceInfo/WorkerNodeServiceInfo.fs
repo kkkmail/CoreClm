@@ -9,11 +9,14 @@ open ClmSys.SolverRunnerPrimitives
 open OdeSolver.Solver
 open Softellect.Sys
 open Softellect.Sys.Primitives
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
 open Softellect.Wcf.Client
 open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Settings
+open Softellect.Sys.AppSettings
+open Softellect.Wcf.AppSettings
 
 open Primitives.VersionInfo
 open Primitives.GeneralData
@@ -267,9 +270,9 @@ module ServiceInfo =
 
 
     let tryLoadWorkerNodeSettings nodeIdOpt nameOpt =
-        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
+        let providerRes = AppSettingsProvider.tryCreate AppSettingsFile
         let workerNodeSvcInfo, workerNodeServiceCommunicationType = loadWorkerNodeServiceSettings providerRes
-        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
+        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes messagingDataVersion
 
         match tryLoadWorkerNodeInfo providerRes nodeIdOpt nameOpt with
         | Some info ->
@@ -359,9 +362,9 @@ module ServiceInfo =
     type WorkerNodeSettings
         with
         member w.trySaveSettings() =
-            let toErr e = e |> WrkSettingExn |> WrkSettingsErr |> WorkerNodeErr |> Error
+            let toErr e = e |> SettingExn |> Error
 
-            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
+            match w.isValid(), AppSettingsProvider.tryCreate AppSettingsFile with
             | Ok(), Ok provider ->
                 let v = w.workerNodeInfo
                 let wh = w.workerNodeSvcInfo.value.httpServiceInfo

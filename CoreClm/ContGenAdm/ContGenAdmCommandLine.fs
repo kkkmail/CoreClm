@@ -5,7 +5,7 @@ open Argu
 open ClmSys.ModelData
 open Primitives.GeneralPrimitives
 open Softellect.Sys.Logging
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.Primitives
 open Softellect.Wcf.Common
 

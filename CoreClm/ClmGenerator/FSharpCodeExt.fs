@@ -1,5 +1,6 @@
 ﻿namespace Clm.Generator
 
+open Softellect.Sys.Primitives
 open Clm.Substances
 open Clm.Distributions
 open Clm.ReactionRatesBase

@@ -9,6 +9,7 @@ open Softellect.OdePackInterop
 open Microsoft.FSharp.Core
 open Primitives.GeneralData
 open GenericOdeSolver.Primitives
+open Softellect.Sys.Primitives
 
 #nowarn "9"
 

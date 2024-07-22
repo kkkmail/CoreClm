@@ -10,6 +10,7 @@ open Plotly.NET
 open ChartExt
 open Primitives.GeneralData
 open Primitives.ChartPrimitives
+open Softellect.Sys.Primitives
 
 module Visualization =
 
