@@ -12,9 +12,9 @@ module ContGenServiceResponse =
     /// Low level WCF ContGen client.
     type ContGenResponseHandler private (url, communicationType, securityMode) =
         let tryGetWcfService() = tryGetWcfService<IContGenWcfService> communicationType securityMode url
-        let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> TryCancelRunQueueErr |> ContGenServiceErr
-        let toRequestResultsError f = f |> TryRequestResultsWcfErr |> TryRequestResultsErr |> ContGenServiceErr
-        let toResetError f = f |> TryResetWcfErr |> TryResetErr |> ContGenServiceErr
+        let toCancelRunQueueError f = f |> TryCancelRunQueueWcfErr |> ContGenServiceErr
+        let toRequestResultsError f = f |> TryRequestResultsWcfErr |> ContGenServiceErr
+        let toResetError f = f |> TryResetWcfErr |> ContGenServiceErr
         let tryCancelRunQueueImpl q c = tryCommunicate tryGetWcfService (fun service -> service.tryCancelRunQueue) toCancelRunQueueError (q, c)
         let tryRequestResultsImpl q c = tryCommunicate tryGetWcfService (fun service -> service.tryRequestResults) toRequestResultsError (q, c)
         let tryResetImpl q = tryCommunicate tryGetWcfService (fun service -> service.tryReset) toResetError q

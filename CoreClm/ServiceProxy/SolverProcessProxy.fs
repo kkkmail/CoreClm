@@ -3,12 +3,16 @@ namespace ServiceProxy
 open System
 open System.Diagnostics
 open System.Management
+open ClmSys
 open ClmSys.GeneralPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.SolverRunnerErrors
 open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
+open Primitives.SolverRunnerErrors
+open Softellect.Messaging.ServiceInfo
 
 module SolverProcessProxy =
 
@@ -129,13 +133,13 @@ module SolverProcessProxy =
     type SendMessageProxy =
         {
             partitionerId : PartitionerId
-            sendMessage : MessageInfo -> UnitResult
+            sendMessage : MessageInfo -> MessagingUnitResult
         }
 
 
     type OnUpdateProgressProxy =
         {
             tryDeleteWorkerNodeRunModelData : unit -> UnitResult
-            tryUpdateProgressData : ProgressData -> UnitResult
+            tryUpdateProgressData : ClmProgressData -> UnitResult
             sendMessageProxy : SendMessageProxy
         }

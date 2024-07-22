@@ -5,6 +5,7 @@ open SolverRunner.SolverRunnerImplementation
 open SolverRunner.SolverRunnerCommandLine
 open ServiceProxy.SolverProcessProxy
 open Argu
+open Softellect.Sys.ExitErrorCodes
 
 module Program =
 

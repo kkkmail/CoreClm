@@ -1,9 +1,14 @@
 namespace SolverRunner
 
 open Argu
+open Softellect.Sys.Rop
 open ClmSys.ClmErrors
+open ClmSys.GeneralErrors
 open ClmSys.ExitErrorCodes
 open ClmSys.GeneralPrimitives
+open ClmSys.SolverRunnerPrimitives
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open ServiceProxy.SolverProcessProxy
 open SolverRunner.SolverRunnerCommandLine
 open NoSql.FileSystemTypes
@@ -20,11 +25,12 @@ open ClmSys.ContGenPrimitives
 open ClmSys.WorkerNodePrimitives
 open ServiceProxy.SolverRunner
 open SolverRunner.SolverRunnerTasks
-open ClmSys.SolverRunnerPrimitives
-open ClmSys.SolverRunnerErrors
 open DbData.MsgSvcDatabaseTypes
 open System.Diagnostics
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
+open Primitives.SolverRunnerErrors
+open Softellect.Messaging.DataAccess
+open Softellect.Sys.ExitErrorCodes
 
 module SolverRunnerImplementation =
 
@@ -46,13 +52,18 @@ module SolverRunnerImplementation =
         | GeneratedCharts c ->
             printfn $"onSaveCharts: Sending charts with runQueueId = %A{c.runQueueId}."
 
-            {
-                partitionerRecipient = proxy.partitionerId
-                deliveryType = GuaranteedDelivery
-                messageData = c |> SaveChartsPrtMsg
-            }.getMessageInfo()
-            |> proxy.sendMessage
-            |> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.runQueueId)))
+            let result =
+                {
+                    partitionerRecipient = proxy.partitionerId
+                    deliveryType = GuaranteedDelivery
+                    messageData = c |> SaveChartsPrtMsg
+                }.getMessageInfo()
+                |> proxy.sendMessage
+
+            match result with
+            | Ok v -> Ok v
+            | Error e -> OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.runQueueId, e)) |> SolverRunnerErr |> Error
+            //|> Rop.bindError (addError OnSaveChartsErr (SendChartMessageErr (proxy.partitionerId.messagingClientId, c.runQueueId)))
         | NotGeneratedCharts ->
             printfn "onSaveCharts: No charts."
             Ok()
@@ -79,14 +90,19 @@ module SolverRunnerImplementation =
         let t, completed = toDeliveryType p
         let r0 = proxy.tryUpdateProgressData p.progressData
 
-        let r1 =
+        let r11 =
             {
                 partitionerRecipient = proxy.sendMessageProxy.partitionerId
                 deliveryType = t
                 messageData = UpdateProgressPrtMsg p
             }.getMessageInfo()
             |> proxy.sendMessageProxy.sendMessage
-            |> Rop.bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
+
+        let r1 =
+            match r11 with
+            | Ok v -> Ok v
+            | Error e -> OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId) |> SolverRunnerErr |> Error
+            //|> Rop.bindError (addError OnUpdateProgressErr (UnableToSendProgressMsgErr p.runQueueId))
 
         let result =
             if completed
@@ -133,7 +149,8 @@ module SolverRunnerImplementation =
     // Send the message directly to local database.
     let private sendMessage c m i =
         createMessage messagingDataVersion m i
-        |> saveMessage c
+        |> saveMessage c messagingDataVersion
+        //|> bindError (fun e -> MessagingErr e |> SendMessageErr |> Error)
 
 
     let private tryStartRunQueue c q =
@@ -193,9 +210,10 @@ module SolverRunnerImplementation =
                         | Error e -> exitWithLogCrit e UnknownException
                     | CancelRequestedRunQueue ->
                         // If we got here that means that the solver was terminated before it had a chance to process cancellation.
-                        // At this point we have no choice but abort the calculation because there is no data availalbe to continue.
-                        let errMessage = "The solver was terminated before processing cancallation. Aborting."
-                        let p = { ProgressData.defaultValue with errorMessageOpt = errMessage |> ErrorMessage |> Some }
+                        // At this point we have no choice but abort the calculation because there is no data available to continue.
+                        let errMessage = "The solver was terminated before processing cancellation. Aborting."
+                        let p0 = ClmProgressData.defaultValue
+                        let p = { p0 with progressData = { p0.progressData with errorMessageOpt = errMessage |> ErrorMessage |> Some } }
                         getProgress w (Some FailedRunQueue) p |> (updateFinalProgress solverProxy q errMessage)
                         exitWithLogCrit errMessage NotProcessedCancellation
                     | _ -> exitWithLogCrit ($"Invalid run queue status: {st}") InvalidRunQueueStatus

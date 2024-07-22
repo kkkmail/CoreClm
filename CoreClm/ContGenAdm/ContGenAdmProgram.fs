@@ -3,6 +3,7 @@ open ContGenAdm.AdmCommandLine
 open ContGenAdm.ContGenAdmTasks
 open ClmSys.ExitErrorCodes
 open ClmSys.Logging
+open Softellect.Sys.ExitErrorCodes
 
 [<EntryPoint>]
 let main argv =

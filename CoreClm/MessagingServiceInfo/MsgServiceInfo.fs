@@ -2,7 +2,10 @@
 
 open System
 
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.Sys
+open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
@@ -11,11 +14,11 @@ open Softellect.Messaging.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
 open Softellect.Messaging.Client
-open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.Errors
 
 open ClmSys.MessagingData
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
@@ -26,16 +29,16 @@ open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open Clm.ChartData
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open ClmSys.SolverData
 
 module ServiceInfo =
 
-    let messagingProgramName = "MessagingService.exe"
+    //let messagingProgramName = "MessagingService.exe"
 
 
-    [<Literal>]
-    let MessagingWcfServiceName = "MessagingWcfService"
+    //[<Literal>]
+    //let MessagingWcfServiceName = "MessagingWcfService"
 
 
     type PartitionerMessage =
@@ -55,10 +58,10 @@ module ServiceInfo =
     type EarlyExitData = ChartData
 
 
-    let bindBool b s =
-        match b with
-        | true -> b, Some s
-        | false -> b, None
+    //let bindBool b s =
+    //    match b with
+    //    | true -> b, Some s
+    //    | false -> b, None
 
 
     type EarlyExitRule =
@@ -79,18 +82,18 @@ module ServiceInfo =
             ||> bindBool
 
 
-    /// Any rule can be satisfied.        
+    /// Any rule can be satisfied.
     type AnyRule =
         | AnyRule of list<EarlyExitRule>
 
         member e.value = let (AnyRule v) = e in v
-    
+
 
     /// Outer list - all collections must be satisfied, inner list (from AnyRule) - at least one rule must be satisfied.
     type EarlyExitRuleCollection =
         | AllOfAny of list<AnyRule>
 
-    
+
     type EarlyExitStrategy =
         | AnyRuleCollection of list<EarlyExitRuleCollection> // Any of the collections can be satisfied.
 
@@ -139,7 +142,7 @@ module ServiceInfo =
                     ProgressExceeds p
                 ]
                 |> AnyRule
-                
+
                 [
                     MaxWeightedAverageAbsEeExceeds e
                     MaxLastEeExceeds e
@@ -157,7 +160,7 @@ module ServiceInfo =
 
         static member slowValue p =
                 EarlyExitStrategy.getEeValue p.slowProgress p.slowMinEe
-                
+
         static member longRunningValue p =
             [
                 [ RunTimeExceeds p.maxRunTime ] |> AnyRule
@@ -180,8 +183,8 @@ module ServiceInfo =
             frequency : EarlyExitCheckFrequency
             earlyExitStrategy : EarlyExitStrategy
         }
-        
-        static member getValue p = 
+
+        static member getValue p =
             {
                 frequency = p.earlyExitCheckFreq
                 earlyExitStrategy = EarlyExitStrategy.getValue p
@@ -227,14 +230,14 @@ module ServiceInfo =
             | WorkerNodeMsg m -> m.messageSize
 
 
-    type MessagingClient = MessagingClient<ClmMessageData, ClmError>
-    type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
-    type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
-    type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData, ClmError>>
+    type MessagingClient = MessagingClient<ClmMessageData>
+    type MessagingClientData = MessagingClientData<ClmMessageData>
+    type MessagingServiceData = MessagingServiceData<ClmMessageData>
+    type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData>>
     type Message = Message<ClmMessageData>
     type MessageInfo = MessageInfo<ClmMessageData>
-    type MessagingService = MessagingService<ClmMessageData, ClmError>
-    type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
+    type MessagingService = MessagingService<ClmMessageData>
+    type MessagingWcfService = MessagingWcfService<ClmMessageData>
     type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
 
 
@@ -281,16 +284,16 @@ module ServiceInfo =
         }
 
 
-    type MessageDataInfo
-        with
-        member this.isExpired(waitTime : TimeSpan) =
-            match this.recipientInfo.deliveryType with
-            | GuaranteedDelivery -> false
-            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+    //type MessageDataInfo
+    //    with
+    //    member this.isExpired(waitTime : TimeSpan) =
+    //        match this.recipientInfo.deliveryType with
+    //        | GuaranteedDelivery -> false
+    //        | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
 
 
-    type MessagingConfigParam =
-        | DummyConfig
+    //type MessagingConfigParam =
+    //    | DummyConfig
 
 
     type RunQueue
@@ -330,89 +333,89 @@ module ServiceInfo =
             | None -> Ok None
 
 
-    let expirationTimeInMinutes = ConfigKey "ExpirationTimeInMinutes"
+    //let expirationTimeInMinutes = ConfigKey "ExpirationTimeInMinutes"
 
 
-    type MsgSettings
-        with
+    //type MsgSettings
+    //    with
 
-        member w.trySaveSettings() =
-            let toErr e = e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
+    //    member w.trySaveSettings() =
+    //        let toErr e = e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
 
-            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
-            | Ok(), Ok provider ->
-                try
-                    updateMessagingSettings provider w.messagingSvcInfo w.communicationType
-                    provider.trySet expirationTimeInMinutes (int w.messagingInfo.expirationTime.TotalMinutes) |> ignore
-                    provider.trySave() |> Rop.bindError toErr
-                with
-                | e -> toErr e
-            | Error e, _ -> Error e
-            | _, Error e -> toErr e
-
-
-    type MsgServiceSettingsProxy<'P> =
-        {
-            tryGetMsgServiceAddress : 'P -> ServiceAddress option
-            tryGetMsgServicePort : 'P -> ServicePort option
-        }
-
-    let loadMsgServiceSettings() =
-        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
-        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
-
-        let expirationTimeInMinutes =
-            match providerRes with
-            | Ok provider ->
-                match provider.tryGetInt expirationTimeInMinutes with
-                | Ok (Some n) when n > 0 -> TimeSpan.FromMinutes(float n)
-                | _ -> MessagingServiceInfo.defaultExpirationTime
-            | _ -> MessagingServiceInfo.defaultExpirationTime
-
-        let w =
-            {
-                messagingInfo =
-                    {
-                        expirationTime = expirationTimeInMinutes
-                        messagingDataVersion = messagingDataVersion
-                    }
-
-                messagingSvcInfo = messagingSvcInfo
-                communicationType = messagingServiceCommunicationType
-            }
-
-        w
+    //        match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
+    //        | Ok(), Ok provider ->
+    //            try
+    //                updateMessagingSettings provider w.messagingSvcInfo w.communicationType
+    //                provider.trySet expirationTimeInMinutes (int w.messagingInfo.expirationTime.TotalMinutes) |> ignore
+    //                provider.trySave() |> Rop.bindError toErr
+    //            with
+    //            | e -> toErr e
+    //        | Error e, _ -> Error e
+    //        | _, Error e -> toErr e
 
 
-    let loadSettingsImpl (proxy : MsgServiceSettingsProxy<'P>) p =
-        let w = loadMsgServiceSettings()
-        let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
-        let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
+    //type MsgServiceSettingsProxy<'P> =
+    //    {
+    //        tryGetMsgServiceAddress : 'P -> ServiceAddress option
+    //        tryGetMsgServicePort : 'P -> ServicePort option
+    //    }
 
-        let serviceAddress = proxy.tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
-        let netTcpServicePort = proxy.tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
-        let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
-        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName WcfSecurityMode.defaultValue
-        let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
-        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
+    //let loadMsgServiceSettings() =
+    //    let providerRes = AppSettingsProvider.tryCreate appSettingsFile
+    //    let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
 
-        let w1 = { w with messagingSvcInfo = messagingSvcInfo }
+    //    let expirationTimeInMinutes =
+    //        match providerRes with
+    //        | Ok provider ->
+    //            match provider.tryGetInt expirationTimeInMinutes with
+    //            | Ok (Some n) when n > 0 -> TimeSpan.FromMinutes(float n)
+    //            | _ -> MessagingServiceInfo.defaultExpirationTime
+    //        | _ -> MessagingServiceInfo.defaultExpirationTime
 
-        w1
+    //    let w =
+    //        {
+    //            messagingInfo =
+    //                {
+    //                    expirationTime = expirationTimeInMinutes
+    //                    messagingDataVersion = messagingDataVersion
+    //                }
+
+    //            messagingSvcInfo = messagingSvcInfo
+    //            communicationType = messagingServiceCommunicationType
+    //        }
+
+    //    w
 
 
-    let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =
-        let (w : MsgSettings) = loadSettings()
-        printfn $"getServiceAccessInfoImpl: w = %A{w}"
+    //let loadSettingsImpl (proxy : MsgServiceSettingsProxy<'P>) p =
+    //    let w = loadMsgServiceSettings()
+    //    let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
+    //    let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
 
-        let r =
-            match tryGetSaveSettings(), b with
-            | Some _, _ -> w.trySaveSettings()
-            | _, true -> w.trySaveSettings()
-            | _ -> Ok()
+    //    let serviceAddress = proxy.tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
+    //    let netTcpServicePort = proxy.tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
+    //    let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
+    //    let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName WcfSecurityMode.defaultValue
+    //    let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
+    //    let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
 
-        match r with
-        | Ok() -> printfn "Successfully saved settings."
-        | Error e -> printfn $"Error occurred trying to save settings: %A{e}."
+    //    let w1 = { w with messagingSvcInfo = messagingSvcInfo }
 
-        w
+    //    w1
+
+
+    //let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =
+    //    let (w : MsgSettings) = loadSettings()
+    //    printfn $"getServiceAccessInfoImpl: w = %A{w}"
+
+    //    let r =
+    //        match tryGetSaveSettings(), b with
+    //        | Some _, _ -> w.trySaveSettings()
+    //        | _, true -> w.trySaveSettings()
+    //        | _ -> Ok()
+
+    //    match r with
+    //    | Ok() -> printfn "Successfully saved settings."
+    //    | Error e -> printfn $"Error occurred trying to save settings: %A{e}."
+
+    //    w

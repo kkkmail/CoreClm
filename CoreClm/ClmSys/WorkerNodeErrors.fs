@@ -1,8 +1,9 @@
 ﻿namespace ClmSys
 
-open Softellect.Sys.WcfErrors
-open Softellect.Sys.MessagingPrimitives
-open Softellect.Sys.MessagingClientErrors
+open Primitives.GeneralPrimitives
+open Softellect.Wcf.Errors
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.Errors
 
 open GeneralPrimitives
 
@@ -25,9 +26,9 @@ module WorkerNodeErrors =
         | CannotFindRunQueueErr of RunQueueId
 
 
-    type WrkSettingsError =
-        | InvalidSettings of string
-        | WrkSettingExn of exn
+    //type WrkSettingsError =
+    //    | InvalidSettings of string
+    //    | WrkSettingExn of exn
 
 
     type WorkerNodeError =
@@ -35,7 +36,7 @@ module WorkerNodeErrors =
         | OnProcessMessageErr of OnProcessMessageError
         | OnGetMessagesErr of OnGetMessagesError
         | OnRequestResultErr of OnRequestResultError
-        | WrkSettingsErr of WrkSettingsError
+        //| WrkSettingsErr of WrkSettingsError
 
 
     type WorkerNodeWcfError =
@@ -46,9 +47,16 @@ module WorkerNodeErrors =
 
     type WorkerNodeServiceError =
         | WorkerNodeWcfErr of WorkerNodeWcfError
-        | UnableToStartMessagingClientErr
+        | UnableToStartMessagingClientErr of MessagingError
         | UnableToCreateWorkerNodeServiceErr
         | ServiceUnavailableErr
         | UpdateLocalProgressErr of string
         | ConfigureServiceErr of string
         | MonitorServiceErr of string
+
+        // ======
+        // Ugly stuff
+        // TODO kk:20240722 - WorkNode error types are now inconsistent and conflict with messaging error types.
+        // See: https://github.com/kkkmail/CoreClm/issues/40
+        | UnableToREgisterWorkerNodeErr of MessagingError
+        | CreateServiceImplWorkerNodeErr of MessagingError

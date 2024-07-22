@@ -2,17 +2,17 @@
 
 open System
 
-open ClmSys.GeneralPrimitives
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
 open Softellect.Sys.Core
+open Softellect.Sys.Primitives
 open Softellect.Wcf.Common
 open Softellect.Messaging.ServiceInfo
-
-open ClmSys.GeneralData
 open ClmSys.WorkerNodePrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.WorkerNodeErrors
 open ClmSys.ClmErrors
-open ClmSys.SolverRunnerPrimitives
+open Primitives.GeneralData
 
 module WorkerNodeData =
 
@@ -80,7 +80,7 @@ module WorkerNodeData =
 
             match r with
             | true, _ -> Ok()
-            | false, s -> s |> InvalidSettings |> WrkSettingsErr |> WorkerNodeErr |> Error
+            | false, s -> s |> InvalidSettings |> Error
 
 
     type SolverRunnerInfo =

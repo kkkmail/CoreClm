@@ -3,18 +3,23 @@
 open System
 open System.Threading
 
+open ClmSys
 open ClmSys.SolverData
 open ClmSys.SolverRunnerPrimitives
+open OdeSolver.Solver
 open Softellect.Sys
 open Softellect.Sys.Primitives
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
 open Softellect.Wcf.Client
 open Softellect.Messaging.ServiceInfo
+open Softellect.Messaging.Settings
+open Softellect.Sys.AppSettings
+open Softellect.Wcf.AppSettings
 
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
+open Primitives.VersionInfo
+open Primitives.GeneralData
 open ClmSys.ClmErrors
 open ClmSys.GeneralPrimitives
 open ClmSys.WorkerNodeData
@@ -40,14 +45,14 @@ module ServiceInfo =
 
     type RunnerState =
         {
-            progressData : ProgressData
+            progressData : ClmProgressData
             started : DateTime
             lastUpdated : DateTime
         }
 
         static member defaultValue =
             {
-                progressData = ProgressData.defaultValue
+                progressData = ClmProgressData.defaultValue
                 started = DateTime.Now
                 lastUpdated = DateTime.Now
             }
@@ -60,7 +65,7 @@ module ServiceInfo =
                 | Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
                 | None -> EmptyString
 
-            $"T: %s{s};%s{estCompl} %A{r.progressData.progress}"
+            $"T: %s{s};%s{estCompl} %A{r.progressData.progressData.progress}"
 
 
     type WorkerNodeState =
@@ -265,9 +270,9 @@ module ServiceInfo =
 
 
     let tryLoadWorkerNodeSettings nodeIdOpt nameOpt =
-        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
+        let providerRes = AppSettingsProvider.tryCreate AppSettingsFile
         let workerNodeSvcInfo, workerNodeServiceCommunicationType = loadWorkerNodeServiceSettings providerRes
-        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
+        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes messagingDataVersion
 
         match tryLoadWorkerNodeInfo providerRes nodeIdOpt nameOpt with
         | Some info ->
@@ -357,9 +362,9 @@ module ServiceInfo =
     type WorkerNodeSettings
         with
         member w.trySaveSettings() =
-            let toErr e = e |> WrkSettingExn |> WrkSettingsErr |> WorkerNodeErr |> Error
+            let toErr e = e |> SettingExn |> Error
 
-            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
+            match w.isValid(), AppSettingsProvider.tryCreate AppSettingsFile with
             | Ok(), Ok provider ->
                 let v = w.workerNodeInfo
                 let wh = w.workerNodeSvcInfo.value.httpServiceInfo

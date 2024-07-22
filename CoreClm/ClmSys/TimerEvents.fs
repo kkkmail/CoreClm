@@ -1,6 +1,7 @@
 ﻿namespace ClmSys
 
 open Softellect.Sys.TimerEvents
+open Softellect.Sys.Errors
 open ClmErrors
 
 module TimerEvents =

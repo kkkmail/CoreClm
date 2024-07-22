@@ -2,7 +2,8 @@
 
 open Clm.ModelParams
 open Clm.CalculationData
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open ClmSys.ClmErrors
 open Clm.Generator.ClmModelData
 

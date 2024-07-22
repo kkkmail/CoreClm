@@ -32,61 +32,30 @@ function CleanAll()
 
 
     echo "Deleting all bin and obj content..."
+    $paths = "."
 
-    Remove-Item -path .\Analytics\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\Clm\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmDefaults\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmGenerator\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmImpure\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmSys\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmTests\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ContGen\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ContGenAdm\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ContGenService\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ContGenServiceInfo\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\DbData\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\Messaging\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\MessagingAdm\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\MessagingService\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\MessagingServiceInfo\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\Model\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\NoSql\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\OdeSolver\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ServiceProxy\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\SolverRunner\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\WorkerNodeAdm\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\WorkerNodeService\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path .\WorkerNodeServiceInfo\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path ..\FSharp.Data.SqlClient\src\SqlClient.DesignTime\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path ..\FSharp.Data.SqlClient\src\SqlClient\bin -recurse -force -ea silentlycontinue
-    Remove-Item -path ..\FSharp.Data.SqlClient\bin -recurse -force -ea silentlycontinue
+    foreach ($path in $paths)
+    {
+        $directories = Get-ChildItem -Path $path -Directory -Recurse
 
-    Remove-Item -path .\Analytics\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\Clm\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmDefaults\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmGenerator\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmImpure\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmSys\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ClmTests\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ContGen\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ContGenAdm\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ContGenService\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ContGenServiceInfo\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\DbData\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\Messaging\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\MessagingAdm\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\MessagingService\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\MessagingServiceInfo\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\Model\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\NoSql\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\OdeSolver\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\ServiceProxy\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\SolverRunner\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\WorkerNodeAdm\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\WorkerNodeService\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path .\WorkerNodeServiceInfo\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path ..\FSharp.Data.SqlClient\src\SqlClient.DesignTime\obj -recurse -force -ea silentlycontinue
-    Remove-Item -path ..\FSharp.Data.SqlClient\src\SqlClient\obj -recurse -force -ea silentlycontinue
+        foreach ($directory in $directories)
+        {
+            $binFolder = Join-Path -Path $directory.FullName -ChildPath "bin"
+            $objFolder = Join-Path -Path $directory.FullName -ChildPath "obj"
+
+            if (Test-Path -Path $binFolder)
+            {
+                Write-Output "Deleting folder: $binFolder"
+                Remove-Item -Path $binFolder -Recurse -ErrorAction SilentlyContinue -Force
+            }
+
+            if (Test-Path -Path $objFolder)
+            {
+                Write-Output "Deleting folder: $objFolder"
+                Remove-Item -Path $objFolder -Recurse -ErrorAction SilentlyContinue -Force
+            }
+        }
+    }
 
     echo "Deleting all garbage from user Temp folder..."
     Remove-Item -path $env:userprofile\AppData\Local\Temp -recurse -force -ea silentlycontinue

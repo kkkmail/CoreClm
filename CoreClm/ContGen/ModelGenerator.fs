@@ -1,7 +1,9 @@
 ﻿namespace ContGen
 
 open System
+open ClmSys
 open ClmSys.SolverRunnerPrimitives
+open Primitives.GeneralPrimitives
 open Softellect.Sys.Rop
 
 open Clm.ModelParams
@@ -12,7 +14,8 @@ open ClmSys.ModelGeneratorErrors
 open ServiceProxy.ModelGeneratorProxy
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open ClmSys.Logging
 open ClmSys.TimerEvents
 
@@ -56,7 +59,7 @@ module ModelGenerator =
                                                 }
                                             runQueueStatus = NotStartedRunQueue
                                             workerNodeIdOpt = None
-                                            progressData = ProgressData.defaultValue
+                                            progressData = ClmProgressData.defaultValue
                                             createdOn = DateTime.Now
                                         })
                         |> List.map proxy.upsertRunQueue

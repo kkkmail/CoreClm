@@ -1,6 +1,7 @@
 ﻿namespace ServiceProxy
 
 open ClmSys.ContGenData
+open Primitives.GeneralPrimitives
 open Softellect.Messaging.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
@@ -13,15 +14,17 @@ open Clm.ModelParams
 open Clm.CalculationData
 open ContGenServiceInfo.ServiceInfo
 open MessagingServiceInfo.ServiceInfo
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open ServiceProxy.MsgProcessorProxy
 open NoSql.FileSystemTypes
+open Softellect.Sys.Primitives
 
 module ModelRunnerProxy =
 
     type RunModelProxy =
         {
-            sendRunModelMessage : MessageInfo -> UnitResult
+            sendRunModelMessage : MessageInfo -> MessagingUnitResult
             loadModelData : ModelDataId -> ClmResult<ModelData>
             controlData : RunnerControlData
         }
@@ -39,7 +42,7 @@ module ModelRunnerProxy =
     type TryCancelRunQueueProxy =
         {
             tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
-            sendCancelRunQueueMessage : MessageInfo -> UnitResult
+            sendCancelRunQueueMessage : MessageInfo -> MessagingUnitResult
             upsertRunQueue : RunQueue -> UnitResult
         }
 
@@ -47,7 +50,7 @@ module ModelRunnerProxy =
     type TryRequestResultsProxy =
         {
             tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
-            sendRequestResultsMessage : MessageInfo -> UnitResult
+            sendRequestResultsMessage : MessageInfo -> MessagingUnitResult
         }
 
 

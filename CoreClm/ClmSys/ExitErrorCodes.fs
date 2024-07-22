@@ -2,26 +2,26 @@
 
 module ExitErrorCodes =
 
-    [<Literal>]
-    let CompletedSuccessfully = 0
+    //[<Literal>]
+    //let CompletedSuccessfully = 0
 
-    [<Literal>]
-    let CriticalError = -1
+    //[<Literal>]
+    //let CriticalError = -1
 
-    [<Literal>]
-    let InvalidCommandLineArgs = -2
+    //[<Literal>]
+    //let InvalidCommandLineArgs = -2
 
-    [<Literal>]
-    let UnknownException = -3
+    //[<Literal>]
+    //let UnknownException = -3
 
-    [<Literal>]
-    let DatabaseErrorOccurred = -4
+    //[<Literal>]
+    //let DatabaseErrorOccurred = -4
 
-    [<Literal>]
-    let CannotFindSpecifiedFileException = -5
+    //[<Literal>]
+    //let CannotFindSpecifiedFileException = -5
 
-    [<Literal>]
-    let BinaryDataUnavailable = -6
+    //[<Literal>]
+    //let BinaryDataUnavailable = -6
 
     [<Literal>]
     let SolverAlreadyRunning = -7

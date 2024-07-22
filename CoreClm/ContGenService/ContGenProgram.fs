@@ -9,6 +9,7 @@ open ContGenService.SvcCommandLine
 open ContGenService.ContGenServiceTasks
 open ClmSys.ExitErrorCodes
 open ClmSys.Logging
+open Softellect.Sys.ExitErrorCodes
 
 module Program =
 

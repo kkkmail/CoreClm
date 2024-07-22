@@ -3,18 +3,19 @@
 open System
 
 open Softellect.Sys.Core
+open Softellect.Sys.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Wcf.Common
 
 open ClmSys
 open GeneralPrimitives
-open GeneralData
 open ContGenPrimitives
 open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
 open ClmSys.ModelData
 open ClmSys.SolverData
+open Primitives.GeneralData
 
 module ContGenData =
 
@@ -71,4 +72,4 @@ module ContGenData =
 
             match r with
             | true, _ -> Ok()
-            | false, s -> s |> InvalidSettings |> ContGenSettingsErr |> ContGenServiceErr |> Error
+            | false, s -> s |> InvalidSettings |> Error

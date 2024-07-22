@@ -4,14 +4,18 @@ open System
 open Argu
 
 open Softellect.Sys.Primitives
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Wcf.Common
 open Softellect.Messaging.Primitives
 open Softellect.Messaging.Client
+open Softellect.Sys.Worker
+open Softellect.Messaging.Primitives
+open Softellect.Messaging.Proxy
+open Softellect.Messaging.ServiceProxy
 
 open ClmSys.ClmWorker
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.Logging
 open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo
@@ -149,13 +153,16 @@ module SvcCommandLine =
             {
                 messagingClientName = ContGenServiceName.netTcpServiceName.value.value |> MessagingClientName
                 storageType = getContGenConnectionString |> MsSqlDatabase
+                messagingDataVersion = messagingDataVersion
             }
+
+        let getMessageSize (m : ClmMessageData) = m.getMessageSize()
 
         let messagingClientData =
             {
                 msgAccessInfo = d
                 communicationType = NetTcpCommunication
-                msgClientProxy = createMessagingClientProxy i d.msgClientId
+                msgClientProxy = createMessagingClientProxy getMessageSize i d.msgClientId
                 expirationTime = MessagingClientData.defaultExpirationTime
                 logOnError = true
             }

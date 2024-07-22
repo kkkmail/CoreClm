@@ -1,0 +1,56 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 13.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      1315,         46]
+NotebookOptionsPosition[       934,         31]
+NotebookOutlinePosition[      1364,         48]
+CellTagsIndexPosition[      1321,         45]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+  "Get", "[", 
+   "\"\<C:\\\\GitHub\\\\CoreClm\\\\Math\\\\odePackChartSupport.m\>\"", "]"}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{"createAllAnimationsQuick", "[", "]"}], ";"}], "\n"}], "Input",
+ CellChangeTimes->{{3.91665416899588*^9, 3.916654193132482*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"279cc431-6d64-44c8-999a-8e33302cfcc5"]
+},
+WindowSize->{1280.5, 627.5},
+WindowMargins->{{Automatic, 176}, {182.5, Automatic}},
+Magnification->1.5,
+FrontEndVersion->"13.0 for Microsoft Windows (64-bit) (February 4, 2022)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"ab5bd6de-0023-4aec-8824-d4ab242d570d"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 372, 9, 100, "Input",ExpressionUUID->"279cc431-6d64-44c8-999a-8e33302cfcc5"]
+}
+]
+*)
+
+(* End of internal cache information *)
+

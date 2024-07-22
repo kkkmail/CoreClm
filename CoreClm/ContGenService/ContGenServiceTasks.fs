@@ -4,6 +4,7 @@ open Argu
 open ClmSys.ClmErrors
 open ClmSys.ClmWorker
 open ContGenService.SvcCommandLine
+open Softellect.Sys.Worker
 
 module ContGenServiceTasks =
 

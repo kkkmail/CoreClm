@@ -3,8 +3,9 @@
 open Argu
 
 open ClmSys.ModelData
+open Primitives.GeneralPrimitives
 open Softellect.Sys.Logging
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.Primitives
 open Softellect.Wcf.Common
 
@@ -20,6 +21,7 @@ open ClmSys.SolverRunnerPrimitives
 open ClmSys.ContGenData
 open ContGen.ContGenServiceResponse
 open ContGenServiceInfo.ServiceInfo
+open Primitives.SolverPrimitives
 
 module AdmCommandLine =
 
