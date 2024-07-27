@@ -168,101 +168,102 @@ module GeneralErrors =
         | CannotUpsertModelData of ModelDataId
 
 
-    type MapRunQueueError =
-        | MapRunQueueDbErr of DbError
-        | CannotMapRunQueue of RunQueueId
+    //type MapRunQueueError =
+    //    | MapRunQueueDbErr of DbError
+    //    | CannotMapRunQueue of RunQueueId
 
 
-    type LoadRunQueueError =
-        | LoadRunQueueDbErr of DbError
+    //type LoadRunQueueError =
+    //    | LoadRunQueueDbErr of DbError
 
 
-    type LoadRunQueueProgressError =
-        | LoadRunQueueProgressDbErr of DbError
+    //type LoadRunQueueProgressError =
+    //    | LoadRunQueueProgressDbErr of DbError
 
 
-    type TryLoadFirstRunQueueError =
-        | TryLoadFirstRunQueueDbErr of DbError
+    //type TryLoadFirstRunQueueError =
+    //    | TryLoadFirstRunQueueDbErr of DbError
 
 
-    type TryLoadRunQueueError =
-        | TryLoadRunQueueDbErr of DbError
-        | InvalidRunQueueStatus of RunQueueId * int
-        | ExnWhenTryLoadRunQueue of RunQueueId * exn
-        | UnableToFindRunQueue of RunQueueId
+    //type TryLoadRunQueueError =
+    //    | TryLoadRunQueueDbErr of DbError
+    //    | InvalidRunQueueStatus of RunQueueId * int
+    //    | ExnWhenTryLoadRunQueue of RunQueueId * exn
+    //    | UnableToFindRunQueue of RunQueueId
 
 
     // ==========
     // WorkerNode
 
-    type TryLoadSolverRunnersError =
-        | TryLoadSolverRunnersDbErr of DbError
+    //type TryLoadSolverRunnersError =
+    //    | TryLoadSolverRunnersDbErr of DbError
 
 
-    type TryGetRunningSolversCountError =
-        | TryGetRunningSolversCountDbErr of DbError
+    //type TryGetRunningSolversCountError =
+    //    | TryGetRunningSolversCountDbErr of DbError
 
 
-    type TryPickRunQueueError =
-        | TryPickRunQueueDbErr of DbError
+    //type TryPickRunQueueError =
+    //    | TryPickRunQueueDbErr of DbError
 
 
-    type LoadAllActiveRunQueueIdError =
-        | LoadAllActiveRunQueueIdDbErr of DbError
+    //type LoadAllActiveRunQueueIdError =
+    //    | LoadAllActiveRunQueueIdDbErr of DbError
 
 
-    type TryStartRunQueueError =
-        | TryStartRunQueueDbErr of DbError
-        | CannotStartRunQueue of RunQueueId
+    //type TryStartRunQueueError =
+    //    | TryStartRunQueueDbErr of DbError
+    //    | CannotStartRunQueue of RunQueueId
 
 
-    type TryCompleteRunQueueError =
-        | TryCompleteRunQueueDbErr of DbError
-        | CannotCompleteRunQueue of RunQueueId
+    //type TryCompleteRunQueueError =
+    //    | TryCompleteRunQueueDbErr of DbError
+    //    | CannotCompleteRunQueue of RunQueueId
 
 
-    type TryCancelRunQueueError =
-        | TryCancelRunQueueDbErr of DbError
-        | CannotCancelRunQueue of RunQueueId
+    //type TryCancelRunQueueError =
+    //    | TryCancelRunQueueDbErr of DbError
+    //    | CannotCancelRunQueue of RunQueueId
 
 
-    type TryFailRunQueueError =
-        | TryFailRunQueueDbErr of DbError
-        | CannotFailRunQueue of RunQueueId
+    //type TryFailRunQueueError =
+    //    | TryFailRunQueueDbErr of DbError
+    //    | CannotFailRunQueue of RunQueueId
 
 
-    type TryRequestCancelRunQueueError =
-        | TryRequestCancelRunQueueDbErr of DbError
-        | CannotRequestCancelRunQueue of RunQueueId
+    //type TryRequestCancelRunQueueError =
+    //    | TryRequestCancelRunQueueDbErr of DbError
+    //    | CannotRequestCancelRunQueue of RunQueueId
 
 
-    type TryNotifyRunQueueError =
-        | TryNotifyRunQueueDbErr of DbError
-        | CannotNotifyRunQueue of RunQueueId
+    //type TryNotifyRunQueueError =
+    //    | TryNotifyRunQueueDbErr of DbError
+    //    | CannotNotifyRunQueue of RunQueueId
 
 
-    type TryCheckCancellationError =
-        | TryCheckCancellationDbErr of DbError
+    //type TryCheckCancellationError =
+    //    | TryCheckCancellationDbErr of DbError
 
 
-    type TryCheckNotificationError =
-        | TryCheckNotificationDbErr of DbError
-        | CannotCheckNotification of RunQueueId
+    //type TryCheckNotificationError =
+    //    | TryCheckNotificationDbErr of DbError
+    //    | CannotCheckNotification of RunQueueId
 
 
-    type TryClearNotificationError =
-        | TryClearNotificationDbErr of DbError
-        | CannotClearNotification of RunQueueId
+    //type TryClearNotificationError =
+    //    | TryClearNotificationDbErr of DbError
+    //    | CannotClearNotification of RunQueueId
 
 
-    type TryUpdateProgressError =
-        | TryUpdateProgressDbErr of DbError
-        | CannotUpdateProgress of RunQueueId
+    //type TryUpdateProgressError =
+    //    | TryUpdateProgressDbErr of DbError
+    //    | CannotUpdateProgress of RunQueueId
 
 
-    type SendMessageError =
-        | MessagingErr of MessagingError
+    //type SendMessageError =
+    //    | MessagingErr of MessagingError
 
+    // ===================================
 
     //type ClmDbError =
     //    | Abc

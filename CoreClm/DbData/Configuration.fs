@@ -33,7 +33,7 @@ module Configuration =
 
     let contGenConnectionStringKey = ConfigKey "ContGenService"
     //let messagingConnectionStringKey = ConfigKey "MessagingService"
-    let workerNodeConnectionStringKey = ConfigKey "WorkerNodeService"
+    //let workerNodeConnectionStringKey = ConfigKey "WorkerNodeService"
 
 
     let private getConnectionString fileName connKey defaultValue =
@@ -79,21 +79,21 @@ module Configuration =
     //let MessagingSqlProviderName : string = "name=MessagingService"
 
 
-    [<Literal>]
-    let WorkerNodeDbName = WorkerNodeSvcBaseName
+    //[<Literal>]
+    //let WorkerNodeDbName = WorkerNodeSvcBaseName
 
 
-    [<Literal>]
-    let WorkerNodeConnectionStringValue = "Server=localhost;Database=" + WorkerNodeDbName + ";Integrated Security=SSPI"
+    //[<Literal>]
+    //let WorkerNodeConnectionStringValue = "Server=localhost;Database=" + WorkerNodeDbName + ";Integrated Security=SSPI"
 
 
-    let private getWorkerNodeConnectionStringImpl() = getConnectionString AppSettingsFile workerNodeConnectionStringKey WorkerNodeConnectionStringValue
-    let private workerNodeConnectionString = Lazy<ConnectionString>(getWorkerNodeConnectionStringImpl)
-    let getWorkerNodeSvcConnectionString() = workerNodeConnectionString.Value
+    //let private getWorkerNodeConnectionStringImpl() = getConnectionString AppSettingsFile workerNodeConnectionStringKey WorkerNodeConnectionStringValue
+    //let private workerNodeConnectionString = Lazy<ConnectionString>(getWorkerNodeConnectionStringImpl)
+    //let getWorkerNodeSvcConnectionString() = workerNodeConnectionString.Value
 
 
-    [<Literal>]
-    let WorkerNodeSqlProviderName : string = "name=WorkerNodeService"
+    //[<Literal>]
+    //let WorkerNodeSqlProviderName : string = "name=WorkerNodeService"
 
 
     //let buildConnectionString (key : string) : string =

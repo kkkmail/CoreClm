@@ -45,30 +45,30 @@ module ClmErrors =
         | TryCreateModelDataErr of TryCreateModelDataError
         | LoadModelDataErr of LoadModelDataError
         | UpsertModelDataErr of UpsertModelDataError
-        | MapRunQueueErr of MapRunQueueError
-        | LoadRunQueueErr of LoadRunQueueError
-        | LoadRunQueueProgressErr of LoadRunQueueProgressError
-        | TryLoadFirstRunQueueErr of TryLoadFirstRunQueueError
-        | TryLoadRunQueueErr of TryLoadRunQueueError
+        //| MapRunQueueErr of MapRunQueueError
+        //| LoadRunQueueErr of LoadRunQueueError
+        //| LoadRunQueueProgressErr of LoadRunQueueProgressError
+        //| TryLoadFirstRunQueueErr of TryLoadFirstRunQueueError
+        //| TryLoadRunQueueErr of TryLoadRunQueueError
 
         // eeinf schema
 
         // ========================
         // WorkerNode
-        | TryLoadSolverRunnersErr of TryLoadSolverRunnersError
-        | TryGetRunningSolversCountErr of TryGetRunningSolversCountError
-        | TryPickRunQueueErr of TryPickRunQueueError
-        | LoadAllActiveRunQueueIdErr of LoadAllActiveRunQueueIdError
-        | TryStartRunQueueErr of TryStartRunQueueError
-        | TryCompleteRunQueueErr of TryCompleteRunQueueError
-        | TryCancelRunQueueErr of TryCancelRunQueueError
-        | TryFailRunQueueErr of TryFailRunQueueError
-        | TryRequestCancelRunQueueErr of TryRequestCancelRunQueueError
-        | TryNotifyRunQueueErr of TryNotifyRunQueueError
-        | TryCheckCancellationErr of TryCheckCancellationError
-        | TryCheckNotificationErr of TryCheckNotificationError
-        | TryClearNotificationErr of TryClearNotificationError
-        | TryUpdateProgressErr of TryUpdateProgressError
+        //| TryLoadSolverRunnersErr of TryLoadSolverRunnersError
+        //| TryGetRunningSolversCountErr of TryGetRunningSolversCountError
+        //| TryPickRunQueueErr of TryPickRunQueueError
+        //| LoadAllActiveRunQueueIdErr of LoadAllActiveRunQueueIdError
+        //| TryStartRunQueueErr of TryStartRunQueueError
+        //| TryCompleteRunQueueErr of TryCompleteRunQueueError
+        //| TryCancelRunQueueErr of TryCancelRunQueueError
+        //| TryFailRunQueueErr of TryFailRunQueueError
+        //| TryRequestCancelRunQueueErr of TryRequestCancelRunQueueError
+        //| TryNotifyRunQueueErr of TryNotifyRunQueueError
+        //| TryCheckCancellationErr of TryCheckCancellationError
+        //| TryCheckNotificationErr of TryCheckNotificationError
+        //| TryClearNotificationErr of TryClearNotificationError
+        //| TryUpdateProgressErr of TryUpdateProgressError
 
         //=========================
 

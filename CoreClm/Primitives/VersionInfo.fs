@@ -36,8 +36,8 @@ module VersionInfo =
     //let MsgSvcBaseName = "msg" + VersionNumberNumericalValue
 
 
-    [<Literal>]
-    let WorkerNodeSvcBaseName = "wns" + VersionNumberNumericalValue
+    //[<Literal>]
+    //let WorkerNodeSvcBaseName = "wns" + VersionNumberNumericalValue
 
 
     /// TODO kk:20240717 - Define this.

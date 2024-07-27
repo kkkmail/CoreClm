@@ -40,8 +40,8 @@ module SolverPrimitives =
             | CancelWithResults _ -> 2
 
 
-    type ProcessId =
-        | ProcessId of int
+    //type ProcessId =
+    //    | ProcessId of int
 
 
     let estimateEndTime progress (started : DateTime) =
