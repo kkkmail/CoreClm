@@ -21,16 +21,16 @@ module ClmErrors =
         | AggregateErr of ClmError * List<ClmError>
 
         // dbo schema
-        | TryResetRunQueueErr of TryResetRunQueueError
-        | SaveRunQueueErr of SaveRunQueueError
-        | DeleteRunQueueErr of DeleteRunQueueError
-        | TryUpdateRunQueueRowErr of TryUpdateRunQueueRowError
-        | UpsertRunQueueErr of UpsertRunQueueError
-        | TimerEventErr of TimerEventError
-        | LoadWorkerNodeInfoErr of LoadWorkerNodeInfoError
-        | UpsertWorkerNodeInfoErr of UpsertWorkerNodeInfoError
-        | UpsertWorkerNodeErrErr of UpsertWorkerNodeErrError
-        | TryGetAvailableWorkerNodeErr of TryGetAvailableWorkerNodeError
+        //| TryResetRunQueueErr of TryResetRunQueueError
+        //| SaveRunQueueErr of SaveRunQueueError
+        //| DeleteRunQueueErr of DeleteRunQueueError
+        //| TryUpdateRunQueueRowErr of TryUpdateRunQueueRowError
+        //| UpsertRunQueueErr of UpsertRunQueueError
+        //| TimerEventErr of TimerEventError
+        //| LoadWorkerNodeInfoErr of LoadWorkerNodeInfoError
+        //| UpsertWorkerNodeInfoErr of UpsertWorkerNodeInfoError
+        //| UpsertWorkerNodeErrErr of UpsertWorkerNodeErrError
+        //| TryGetAvailableWorkerNodeErr of TryGetAvailableWorkerNodeError
 
         // clm schema
         | LoadClmDefaultValueErr of LoadClmDefaultValueError

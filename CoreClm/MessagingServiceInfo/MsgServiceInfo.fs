@@ -41,18 +41,18 @@ module ServiceInfo =
     //let MessagingWcfServiceName = "MessagingWcfService"
 
 
-    type PartitionerMessage =
-        | UpdateProgressPrtMsg of ProgressUpdateInfo
-        | SaveChartsPrtMsg of ChartInfo
-        | RegisterWorkerNodePrtMsg of WorkerNodeInfo
-        | UnregisterWorkerNodePrtMsg of WorkerNodeId
+    //type PartitionerMessage =
+    //    | UpdateProgressPrtMsg of ProgressUpdateInfo
+    //    | SaveChartsPrtMsg of ChartInfo
+    //    | RegisterWorkerNodePrtMsg of WorkerNodeInfo
+    //    | UnregisterWorkerNodePrtMsg of WorkerNodeId
 
-        member this.messageSize =
-            match this with
-            | UpdateProgressPrtMsg _ -> SmallSize
-            | SaveChartsPrtMsg _ -> MediumSize
-            | RegisterWorkerNodePrtMsg _ -> SmallSize
-            | UnregisterWorkerNodePrtMsg _ -> SmallSize
+    //    member this.messageSize =
+    //        match this with
+    //        | UpdateProgressPrtMsg _ -> SmallSize
+    //        | SaveChartsPrtMsg _ -> MediumSize
+    //        | RegisterWorkerNodePrtMsg _ -> SmallSize
+    //        | UnregisterWorkerNodePrtMsg _ -> SmallSize
 
 
     type EarlyExitData = ChartData
@@ -191,90 +191,90 @@ module ServiceInfo =
             }
 
 
-    type WorkerNodeRunModelData =
-        {
-            runningProcessData : RunningProcessData
-            modelData : ModelData
-            controlData : RunnerControlData
-        }
+    //type WorkerNodeRunModelData =
+    //    {
+    //        runningProcessData : RunningProcessData
+    //        modelData : ModelData
+    //        controlData : RunnerControlData
+    //    }
 
 
-    type WorkerNodeMessage =
-        | RunModelWrkMsg of WorkerNodeRunModelData
-        | CancelRunWrkMsg of (RunQueueId * CancellationType)
-        | RequestResultWrkMsg of (RunQueueId * ResultNotificationType)
+    //type WorkerNodeMessage =
+    //    | RunModelWrkMsg of WorkerNodeRunModelData
+    //    | CancelRunWrkMsg of (RunQueueId * CancellationType)
+    //    | RequestResultWrkMsg of (RunQueueId * ResultNotificationType)
 
-        member this.messageSize =
-            match this with
-            | RunModelWrkMsg _ -> LargeSize
-            | CancelRunWrkMsg _ -> SmallSize
-            | RequestResultWrkMsg _ -> SmallSize
+    //    member this.messageSize =
+    //        match this with
+    //        | RunModelWrkMsg _ -> LargeSize
+    //        | CancelRunWrkMsg _ -> SmallSize
+    //        | RequestResultWrkMsg _ -> SmallSize
 
 
-    /// The decision was that we want strongly typed messages rather than untyped messages.
-    /// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
-    type ClmMessageData =
-        | TextData of string
-        | PartitionerMsg of PartitionerMessage
-        | WorkerNodeMsg of WorkerNodeMessage
+    ///// The decision was that we want strongly typed messages rather than untyped messages.
+    ///// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
+    //type ClmMessageData =
+    //    | TextData of string
+    //    | PartitionerMsg of PartitionerMessage
+    //    | WorkerNodeMsg of WorkerNodeMessage
 
-        static member maxInfoLength = 500
+    //    static member maxInfoLength = 500
 
-        member this.getMessageSize() =
-            match this with
-            | TextData s ->
-                if s.Length < 1_000 then SmallSize
-                else if s.Length < 1_000_000 then MediumSize
-                else LargeSize
-            | PartitionerMsg m -> m.messageSize
-            | WorkerNodeMsg m -> m.messageSize
+    //    member this.getMessageSize() =
+    //        match this with
+    //        | TextData s ->
+    //            if s.Length < 1_000 then SmallSize
+    //            else if s.Length < 1_000_000 then MediumSize
+    //            else LargeSize
+    //        | PartitionerMsg m -> m.messageSize
+    //        | WorkerNodeMsg m -> m.messageSize
 
 
     type MessagingClient = MessagingClient<ClmMessageData>
     type MessagingClientData = MessagingClientData<ClmMessageData>
     type MessagingServiceData = MessagingServiceData<ClmMessageData>
     type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData>>
-    type Message = Message<ClmMessageData>
-    type MessageInfo = MessageInfo<ClmMessageData>
+    //type Message = Message<ClmMessageData>
+    //type MessageInfo = MessageInfo<ClmMessageData>
     type MessagingService = MessagingService<ClmMessageData>
     type MessagingWcfService = MessagingWcfService<ClmMessageData>
     type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
 
 
-    type PartitionerMessageInfo =
-        {
-            partitionerRecipient : PartitionerId
-            deliveryType : MessageDeliveryType
-            messageData : PartitionerMessage
-        }
+    //type PartitionerMessageInfo =
+    //    {
+    //        partitionerRecipient : PartitionerId
+    //        deliveryType : MessageDeliveryType
+    //        messageData : PartitionerMessage
+    //    }
 
-        member this.getMessageInfo() =
-            {
-                recipientInfo =
-                    {
-                        recipient = this.partitionerRecipient.messagingClientId
-                        deliveryType = this.deliveryType
-                    }
-                messageData = this.messageData |> PartitionerMsg |> UserMsg
-            }
+    //    member this.getMessageInfo() =
+    //        {
+    //            recipientInfo =
+    //                {
+    //                    recipient = this.partitionerRecipient.messagingClientId
+    //                    deliveryType = this.deliveryType
+    //                }
+    //            messageData = this.messageData |> PartitionerMsg |> UserMsg
+    //        }
 
 
-    type WorkerNodeMessageInfo =
-        {
-            workerNodeRecipient : WorkerNodeId
-            deliveryType : MessageDeliveryType
-            messageData : WorkerNodeMessage
-        }
+    //type WorkerNodeMessageInfo =
+    //    {
+    //        workerNodeRecipient : WorkerNodeId
+    //        deliveryType : MessageDeliveryType
+    //        messageData : WorkerNodeMessage
+    //    }
 
-        member this.getMessageInfo() =
-            {
-                recipientInfo =
-                    {
-                        recipient = this.workerNodeRecipient.messagingClientId
-                        deliveryType = this.deliveryType
-                    }
-                messageData = this.messageData |> WorkerNodeMsg |> UserMsg
-            }
+    //    member this.getMessageInfo() =
+    //        {
+    //            recipientInfo =
+    //                {
+    //                    recipient = this.workerNodeRecipient.messagingClientId
+    //                    deliveryType = this.deliveryType
+    //                }
+    //            messageData = this.messageData |> WorkerNodeMsg |> UserMsg
+    //        }
 
 
     type MessageWithOptionalData =

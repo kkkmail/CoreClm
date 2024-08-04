@@ -19,14 +19,14 @@ module GeneralPrimitives =
     //let localHost = "127.0.0.1"
 
 
-    let defaultContGenNetTcpServicePort = defaultServicePort |> ServicePort
-    let defaultContGenHttpServicePort = defaultContGenNetTcpServicePort.value + 1 |> ServicePort
-    let defaultContGenServiceAddress = LocalHost |> ServiceAddress
+    //let defaultContGenNetTcpServicePort = defaultServicePort |> ServicePort
+    //let defaultContGenHttpServicePort = defaultContGenNetTcpServicePort.value + 1 |> ServicePort
+    //let defaultContGenServiceAddress = LocalHost |> ServiceAddress
 
 
-    let defaultWorkerNodeNetTcpServicePort = 20000 + defaultServicePort |> ServicePort
-    let defaultWorkerNodeHttpServicePort = defaultWorkerNodeNetTcpServicePort.value + 1 |> ServicePort
-    let defaultWorkerNodeServiceAddress = LocalHost |> ServiceAddress
+    //let defaultWorkerNodeNetTcpServicePort = 20000 + defaultServicePort |> ServicePort
+    //let defaultWorkerNodeHttpServicePort = defaultWorkerNodeNetTcpServicePort.value + 1 |> ServicePort
+    //let defaultWorkerNodeServiceAddress = LocalHost |> ServiceAddress
 
 
     //let defaultMessagingNetTcpServicePort = 40000 + defaultServicePort

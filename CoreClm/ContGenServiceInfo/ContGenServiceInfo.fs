@@ -55,12 +55,12 @@ module ServiceInfo =
         }
 
 
-    type ProgressUpdateInfo =
-        {
-            runQueueId : RunQueueId
-            updatedRunQueueStatus : RunQueueStatus option
-            progressData : ClmProgressData
-        }
+    //type ProgressUpdateInfo =
+    //    {
+    //        runQueueId : RunQueueId
+    //        updatedRunQueueStatus : RunQueueStatus option
+    //        progressData : ClmProgressData
+    //    }
 
 
     type RunningProcessInfo =
@@ -131,7 +131,7 @@ module ServiceInfo =
     //let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
 
     let minUsefulEe = ConfigKey "MinUsefulEe"
-    let partitionerId = ConfigKey "PartitionerId"
+    //let partitionerId = ConfigKey "PartitionerId"
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
     let dictionaryUpdateType = ConfigKey "DictionaryUpdateType"
@@ -310,13 +310,13 @@ module ServiceInfo =
     //    | _ -> d
 
 
-    let getPartitionerId (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetGuid n with
-            | Ok (Some p) when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
-            | _ -> d
-        | _ -> d
+    //let getPartitionerId (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetGuid n with
+    //        | Ok (Some p) when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
+    //        | _ -> d
+    //    | _ -> d
 
 
     let tryCreateCollisionType s =

@@ -15,7 +15,7 @@ open ClmSys.ClmErrors
 open Primitives.GeneralData
 
 module WorkerNodeData =
-    let 
+    let x = 1
 
 //    type WorkerNodeInfo =
 //        {

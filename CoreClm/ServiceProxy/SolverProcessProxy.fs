@@ -130,16 +130,16 @@ module SolverProcessProxy =
             None
 
 
-    type SendMessageProxy =
-        {
-            partitionerId : PartitionerId
-            sendMessage : MessageInfo -> MessagingUnitResult
-        }
+    //type SendMessageProxy =
+    //    {
+    //        partitionerId : PartitionerId
+    //        sendMessage : MessageInfo -> MessagingUnitResult
+    //    }
 
 
-    type OnUpdateProgressProxy =
-        {
-            tryDeleteWorkerNodeRunModelData : unit -> UnitResult
-            tryUpdateProgressData : ClmProgressData -> UnitResult
-            sendMessageProxy : SendMessageProxy
-        }
+    //type OnUpdateProgressProxy =
+    //    {
+    //        tryDeleteWorkerNodeRunModelData : unit -> UnitResult
+    //        tryUpdateProgressData : ClmProgressData -> UnitResult
+    //        sendMessageProxy : SendMessageProxy
+    //    }

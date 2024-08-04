@@ -51,64 +51,64 @@ module GeneralErrors =
         | SaveChartsExn of exn
 
 
-    type JsonParseError =
-        | InvalidStructureErr of string
+    //type JsonParseError =
+    //    | InvalidStructureErr of string
 
 
-    type SerializationError =
-        | SerializationExn of exn
-        | DeserializationExn of exn
+    //type SerializationError =
+    //    | SerializationExn of exn
+    //    | DeserializationExn of exn
 
 
-    type InvalidRunQueueData =
-        {
-            runQueueId : RunQueueId
-            runQueueStatusFrom : RunQueueStatus option
-            runQueueStatusTo : RunQueueStatus
-            workerNodeIdOptFrom : WorkerNodeId option
-            workerNodeIdOptTo : WorkerNodeId option
-        }
+    //type InvalidRunQueueData =
+    //    {
+    //        runQueueId : RunQueueId
+    //        runQueueStatusFrom : RunQueueStatus option
+    //        runQueueStatusTo : RunQueueStatus
+    //        workerNodeIdOptFrom : WorkerNodeId option
+    //        workerNodeIdOptTo : WorkerNodeId option
+    //    }
 
 
-    type TryResetRunQueueError =
-        | TryResetRunQueueDbErr of DbError
-        | ResetRunQueueEntryErr of RunQueueId
+    //type TryResetRunQueueError =
+    //    | TryResetRunQueueDbErr of DbError
+    //    | ResetRunQueueEntryErr of RunQueueId
 
 
-    type SaveRunQueueError =
-        | SaveRunQueueDbErr of DbError
+    //type SaveRunQueueError =
+    //    | SaveRunQueueDbErr of DbError
 
 
-    type DeleteRunQueueError =
-        | DeleteRunQueueEntryErr of RunQueueId
-        | DeleteRunQueueDbErr of DbError
+    //type DeleteRunQueueError =
+    //    | DeleteRunQueueEntryErr of RunQueueId
+    //    | DeleteRunQueueDbErr of DbError
 
 
-    type TryUpdateRunQueueRowError =
-        | InvalidStatusTransitionErr of InvalidRunQueueData
-        | InvalidDataErr of InvalidRunQueueData
-        | TryUpdateRunQueueRowDbErr of DbError
+    //type TryUpdateRunQueueRowError =
+    //    | InvalidStatusTransitionErr of InvalidRunQueueData
+    //    | InvalidDataErr of InvalidRunQueueData
+    //    | TryUpdateRunQueueRowDbErr of DbError
 
 
-    type UpsertRunQueueError =
-        | UpsertRunQueueDbErr of DbError
+    //type UpsertRunQueueError =
+    //    | UpsertRunQueueDbErr of DbError
 
 
-    type LoadWorkerNodeInfoError =
-        | LoadWorkerNodeInfoDbErr of DbError
-        | UnableToLoadWorkerNodeErr of WorkerNodeId
+    //type LoadWorkerNodeInfoError =
+    //    | LoadWorkerNodeInfoDbErr of DbError
+    //    | UnableToLoadWorkerNodeErr of WorkerNodeId
 
 
-    type UpsertWorkerNodeInfoError =
-        | UpsertWorkerNodeInfoDbErr of DbError
+    //type UpsertWorkerNodeInfoError =
+    //    | UpsertWorkerNodeInfoDbErr of DbError
 
 
-    type UpsertWorkerNodeErrError =
-        | UpsertWorkerNodeErrDbErr of DbError
+    //type UpsertWorkerNodeErrError =
+    //    | UpsertWorkerNodeErrDbErr of DbError
 
 
-    type TryGetAvailableWorkerNodeError =
-        | TryGetAvailableWorkerNodeDbErr of DbError
+    //type TryGetAvailableWorkerNodeError =
+    //    | TryGetAvailableWorkerNodeDbErr of DbError
 
 
     type LoadClmDefaultValueError =

@@ -3,6 +3,7 @@
 open System
 
 module GeneralPrimitives =
+    let x = 1
 
     //type RunQueueId =
     //    | RunQueueId of Guid
@@ -11,10 +12,10 @@ module GeneralPrimitives =
     //    static member getNewId() = Guid.NewGuid() |> RunQueueId
 
 
-    type ErrorMessage =
-        | ErrorMessage of string
+    //type ErrorMessage =
+    //    | ErrorMessage of string
 
-        member this.value = let (ErrorMessage v) = this in v
+    //    member this.value = let (ErrorMessage v) = this in v
 
 
     //type RunQueueStatus =
@@ -51,8 +52,8 @@ module GeneralPrimitives =
     //        | _ -> None
 
 
-    type HtmlChart =
-        {
-            htmlContent: string
-            fileName : string
-        }
+    //type HtmlChart =
+    //    {
+    //        htmlContent: string
+    //        fileName : string
+    //    }

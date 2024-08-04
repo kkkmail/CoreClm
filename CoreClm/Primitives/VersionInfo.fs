@@ -40,19 +40,19 @@ module VersionInfo =
     //let WorkerNodeSvcBaseName = "wns" + VersionNumberNumericalValue
 
 
-    /// TODO kk:20240717 - Define this.
-    /// Default port on which messaging communication is performed.
-    let defaultServicePort : int = 5000 + messagingDataVersion.value
+    ///// TODO kk:20240717 - Define this.
+    ///// Default port on which messaging communication is performed.
+    //let defaultServicePort : int = 5000 + messagingDataVersion.value
 
 
-    [<Literal>]
-    let CopyrightInfo = "MIT License - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2023."
+    //[<Literal>]
+    //let CopyrightInfo = "MIT License - Copyright Konstantin K. Konstantinov and Alisa F. Konstantinova © 2015 - 2023."
 
 
-    type VersionNumber =
-        | VersionNumber of string
+    //type VersionNumber =
+    //    | VersionNumber of string
 
-        member this.value = let (VersionNumber v) = this in v
+    //    member this.value = let (VersionNumber v) = this in v
 
 
     let versionNumberValue = VersionNumber VersionNumberValue

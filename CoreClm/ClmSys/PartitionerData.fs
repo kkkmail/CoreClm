@@ -8,7 +8,7 @@ open PartitionerPrimitives
 
 module PartitionerData =
 
-    let defaultPartitionerId = Guid("F941F87C-BEBC-43E7-ABD3-967E377CBD57") |> MessagingClientId |> PartitionerId
+    //let defaultPartitionerId = Guid("F941F87C-BEBC-43E7-ABD3-967E377CBD57") |> MessagingClientId |> PartitionerId
 
 
     /// Partitioner MessagingClientId + Messaging Service access info.

@@ -32,15 +32,15 @@ open ContGenServiceInfo.ServiceInfo
 
 module ServiceInfo =
 
-    let workerNodeServiceProgramName = "WorkerNodeService.exe"
+    //let workerNodeServiceProgramName = "WorkerNodeService.exe"
 
 
-    [<Literal>]
-    let WorkerNodeWcfServiceName = "WorkerNodeWcfService"
+    //[<Literal>]
+    //let WorkerNodeWcfServiceName = "WorkerNodeWcfService"
 
 
-    type WorkerNodeConfigParam =
-        | WorkerNumberOfSores of int
+    //type WorkerNodeConfigParam =
+    //    | WorkerNumberOfSores of int
 
 
     type RunnerState =
@@ -68,35 +68,35 @@ module ServiceInfo =
             $"T: %s{s};%s{estCompl} %A{r.progressData.progressData.progress}"
 
 
-    type WorkerNodeState =
-        | NotStartedWorkerNode
-        | StartedWorkerNode
+    //type WorkerNodeState =
+    //    | NotStartedWorkerNode
+    //    | StartedWorkerNode
 
 
-    type WorkerNodeRunnerState =
-        {
-            workerNodeState : WorkerNodeState
-        }
+    //type WorkerNodeRunnerState =
+    //    {
+    //        workerNodeState : WorkerNodeState
+    //    }
 
     type WorkerNodeMonitorParam =
         | DummyWrkMonitorParam
 
 
-    type WorkerNodeMonitorResponse =
-        | CannotAccessWrkNode
-        | ErrorOccurred of ClmError
+    //type WorkerNodeMonitorResponse =
+    //    | CannotAccessWrkNode
+    //    | ErrorOccurred of ClmError
 
-        override this.ToString() =
-            match this with
-            | CannotAccessWrkNode -> "Cannot access worker node."
-            | ErrorOccurred e -> "Error occurred: " + e.ToString()
+    //    override this.ToString() =
+    //        match this with
+    //        | CannotAccessWrkNode -> "Cannot access worker node."
+    //        | ErrorOccurred e -> "Error occurred: " + e.ToString()
 
 
-    type IWorkerNodeService =
-        abstract monitor : WorkerNodeMonitorParam -> ClmResult<WorkerNodeMonitorResponse>
+    //type IWorkerNodeService =
+    //    abstract monitor : WorkerNodeMonitorParam -> ClmResult<WorkerNodeMonitorResponse>
 
-        /// To check if service is working.
-        abstract ping : unit -> UnitResult
+    //    /// To check if service is working.
+    //    abstract ping : unit -> UnitResult
 
 
     let mutable private callCount = -1
@@ -153,103 +153,103 @@ module ServiceInfo =
             WorkerNodeResponseHandler(i.value.getUrl communicationType, communicationType, securityMode)
 
 
-    let workerNodeName = ConfigKey "WorkerNodeName"
-    let workerNodeServiceAddress = ConfigKey "WorkerNodeServiceAddress"
-    let workerNodeServiceHttpPort = ConfigKey "WorkerNodeServiceHttpPort"
-    let workerNodeServiceNetTcpPort = ConfigKey "WorkerNodeServiceNetTcpPort"
-    let workerNodeServiceCommunicationType = ConfigKey "WorkerNodeServiceCommunicationType"
-    let workerNodeId = ConfigKey "WorkerNodeId"
+    //let workerNodeName = ConfigKey "WorkerNodeName"
+    //let workerNodeServiceAddress = ConfigKey "WorkerNodeServiceAddress"
+    //let workerNodeServiceHttpPort = ConfigKey "WorkerNodeServiceHttpPort"
+    //let workerNodeServiceNetTcpPort = ConfigKey "WorkerNodeServiceNetTcpPort"
+    //let workerNodeServiceCommunicationType = ConfigKey "WorkerNodeServiceCommunicationType"
+    //let workerNodeId = ConfigKey "WorkerNodeId"
 
-    let noOfCores = ConfigKey "NoOfCores"
-    let isInactive = ConfigKey "IsInactive"
-    let nodePriority = ConfigKey "NodePriority"
-
-
-    let loadWorkerNodeServiceSettings providerRes =
-        let workerNodeServiceAddress = getServiceAddress providerRes workerNodeServiceAddress defaultWorkerNodeServiceAddress
-        let workerNodeServiceHttpPort = getServiceHttpPort providerRes workerNodeServiceHttpPort defaultWorkerNodeHttpServicePort
-        let workerNodeServiceNetTcpPort = getServiceNetTcpPort providerRes workerNodeServiceNetTcpPort defaultWorkerNodeNetTcpServicePort
-        let workerNodeServiceCommunicationType = getCommunicationType providerRes workerNodeServiceCommunicationType NetTcpCommunication
-
-        let workerNodeSvcInfo =
-            WorkerNodeServiceAccessInfo.create workerNodeServiceAddress workerNodeServiceHttpPort workerNodeServiceNetTcpPort WcfSecurityMode.defaultValue
-
-        (workerNodeSvcInfo, workerNodeServiceCommunicationType)
+    //let noOfCores = ConfigKey "NoOfCores"
+    //let isInactive = ConfigKey "IsInactive"
+    //let nodePriority = ConfigKey "NodePriority"
 
 
-    let tryGetWorkerNodeId (providerRes : AppSettingsProviderResult) n =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetGuid n with
-            | Ok (Some p) when p <> Guid.Empty -> p |> MessagingClientId |> WorkerNodeId |> Some
-            | _ -> None
-        | _ -> None
+    //let loadWorkerNodeServiceSettings providerRes =
+    //    let workerNodeServiceAddress = getServiceAddress providerRes workerNodeServiceAddress defaultWorkerNodeServiceAddress
+    //    let workerNodeServiceHttpPort = getServiceHttpPort providerRes workerNodeServiceHttpPort defaultWorkerNodeHttpServicePort
+    //    let workerNodeServiceNetTcpPort = getServiceNetTcpPort providerRes workerNodeServiceNetTcpPort defaultWorkerNodeNetTcpServicePort
+    //    let workerNodeServiceCommunicationType = getCommunicationType providerRes workerNodeServiceCommunicationType NetTcpCommunication
+
+    //    let workerNodeSvcInfo =
+    //        WorkerNodeServiceAccessInfo.create workerNodeServiceAddress workerNodeServiceHttpPort workerNodeServiceNetTcpPort WcfSecurityMode.defaultValue
+
+    //    (workerNodeSvcInfo, workerNodeServiceCommunicationType)
 
 
-    let tryGetWorkerNodeName (providerRes : AppSettingsProviderResult) n =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetString n with
-            | Ok (Some EmptyString) -> None
-            | Ok (Some s) -> s |> WorkerNodeName |> Some
-            | _ -> None
-        | _ -> None
+    //let tryGetWorkerNodeId (providerRes : AppSettingsProviderResult) n =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetGuid n with
+    //        | Ok (Some p) when p <> Guid.Empty -> p |> MessagingClientId |> WorkerNodeId |> Some
+    //        | _ -> None
+    //    | _ -> None
 
 
-    let getNoOfCores (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetInt n with
-            | Ok (Some k) when k >= 0 -> k
-            | _ -> d
-        | _ -> d
+    //let tryGetWorkerNodeName (providerRes : AppSettingsProviderResult) n =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetString n with
+    //        | Ok (Some EmptyString) -> None
+    //        | Ok (Some s) -> s |> WorkerNodeName |> Some
+    //        | _ -> None
+    //    | _ -> None
 
 
-    let getNodePriority (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetInt n with
-            | Ok (Some k) when k >= 0 -> k
-            | _ -> d
-        | _ -> d
-        |> WorkerNodePriority
+    //let getNoOfCores (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetInt n with
+    //        | Ok (Some k) when k >= 0 -> k
+    //        | _ -> d
+    //    | _ -> d
 
 
-    let getIsInactive (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetBool n with
-            | Ok (Some b) -> b
-            | _ -> d
-        | _ -> d
+    //let getNodePriority (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetInt n with
+    //        | Ok (Some k) when k >= 0 -> k
+    //        | _ -> d
+    //    | _ -> d
+    //    |> WorkerNodePriority
 
 
-    let tryLoadWorkerNodeInfo (providerRes : AppSettingsProviderResult) nodeIdOpt nameOpt =
-        let io = nodeIdOpt |> Option.orElseWith (fun () -> tryGetWorkerNodeId providerRes workerNodeId)
-        let no = nameOpt |> Option.orElseWith (fun () -> tryGetWorkerNodeName providerRes workerNodeName)
+    //let getIsInactive (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetBool n with
+    //        | Ok (Some b) -> b
+    //        | _ -> d
+    //    | _ -> d
 
-        match io, no with
-        | Some i, Some n ->
-            let defaultNoOfCores =
-                match Environment.ProcessorCount with
-                | 1 -> 1
-                | 2 -> 1
-                | 3 -> 2
-                | _ -> (Environment.ProcessorCount / 2) + 1
 
-            let w =
-                {
-                    workerNodeId = i
-                    workerNodeName  = n
-                    partitionerId = getPartitionerId providerRes partitionerId defaultPartitionerId
-                    noOfCores = getNoOfCores providerRes noOfCores defaultNoOfCores
-                    nodePriority = getNodePriority providerRes nodePriority WorkerNodePriority.defaultValue.value
-                    isInactive = getIsInactive providerRes isInactive true
-                    lastErrorDateOpt = None
-                }
+    //let tryLoadWorkerNodeInfo (providerRes : AppSettingsProviderResult) nodeIdOpt nameOpt =
+    //    let io = nodeIdOpt |> Option.orElseWith (fun () -> tryGetWorkerNodeId providerRes workerNodeId)
+    //    let no = nameOpt |> Option.orElseWith (fun () -> tryGetWorkerNodeName providerRes workerNodeName)
 
-            Some w
-        | _ -> None
+    //    match io, no with
+    //    | Some i, Some n ->
+    //        let defaultNoOfCores =
+    //            match Environment.ProcessorCount with
+    //            | 1 -> 1
+    //            | 2 -> 1
+    //            | 3 -> 2
+    //            | _ -> (Environment.ProcessorCount / 2) + 1
+
+    //        let w =
+    //            {
+    //                workerNodeId = i
+    //                workerNodeName  = n
+    //                partitionerId = getPartitionerId providerRes partitionerId defaultPartitionerId
+    //                noOfCores = getNoOfCores providerRes noOfCores defaultNoOfCores
+    //                nodePriority = getNodePriority providerRes nodePriority WorkerNodePriority.defaultValue.value
+    //                isInactive = getIsInactive providerRes isInactive true
+    //                lastErrorDateOpt = None
+    //            }
+
+    //        Some w
+    //    | _ -> None
 
 
     /// Type parameter 'P is needed because this class is shared by WorkerNodeService and WorkerNodeAdm
