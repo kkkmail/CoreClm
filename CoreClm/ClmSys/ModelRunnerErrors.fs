@@ -10,80 +10,81 @@ open ContGenPrimitives
 open WorkerNodePrimitives
 
 module ModelRunnerErrors =
+    let x = 1
 
-    type RunModelRunnerError =
-        | MessagingRunnerErr of MessagingError
-        | MissingWorkerNodeRunnerErr of RunQueueId
-        | UnableToLoadModelDataRunnerErr of RunQueueId * ModelDataId
-
-
-    type TryRunFirstModelRunnerError =
-        | TryLoadFirstRunQueueRunnerErr
-        | TryGetAvailableWorkerNodelRunnerErr
-        | UpsertRunQueueRunnerErr
-        | UnableToRunModelRunnerErr
-        | UnableToRunModelAndUpsertStatusRunnerErr
-        | UnableToGetWorkerNodeRunnerErr
+    //type RunModelRunnerError =
+    //    | MessagingRunnerErr of MessagingError
+    //    | MissingWorkerNodeRunnerErr of RunQueueId
+    //    | UnableToLoadModelDataRunnerErr of RunQueueId * ModelDataId
 
 
-    type TryCancelRunQueueRunnerError =
-        | TryLoadRunQueueRunnerErr of RunQueueId
-        | InvalidRunQueueStatusRunnerErr of RunQueueId
-        | MessagingTryCancelRunQueueRunnerErr of MessagingError
+    //type TryRunFirstModelRunnerError =
+    //    | TryLoadFirstRunQueueRunnerErr
+    //    | TryGetAvailableWorkerNodelRunnerErr
+    //    | UpsertRunQueueRunnerErr
+    //    | UnableToRunModelRunnerErr
+    //    | UnableToRunModelAndUpsertStatusRunnerErr
+    //    | UnableToGetWorkerNodeRunnerErr
 
 
-    type TryRequestResultsRunnerError =
-        | TryLoadRunQueueRunnerErr of RunQueueId
-        | MessagingTryRequestResultsRunnerErr of MessagingError
-
-    type TryRunAllModelsRunnerError =
-        | UnableToTryRunFirstModelRunnerErr
+    //type TryCancelRunQueueRunnerError =
+    //    | TryLoadRunQueueRunnerErr of RunQueueId
+    //    | InvalidRunQueueStatusRunnerErr of RunQueueId
+    //    | MessagingTryCancelRunQueueRunnerErr of MessagingError
 
 
-    type UpdateProgressRunnerError =
-        | UnableToLoadRunQueueRunnerErr of RunQueueId
-        | UnableToFindLoadRunQueueRunnerErr of RunQueueId
-        | InvalidRunQueueStatusRunnerErr of RunQueueId
-        | CompletelyInvalidRunQueueStatusRunnerErr of RunQueueId // This should never happen but we still have to account for it. It if does, then we are in a BIG trouble.
+    //type TryRequestResultsRunnerError =
+    //    | TryLoadRunQueueRunnerErr of RunQueueId
+    //    | MessagingTryRequestResultsRunnerErr of MessagingError
+
+    //type TryRunAllModelsRunnerError =
+    //    | UnableToTryRunFirstModelRunnerErr
 
 
-    type RegisterRunnerError =
-        | UnableToUpsertWorkerNodeInfoRunnerErr of WorkerNodeId
+    //type UpdateProgressRunnerError =
+    //    | UnableToLoadRunQueueRunnerErr of RunQueueId
+    //    | UnableToFindLoadRunQueueRunnerErr of RunQueueId
+    //    | InvalidRunQueueStatusRunnerErr of RunQueueId
+    //    | CompletelyInvalidRunQueueStatusRunnerErr of RunQueueId // This should never happen but we still have to account for it. It if does, then we are in a BIG trouble.
 
 
-    type UnregisterRunnerError =
-        | UnableToLoadWorkerNodeInfoRunnerErr of WorkerNodeId
-        | UnableToUpsertWorkerNodeInfoOnUnregisterRunnerErr of WorkerNodeId
+    //type RegisterRunnerError =
+    //    | UnableToUpsertWorkerNodeInfoRunnerErr of WorkerNodeId
 
 
-    type SaveResultRunnerError =
-        | UnableToSaveResultDataRunnerErr of RunQueueId
+    //type UnregisterRunnerError =
+    //    | UnableToLoadWorkerNodeInfoRunnerErr of WorkerNodeId
+    //    | UnableToUpsertWorkerNodeInfoOnUnregisterRunnerErr of WorkerNodeId
 
 
-    type SaveChartsRunnerError =
-        | UnableToSaveChartsRunnerErr of RunQueueId
+    //type SaveResultRunnerError =
+    //    | UnableToSaveResultDataRunnerErr of RunQueueId
 
 
-    type ProcessMessageRunnerError =
-        | ErrorWhenProcessingMessageRunnerErr of MessageId
-        | InvalidMessageTypeRunnerErr of MessageId
-        | OnGetMessagesRunnerErr of OnGetMessagesError
+    //type SaveChartsRunnerError =
+    //    | UnableToSaveChartsRunnerErr of RunQueueId
 
 
-    type TryGetAvailableWorkerNodeRunnerError =
-        | A
+    //type ProcessMessageRunnerError =
+    //    | ErrorWhenProcessingMessageRunnerErr of MessageId
+    //    | InvalidMessageTypeRunnerErr of MessageId
+    //    | OnGetMessagesRunnerErr of OnGetMessagesError
 
 
-    type ModelRunnerError =
-        | RunModelRunnerErr of RunModelRunnerError
-        | TryRunFirstModelRunnerErr of TryRunFirstModelRunnerError
-        | TryCancelRunQueueRunnerErr of TryCancelRunQueueRunnerError
-        | TryRequestResultsRunnerErr of TryRequestResultsRunnerError
-        | TryRunAllModelsRunnerErr of TryRunAllModelsRunnerError
-        | UpdateProgressRunnerErr of UpdateProgressRunnerError
-        | RegisterRunnerErr of RegisterRunnerError
-        | UnregisterRunnerErr of UnregisterRunnerError
-        | SaveResultRunnerErr of SaveResultRunnerError
-        | SaveChartsRunnerErr of SaveChartsRunnerError
-        | ProcessMessageRunnerErr of ProcessMessageRunnerError
-        | TryGetAvailableWorkerNodeRunnerErr of TryGetAvailableWorkerNodeRunnerError
+    //type TryGetAvailableWorkerNodeRunnerError =
+    //    | A
+
+
+    //type ModelRunnerError =
+    //    | RunModelRunnerErr of RunModelRunnerError
+    //    | TryRunFirstModelRunnerErr of TryRunFirstModelRunnerError
+    //    | TryCancelRunQueueRunnerErr of TryCancelRunQueueRunnerError
+    //    | TryRequestResultsRunnerErr of TryRequestResultsRunnerError
+    //    | TryRunAllModelsRunnerErr of TryRunAllModelsRunnerError
+    //    | UpdateProgressRunnerErr of UpdateProgressRunnerError
+    //    | RegisterRunnerErr of RegisterRunnerError
+    //    | UnregisterRunnerErr of UnregisterRunnerError
+    //    | SaveResultRunnerErr of SaveResultRunnerError
+    //    | SaveChartsRunnerErr of SaveChartsRunnerError
+    //    | ProcessMessageRunnerErr of ProcessMessageRunnerError
+    //    | TryGetAvailableWorkerNodeRunnerErr of TryGetAvailableWorkerNodeRunnerError

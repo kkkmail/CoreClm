@@ -120,37 +120,37 @@ module ServiceInfo =
         Interlocked.Decrement(&callCount) |> ignore
 
 
-    /// https://gist.github.com/dgfitch/661656
-    [<ServiceContract(ConfigurationName = WorkerNodeWcfServiceName)>]
-    type IWorkerNodeWcfService =
+//    /// https://gist.github.com/dgfitch/661656
+//    [<ServiceContract(ConfigurationName = WorkerNodeWcfServiceName)>]
+//    type IWorkerNodeWcfService =
 
-//        [<OperationContract(Name = "configure")>]
-//        abstract configure : q:byte[] -> byte[]
+////        [<OperationContract(Name = "configure")>]
+////        abstract configure : q:byte[] -> byte[]
 
-        [<OperationContract(Name = "monitor")>]
-        abstract monitor : q:byte[] -> byte[]
+//        [<OperationContract(Name = "monitor")>]
+//        abstract monitor : q:byte[] -> byte[]
 
-        [<OperationContract(Name = "ping")>]
-        abstract ping : q:byte[] -> byte[]
+//        [<OperationContract(Name = "ping")>]
+//        abstract ping : q:byte[] -> byte[]
 
 
-    /// Low level WCF messaging client.
-    type WorkerNodeResponseHandler private (url, communicationType, securityMode) =
-        let tryGetWcfService() = tryGetWcfService<IWorkerNodeWcfService> communicationType securityMode url
+    ///// Low level WCF messaging client.
+    //type WorkerNodeResponseHandler private (url, communicationType, securityMode) =
+    //    let tryGetWcfService() = tryGetWcfService<IWorkerNodeWcfService> communicationType securityMode url
 
-        let configureWcfErr e = e |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
-        let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
-        let pingWcfErr e = e |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+    //    let configureWcfErr e = e |> ConfigureWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+    //    let monitorWcfErr e = e |> MonitorWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
+    //    let pingWcfErr e = e |> PingWcfErr |> WorkerNodeWcfErr |> WorkerNodeServiceErr
 
-        let monitorImpl p = tryCommunicate tryGetWcfService (fun service -> service.monitor) monitorWcfErr p
-        let pingImpl() = tryCommunicate tryGetWcfService (fun service -> service.ping) pingWcfErr ()
+    //    let monitorImpl p = tryCommunicate tryGetWcfService (fun service -> service.monitor) monitorWcfErr p
+    //    let pingImpl() = tryCommunicate tryGetWcfService (fun service -> service.ping) pingWcfErr ()
 
-        interface IWorkerNodeService with
-            member _.monitor p = monitorImpl p
-            member _.ping() = pingImpl()
+    //    interface IWorkerNodeService with
+    //        member _.monitor p = monitorImpl p
+    //        member _.ping() = pingImpl()
 
-        new (i : WorkerNodeServiceAccessInfo, communicationType, securityMode) =
-            WorkerNodeResponseHandler(i.value.getUrl communicationType, communicationType, securityMode)
+    //    new (i : WorkerNodeServiceAccessInfo, communicationType, securityMode) =
+    //        WorkerNodeResponseHandler(i.value.getUrl communicationType, communicationType, securityMode)
 
 
     //let workerNodeName = ConfigKey "WorkerNodeName"
@@ -252,161 +252,161 @@ module ServiceInfo =
     //    | _ -> None
 
 
-    /// Type parameter 'P is needed because this class is shared by WorkerNodeService and WorkerNodeAdm
-    /// and they do have different type of this 'P.
-    type WorkerNodeSettingsProxy<'P> =
-        {
-            tryGetClientId : 'P -> WorkerNodeId option
-            tryGetNodeName : 'P -> WorkerNodeName option
-            tryGetPartitioner : 'P -> PartitionerId option
-            tryGetNoOfCores : 'P -> int option
-            tryGetInactive : 'P -> bool option
-            tryGetServiceAddress : 'P -> ServiceAddress option
-            tryGetServicePort : 'P -> ServicePort option
-            tryGetMsgServiceAddress : 'P -> ServiceAddress option
-            tryGetMsgServicePort : 'P -> ServicePort option
-            tryGetForce : 'P -> bool option // TODO kk:20211123 - Not yet fully implemented.
-        }
+    ///// Type parameter 'P is needed because this class is shared by WorkerNodeService and WorkerNodeAdm
+    ///// and they do have different type of this 'P.
+    //type WorkerNodeSettingsProxy<'P> =
+    //    {
+    //        tryGetClientId : 'P -> WorkerNodeId option
+    //        tryGetNodeName : 'P -> WorkerNodeName option
+    //        tryGetPartitioner : 'P -> PartitionerId option
+    //        tryGetNoOfCores : 'P -> int option
+    //        tryGetInactive : 'P -> bool option
+    //        tryGetServiceAddress : 'P -> ServiceAddress option
+    //        tryGetServicePort : 'P -> ServicePort option
+    //        tryGetMsgServiceAddress : 'P -> ServiceAddress option
+    //        tryGetMsgServicePort : 'P -> ServicePort option
+    //        tryGetForce : 'P -> bool option // TODO kk:20211123 - Not yet fully implemented.
+    //    }
 
 
-    let tryLoadWorkerNodeSettings nodeIdOpt nameOpt =
-        let providerRes = AppSettingsProvider.tryCreate AppSettingsFile
-        let workerNodeSvcInfo, workerNodeServiceCommunicationType = loadWorkerNodeServiceSettings providerRes
-        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes messagingDataVersion
+    //let tryLoadWorkerNodeSettings nodeIdOpt nameOpt =
+    //    let providerRes = AppSettingsProvider.tryCreate AppSettingsFile
+    //    let workerNodeSvcInfo, workerNodeServiceCommunicationType = loadWorkerNodeServiceSettings providerRes
+    //    let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes messagingDataVersion
 
-        match tryLoadWorkerNodeInfo providerRes nodeIdOpt nameOpt with
-        | Some info ->
-            let w =
-                {
-                    workerNodeInfo = info
-                    workerNodeSvcInfo = workerNodeSvcInfo
-                    workerNodeCommunicationType = workerNodeServiceCommunicationType
-                    messagingSvcInfo = messagingSvcInfo
-                    messagingCommunicationType = messagingServiceCommunicationType
-                }
+    //    match tryLoadWorkerNodeInfo providerRes nodeIdOpt nameOpt with
+    //    | Some info ->
+    //        let w =
+    //            {
+    //                workerNodeInfo = info
+    //                workerNodeSvcInfo = workerNodeSvcInfo
+    //                workerNodeCommunicationType = workerNodeServiceCommunicationType
+    //                messagingSvcInfo = messagingSvcInfo
+    //                messagingCommunicationType = messagingServiceCommunicationType
+    //            }
 
-            Some w
-        | None -> None
-
-
-    let tryLoadSettings (proxy : WorkerNodeSettingsProxy<'P>) (p : 'P) =
-        let workerNodeId = proxy.tryGetClientId p
-        let workerNodeName = proxy.tryGetNodeName p
-
-        match tryLoadWorkerNodeSettings workerNodeId workerNodeName with
-        | Some w ->
-            let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
-            let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
-
-            let w1 =
-                {
-                    workerNodeInfo =
-                        { w.workerNodeInfo with
-                            partitionerId = proxy.tryGetPartitioner p |> Option.defaultValue w.workerNodeInfo.partitionerId
-
-                            noOfCores =
-                                let n = proxy.tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
-                                max 0 (min n (8 * Environment.ProcessorCount))
-
-                            nodePriority =
-                                match w.workerNodeInfo.nodePriority.value with
-                                | x when x <= 0 -> WorkerNodePriority.defaultValue
-                                | _ -> w.workerNodeInfo.nodePriority
-
-                            isInactive = proxy.tryGetInactive p |> Option.defaultValue w.workerNodeInfo.isInactive
-                            lastErrorDateOpt = w.workerNodeInfo.lastErrorDateOpt
-                        }
-
-                    workerNodeSvcInfo =
-                        { w.workerNodeSvcInfo.value with
-                            netTcpServiceInfo =
-                                { wn with
-                                    netTcpServiceAddress = proxy.tryGetServiceAddress p |> Option.defaultValue wn.netTcpServiceAddress
-                                    netTcpServicePort = proxy.tryGetServicePort p |> Option.defaultValue wn.netTcpServicePort
-                                }
-                        }
-                        |> WorkerNodeServiceAccessInfo
-
-                    workerNodeCommunicationType = w.workerNodeCommunicationType
-
-                    messagingSvcInfo =
-                        { w.messagingSvcInfo with
-                            messagingServiceAccessInfo =
-                                { w.messagingSvcInfo.messagingServiceAccessInfo with
-                                    netTcpServiceInfo =
-                                        { mn with
-                                            netTcpServiceAddress = proxy.tryGetMsgServiceAddress p |> Option.defaultValue mn.netTcpServiceAddress
-                                            netTcpServicePort = proxy.tryGetMsgServicePort p |> Option.defaultValue mn.netTcpServicePort
-                                        }
-                                }
-                            messagingDataVersion = messagingDataVersion
-                        }
-
-                    messagingCommunicationType = w.messagingCommunicationType
-                }
-
-            Some w1
-        | None -> None
+    //        Some w
+    //    | None -> None
 
 
-    let updateWorkerNodeServiceSettings (provider : AppSettingsProvider) (w : WorkerNodeServiceAccessInfo) (ct : WcfCommunicationType)  =
-        let h = w.value.httpServiceInfo
-        let n = w.value.netTcpServiceInfo
+    //let tryLoadSettings (proxy : WorkerNodeSettingsProxy<'P>) (p : 'P) =
+    //    let workerNodeId = proxy.tryGetClientId p
+    //    let workerNodeName = proxy.tryGetNodeName p
 
-        provider.trySet workerNodeServiceAddress n.netTcpServiceAddress.value |> ignore
-        provider.trySet workerNodeServiceHttpPort h.httpServicePort.value |> ignore
-        provider.trySet workerNodeServiceNetTcpPort n.netTcpServicePort.value |> ignore
-        provider.trySet workerNodeServiceCommunicationType ct.value |> ignore
+    //    match tryLoadWorkerNodeSettings workerNodeId workerNodeName with
+    //    | Some w ->
+    //        let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
+    //        let mn = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
+
+    //        let w1 =
+    //            {
+    //                workerNodeInfo =
+    //                    { w.workerNodeInfo with
+    //                        partitionerId = proxy.tryGetPartitioner p |> Option.defaultValue w.workerNodeInfo.partitionerId
+
+    //                        noOfCores =
+    //                            let n = proxy.tryGetNoOfCores p |> Option.defaultValue w.workerNodeInfo.noOfCores
+    //                            max 0 (min n (8 * Environment.ProcessorCount))
+
+    //                        nodePriority =
+    //                            match w.workerNodeInfo.nodePriority.value with
+    //                            | x when x <= 0 -> WorkerNodePriority.defaultValue
+    //                            | _ -> w.workerNodeInfo.nodePriority
+
+    //                        isInactive = proxy.tryGetInactive p |> Option.defaultValue w.workerNodeInfo.isInactive
+    //                        lastErrorDateOpt = w.workerNodeInfo.lastErrorDateOpt
+    //                    }
+
+    //                workerNodeSvcInfo =
+    //                    { w.workerNodeSvcInfo.value with
+    //                        netTcpServiceInfo =
+    //                            { wn with
+    //                                netTcpServiceAddress = proxy.tryGetServiceAddress p |> Option.defaultValue wn.netTcpServiceAddress
+    //                                netTcpServicePort = proxy.tryGetServicePort p |> Option.defaultValue wn.netTcpServicePort
+    //                            }
+    //                    }
+    //                    |> WorkerNodeServiceAccessInfo
+
+    //                workerNodeCommunicationType = w.workerNodeCommunicationType
+
+    //                messagingSvcInfo =
+    //                    { w.messagingSvcInfo with
+    //                        messagingServiceAccessInfo =
+    //                            { w.messagingSvcInfo.messagingServiceAccessInfo with
+    //                                netTcpServiceInfo =
+    //                                    { mn with
+    //                                        netTcpServiceAddress = proxy.tryGetMsgServiceAddress p |> Option.defaultValue mn.netTcpServiceAddress
+    //                                        netTcpServicePort = proxy.tryGetMsgServicePort p |> Option.defaultValue mn.netTcpServicePort
+    //                                    }
+    //                            }
+    //                        messagingDataVersion = messagingDataVersion
+    //                    }
+
+    //                messagingCommunicationType = w.messagingCommunicationType
+    //            }
+
+    //        Some w1
+    //    | None -> None
 
 
-    type WorkerNodeSettings
-        with
-        member w.trySaveSettings() =
-            let toErr e = e |> SettingExn |> Error
+    //let updateWorkerNodeServiceSettings (provider : AppSettingsProvider) (w : WorkerNodeServiceAccessInfo) (ct : WcfCommunicationType)  =
+    //    let h = w.value.httpServiceInfo
+    //    let n = w.value.netTcpServiceInfo
 
-            match w.isValid(), AppSettingsProvider.tryCreate AppSettingsFile with
-            | Ok(), Ok provider ->
-                let v = w.workerNodeInfo
-                let wh = w.workerNodeSvcInfo.value.httpServiceInfo
-                let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
-
-                try
-                    provider.trySet workerNodeName v.workerNodeName.value |> ignore
-                    provider.trySet workerNodeId v.workerNodeId.value.value |> ignore
-                    provider.trySet noOfCores v.noOfCores |> ignore
-                    provider.trySet partitionerId v.partitionerId.value.value |> ignore
-                    provider.trySet isInactive v.isInactive |> ignore
-                    provider.trySet nodePriority v.nodePriority.value |> ignore
-
-                    updateWorkerNodeServiceSettings provider w.workerNodeSvcInfo w.workerNodeCommunicationType
-                    updateMessagingSettings provider w.messagingSvcInfo w.messagingCommunicationType
-
-                    provider.trySave() |> Rop.bindError toErr
-                with
-                | e -> toErr e
-            | Error e, _ -> Error e
-            | _, Error e -> toErr e
+    //    provider.trySet workerNodeServiceAddress n.netTcpServiceAddress.value |> ignore
+    //    provider.trySet workerNodeServiceHttpPort h.httpServicePort.value |> ignore
+    //    provider.trySet workerNodeServiceNetTcpPort n.netTcpServicePort.value |> ignore
+    //    provider.trySet workerNodeServiceCommunicationType ct.value |> ignore
 
 
-    let getWorkerNodeServiceAccessInfo (loadSettings, tryGetSaveSettings) b =
-        let w = loadSettings()
-        printfn $"getServiceAccessInfoImpl: w1 = %A{w}"
+    //type WorkerNodeSettings
+    //    with
+    //    member w.trySaveSettings() =
+    //        let toErr e = e |> SettingExn |> Error
 
-        let g() =
-            {
-                workerNodeInfo = w.workerNodeInfo
-                workerNodeServiceAccessInfo = w.workerNodeSvcInfo
-                messagingServiceAccessInfo =  w.messagingSvcInfo
-            }
+    //        match w.isValid(), AppSettingsProvider.tryCreate AppSettingsFile with
+    //        | Ok(), Ok provider ->
+    //            let v = w.workerNodeInfo
+    //            let wh = w.workerNodeSvcInfo.value.httpServiceInfo
+    //            let wn = w.workerNodeSvcInfo.value.netTcpServiceInfo
 
-        let r =
-            match tryGetSaveSettings(), b with
-            | Some(), _ -> w.trySaveSettings()
-            | _, true -> w.trySaveSettings()
-            | _ -> w.isValid()
+    //            try
+    //                provider.trySet workerNodeName v.workerNodeName.value |> ignore
+    //                provider.trySet workerNodeId v.workerNodeId.value.value |> ignore
+    //                provider.trySet noOfCores v.noOfCores |> ignore
+    //                provider.trySet partitionerId v.partitionerId.value.value |> ignore
+    //                provider.trySet isInactive v.isInactive |> ignore
+    //                provider.trySet nodePriority v.nodePriority.value |> ignore
 
-        printfn $"getServiceAccessInfoImpl: r = %A{r}"
+    //                updateWorkerNodeServiceSettings provider w.workerNodeSvcInfo w.workerNodeCommunicationType
+    //                updateMessagingSettings provider w.messagingSvcInfo w.messagingCommunicationType
 
-        match r with
-        | Ok() -> g() |> Ok
-        | Error e -> Error e
+    //                provider.trySave() |> Rop.bindError toErr
+    //            with
+    //            | e -> toErr e
+    //        | Error e, _ -> Error e
+    //        | _, Error e -> toErr e
+
+
+    //let getWorkerNodeServiceAccessInfo (loadSettings, tryGetSaveSettings) b =
+    //    let w = loadSettings()
+    //    printfn $"getServiceAccessInfoImpl: w1 = %A{w}"
+
+    //    let g() =
+    //        {
+    //            workerNodeInfo = w.workerNodeInfo
+    //            workerNodeServiceAccessInfo = w.workerNodeSvcInfo
+    //            messagingServiceAccessInfo =  w.messagingSvcInfo
+    //        }
+
+    //    let r =
+    //        match tryGetSaveSettings(), b with
+    //        | Some(), _ -> w.trySaveSettings()
+    //        | _, true -> w.trySaveSettings()
+    //        | _ -> w.isValid()
+
+    //    printfn $"getServiceAccessInfoImpl: r = %A{r}"
+
+    //    match r with
+    //    | Ok() -> g() |> Ok
+    //    | Error e -> Error e
