@@ -30,215 +30,215 @@ module Solver =
     let private toArray (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> NativePtr.get x i |]
 
 
-    let calculateProgress n t =
-        (t - n.odeParams.startTime) / (n.odeParams.endTime - n.odeParams.startTime)
-        |> decimal
+    //let calculateProgress n t =
+    //    (t - n.odeParams.startTime) / (n.odeParams.endTime - n.odeParams.startTime)
+    //    |> decimal
 
 
-    let shouldNotifyByCallCount d =
-        let callCount = d.progressData.callCount
+    //let shouldNotifyByCallCount d =
+    //    let callCount = d.progressData.callCount
 
-        let r =
-            [
-                callCount <= 10L
-                callCount > 10L && callCount <= 100L && callCount % 5L = 0L
-                callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
-                callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
-                callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
-                callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
-                callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
-                callCount > 10_000_000L && callCount <= 100_000_000L && callCount % 5_000_000L = 0L
-                callCount > 100_000_000L && callCount % 50_000_000L = 0L
-            ]
-            |> List.tryFind id
-            |> Option.defaultValue false
+    //    let r =
+    //        [
+    //            callCount <= 10L
+    //            callCount > 10L && callCount <= 100L && callCount % 5L = 0L
+    //            callCount > 100L && callCount <= 1_000L && callCount % 50L = 0L
+    //            callCount > 1_000L && callCount <= 10_000L && callCount % 500L = 0L
+    //            callCount > 10_000L && callCount <= 100_000L && callCount % 5_000L = 0L
+    //            callCount > 100_000L && callCount <= 1_000_000L && callCount % 50_000L = 0L
+    //            callCount > 1_000_000L && callCount <= 10_000_000L && callCount % 500_000L = 0L
+    //            callCount > 10_000_000L && callCount <= 100_000_000L && callCount % 5_000_000L = 0L
+    //            callCount > 100_000_000L && callCount % 50_000_000L = 0L
+    //        ]
+    //        |> List.tryFind id
+    //        |> Option.defaultValue false
 
-        // printDebug $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
-        r
-
-
-    let shouldNotifyByNextProgress (n : NSolveParam) d t =
-        let p = calculateProgress n t
-        let r = p >= d.nextProgress
-        // n.logger.logDebugString $"shouldNotifyByNextProgress: p = {p}, nextProgress = {d.nextProgress}, r = {r}."
-        r
+    //    // printDebug $"shouldNotifyByCallCount: callCount = {callCount}, r = {r}."
+    //    r
 
 
-    let shouldNotifyByNextChartProgress (n : NSolveParam) d t =
-        let p = calculateProgress n t
-        let r = p >= d.nextChartProgress
-        // n.logger.logDebugString $"shouldNotifyByNextChartProgress: p = {p}, nextChartProgress = {d.nextChartProgress}, r = {r}."
-        r
+    //let shouldNotifyByNextProgress (n : NSolveParam) d t =
+    //    let p = calculateProgress n t
+    //    let r = p >= d.nextProgress
+    //    // n.logger.logDebugString $"shouldNotifyByNextProgress: p = {p}, nextProgress = {d.nextProgress}, r = {r}."
+    //    r
 
 
-    let shouldNotifyByNextChartDetailedProgress (n : NSolveParam) d t =
-        // n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, n.odeParams.outputParams.noOfChartDetailedPoints = {n.odeParams.outputParams.noOfChartDetailedPoints}."
-        match n.odeParams.outputParams.noOfChartDetailedPoints with
-        | Some _ ->
-            let p = calculateProgress n t
-            let r = p >= d.nextChartDetailedProgress
-            // n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, p = {p}, d.nextChartDetailedProgress = {d.nextChartDetailedProgress}, r = {r}."
-            r
-        | None -> false
+    //let shouldNotifyByNextChartProgress (n : NSolveParam) d t =
+    //    let p = calculateProgress n t
+    //    let r = p >= d.nextChartProgress
+    //    // n.logger.logDebugString $"shouldNotifyByNextChartProgress: p = {p}, nextChartProgress = {d.nextChartProgress}, r = {r}."
+    //    r
 
 
-    let calculateNextProgress n t =
-        let r =
-            match n.odeParams.outputParams.noOfProgressPoints with
-            | np when np <= 0 -> 1.0m
-            | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
-        // n.logger.logDebugString $"calculateNextProgress: r = {r}."
-        r
+    //let shouldNotifyByNextChartDetailedProgress (n : NSolveParam) d t =
+    //    // n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, n.odeParams.outputParams.noOfChartDetailedPoints = {n.odeParams.outputParams.noOfChartDetailedPoints}."
+    //    match n.odeParams.outputParams.noOfChartDetailedPoints with
+    //    | Some _ ->
+    //        let p = calculateProgress n t
+    //        let r = p >= d.nextChartDetailedProgress
+    //        // n.logger.logDebugString $"shouldNotifyByNextChartDetailedProgress: t = {t}, p = {p}, d.nextChartDetailedProgress = {d.nextChartDetailedProgress}, r = {r}."
+    //        r
+    //    | None -> false
 
 
-    let calculateNextChartProgress n t =
-        let r =
-            match n.odeParams.outputParams.noOfOutputPoints with
-            | np when np <= 0 -> 1.0m
-            | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
-        // n.logger.logDebugString $"calculateNextChartProgress: t = {t}, r = {r}."
-        r
+    //let calculateNextProgress n t =
+    //    let r =
+    //        match n.odeParams.outputParams.noOfProgressPoints with
+    //        | np when np <= 0 -> 1.0m
+    //        | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+    //    // n.logger.logDebugString $"calculateNextProgress: r = {r}."
+    //    r
 
 
-    let calculateNextChartDetailedProgress n t =
-        let r =
-            match n.odeParams.outputParams.noOfChartDetailedPoints with
-            | Some nop ->
-                let r =
-                    match nop with
-                    | np when np <= 0 -> 1.0m
-                    | np ->
-                        let progress = calculateProgress n t
-                        // n.logger.logDebugString $"calculateNextChartDetailedProgress: t = {t}, progress = {progress}."
-                        min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
-                r
-            | None -> 1.0m
-        // n.logger.logDebugString $"calculateNextChartDetailedProgress: t = {t}, r = {r}."
-        r
+    //let calculateNextChartProgress n t =
+    //    let r =
+    //        match n.odeParams.outputParams.noOfOutputPoints with
+    //        | np when np <= 0 -> 1.0m
+    //        | np -> min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+    //    // n.logger.logDebugString $"calculateNextChartProgress: t = {t}, r = {r}."
+    //    r
 
 
-    let shouldNotifyProgress n d t = shouldNotifyByCallCount d || shouldNotifyByNextProgress n d t
-    let shouldNotifyChart n d t = shouldNotifyByCallCount d || shouldNotifyByNextChartProgress n d t
+    //let calculateNextChartDetailedProgress n t =
+    //    let r =
+    //        match n.odeParams.outputParams.noOfChartDetailedPoints with
+    //        | Some nop ->
+    //            let r =
+    //                match nop with
+    //                | np when np <= 0 -> 1.0m
+    //                | np ->
+    //                    let progress = calculateProgress n t
+    //                    // n.logger.logDebugString $"calculateNextChartDetailedProgress: t = {t}, progress = {progress}."
+    //                    min 1.0m ((((calculateProgress n t) * (decimal np) |> floor) + 1.0m) / (decimal np))
+    //            r
+    //        | None -> 1.0m
+    //    // n.logger.logDebugString $"calculateNextChartDetailedProgress: t = {t}, r = {r}."
+    //    r
 
 
-    type OdeOutputParams
-        with
-        member _.needsCallBack n =
-            let f (d : NeedsCallBackData) t =
-                let shouldNotifyProgress = shouldNotifyProgress n d t
-                let shouldNotifyChart = shouldNotifyChart n d t
-                let shouldNotifyChartDetailed = shouldNotifyByNextChartDetailedProgress n d t
-
-                let nextProgress = calculateNextProgress n t
-                let nextChartProgress = calculateNextChartProgress n t
-                let nextChartDetailedProgress = calculateNextChartDetailedProgress n t
-                // n.logger.logDebugString $"needsCallBack: t = {t}, d = {d}, shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}, shouldNotifyChartDetailed = {shouldNotifyChartDetailed}, nextChartDetailedProgress = {nextChartDetailedProgress}."
-
-                let retVal =
-                    match (shouldNotifyProgress, shouldNotifyChart, shouldNotifyChartDetailed) with
-                    | false, false, false -> (d, None)
-                    | false, true, false ->
-                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartProgress to: {nextChartProgress}, ChartNotification."
-                        ( { d with nextChartProgress = nextChartProgress }, Some ChartNotification)
-                    | true, false, false ->
-                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to: {nextProgress}, ProgressNotification."
-                        ( { d with nextProgress = nextProgress }, Some ProgressNotification)
-                    | true, true, false ->
-                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to {nextProgress}, nextChartProgress to: {nextChartProgress}, ProgressAndChartNotification."
-                        ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
-
-                    | false, _, true ->
-                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartProgress to {nextChartProgress}, nextChartDetailedProgress to: {nextChartDetailedProgress}, ChartDetailedNotification."
-                        ( { d with nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some ChartDetailedNotification)
-                    | true, _, true ->
-                        // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to {nextProgress}, nextChartProgress to {nextChartProgress}, nextChartDetailedProgress to: {nextChartDetailedProgress}, AllNotification."
-                        ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some AllNotification)
-
-                // n.logger.logDebugString $"needsCallBack: retVal = {retVal}."
-                retVal
-
-            NeedsCallBack f
+    //let shouldNotifyProgress n d t = shouldNotifyByCallCount d || shouldNotifyByNextProgress n d t
+    //let shouldNotifyChart n d t = shouldNotifyByCallCount d || shouldNotifyByNextChartProgress n d t
 
 
-    let private checkCancellation n d =
-        let fromLastCheck = DateTime.Now - d.lastCheck
-        // n.logger.logDebugString $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
+    //type OdeOutputParams
+    //    with
+    //    member _.needsCallBack n =
+    //        let f (d : NeedsCallBackData) t =
+    //            let shouldNotifyProgress = shouldNotifyProgress n d t
+    //            let shouldNotifyChart = shouldNotifyChart n d t
+    //            let shouldNotifyChartDetailed = shouldNotifyByNextChartDetailedProgress n d t
 
-        if fromLastCheck > n.callBackInfo.checkFreq
-        then
-            let cancel = n.callBackInfo.checkCancellation.invoke n.runQueueId
-            { d with lastCheck = DateTime.Now}, cancel
-        else d, None
+    //            let nextProgress = calculateNextProgress n t
+    //            let nextChartProgress = calculateNextChartProgress n t
+    //            let nextChartDetailedProgress = calculateNextChartDetailedProgress n t
+    //            // n.logger.logDebugString $"needsCallBack: t = {t}, d = {d}, shouldNotifyProgress = {shouldNotifyProgress}, shouldNotifyChart = {shouldNotifyChart}, shouldNotifyChartDetailed = {shouldNotifyChartDetailed}, nextChartDetailedProgress = {nextChartDetailedProgress}."
 
+    //            let retVal =
+    //                match (shouldNotifyProgress, shouldNotifyChart, shouldNotifyChartDetailed) with
+    //                | false, false, false -> (d, None)
+    //                | false, true, false ->
+    //                    // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartProgress to: {nextChartProgress}, ChartNotification."
+    //                    ( { d with nextChartProgress = nextChartProgress }, Some ChartNotification)
+    //                | true, false, false ->
+    //                    // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to: {nextProgress}, ProgressNotification."
+    //                    ( { d with nextProgress = nextProgress }, Some ProgressNotification)
+    //                | true, true, false ->
+    //                    // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to {nextProgress}, nextChartProgress to: {nextChartProgress}, ProgressAndChartNotification."
+    //                    ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress }, Some ProgressAndChartNotification)
 
-    let private estCompl n t =
-        match estimateEndTime (calculateProgress n t) n.started with
-        | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
-        | None -> EmptyString
+    //                | false, _, true ->
+    //                    // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextChartProgress to {nextChartProgress}, nextChartDetailedProgress to: {nextChartDetailedProgress}, ChartDetailedNotification."
+    //                    ( { d with nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some ChartDetailedNotification)
+    //                | true, _, true ->
+    //                    // n.logger.logDebugString $"needsCallBack: t = {t}, setting nextProgress to {nextProgress}, nextChartProgress to {nextChartProgress}, nextChartDetailedProgress to: {nextChartDetailedProgress}, AllNotification."
+    //                    ( { d with nextProgress = nextProgress; nextChartProgress = nextChartProgress; nextChartDetailedProgress = nextChartDetailedProgress }, Some AllNotification)
 
+    //            // n.logger.logDebugString $"needsCallBack: retVal = {retVal}."
+    //            retVal
 
-    let private calculateProgressDataWithErr n (d : NeedsCallBackData) t v =
-        // n.logger.logDebugString $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
-
-        let withMessage s m =
-            let eo =
-                match s with
-                | Some v -> m + $" Message: {v}"
-                | None -> m
-                |> ErrorMessage
-                |> Some
-
-            let pd =
-                {
-                    progress = d.progressData.progress
-                    callCount = d.progressData.callCount
-                    errorMessageOpt = eo
-                }
-
-            pd
-
-        match v with
-        | AbortCalculation s -> $"The run queue was aborted at: %.2f{d.progressData.progress * 100.0m}%% progress." |> withMessage s
-        | CancelWithResults s ->
-            $"The run queue was cancelled at: %.2f{d.progressData.progress * 100.0m}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
-            |> withMessage s
+    //        NeedsCallBack f
 
 
-    let private notifyAll n c d =
-        n.callBackInfo.progressCallBack.invoke c d
-        n.callBackInfo.chartDetailedCallBack.invoke c d
+    //let private checkCancellation n d =
+    //    let fromLastCheck = DateTime.Now - d.lastCheck
+    //    // n.logger.logDebugString $"checkCancellation: runQueueId = %A{n.runQueueId}, time interval from last check = %A{fromLastCheck}."
+
+    //    if fromLastCheck > n.callBackInfo.checkFreq
+    //    then
+    //        let cancel = n.callBackInfo.checkCancellation.invoke n.runQueueId
+    //        { d with lastCheck = DateTime.Now}, cancel
+    //    else d, None
 
 
-    let private tryCallBack n t x =
-        let d0 = needsCallBackData
-        // n.logger.logDebugString $"tryCallBack - starting: t = {t}, needsCallBackData = {d0}."
-        let d, ct = { d0 with progressData = { d0.progressData with callCount = d0.progressData.callCount + 1L; progress = calculateProgress n t } } |> checkCancellation n
-        let cbd = { progressData = d.progressData; t = t; x = x }
-        // n.logger.logDebugString $"    tryCallBack: t = {t}, d = {d}, cbd = {cbd}."
+    //let private estCompl n t =
+    //    match estimateEndTime (calculateProgress n t) n.started with
+    //    | Some e -> " est. compl.: " + e.ToShortDateString() + ", " + e.ToShortTimeString() + ","
+    //    | None -> EmptyString
 
-        match ct with
-        | Some v ->
-            notifyAll n (v |> CancelledCalculation |> FinalCallBack) cbd
-            raise(ComputationAbortedException (calculateProgressDataWithErr n d t v, v))
-        | None ->
-            // let c, v = n.callBackInfo.needsCallBack.invoke d t
-            let c, v = (n.odeParams.outputParams.needsCallBack n).invoke d t
-            // n.logger.logDebugString $"    tryCallBack: t = {t}, setting needsCallBackData to c = {c}, v = {v}."
-            needsCallBackData <- c
 
-            match v with
-            | None -> ()
-            | Some v ->
-                let i = n.callBackInfo
+    //let private calculateProgressDataWithErr n (d : NeedsCallBackData) t v =
+    //    // n.logger.logDebugString $"calculateProgressDataWithErr: Called with t = {t}, v = {v}."
 
-                match v with
-                | ProgressNotification -> i.progressCallBack.invoke RegularCallBack cbd
-                | ChartNotification -> i.chartCallBack.invoke RegularCallBack cbd
-                | ChartDetailedNotification -> i.chartDetailedCallBack.invoke RegularCallBack cbd
-                | ProgressAndChartNotification ->
-                    i.progressCallBack.invoke RegularCallBack cbd
-                    i.chartCallBack.invoke RegularCallBack cbd
-                | AllNotification -> notifyAll n RegularCallBack cbd
+    //    let withMessage s m =
+    //        let eo =
+    //            match s with
+    //            | Some v -> m + $" Message: {v}"
+    //            | None -> m
+    //            |> ErrorMessage
+    //            |> Some
+
+    //        let pd =
+    //            {
+    //                progress = d.progressData.progress
+    //                callCount = d.progressData.callCount
+    //                errorMessageOpt = eo
+    //            }
+
+    //        pd
+
+    //    match v with
+    //    | AbortCalculation s -> $"The run queue was aborted at: %.2f{d.progressData.progress * 100.0m}%% progress." |> withMessage s
+    //    | CancelWithResults s ->
+    //        $"The run queue was cancelled at: %.2f{d.progressData.progress * 100.0m}%% progress. Absolute tolerance: {n.odeParams.absoluteTolerance}."
+    //        |> withMessage s
+
+
+    //let private notifyAll n c d =
+    //    n.callBackInfo.progressCallBack.invoke c d
+    //    n.callBackInfo.chartDetailedCallBack.invoke c d
+
+
+    //let private tryCallBack n t x =
+    //    let d0 = needsCallBackData
+    //    // n.logger.logDebugString $"tryCallBack - starting: t = {t}, needsCallBackData = {d0}."
+    //    let d, ct = { d0 with progressData = { d0.progressData with callCount = d0.progressData.callCount + 1L; progress = calculateProgress n t } } |> checkCancellation n
+    //    let cbd = { progressData = d.progressData; t = t; x = x }
+    //    // n.logger.logDebugString $"    tryCallBack: t = {t}, d = {d}, cbd = {cbd}."
+
+    //    match ct with
+    //    | Some v ->
+    //        notifyAll n (v |> CancelledCalculation |> FinalCallBack) cbd
+    //        raise(ComputationAbortedException (calculateProgressDataWithErr n d t v, v))
+    //    | None ->
+    //        // let c, v = n.callBackInfo.needsCallBack.invoke d t
+    //        let c, v = (n.odeParams.outputParams.needsCallBack n).invoke d t
+    //        // n.logger.logDebugString $"    tryCallBack: t = {t}, setting needsCallBackData to c = {c}, v = {v}."
+    //        needsCallBackData <- c
+
+    //        match v with
+    //        | None -> ()
+    //        | Some v ->
+    //            let i = n.callBackInfo
+
+    //            match v with
+    //            | ProgressNotification -> i.progressCallBack.invoke RegularCallBack cbd
+    //            | ChartNotification -> i.chartCallBack.invoke RegularCallBack cbd
+    //            | ChartDetailedNotification -> i.chartDetailedCallBack.invoke RegularCallBack cbd
+    //            | ProgressAndChartNotification ->
+    //                i.progressCallBack.invoke RegularCallBack cbd
+    //                i.chartCallBack.invoke RegularCallBack cbd
+    //            | AllNotification -> notifyAll n RegularCallBack cbd
 
 
     let private fUseNonNegative (
