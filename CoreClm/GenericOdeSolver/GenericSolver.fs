@@ -14,20 +14,21 @@ open Softellect.Sys.Primitives
 #nowarn "9"
 
 module Solver =
+    let x = 1
 
-    /// Note that it is compiled into a static variable, which means that you cannot run many instances of the solver in parallel.
-    /// Currently this is not an issue since parallel running is not needed (by design).
-    /// Note (2) - it cannot be moved inside nSolve because that will require moving fUseNonNegative inside nSolve,
-    /// which is not allowed by IL design.
-    let mutable private needsCallBackData = NeedsCallBackData.defaultValue
+    ///// Note that it is compiled into a static variable, which means that you cannot run many instances of the solver in parallel.
+    ///// Currently this is not an issue since parallel running is not needed (by design).
+    ///// Note (2) - it cannot be moved inside nSolve because that will require moving fUseNonNegative inside nSolve,
+    ///// which is not allowed by IL design.
+    //let mutable private needsCallBackData = NeedsCallBackData.defaultValue
 
     // ================================================================ //
 
-    let private makeNonNegativeByRef (eps : double) (neq : int) (x : nativeptr<double>) : double[] =
-        let g v = if v < eps then 0.0 else v
-        [| for i in 0..(neq - 1) -> g (NativePtr.get x i) |]
+    //let private makeNonNegativeByRef (eps : double) (neq : int) (x : nativeptr<double>) : double[] =
+    //    let g v = if v < eps then 0.0 else v
+    //    [| for i in 0..(neq - 1) -> g (NativePtr.get x i) |]
 
-    let private toArray (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> NativePtr.get x i |]
+    //let private toArray (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> NativePtr.get x i |]
 
 
     //let calculateProgress n t =
@@ -241,110 +242,110 @@ module Solver =
     //            | AllNotification -> notifyAll n RegularCallBack cbd
 
 
-    let private fUseNonNegative (
-                                nSolveParam : NSolveParam,
-                                neq : byref<int>,
-                                t : byref<double>,
-                                x : nativeptr<double>,
-                                dx : nativeptr<double>) : unit =
+    //let private fUseNonNegative (
+    //                            nSolveParam : NSolveParam,
+    //                            neq : byref<int>,
+    //                            t : byref<double>,
+    //                            x : nativeptr<double>,
+    //                            dx : nativeptr<double>) : unit =
 
-        let x1 = makeNonNegativeByRef nSolveParam.odeParams.solverType.correction neq x
-        tryCallBack nSolveParam t x1
+    //    let x1 = makeNonNegativeByRef nSolveParam.odeParams.solverType.correction neq x
+    //    tryCallBack nSolveParam t x1
 
-        match nSolveParam.derivative with
-        | OneByOne f -> for i in 0..(neq - 1) do NativePtr.set dx i (f t x1 i)
-        | FullArray f ->
-            let d = f t x1
-            for i in 0..(neq - 1) do NativePtr.set dx i d[i]
-
-
-    let private fDoNotCorrect (
-                                nSolveParam : NSolveParam,
-                                neq : byref<int>,
-                                t : byref<double>,
-                                x : nativeptr<double>,
-                                dx : nativeptr<double>) : unit =
-
-        // if needsCallBack.invoke t
-        // then
-        //     let x1 = toArray neq x
-        //     callBack.invoke t x1
-        //
-        // let d = calculateDerivative t x
-        // for i in 0 .. (neq - 1) do NativePtr.set dx i d[i]
-        failwith "fDoNotCorrect is not implemented yet."
+    //    match nSolveParam.derivative with
+    //    | OneByOne f -> for i in 0..(neq - 1) do NativePtr.set dx i (f t x1 i)
+    //    | FullArray f ->
+    //        let d = f t x1
+    //        for i in 0..(neq - 1) do NativePtr.set dx i d[i]
 
 
-    let private createUseNonNegativeInterop n = Interop.F(fun m t y dy -> fUseNonNegative(n, &m, &t, y, dy))
-    let private createDoNotCorrectInterop n = Interop.F(fun m t y dy -> fDoNotCorrect(n, &m, &t, y, dy))
+    //let private fDoNotCorrect (
+    //                            nSolveParam : NSolveParam,
+    //                            neq : byref<int>,
+    //                            t : byref<double>,
+    //                            x : nativeptr<double>,
+    //                            dx : nativeptr<double>) : unit =
+
+    //    // if needsCallBack.invoke t
+    //    // then
+    //    //     let x1 = toArray neq x
+    //    //     callBack.invoke t x1
+    //    //
+    //    // let d = calculateDerivative t x
+    //    // for i in 0 .. (neq - 1) do NativePtr.set dx i d[i]
+    //    failwith "fDoNotCorrect is not implemented yet."
 
 
-    /// F# wrapper around various ODE solvers.
-    let nSolve (n : NSolveParam) =
-        // n.logger.logDebugString "nSolve::Starting."
+    //let private createUseNonNegativeInterop n = Interop.F(fun m t y dy -> fUseNonNegative(n, &m, &t, y, dy))
+    //let private createDoNotCorrectInterop n = Interop.F(fun m t y dy -> fDoNotCorrect(n, &m, &t, y, dy))
 
-        // Reset needsCallBackData to a default value. This is a static variable and if we run several consecutive tests, then
-        // needsCallBackData will usually have non-default value after the test.
-        needsCallBackData <- NeedsCallBackData.defaultValue
-        let p = n.odeParams
-        notifyAll n RegularCallBack { progressData = ProgressData.defaultValue; t = n.odeParams.startTime; x = n.initialValues }
 
-        let mapResults (r : SolverResult) _ =
-            {
-                progressData = needsCallBackData.progressData
-                t = r.EndTime
-                x = r.X
-            }
+    ///// F# wrapper around various ODE solvers.
+    //let nSolve (n : NSolveParam) =
+    //    // n.logger.logDebugString "nSolve::Starting."
 
-        match n.odeParams.solverType with
-        | AlgLib CashCarp ->
-            n.logger.logDebugString "nSolve: Using Cash - Carp Alglib solver."
-            let nt = 2
+        //// Reset needsCallBackData to a default value. This is a static variable and if we run several consecutive tests, then
+        //// needsCallBackData will usually have non-default value after the test.
+        //needsCallBackData <- NeedsCallBackData.defaultValue
+        //let p = n.odeParams
+        //notifyAll n RegularCallBack { progressData = ProgressData.defaultValue; t = n.odeParams.startTime; x = n.initialValues }
 
-            let cashCarpDerivative (x : double[]) (t : double) : double[] =
-                tryCallBack n t x
-                n.derivative.calculate t x
+        //let mapResults (r : SolverResult) _ =
+        //    {
+        //        progressData = needsCallBackData.progressData
+        //        t = r.EndTime
+        //        x = r.X
+        //    }
 
-            let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
-            let d = alglib.ndimensional_ode_rp (fun x t y _ -> cashCarpDerivative x t |> Array.mapi(fun i e -> y[i] <- e) |> ignore)
-            let mutable s = alglib.odesolverrkck(n.initialValues, x, p.absoluteTolerance.value, p.stepSize)
-            do alglib.odesolversolve(s, d, null)
-            let mutable m, xTbl, yTbl, rep = alglib.odesolverresults(s)
-            let xEnd = yTbl[nt - 1, *]
-            notifyAll n (FinalCallBack CompletedCalculation) { progressData = needsCallBackData.progressData; t = p.endTime; x = xEnd }
+        //match n.odeParams.solverType with
+        //| AlgLib CashCarp ->
+        //    n.logger.logDebugString "nSolve: Using Cash - Carp Alglib solver."
+        //    let nt = 2
 
-            {
-                progressData = needsCallBackData.progressData
-                t = p.endTime
-                x = xEnd
-            }
+        //    let cashCarpDerivative (x : double[]) (t : double) : double[] =
+        //        tryCallBack n t x
+        //        n.derivative.calculate t x
 
-        | OdePack (m, i, nc) ->
-            n.logger.logDebugString $"nSolve: Using {m} / {i} / {nc} DLSODE solver."
+        //    let x : array<double> = [| for i in 0..nt -> p.startTime + (p.endTime - p.startTime) * (double i) / (double nt) |]
+        //    let d = alglib.ndimensional_ode_rp (fun x t y _ -> cashCarpDerivative x t |> Array.mapi(fun i e -> y[i] <- e) |> ignore)
+        //    let mutable s = alglib.odesolverrkck(n.initialValues, x, p.absoluteTolerance.value, p.stepSize)
+        //    do alglib.odesolversolve(s, d, null)
+        //    let mutable m, xTbl, yTbl, rep = alglib.odesolverresults(s)
+        //    let xEnd = yTbl[nt - 1, *]
+        //    notifyAll n (FinalCallBack CompletedCalculation) { progressData = needsCallBackData.progressData; t = p.endTime; x = xEnd }
 
-            let result =
-                match nc with
-                | UseNonNegative _ ->
-                    OdeSolver.RunFSharp(
-                            (fun() -> createUseNonNegativeInterop n),
-                            m.value,
-                            i.value,
-                            p.startTime,
-                            p.endTime,
-                            n.initialValues,
-                            mapResults,
-                            p.absoluteTolerance.value)
+        //    {
+        //        progressData = needsCallBackData.progressData
+        //        t = p.endTime
+        //        x = xEnd
+        //    }
 
-                | DoNotCorrect ->
-                    OdeSolver.RunFSharp(
-                            (fun() -> createDoNotCorrectInterop n),
-                            m.value,
-                            i.value,
-                            p.startTime,
-                            p.endTime,
-                            n.initialValues,
-                            mapResults,
-                            p.absoluteTolerance.value)
+        //| OdePack (m, i, nc) ->
+        //    n.logger.logDebugString $"nSolve: Using {m} / {i} / {nc} DLSODE solver."
 
-            notifyAll n (FinalCallBack CompletedCalculation) result
-            result
+        //    let result =
+        //        match nc with
+        //        | UseNonNegative _ ->
+        //            OdeSolver.RunFSharp(
+        //                    (fun() -> createUseNonNegativeInterop n),
+        //                    m.value,
+        //                    i.value,
+        //                    p.startTime,
+        //                    p.endTime,
+        //                    n.initialValues,
+        //                    mapResults,
+        //                    p.absoluteTolerance.value)
+
+        //        | DoNotCorrect ->
+        //            OdeSolver.RunFSharp(
+        //                    (fun() -> createDoNotCorrectInterop n),
+        //                    m.value,
+        //                    i.value,
+        //                    p.startTime,
+        //                    p.endTime,
+        //                    n.initialValues,
+        //                    mapResults,
+        //                    p.absoluteTolerance.value)
+
+        //    notifyAll n (FinalCallBack CompletedCalculation) result
+        //    result

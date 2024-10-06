@@ -7,28 +7,29 @@ open Softellect.Messaging.Primitives
 open Softellect.Messaging.Errors
 
 module SolverRunnerErrors =
+    let x = 1
 
-    type SolverRunnerCriticalError =
-        {
-            errorId : ErrorId
-            runQueueId : RunQueueId
-            errorMessage : string
-        }
+    //type SolverRunnerCriticalError =
+    //    {
+    //        errorId : ErrorId
+    //        runQueueId : RunQueueId
+    //        errorMessage : string
+    //    }
 
-        static member create q e =
-            {
-                errorId = ErrorId.getNewId()
-                runQueueId = q
-                errorMessage = $"{e}"
-            }
+    //    static member create q e =
+    //        {
+    //            errorId = ErrorId.getNewId()
+    //            runQueueId = q
+    //            errorMessage = $"{e}"
+    //        }
 
-    type OnSaveChartsError =
-        | SendChartMessageErr of (MessagingClientId * RunQueueId * MessagingError)
+    //type OnSaveChartsError =
+    //    | SendChartMessageErr of (MessagingClientId * RunQueueId * MessagingError)
 
 
-    type OnUpdateProgressError =
-        | UnableToSendProgressMsgErr of RunQueueId
-        | UnableToFindMappingErr of RunQueueId
+    //type OnUpdateProgressError =
+    //    | UnableToSendProgressMsgErr of RunQueueId
+    //    | UnableToFindMappingErr of RunQueueId
 
 
     //type CheckRunningResult =
@@ -38,9 +39,9 @@ module SolverRunnerErrors =
     //    | GetProcessesByNameExn of exn
 
 
-    type SolverRunnerError =
-        | OnSaveChartsErr of OnSaveChartsError
-        | OnUpdateProgressErr of OnUpdateProgressError
+    //type SolverRunnerError =
+    //    | OnSaveChartsErr of OnSaveChartsError
+    //    | OnUpdateProgressErr of OnUpdateProgressError
 
 
     ///// See: https://stackoverflow.com/questions/49974736/how-to-declare-a-generic-exception-types-in-f

@@ -134,8 +134,8 @@ module ServiceImplementation =
 
 
     //type OnGetMessagesProxy = OnGetMessagesProxy<WorkerNodeRunnerState>
-    let private onGetMessages = onGetMessages<WorkerNodeRunnerState, ClmMessageData>
-    type OnConfigureWorkerProxy = OnRegisterProxy
+    //let private onGetMessages = onGetMessages<WorkerNodeRunnerState, ClmMessageData>
+    //type OnConfigureWorkerProxy = OnRegisterProxy
 
     //let onGetState (s : WorkerNodeRunnerState) =
     //    failwith "onGetState is not implemented yet."

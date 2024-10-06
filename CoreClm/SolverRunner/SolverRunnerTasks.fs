@@ -95,12 +95,12 @@ module SolverRunnerTasks =
             let chartDataUpdater = AsyncChartDataUpdater(ChartDataUpdater(), chartInitData)
             let getChartSliceData t x e = ChartSliceData.create binaryInfo t x e
 
-            let createProgressUpdateInfo s p =
-                {
-                    runQueueId = r.runQueueId
-                    updatedRunQueueStatus = s
-                    progressData = p
-                }
+            //let createProgressUpdateInfo s p =
+            //    {
+            //        runQueueId = r.runQueueId
+            //        updatedRunQueueStatus = s
+            //        progressData = p
+            //    }
 
             {
                 modelDataId = modelDataId
@@ -287,21 +287,21 @@ module SolverRunnerTasks =
         let data = getNSolveParam runSolverData w
         let getChartData() = runSolverData.chartDataUpdater.getContent()
 
-        let notifyOfCharts t =
-            printfn $"notifyOfCharts: t = %A{t}"
-            let chartData = getChartData()
+        //let notifyOfCharts t =
+        //    printfn $"notifyOfCharts: t = %A{t}"
+        //    let chartData = getChartData()
 
-            let chartResult =
-                {
-                    runSolverData = runSolverData
-                    runQueueId = w.runningProcessData.runQueueId
-                    chartData = chartData
-                }
-                |> plotAllResults t
-                |> proxy.saveCharts
+        //    let chartResult =
+        //        {
+        //            runSolverData = runSolverData
+        //            runQueueId = w.runningProcessData.runQueueId
+        //            chartData = chartData
+        //        }
+        //        |> plotAllResults t
+        //        |> proxy.saveCharts
 
-            printfn $"notifyOfResults completed with result: %A{chartResult}"
-            chartResult
+        //    printfn $"notifyOfResults completed with result: %A{chartResult}"
+        //    chartResult
 
         let runSolverImpl() =
             // try

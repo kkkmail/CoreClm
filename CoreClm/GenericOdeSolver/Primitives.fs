@@ -104,62 +104,62 @@ module Primitives =
     //    }
 
 
-    type DerivativeCalculator =
-        | OneByOne of (double -> double[] -> int -> double)
-        | FullArray of (double -> double[] -> double[])
+    //type DerivativeCalculator =
+    //    | OneByOne of (double -> double[] -> int -> double)
+    //    | FullArray of (double -> double[] -> double[])
 
-        member d.calculate t x =
-            match d with
-            | OneByOne f -> x |> Array.mapi (fun i _ -> f t x i)
-            | FullArray f -> f t x
+    //    member d.calculate t x =
+    //        match d with
+    //        | OneByOne f -> x |> Array.mapi (fun i _ -> f t x i)
+    //        | FullArray f -> f t x
 
-    type AlgLibMethod =
-        | CashCarp
-
-
-    type OdePackMethod =
-        | Adams
-        | Bdf
-
-        member t.value =
-            match t with
-            | Adams -> 1
-            | Bdf -> 2
+    //type AlgLibMethod =
+    //    | CashCarp
 
 
-    type CorrectorIteratorType =
-        | Functional
-        | ChordWithDiagonalJacobian
+    //type OdePackMethod =
+    //    | Adams
+    //    | Bdf
 
-        member t.value =
-            match t with
-            | Functional -> 0
-            | ChordWithDiagonalJacobian -> 3
-
-
-    type NegativeValuesCorrectorType =
-        | DoNotCorrect
-        | UseNonNegative of double
-
-        member nc.value =
-            match nc with
-            | DoNotCorrect -> 0
-            | UseNonNegative _ -> 1
-
-        member nc.correction =
-            match nc with
-            | DoNotCorrect -> 0.0
-            | UseNonNegative c -> c
+    //    member t.value =
+    //        match t with
+    //        | Adams -> 1
+    //        | Bdf -> 2
 
 
-    type SolverType =
-        | AlgLib of AlgLibMethod
-        | OdePack of OdePackMethod * CorrectorIteratorType * NegativeValuesCorrectorType
+    //type CorrectorIteratorType =
+    //    | Functional
+    //    | ChordWithDiagonalJacobian
 
-        member t.correction =
-            match t with
-            | AlgLib _ -> 0.0
-            | OdePack (_, _, nc) -> nc.correction
+    //    member t.value =
+    //        match t with
+    //        | Functional -> 0
+    //        | ChordWithDiagonalJacobian -> 3
+
+
+    //type NegativeValuesCorrectorType =
+    //    | DoNotCorrect
+    //    | UseNonNegative of double
+
+    //    member nc.value =
+    //        match nc with
+    //        | DoNotCorrect -> 0
+    //        | UseNonNegative _ -> 1
+
+    //    member nc.correction =
+    //        match nc with
+    //        | DoNotCorrect -> 0.0
+    //        | UseNonNegative c -> c
+
+
+    //type SolverType =
+    //    | AlgLib of AlgLibMethod
+    //    | OdePack of OdePackMethod * CorrectorIteratorType * NegativeValuesCorrectorType
+
+    //    member t.correction =
+    //        match t with
+    //        | AlgLib _ -> 0.0
+    //        | OdePack (_, _, nc) -> nc.correction
 
 
     //type OdeOutputParams =

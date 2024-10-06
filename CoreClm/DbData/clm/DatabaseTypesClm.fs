@@ -484,54 +484,54 @@ module DatabaseTypesClm =
         tryDbFun fromDbError g
 
 
-    /// Loads first not started RunQueue.
-    let tryLoadFirstRunQueue c =
-        let elevate e = e |> TryLoadFirstRunQueueErr
-        //let toError e = e |> elevate |> Error
-        let fromDbError e = e |> TryLoadFirstRunQueueDbErr |> elevate
+    ///// Loads first not started RunQueue.
+    //let tryLoadFirstRunQueue c =
+    //    let elevate e = e |> TryLoadFirstRunQueueErr
+    //    //let toError e = e |> elevate |> Error
+    //    let fromDbError e = e |> TryLoadFirstRunQueueDbErr |> elevate
 
-        let g() =
-            let ctx = getDbContext c
+    //    let g() =
+    //        let ctx = getDbContext c
 
-            let x =
-                query {
-                    for r in ctx.Dbo.RunQueue do
-                    join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
-                    join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
-                    join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
-                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.TaskStatusId = 0 && r.WorkerNodeId = None)
-                    sortBy t.TaskPriority
-                    thenBy r.RunQueueOrder
-                    select (r, cr, t.DefaultValueId)
-                }
+    //        let x =
+    //            query {
+    //                for r in ctx.Dbo.RunQueue do
+    //                join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
+    //                join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
+    //                join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
+    //                where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.TaskStatusId = 0 && r.WorkerNodeId = None)
+    //                sortBy t.TaskPriority
+    //                thenBy r.RunQueueOrder
+    //                select (r, cr, t.DefaultValueId)
+    //            }
 
-            mapRunQueueResults x |> List.tryHead |> Ok
+    //        mapRunQueueResults x |> List.tryHead |> Ok
 
-        tryDbFun fromDbError g |> Rop.unwrapResultOption
+    //    tryDbFun fromDbError g |> Rop.unwrapResultOption
 
 
-    /// Loads RunQueue by runQueueId.
-    let tryLoadRunQueue c (q : RunQueueId) =
-        let elevate e = e |> TryLoadRunQueueErr
-        //let toError e = e |> elevate |> Error
-        let fromDbError e = e |> TryLoadRunQueueDbErr |> elevate
+    ///// Loads RunQueue by runQueueId.
+    //let tryLoadRunQueue c (q : RunQueueId) =
+    //    let elevate e = e |> TryLoadRunQueueErr
+    //    //let toError e = e |> elevate |> Error
+    //    let fromDbError e = e |> TryLoadRunQueueDbErr |> elevate
 
-        let g() =
-            let ctx = getDbContext c
+    //    let g() =
+    //        let ctx = getDbContext c
 
-            let x =
-                query {
-                    for r in ctx.Dbo.RunQueue do
-                    join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
-                    join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
-                    join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
-                    where (r.RunQueueId = q.value)
-                    select (r, cr, t.DefaultValueId)
-                }
+    //        let x =
+    //            query {
+    //                for r in ctx.Dbo.RunQueue do
+    //                join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
+    //                join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
+    //                join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
+    //                where (r.RunQueueId = q.value)
+    //                select (r, cr, t.DefaultValueId)
+    //            }
 
-            mapRunQueueResults x |> List.tryHead |> Ok
+    //        mapRunQueueResults x |> List.tryHead |> Ok
 
-        tryDbFun fromDbError g |> Rop.unwrapResultOption
+    //    tryDbFun fromDbError g |> Rop.unwrapResultOption
 
 
     ///// Tries to reset RunQueue.

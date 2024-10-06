@@ -12,28 +12,29 @@ open Primitives.SolverPrimitives
 open Primitives.SolverRunnerErrors
 
 module SolverRunner =
+    let x = 1
 
-    type SolverUpdateProxy =
-        {
-            updateProgress : ProgressUpdateInfo -> UnitResult
-//            updateTime : ProgressData -> UnitResult
-            checkCancellation : RunQueueId -> CancellationType option
-            logCrit : SolverRunnerCriticalError -> UnitResult
-        }
-
-
-    type SolverNotificationProxy =
-        {
-            checkNotificationRequest : RunQueueId -> ResultNotificationType option
-            clearNotificationRequest : RunQueueId -> UnitResult
-        }
+//    type SolverUpdateProxy =
+//        {
+//            updateProgress : ProgressUpdateInfo -> UnitResult
+////            updateTime : ProgressData -> UnitResult
+//            checkCancellation : RunQueueId -> CancellationType option
+//            logCrit : SolverRunnerCriticalError -> UnitResult
+//        }
 
 
-    type SolverRunnerProxy =
-        {
-            solverUpdateProxy : SolverUpdateProxy
-            solverNotificationProxy : SolverNotificationProxy
-//            saveResult : ResultDataWithId -> UnitResult
-            saveCharts : ChartGenerationResult -> UnitResult
-            logCrit : SolverRunnerCriticalError -> UnitResult
-        }
+//    type SolverNotificationProxy =
+//        {
+//            checkNotificationRequest : RunQueueId -> ResultNotificationType option
+//            clearNotificationRequest : RunQueueId -> UnitResult
+//        }
+
+
+//    type SolverRunnerProxy =
+//        {
+//            solverUpdateProxy : SolverUpdateProxy
+//            solverNotificationProxy : SolverNotificationProxy
+////            saveResult : ResultDataWithId -> UnitResult
+//            saveCharts : ChartGenerationResult -> UnitResult
+//            logCrit : SolverRunnerCriticalError -> UnitResult
+//        }
