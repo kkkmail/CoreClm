@@ -3,7 +3,8 @@ namespace ClmSys
 open System
 open ClmSys.ContGenPrimitives
 open ClmSys.SolverRunnerPrimitives
-open Primitives.SolverPrimitives
+open Softellect.DistributedProcessing.Primitives.Common
+//open Primitives.SolverPrimitives
 
 module SolverData =
 

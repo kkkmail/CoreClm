@@ -3,17 +3,18 @@
 open System
 open FSharp.Collections
 open Primitives.VersionInfo
-open Primitives.GeneralData
+//open Primitives.GeneralData
 open ClmSys.ContGenPrimitives
-open ClmSys.WorkerNodePrimitives
+//open ClmSys.WorkerNodePrimitives
 open Clm.Substances
 open Clm.ReactionTypes
 open ClmSys.ModelData
 open Clm.ReactionRates
 open ClmSys.SolverRunnerPrimitives
-open Primitives.GeneralPrimitives
-open Primitives.GeneralData
+//open Primitives.GeneralPrimitives
+//open Primitives.GeneralData
 open Softellect.Sys.Primitives
+open Softellect.DistributedProcessing.Primitives.Common
 
 module ModelParams =
 

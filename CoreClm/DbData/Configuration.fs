@@ -8,13 +8,12 @@ open Softellect.Sys.Retry
 open Softellect.Sys.AppSettings
 
 open Primitives.VersionInfo
-open ClmSys.GeneralPrimitives
+//open ClmSys.GeneralPrimitives
 open System.Data
 open System.Data.SqlClient
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
-open Primitives.GeneralData
-open Primitives.GeneralData
+//open Primitives.GeneralData
 open Softellect.Sys.Primitives
 
 module Configuration =

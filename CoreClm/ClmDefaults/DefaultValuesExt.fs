@@ -1,11 +1,11 @@
 ﻿namespace ClmDefaults
 
-open Primitives.GeneralData
+//open Primitives.GeneralData
 open Clm.Distributions
 open Clm.ReactionRates
 open Clm.ReactionRatesBase
 open Clm.ReactionRateParams
-open Primitives.GeneralData
+//open Primitives.GeneralData
 open Softellect.Sys.Primitives
 
 module DefaultValuesExt =

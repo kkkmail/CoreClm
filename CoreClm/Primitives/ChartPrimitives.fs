@@ -4,7 +4,7 @@ open System.IO
 open Plotly.NET
 open Plotly.NET.GenericChart
 open Giraffe.ViewEngine
-open Primitives.GeneralPrimitives
+open Softellect.Sys.Primitives
 
 module ChartPrimitives =
 
@@ -59,3 +59,4 @@ module ChartPrimitives =
             htmlContent = toEmbeddedHtmlWithDescription d ch
             fileName = fileName
         }
+        |> HtmlChart

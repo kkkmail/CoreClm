@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -16,30 +17,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="ExitErrorCodes.fs" />
-    <Compile Include="GeneralPrimitives.fs" />
-    <Compile Include="MessagingPrimitives.fs" />
-    <Compile Include="WorkerNodePrimitives.fs" />
-    <Compile Include="PartitionerPrimitives.fs" />
     <Compile Include="ContGenPrimitives.fs" />
     <Compile Include="SolverRunnerPrimitives.fs" />
     <Compile Include="GeneralErrors.fs" />
     <Compile Include="ContGenErrors.fs" />
     <Compile Include="ModelGeneratorErrors.fs" />
-    <Compile Include="ModelRunnerErrors.fs" />
-    <Compile Include="WorkerNodeErrors.fs" />
     <Compile Include="ClmErrors.fs" />
-    <Compile Include="Logging.fs" />
-    <Compile Include="TimerEvents.fs" />
     <Compile Include="DistributionData.fs" />
     <Compile Include="ModelData.fs" />
-    <Compile Include="MessagingData.fs" />
-    <Compile Include="PartitionerData.fs" />
     <Compile Include="SolverData.fs" />
-    <Compile Include="WorkerNodeData.fs" />
     <Compile Include="ContGenData.fs" />
-    <Compile Include="ContGenAdmData.fs" />
-    <Compile Include="ClmWorker.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,9 +34,10 @@
     <PackageReference Include="log4net" Version="3.0.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
-    <PackageReference Include="Softellect.Messaging" Version="8.0.300.1" />
-    <PackageReference Include="Softellect.Sys" Version="8.0.300.1" />
-    <PackageReference Include="Softellect.Wcf" Version="8.0.300.1" />
+    <PackageReference Include="Softellect.DistributedProcessing.Core" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.Messaging" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.Sys" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.Wcf" Version="8.0.400.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
     <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>

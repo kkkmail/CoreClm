@@ -5,6 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
     <RunPostBuildEvent>1</RunPostBuildEvent>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

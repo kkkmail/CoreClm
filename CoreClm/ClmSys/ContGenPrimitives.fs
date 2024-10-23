@@ -2,12 +2,12 @@
 
 open System
 
-open Primitives.GeneralPrimitives
+//open Primitives.GeneralPrimitives
 open Softellect.Messaging.Primitives
 open Softellect.Sys.Primitives
 
-open GeneralPrimitives
-open WorkerNodePrimitives
+//open GeneralPrimitives
+//open WorkerNodePrimitives
 
 module ContGenPrimitives =
 

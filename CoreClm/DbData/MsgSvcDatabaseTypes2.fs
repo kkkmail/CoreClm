@@ -17,11 +17,11 @@ open Softellect.Messaging.Errors
 
 open Primitives.VersionInfo
 open ClmSys.ClmErrors
-open ClmSys.GeneralPrimitives
+//open ClmSys.GeneralPrimitives
 open ClmSys.GeneralErrors
 open Clm.ModelParams
-open ClmSys.MessagingData
-open MessagingServiceInfo.ServiceInfo
+//open ClmSys.MessagingData
+//open MessagingServiceInfo.ServiceInfo
 
 // ! Must be the last to open !
 open Configuration

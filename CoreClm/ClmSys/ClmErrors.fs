@@ -1,18 +1,18 @@
 ﻿namespace ClmSys
 
-open Primitives.GeneralErrors
-open Primitives.SolverPrimitives
+//open Primitives.GeneralErrors
+//open Primitives.SolverPrimitives
 open Softellect.Wcf.Errors
 open Softellect.Sys.Errors
 open Softellect.Sys.Rop
 open Softellect.Messaging.Errors
 
 open GeneralErrors
-open WorkerNodeErrors
+//open WorkerNodeErrors
 open ModelGeneratorErrors
-open ModelRunnerErrors
+//open ModelRunnerErrors
 open ContGenErrors
-open Primitives.SolverRunnerErrors
+//open Primitives.SolverRunnerErrors
 
 module ClmErrors =
 
@@ -84,13 +84,13 @@ module ClmErrors =
         //=========================
 
         // These likely need to moved into better places.
-        | WorkerNodeErr of WorkerNodeError
+        //| WorkerNodeErr of WorkerNodeError
         | ContGenServiceErr of ContGenServiceError
         | FileErr of FileError
         | ModelGeneratorErr of ModelGeneratorError
-        | SolverRunnerErr of SolverRunnerError
-        | WorkerNodeServiceErr of WorkerNodeServiceError
-        | ModelRunnerErr of ModelRunnerError
+        //| SolverRunnerErr of SolverRunnerError
+        //| WorkerNodeServiceErr of WorkerNodeServiceError
+        //| ModelRunnerErr of ModelRunnerError
 
         //=========================
         | SendMessageErr of SendMessageError

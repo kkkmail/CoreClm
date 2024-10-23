@@ -6,7 +6,7 @@ open Newtonsoft.Json
 open FSharp.Data.Sql
 open System
 
-open Primitives.GeneralPrimitives
+//open Primitives.GeneralPrimitives
 open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.Rop
@@ -19,10 +19,10 @@ open Clm.ModelParams
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.GeneralPrimitives
-open ClmSys.WorkerNodePrimitives
-open ClmSys.WorkerNodeData
-open ClmSys.PartitionerData
+//open ClmSys.GeneralPrimitives
+//open ClmSys.WorkerNodePrimitives
+//open ClmSys.WorkerNodeData
+//open ClmSys.PartitionerData
 open ClmSys.ClmErrors
 
 // ! Must be the last to open !
@@ -44,22 +44,22 @@ module DatabaseTypesDbo =
     type WorkerNodeEntity = ClmContext.``dbo.WorkerNodeEntity``
 
 
-    /// Tries to reset RunQueue.
-    let tryResetRunQueue c (q : RunQueueId) =
-        let elevate e = e |> TryResetRunQueueErr
-        let toError e = e |> elevate |> Error
-        let fromDbError e = e |> TryResetRunQueueDbErr |> elevate
+    ///// Tries to reset RunQueue.
+    //let tryResetRunQueue c (q : RunQueueId) =
+    //    let elevate e = e |> TryResetRunQueueErr
+    //    let toError e = e |> elevate |> Error
+    //    let fromDbError e = e |> TryResetRunQueueDbErr |> elevate
 
-        let g() =
-            let ctx = getDbContext c
-            let r = ctx.Procedures.TryResetRunQueue.Invoke q.value
-            let m = r.ResultSet |> mapIntScalar
+    //    let g() =
+    //        let ctx = getDbContext c
+    //        let r = ctx.Procedures.TryResetRunQueue.Invoke q.value
+    //        let m = r.ResultSet |> mapIntScalar
 
-            match m with
-            | Some 1 -> Ok ()
-            | _ -> ResetRunQueueEntryErr q |> toError
+    //        match m with
+    //        | Some 1 -> Ok ()
+    //        | _ -> ResetRunQueueEntryErr q |> toError
 
-        tryDbFun fromDbError g
+    //    tryDbFun fromDbError g
 
 
     //let private addRunQueueRow (ctx : ClmContext) (r : RunQueue) =
@@ -77,51 +77,51 @@ module DatabaseTypesDbo =
     //    row
 
 
-    let private addClmRunQueueRow (ctx : ClmContext) (r : RunQueue) =
-        let row = ctx.Clm.RunQueue.Create(
-                            RunQueueId = r.runQueueId.value,
-                            ModelDataId = r.info.modelDataId.value,
-                            Y0 = r.modelCommandLineParam.y0,
-                            TEnd = r.modelCommandLineParam.tEnd,
-                            UseAbundant = r.modelCommandLineParam.useAbundant,
-                            MaxEe = r.progressData.eeData.maxEe,
-                            MaxAverageEe = r.progressData.eeData.maxAverageEe,
-                            MaxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
-                            MaxLastEe = r.progressData.eeData.maxLastEe)
+    //let private addClmRunQueueRow (ctx : ClmContext) (r : RunQueue) =
+    //    let row = ctx.Clm.RunQueue.Create(
+    //                        RunQueueId = r.runQueueId.value,
+    //                        ModelDataId = r.info.modelDataId.value,
+    //                        Y0 = r.modelCommandLineParam.y0,
+    //                        TEnd = r.modelCommandLineParam.tEnd,
+    //                        UseAbundant = r.modelCommandLineParam.useAbundant,
+    //                        MaxEe = r.progressData.eeData.maxEe,
+    //                        MaxAverageEe = r.progressData.eeData.maxAverageEe,
+    //                        MaxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
+    //                        MaxLastEe = r.progressData.eeData.maxLastEe)
 
-        row
-
-
-    let saveRunQueue c modelDataId defaultValueId p =
-        let elevate e = e |> SaveRunQueueErr
-        let toError e = e |> elevate |> Error
-        let fromDbError e = e |> SaveRunQueueDbErr |> elevate
-
-        let g() =
-            let ctx = getDbContext c
-            let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
-            let row = addRunQueueRow ctx r
-            ctx.SubmitUpdates()
-            row.RunQueueId |> RunQueueId |> Ok
-
-        tryDbFun fromDbError g
+    //    row
 
 
-    let deleteRunQueue c (q : RunQueueId) =
-        let elevate e = e |> DeleteRunQueueErr
-        let toError e = e |> elevate |> Error
-        let fromDbError e = e |> DeleteRunQueueDbErr |> elevate
+    //let saveRunQueue c modelDataId defaultValueId p =
+    //    let elevate e = e |> SaveRunQueueErr
+    //    let toError e = e |> elevate |> Error
+    //    let fromDbError e = e |> SaveRunQueueDbErr |> elevate
 
-        let g() =
-            let ctx = getDbContext c
-            let r = ctx.Procedures.DeleteRunQueue.Invoke q.value
-            let m = r.ResultSet |> mapIntScalar
+    //    let g() =
+    //        let ctx = getDbContext c
+    //        let r = RunQueue.fromModelCommandLineParam modelDataId defaultValueId p
+    //        let row = addRunQueueRow ctx r
+    //        ctx.SubmitUpdates()
+    //        row.RunQueueId |> RunQueueId |> Ok
 
-            match m with
-            | Some 1 -> Ok ()
-            | _ -> DeleteRunQueueEntryErr q |> toError
+    //    tryDbFun fromDbError g
 
-        tryDbFun fromDbError g
+
+    //let deleteRunQueue c (q : RunQueueId) =
+    //    let elevate e = e |> DeleteRunQueueErr
+    //    let toError e = e |> elevate |> Error
+    //    let fromDbError e = e |> DeleteRunQueueDbErr |> elevate
+
+    //    let g() =
+    //        let ctx = getDbContext c
+    //        let r = ctx.Procedures.DeleteRunQueue.Invoke q.value
+    //        let m = r.ResultSet |> mapIntScalar
+
+    //        match m with
+    //        | Some 1 -> Ok ()
+    //        | _ -> DeleteRunQueueEntryErr q |> toError
+
+    //    tryDbFun fromDbError g
 
 
     ///// The following transitions are allowed here:

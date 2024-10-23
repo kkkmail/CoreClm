@@ -1,6 +1,6 @@
 ﻿namespace Clm
 
-open Primitives.SolverPrimitives
+//open Primitives.SolverPrimitives
 
 #nowarn "9"
 

@@ -3,7 +3,6 @@ open Softellect.Wcf.Errors
 open Softellect.Messaging.Errors
 
 module ContGenErrors =
-    let x = 1
 
     type ContGenServiceError =
         | TryCancelRunQueueWcfErr of WcfError

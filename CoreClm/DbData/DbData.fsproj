@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -20,8 +21,6 @@
     <Compile Include="dbo\DatabaseTypesDbo.fs" />
     <Compile Include="clm\DatabaseTypesClm.fs" />
     <Compile Include="eeinf\DatabaseTypesEeinf.fs" />
-    <Compile Include="MsgSvcDatabaseTypes2.fs" />
-    <Compile Include="WorkerNodeDatabaseTypes2.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,7 +37,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
   </ItemGroup>
 
 </Project>

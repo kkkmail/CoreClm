@@ -1,9 +1,9 @@
 ﻿namespace ClmSys
 
 open System
-open ClmSys.GeneralPrimitives
-open Primitives.GeneralPrimitives
-open Primitives.SolverPrimitives
+//open ClmSys.GeneralPrimitives
+//open Primitives.GeneralPrimitives
+//open Primitives.SolverPrimitives
 
 module SolverRunnerPrimitives =
 //
@@ -89,16 +89,16 @@ module SolverRunnerPrimitives =
 
     type ClmProgressData =
         {
-            progressData : ProgressData
+            //progressData : ProgressData
             yRelative : double
             eeData : EeData
         }
 
         static member defaultValue =
             {
-                progressData = ProgressData.defaultValue
+                //progressData = ProgressData.defaultValue
                 yRelative = 1.0
                 eeData = EeData.defaultValue
             }
 
-        member data.estimateEndTime (started : DateTime) = estimateEndTime data.progressData.progress started
+        //member data.estimateEndTime (started : DateTime) = estimateEndTime data.progressData.progress started

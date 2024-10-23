@@ -6,7 +6,7 @@ open Newtonsoft.Json
 open FSharp.Data.Sql
 open System
 
-open Primitives.GeneralPrimitives
+//open Primitives.GeneralPrimitives
 open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Messaging.Primitives
@@ -20,10 +20,10 @@ open Clm.ReactionRates
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.GeneralPrimitives
-open ClmSys.WorkerNodePrimitives
-open ClmSys.WorkerNodeData
-open ClmSys.PartitionerData
+//open ClmSys.GeneralPrimitives
+//open ClmSys.WorkerNodePrimitives
+//open ClmSys.WorkerNodeData
+//open ClmSys.PartitionerData
 open DbData.DatabaseTypesDbo
 
 // ! Must be the last to open !
@@ -373,115 +373,115 @@ module DatabaseTypesClm =
         tryDbFun fromDbError g
 
 
-    let private mapRunQueue (r: RunQueueTableData) =
-        let elevate e = e |> MapRunQueueErr
-        let toError e = e |> elevate |> Error
-        //let fromDbError e = e |> MapRunQueueDbErr |> elevate
-
-        let runQueueId = RunQueueId r.runQueue.RunQueueId
-
-        match RunQueueStatus.tryCreate r.runQueue.RunQueueStatusId with
-        | Some s ->
-            {
-                runQueueId = runQueueId
-
-                info =
-                    {
-                        modelDataId = ModelDataId r.clmRunQueue.ModelDataId
-                        defaultValueId = ClmDefaultValueId r.clmDefaultValueId
-
-                        modelCommandLineParam =
-                            {
-                                y0 = r.clmRunQueue.Y0
-                                tEnd = r.clmRunQueue.TEnd
-                                useAbundant = r.clmRunQueue.UseAbundant
-                            }
-                    }
-
-                runQueueStatus = s
-                workerNodeIdOpt = r.runQueue.WorkerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
-
-                progressData =
-                    {
-                        progressData =
-                            {
-                                progress = r.runQueue.Progress
-                                callCount = r.runQueue.CallCount
-                                errorMessageOpt = r.runQueue.ErrorMessage |> Option.map ErrorMessage
-                            }
-                        yRelative = r.runQueue.RelativeInvariant
-
-                        eeData =
-                            {
-                                maxEe = r.clmRunQueue.MaxEe
-                                maxAverageEe = r.clmRunQueue.MaxAverageEe
-                                maxWeightedAverageAbsEe = r.clmRunQueue.MaxWeightedAverageAbsEe
-                                maxLastEe = r.clmRunQueue.MaxLastEe
-                            }
-                    }
-
-                createdOn = r.runQueue.CreatedOn
-            }
-            |> Ok
-        | None -> toError (CannotMapRunQueue runQueueId)
-
-
-    let private mapRunQueueResults x =
-        x
-        |> List.ofSeq
-        |> List.map (fun (a, b, c) -> { runQueue = a; clmRunQueue = b; clmDefaultValueId = c })
-        |> List.map mapRunQueue
+    //let private mapRunQueue (r: RunQueueTableData) =
+    //    let elevate e = e |> MapRunQueueErr
+    //    let toError e = e |> elevate |> Error
+    //    //let fromDbError e = e |> MapRunQueueDbErr |> elevate
+    //
+    //    let runQueueId = RunQueueId r.runQueue.RunQueueId
+    //
+    //    match RunQueueStatus.tryCreate r.runQueue.RunQueueStatusId with
+    //    | Some s ->
+    //        {
+    //            runQueueId = runQueueId
+    //
+    //            info =
+    //                {
+    //                    modelDataId = ModelDataId r.clmRunQueue.ModelDataId
+    //                    defaultValueId = ClmDefaultValueId r.clmDefaultValueId
+    //
+    //                    modelCommandLineParam =
+    //                        {
+    //                            y0 = r.clmRunQueue.Y0
+    //                            tEnd = r.clmRunQueue.TEnd
+    //                            useAbundant = r.clmRunQueue.UseAbundant
+    //                        }
+    //                }
+    //
+    //            runQueueStatus = s
+    //            workerNodeIdOpt = r.runQueue.WorkerNodeId |> Option.bind (fun e -> e |> MessagingClientId |> WorkerNodeId |> Some)
+    //
+    //            progressData =
+    //                {
+    //                    progressData =
+    //                        {
+    //                            progress = r.runQueue.Progress
+    //                            callCount = r.runQueue.CallCount
+    //                            errorMessageOpt = r.runQueue.ErrorMessage |> Option.map ErrorMessage
+    //                        }
+    //                    yRelative = r.runQueue.RelativeInvariant
+    //
+    //                    eeData =
+    //                        {
+    //                            maxEe = r.clmRunQueue.MaxEe
+    //                            maxAverageEe = r.clmRunQueue.MaxAverageEe
+    //                            maxWeightedAverageAbsEe = r.clmRunQueue.MaxWeightedAverageAbsEe
+    //                            maxLastEe = r.clmRunQueue.MaxLastEe
+    //                        }
+    //                }
+    //
+    //            createdOn = r.runQueue.CreatedOn
+    //        }
+    //        |> Ok
+    //    | None -> toError (CannotMapRunQueue runQueueId)
 
 
-    /// Loads all not started RunQueue.
-    let loadRunQueue c =
-        let elevate e = e |> LoadRunQueueErr
-        //let toError e = e |> elevate |> Error
-        let fromDbError e = e |> LoadRunQueueDbErr |> elevate
-
-        let g() =
-            let ctx = getDbContext c
-
-            let x =
-                query {
-                    for r in ctx.Dbo.RunQueue do
-                    join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
-                    join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
-                    join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
-                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.TaskStatusId = 0 && r.WorkerNodeId = None)
-                    select (r, cr, t.DefaultValueId)
-                }
-
-            mapRunQueueResults x |> Ok
-
-        tryDbFun fromDbError g
+    //let private mapRunQueueResults x =
+    //    x
+    //    |> List.ofSeq
+    //    |> List.map (fun (a, b, c) -> { runQueue = a; clmRunQueue = b; clmDefaultValueId = c })
+    //    |> List.map mapRunQueue
 
 
-    /// Loads all currently running models == total progress.
-    /// RunQueueStatusId = 2 is InProgressRunQueue.
-    let loadRunQueueProgress c =
-        let elevate e = e |> LoadRunQueueProgressErr
-        //let toError e = e |> elevate |> Error
-        let fromDbError e = e |> LoadRunQueueProgressDbErr |> elevate
+    ///// Loads all not started RunQueue.
+    //let loadRunQueue c =
+    //    let elevate e = e |> LoadRunQueueErr
+    //    //let toError e = e |> elevate |> Error
+    //    let fromDbError e = e |> LoadRunQueueDbErr |> elevate
+    //
+    //    let g() =
+    //        let ctx = getDbContext c
+    //
+    //        let x =
+    //            query {
+    //                for r in ctx.Dbo.RunQueue do
+    //                join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
+    //                join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
+    //                join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
+    //                where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.TaskStatusId = 0 && r.WorkerNodeId = None)
+    //                select (r, cr, t.DefaultValueId)
+    //            }
+    //
+    //        mapRunQueueResults x |> Ok
+    //
+    //    tryDbFun fromDbError g
 
-        let g() =
-            let ctx = getDbContext c
 
-            let x =
-                query {
-                    for r in ctx.Dbo.RunQueue do
-                    join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
-                    join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
-                    join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
-                    where (r.RunQueueStatusId = 2 && t.TaskStatusId = 0 && r.WorkerNodeId <> None)
-                    sortBy t.TaskPriority
-                    thenBy r.RunQueueOrder
-                    select (r, cr, t.DefaultValueId)
-                }
-
-            mapRunQueueResults x |> Ok
-
-        tryDbFun fromDbError g
+    ///// Loads all currently running models == total progress.
+    ///// RunQueueStatusId = 2 is InProgressRunQueue.
+    //let loadRunQueueProgress c =
+    //    let elevate e = e |> LoadRunQueueProgressErr
+    //    //let toError e = e |> elevate |> Error
+    //    let fromDbError e = e |> LoadRunQueueProgressDbErr |> elevate
+    //
+    //    let g() =
+    //        let ctx = getDbContext c
+    //
+    //        let x =
+    //            query {
+    //                for r in ctx.Dbo.RunQueue do
+    //                join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
+    //                join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
+    //                join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
+    //                where (r.RunQueueStatusId = 2 && t.TaskStatusId = 0 && r.WorkerNodeId <> None)
+    //                sortBy t.TaskPriority
+    //                thenBy r.RunQueueOrder
+    //                select (r, cr, t.DefaultValueId)
+    //            }
+    //
+    //        mapRunQueueResults x |> Ok
+    //
+    //    tryDbFun fromDbError g
 
 
     ///// Loads first not started RunQueue.

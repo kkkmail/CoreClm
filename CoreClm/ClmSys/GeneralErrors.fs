@@ -3,9 +3,9 @@
 open System
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
-open GeneralPrimitives
-open Primitives.GeneralPrimitives
-open WorkerNodePrimitives
+//open GeneralPrimitives
+//open Primitives.GeneralPrimitives
+//open WorkerNodePrimitives
 open Softellect.Messaging.Primitives
 open Softellect.Sys.DataAccess
 open Softellect.Sys.Errors

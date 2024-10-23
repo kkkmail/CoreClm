@@ -1,17 +1,18 @@
 ﻿namespace Primitives
 
 open Softellect.Messaging.Primitives
+open Softellect.Sys.Primitives
 
 module VersionInfo =
 
-    /// !!! Do not forget to update messagingDataVersion in VersionInfo.ps1 when this parameter is updated !!!
-    ///
-    /// Increment BY TWO when:
-    ///     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
-    ///     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
-    ///     3. Version number (below) was increased.
-    ///     4. Reset to 0 as needed.
-    let messagingDataVersion = MessagingDataVersion 0
+    ///// !!! Do not forget to update messagingDataVersion in VersionInfo.ps1 when this parameter is updated !!!
+    /////
+    ///// Increment BY TWO when:
+    /////     1. Internal messaging structures change and messages can no longer be successfully transferred among components.
+    /////     2. Some other updates were performed and we need to inform worker nodes that they need to upgrade.
+    /////     3. Version number (below) was increased.
+    /////     4. Reset to 0 as needed.
+    //let messagingDataVersion = MessagingDataVersion 0
 
 
     /// !!! Do not forget to update versionNumber in VersionInfo.ps1 when this parameter is updated !!!

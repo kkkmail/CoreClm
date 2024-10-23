@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -21,9 +22,9 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
     <PackageReference Include="Plotly.NET" Version="4.2.0" />
-    <PackageReference Include="Softellect.Messaging" Version="8.0.300.1" />
-    <PackageReference Include="Softellect.Sys" Version="8.0.300.1" />
-    <PackageReference Include="Softellect.Wcf" Version="8.0.300.1" />
+    <PackageReference Include="Softellect.Messaging" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.Sys" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.Wcf" Version="8.0.400.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
     <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>
@@ -31,13 +32,7 @@
   <ItemGroup>
     <Compile Include="Conventions.fs" />
     <Compile Include="VersionInfo.fs" />
-    <Compile Include="GeneralPrimitives.fs" />
-    <Compile Include="GeneralErrors.fs" />
-    <Compile Include="GeneralData.fs" />
-    <Compile Include="SolverPrimitives.fs" />
-    <Compile Include="SolverRunnerErrors.fs" />
     <Compile Include="ChartPrimitives.fs" />
-    <Compile Include="WolframPrimitives.fs" />
   </ItemGroup>
 
 </Project>
