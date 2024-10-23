@@ -8,9 +8,10 @@ open Xunit.Abstractions
 open FluentAssertions
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-open Primitives.WolframPrimitives
+//open Primitives.WolframPrimitives
 open System.Text
 open Microsoft.FSharp.Reflection
+open Softellect.Sys.Wolfram
 
 
 type TestUnion =

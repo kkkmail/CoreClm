@@ -2,7 +2,8 @@
 
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-open GenericOdeSolver.Primitives
+//open GenericOdeSolver.Primitives
+open Softellect.DistributedProcessing.Primitives.Common
 
 module EeInfDiffModel =
 

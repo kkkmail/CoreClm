@@ -1,6 +1,6 @@
 namespace SolverRunner
 
-open ClmSys.ExitErrorCodes
+//open ClmSys.ExitErrorCodes
 open SolverRunner.SolverRunnerImplementation
 open SolverRunner.SolverRunnerCommandLine
 open ServiceProxy.SolverProcessProxy

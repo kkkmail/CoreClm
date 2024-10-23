@@ -26,15 +26,11 @@
     <ProjectReference Include="..\DbData\DbData.fsproj" />
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\NoSql\NoSql.fsproj" />
-    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
-    <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="SolverRunnerTasks.fs" />
-    <Compile Include="SolverRunnerCommandLine.fs" />
-    <Compile Include="SolverRunnerImplementation.fs" />
     <Compile Include="SolverRunnerProgram.fs" />
   </ItemGroup>
 

@@ -28,7 +28,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />
-    <ProjectReference Include="..\GenericOdeSolver\GenericOdeSolver.fsproj" />
   </ItemGroup>
 
 </Project>

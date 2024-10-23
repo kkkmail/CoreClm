@@ -4,19 +4,19 @@ open System.IO
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open FredholmSolver.EeInfCharts
-open Primitives.GeneralData
+//open Primitives.GeneralData
 open System
 open FluentAssertions.Execution
 open FluentAssertions
-open GenericOdeSolver.Primitives
-open GenericOdeSolver.Solver
-open Primitives.GeneralPrimitives
-open Primitives.SolverPrimitives
+//open GenericOdeSolver.Primitives
+//open GenericOdeSolver.Solver
+//open Primitives.GeneralPrimitives
+//open Primitives.SolverPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfDiffModel
 open FredholmSolver.EeInfChartData
-open Primitives.SolverRunnerErrors
+//open Primitives.SolverRunnerErrors
 open Softellect.Sys.Core
 open Softellect.Sys.Logging
 open Xunit
@@ -24,8 +24,10 @@ open Xunit.Abstractions
 open Plotly.NET
 open Analytics.ChartExt
 open Primitives.ChartPrimitives
-open Primitives.WolframPrimitives
+//open Primitives.WolframPrimitives
 open Softellect.Sys.Primitives
+open Softellect.Sys.Wolfram
+open Softellect.DistributedProcessing.Primitives.Common
 
 type CallBackResults =
     {
@@ -98,7 +100,7 @@ type OdeResultData =
                     $"{g e.statData.total}"
                     $"{g e.statData.food}"
                     $"{g e.statData.waste}"
-                    $"{g e.progressChart.callCount}"
+                    $"{g e.progressChart.progressInfo.callCount}"
                 ]
                 |> joinStrings ", "
 
@@ -145,25 +147,31 @@ type OdeTests (output : ITestOutputHelper) =
 
     let op_default =
         {
-            startTime = 0.0
-            endTime = 10.0
-            stepSize = 1.0e-3
-            absoluteTolerance = AbsoluteTolerance.defaultValue
-            solverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative correctionValue)
-            outputParams =
-                {
-                    noOfOutputPoints = 4_000
-                    noOfProgressPoints = 100
-                    noOfChartDetailedPoints = Some 20
-                }
+            startTime = 0.0m |> EvolutionTime
+            endTime = 10.0m |> EvolutionTime
         }
 
-    let op_10K = { op_default with endTime = 10_000.0 }
-    let op_50K = { op_default with endTime = 50_000.0 }
-    let op_65K = { op_default with endTime = 65_000.0 }
-    let op_100K = { op_default with endTime = 100_000.0 }
-    let op_200K = { op_default with endTime = 200_000.0 }
-    let op_1M = { op_default with endTime = 1_000_000.0 }
+    let odeParams =
+        {
+            stepSize = 1.0e-3
+            absoluteTolerance = AbsoluteTolerance.defaultValue
+            odeSolverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative correctionValue)
+            derivative = failwith ""
+        }
+
+    let outputParams =
+        {
+            noOfOutputPoints = 4_000
+            noOfProgressPoints = 100
+            noOfChartDetailedPoints = Some 20
+        }
+
+    let op_10K = { op_default with endTime = 10_000.0m |> EvolutionTime }
+    let op_50K = { op_default with endTime = 50_000.0m |> EvolutionTime }
+    let op_65K = { op_default with endTime = 65_000.0m |> EvolutionTime }
+    let op_100K = { op_default with endTime = 100_000.0m |> EvolutionTime }
+    let op_200K = { op_default with endTime = 200_000.0m |> EvolutionTime }
+    let op_1M = { op_default with endTime = 1_000_000.0m |> EvolutionTime }
 
 
     let outputMatrix (d : Domain2D) (m : Matrix<double>) =

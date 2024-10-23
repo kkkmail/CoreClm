@@ -3,9 +3,10 @@
 open System
 open System.Threading.Tasks
 open FredholmSolver.Primitives
-open Primitives.WolframPrimitives
-open Primitives.GeneralData
+//open Primitives.WolframPrimitives
+//open Primitives.GeneralData
 open Softellect.Sys.Primitives
+open Softellect.Sys.Wolfram
 
 module Kernel =
 

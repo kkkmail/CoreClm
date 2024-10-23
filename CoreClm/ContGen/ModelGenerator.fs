@@ -3,21 +3,21 @@
 open System
 open ClmSys
 open ClmSys.SolverRunnerPrimitives
-open Primitives.GeneralPrimitives
+//open Primitives.GeneralPrimitives
 open Softellect.Sys.Rop
 
 open Clm.ModelParams
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.GeneralPrimitives
+//open ClmSys.GeneralPrimitives
 open ClmSys.ModelGeneratorErrors
 open ServiceProxy.ModelGeneratorProxy
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
 open DbData.DatabaseTypesDbo
 open DbData.DatabaseTypesClm
-open ClmSys.Logging
-open ClmSys.TimerEvents
+//open ClmSys.Logging
+//open ClmSys.TimerEvents
 
 module ModelGenerator =
 

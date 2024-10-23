@@ -4,9 +4,10 @@ open FSharp.Collections
 open MathNet.Numerics.Distributions
 open System
 open Primitives.VersionInfo
-open Primitives.GeneralData
-open Primitives.WolframPrimitives
+//open Primitives.GeneralData
+//open Primitives.WolframPrimitives
 open Softellect.Sys.Primitives
+open Softellect.Sys.Wolfram
 
 module Primitives =
 

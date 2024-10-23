@@ -8,11 +8,12 @@ open Clm.ModelParams
 open Clm.ChartData
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
-open Primitives.GeneralPrimitives
+//open Primitives.GeneralPrimitives
 open Primitives.ChartPrimitives
 open Plotly.NET
 open Plotly.NET.GenericChart
 open Giraffe.ViewEngine
+open Softellect.Sys.Primitives
 
 module ChartExt =
 
@@ -77,7 +78,9 @@ module ChartExt =
             Directory.CreateDirectory(i.resultInfo.resultLocation) |> ignore
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 
-        member ct.getFileName (i : PlotDataInfo, d : ChartData) = ct.getFileNameImpl i d.initData.modelDataId d.initData.y0 d.initData.tEnd
+        member ct.getFileName (i : PlotDataInfo, d : ChartData) =
+            ct.getFileNameImpl i d.initData.modelDataId d.initData.y0 d.initData.tEnd
+            |> FileName
 
 
     let showChart (i : PlotDataInfo) show fileName =
@@ -86,10 +89,10 @@ module ChartExt =
         | false -> Chart.ShowFileWithDescription show fileName
 
 
-    let showHtmlChart chart =
+    let showHtmlChart (chart : HtmlChart) =
         try
-            File.WriteAllText(chart.fileName, chart.htmlContent)
-            System.Diagnostics.Process.Start(chart.fileName) |> ignore
+            File.WriteAllText(chart.fileName.value, chart.htmlContent)
+            System.Diagnostics.Process.Start(chart.fileName.value) |> ignore
             Ok()
         with
         | e -> e |> GeneralFileExn |> FileErr |> Result.Error

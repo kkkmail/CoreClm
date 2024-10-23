@@ -17,13 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="MsgServiceProxy.fs" />
-    <Compile Include="MsgProcessorProxy.fs" />
     <Compile Include="ModelGeneratorProxy.fs" />
-    <Compile Include="ModelRunnerProxy.fs" />
-    <Compile Include="SolverRunnerProxy.fs" />
-    <Compile Include="SolverProcessProxy.fs" />
-    <Compile Include="WorkerNodeProxy.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,7 +29,6 @@
     <ProjectReference Include="..\DbData\DbData.fsproj" />
     <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\NoSql\NoSql.fsproj" />
-    <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

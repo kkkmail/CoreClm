@@ -2,8 +2,8 @@
 
 open System
 
-open Primitives.GeneralPrimitives
-open Primitives.SolverPrimitives
+//open Primitives.GeneralPrimitives
+//open Primitives.SolverPrimitives
 open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
@@ -16,20 +16,20 @@ open Softellect.Messaging.Service
 open Softellect.Messaging.Client
 open Softellect.Messaging.Errors
 
-open ClmSys.MessagingData
+//open ClmSys.MessagingData
 open ClmSys.SolverRunnerPrimitives
 open Primitives.VersionInfo
-open ClmSys.WorkerNodeData
+//open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
-open ClmSys.WorkerNodePrimitives
-open ClmSys.PartitionerPrimitives
+//open ClmSys.WorkerNodePrimitives
+//open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
-open ClmSys.GeneralPrimitives
+//open ClmSys.GeneralPrimitives
 open Clm.ChartData
-open Primitives.GeneralData
+//open Primitives.GeneralData
 open ClmSys.SolverData
 
 module ServiceInfo =
@@ -230,15 +230,15 @@ module ServiceInfo =
     //        | WorkerNodeMsg m -> m.messageSize
 
 
-    type MessagingClient = MessagingClient<ClmMessageData>
-    type MessagingClientData = MessagingClientData<ClmMessageData>
-    type MessagingServiceData = MessagingServiceData<ClmMessageData>
-    type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData>>
-    //type Message = Message<ClmMessageData>
-    //type MessageInfo = MessageInfo<ClmMessageData>
-    type MessagingService = MessagingService<ClmMessageData>
-    type MessagingWcfService = MessagingWcfService<ClmMessageData>
-    type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
+    //type MessagingClient = MessagingClient<ClmMessageData>
+    //type MessagingClientData = MessagingClientData<ClmMessageData>
+    //type MessagingServiceData = MessagingServiceData<ClmMessageData>
+    //type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData>>
+    ////type Message = Message<ClmMessageData>
+    ////type MessageInfo = MessageInfo<ClmMessageData>
+    //type MessagingService = MessagingService<ClmMessageData>
+    //type MessagingWcfService = MessagingWcfService<ClmMessageData>
+    //type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
 
 
     //type PartitionerMessageInfo =
@@ -277,11 +277,11 @@ module ServiceInfo =
     //        }
 
 
-    type MessageWithOptionalData =
-        {
-            messageDataInfo : MessageDataInfo
-            messageDataOpt : ClmMessageData option
-        }
+    //type MessageWithOptionalData =
+    //    {
+    //        messageDataInfo : MessageDataInfo
+    //        messageDataOpt : ClmMessageData option
+    //    }
 
 
     //type MessageDataInfo
@@ -296,41 +296,40 @@ module ServiceInfo =
     //    | DummyConfig
 
 
-    type RunQueue
-        with
-
-        member q.toRunningProcessDataOpt() =
-            q.workerNodeIdOpt
-            |> Option.bind (fun w ->
-                            {
-                                modelDataId = q.info.modelDataId
-                                defaultValueId = q.info.defaultValueId
-                                runQueueId = q.runQueueId
-                                workerNodeId = w
-                                commandLineParams = q.modelCommandLineParam
-                            }
-                            |> Some)
-
-
-        member q.toMessageInfoOpt getModelData cd =
-            match q.toRunningProcessDataOpt() with
-            | Some d ->
-                match getModelData q.info.modelDataId with
-                | Ok m ->
-                    {
-                        workerNodeRecipient = d.workerNodeId
-                        deliveryType = GuaranteedDelivery
-                        messageData =
-                            {
-                                runningProcessData = d
-                                modelData = m
-                                controlData = cd
-                            }
-                            |> RunModelWrkMsg
-                    }.getMessageInfo()
-                    |> Some |> Ok
-                | Error e -> Error e
-            | None -> Ok None
+    //type RunQueue
+    //    with
+    //
+    //    member q.toRunningProcessDataOpt() =
+    //        q.workerNodeIdOpt
+    //        |> Option.bind (fun w ->
+    //                        {
+    //                            modelDataId = q.info.modelDataId
+    //                            defaultValueId = q.info.defaultValueId
+    //                            runQueueId = q.runQueueId
+    //                            workerNodeId = w
+    //                            commandLineParams = q.modelCommandLineParam
+    //                        }
+    //                        |> Some)
+    //
+    //    member q.toMessageInfoOpt getModelData cd =
+    //        match q.toRunningProcessDataOpt() with
+    //        | Some d ->
+    //            match getModelData q.info.modelDataId with
+    //            | Ok m ->
+    //                {
+    //                    workerNodeRecipient = d.workerNodeId
+    //                    deliveryType = GuaranteedDelivery
+    //                    messageData =
+    //                        {
+    //                            runningProcessData = d
+    //                            modelData = m
+    //                            controlData = cd
+    //                        }
+    //                        |> RunModelWrkMsg
+    //                }.getMessageInfo()
+    //                |> Some |> Ok
+    //            | Error e -> Error e
+    //        | None -> Ok None
 
 
     //let expirationTimeInMinutes = ConfigKey "ExpirationTimeInMinutes"

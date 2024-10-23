@@ -59,4 +59,4 @@ module ChartPrimitives =
             htmlContent = toEmbeddedHtmlWithDescription d ch
             fileName = fileName
         }
-        |> HtmlChart
+        //|> HtmlChart

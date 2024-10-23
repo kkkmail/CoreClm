@@ -4,6 +4,7 @@ open System.IO
 open FredholmSolver.EeInfChartData
 open Plotly.NET
 open Primitives.ChartPrimitives
+open Softellect.Sys.Primitives
 
 module EeInfCharts =
 
@@ -14,7 +15,7 @@ module EeInfCharts =
                 // | Some v -> v
                 // | None -> $"{p.initData.baseData.resultId.value}"
 
-            $@"C:\EeInf\{name}__{ct.fileSuffix}.html"
+            FileName $@"C:\EeInf\{name}__{ct.fileSuffix}.html"
 
         let noOfOutputPoints = p.allChartData.Length - 1
         let allChartData = p.allChartData |> List.rev |> Array.ofList
@@ -73,9 +74,9 @@ module EeInfCharts =
 
         member _.eeChart() =
             let chart = getEeChart()
-            File.WriteAllText(chart.fileName, chart.htmlContent)
+            File.WriteAllText(chart.fileName.value, chart.htmlContent)
 
         member _.uChart() =
             match getUChart() with
-            | Some chart -> File.WriteAllText(chart.fileName, chart.htmlContent)
+            | Some chart -> File.WriteAllText(chart.fileName.value, chart.htmlContent)
             | None -> ()

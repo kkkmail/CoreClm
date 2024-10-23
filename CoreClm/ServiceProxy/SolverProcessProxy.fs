@@ -4,17 +4,18 @@ open System
 open System.Diagnostics
 open System.Management
 open ClmSys
-open ClmSys.GeneralPrimitives
-open ClmSys.PartitionerPrimitives
+//open ClmSys.GeneralPrimitives
+//open ClmSys.PartitionerPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
 open MessagingServiceInfo.ServiceInfo
-open Primitives.GeneralPrimitives
-open Primitives.SolverPrimitives
-open Primitives.SolverRunnerErrors
+//open Primitives.GeneralPrimitives
+//open Primitives.SolverPrimitives
+//open Primitives.SolverRunnerErrors
 open Softellect.Messaging.ServiceInfo
 
 module SolverProcessProxy =
+    let x = 1
 
     //[<Literal>]
     //let SolverRunnerName = "SolverRunner.exe"

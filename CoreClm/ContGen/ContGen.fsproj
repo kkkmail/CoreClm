@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <Compile Include="ModelGenerator.fs" />
-    <Compile Include="ModelRunner.fs" />
     <Compile Include="ContGenServiceResponse.fs" />
   </ItemGroup>
 

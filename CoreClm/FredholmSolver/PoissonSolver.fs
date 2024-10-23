@@ -2,16 +2,17 @@
 
 open System.Diagnostics
 open System.IO
-open Primitives.GeneralData
+//open Primitives.GeneralData
 open System
-open Primitives.GeneralPrimitives
+//open Primitives.GeneralPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver
 open FredholmSolver.EeInfIntModel
 open FredholmSolver.EeInfChartData
-open Primitives.WolframPrimitives
+//open Primitives.WolframPrimitives
 open Softellect.Sys.Primitives
+open Softellect.Sys.Core
 open Softellect.Sys.Wolfram
 
 module PoissonSolver =
@@ -225,7 +226,7 @@ module PoissonSolver =
         let chartFrequency = if noOfEpochs <= p.evolutionParam.maxChartPoints then 1 else noOfEpochs / p.evolutionParam.maxChartPoints
 
         let chartInitData = getChartInitData model p.evolutionParam.noOfEpochs
-        let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData)
+        let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData) :> IAsyncUpdater<ChartSliceIntData, ChartIntData>
         let getChartSliceData = getChartSliceData model noOfEpochs chartMod
         let outputFrameData = outputFrameData model p
         let outputChart = outputChart writeLine
