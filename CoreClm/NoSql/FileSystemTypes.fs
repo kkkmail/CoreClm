@@ -40,85 +40,85 @@ module FileSystemTypes =
     let runModelParamWithRemoteIdTblName = TableName "RunModelParamWithRemoteId"
     let workerNodeStateTblName = TableName "WorkerNodeState"
     let partitionerQueueElementTblName = TableName "PartitionerQueueElement"
-    let solverRunnerErrTblName = TableName "SolverRunnerErr"
+    //let solverRunnerErrTblName = TableName "SolverRunnerErr"
 
 
-    let getFolderName (MessagingClientName serviceName) (TableName tableName) =
-        let folder = fileStorageFolder + "\\" + serviceName + "\\" + tableName
+    //let getFolderName (MessagingClientName serviceName) (TableName tableName) =
+    //    let folder = fileStorageFolder + "\\" + serviceName + "\\" + tableName
 
-        try
-            Directory.CreateDirectory(folder) |> ignore
-            Ok folder
-        with
-        | e -> e |> GetFolderNameExn |> FileErr |> Error
-
-
-    let getFileName<'A> (fmt : SerializationFormat) serviceName tableName (objectId : 'A) =
-        try
-            match getFolderName serviceName tableName with
-            | Ok folder ->
-                let file = Path.Combine(folder, objectId.ToString() + "." + fmt.fileExtension)
-                Ok file
-            | Error e -> Error e
-        with
-        | e -> e |> GetFileNameExn |> FileErr |> Error
+    //    try
+    //        Directory.CreateDirectory(folder) |> ignore
+    //        Ok folder
+    //    with
+    //    | e -> e |> GetFolderNameExn |> FileErr |> Error
 
 
-    /// Tries to load data.
-    /// Returns (Ok (Some Object)) if object was found and successfully loaded.
-    /// Returns (Ok None) if the object is not found.
-    /// Returns (Error e) in case of any other issues.
-    let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T option, ClmError>) =
-        let w () =
-            try
-                match getFileName serializationFormat serviceName tableName objectId with
-                | Ok f ->
-                    let x =
-                        if File.Exists f
-                        then
-                            let data = File.ReadAllBytes (f)
-                            let retVal = data |> deserialize serializationFormat |> Some |> Ok
-                            retVal
-                        else Ok None
-                    x
-                | Error e -> Error e
-            with
-            | e -> e |> ReadFileExn |> FileErr |> Error
-        tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
+    //let getFileName<'A> (fmt : SerializationFormat) serviceName tableName (objectId : 'A) =
+    //    try
+    //        match getFolderName serviceName tableName with
+    //        | Ok folder ->
+    //            let file = Path.Combine(folder, objectId.ToString() + "." + fmt.fileExtension)
+    //            Ok file
+    //        | Error e -> Error e
+    //    with
+    //    | e -> e |> GetFileNameExn |> FileErr |> Error
 
 
-    /// Loads the data if successfull and returns an error if an object is not found OR any error occurs.
-    let loadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T, ClmError>) =
-        match tryLoadData<'T, 'A> serviceName tableName objectId with
-        | Ok (Some r) -> Ok r
-        | Ok None ->
-            match getFileName<'A> serializationFormat serviceName tableName objectId with
-            | Ok f -> f |> FileNotFoundErr |> FileErr |> Error
-            | Error e -> Error e
-        | Error e -> Error e
+    ///// Tries to load data.
+    ///// Returns (Ok (Some Object)) if object was found and successfully loaded.
+    ///// Returns (Ok None) if the object is not found.
+    ///// Returns (Error e) in case of any other issues.
+    //let tryLoadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T option, ClmError>) =
+    //    let w () =
+    //        try
+    //            match getFileName serializationFormat serviceName tableName objectId with
+    //            | Ok f ->
+    //                let x =
+    //                    if File.Exists f
+    //                    then
+    //                        let data = File.ReadAllBytes (f)
+    //                        let retVal = data |> deserialize serializationFormat |> Some |> Ok
+    //                        retVal
+    //                    else Ok None
+    //                x
+    //            | Error e -> Error e
+    //        with
+    //        | e -> e |> ReadFileExn |> FileErr |> Error
+    //    tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
-    let saveDataImpl<'T, 'A> fmt serviceName tableName (objectId : 'A) (t : 'T) =
-        let w() =
-            try
-                match getFileName fmt serviceName tableName objectId with
-                | Ok f ->
-                    let d = t |> serialize fmt
-                    File.WriteAllBytes (f, d)
-                    Ok ()
-                | Error e -> Error e
-            with
-            | e -> e |> WriteFileExn |> FileErr |> Error
-        tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
+    ///// Loads the data if successfull and returns an error if an object is not found OR any error occurs.
+    //let loadData<'T, 'A> serviceName tableName (objectId : 'A) : (Result<'T, ClmError>) =
+    //    match tryLoadData<'T, 'A> serviceName tableName objectId with
+    //    | Ok (Some r) -> Ok r
+    //    | Ok None ->
+    //        match getFileName<'A> serializationFormat serviceName tableName objectId with
+    //        | Ok f -> f |> FileNotFoundErr |> FileErr |> Error
+    //        | Error e -> Error e
+    //    | Error e -> Error e
 
 
-    let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
-        saveDataImpl<'T, 'A> serializationFormat serviceName tableName objectId t
+    //let saveDataImpl<'T, 'A> fmt serviceName tableName (objectId : 'A) (t : 'T) =
+    //    let w() =
+    //        try
+    //            match getFileName fmt serviceName tableName objectId with
+    //            | Ok f ->
+    //                let d = t |> serialize fmt
+    //                File.WriteAllBytes (f, d)
+    //                Ok ()
+    //            | Error e -> Error e
+    //        with
+    //        | e -> e |> WriteFileExn |> FileErr |> Error
+    //    tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
-    /// Write-once error objects.
-    let saveErrData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
-        saveDataImpl<'T, 'A> serializationErrFormat serviceName tableName objectId t
+    //let saveData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+    //    saveDataImpl<'T, 'A> serializationFormat serviceName tableName objectId t
+
+
+    ///// Write-once error objects.
+    //let saveErrData<'T, 'A> serviceName tableName (objectId : 'A) (t : 'T) =
+    //    saveDataImpl<'T, 'A> serializationErrFormat serviceName tableName objectId t
 
 
     /// Tries to delete object if it exists.
@@ -203,27 +203,27 @@ module FileSystemTypes =
     let loadChartInfoAllFs serviceName () = loadObjects<ChartInfo, Guid> serviceName chartInfoTblName Guid.Parse
 
 
-    let saveLocalChartInfo d (c : ChartInfo) =
-        let w() =
-            try
-                let getFileName (name : string) =
-                    match d with
-                    | Some (f, g) -> Path.Combine(f, g.ToString(), Path.GetFileName name)
-                    | None -> name
+    //let saveLocalChartInfo d (c : ChartInfo) =
+    //    let w() =
+    //        try
+    //            let getFileName (name : string) =
+    //                match d with
+    //                | Some (f, g) -> Path.Combine(f, g.ToString(), Path.GetFileName name)
+    //                | None -> name
 
-                let saveChart (f : string) c =
-                    let folder = Path.GetDirectoryName f
-                    Directory.CreateDirectory(folder) |> ignore
-                    File.WriteAllText(f, c)
+    //            let saveChart (f : string) c =
+    //                let folder = Path.GetDirectoryName f
+    //                Directory.CreateDirectory(folder) |> ignore
+    //                File.WriteAllText(f, c)
 
-                c.charts
-                |> List.map (fun e -> saveChart (getFileName e.fileName) e.htmlContent)
-                |> ignore
-                Ok ()
-            with
-            | e -> e |> SaveChartsExn |> FileErr |> Error
+    //            c.charts
+    //            |> List.map (fun e -> saveChart (getFileName e.fileName) e.htmlContent)
+    //            |> ignore
+    //            Ok ()
+    //        with
+    //        | e -> e |> SaveChartsExn |> FileErr |> Error
 
-        tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
+    //    tryRopFun (fun e -> e |> GeneralFileExn |> FileErr) w
 
 
     let saveWorkerNodeInfoFs serviceName (r : WorkerNodeInfo) = saveData<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName r.workerNodeId.value.value r
@@ -232,4 +232,4 @@ module FileSystemTypes =
     let getWorkerNodeInfoIdsFs serviceName () = getObjectIds<WorkerNodeId> serviceName workerNodeInfoTblName (fun e -> e |> Guid.Parse |> MessagingClientId |> WorkerNodeId)
     let loadWorkerNodeInfoAllFs serviceName () = loadObjects<WorkerNodeInfo, Guid> serviceName workerNodeInfoTblName Guid.Parse
 
-    let saveSolverRunnerErrFs serviceName (r : SolverRunnerCriticalError) = saveErrData<SolverRunnerCriticalError, Guid> serviceName solverRunnerErrTblName r.errorId.value r
+    //let saveSolverRunnerErrFs serviceName (r : SolverRunnerCriticalError) = saveErrData<SolverRunnerCriticalError, Guid> serviceName solverRunnerErrTblName r.errorId.value r
