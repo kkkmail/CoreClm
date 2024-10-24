@@ -28,6 +28,7 @@ open Primitives.ChartPrimitives
 open Softellect.Sys.Primitives
 open Softellect.Sys.Wolfram
 open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.DistributedProcessing.SolverRunner.Primitives
 
 type CallBackResults =
     {

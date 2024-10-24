@@ -24,7 +24,6 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\NoSql\NoSql.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
   </ItemGroup>

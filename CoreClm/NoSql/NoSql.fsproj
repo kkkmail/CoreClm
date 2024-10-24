@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

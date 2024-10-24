@@ -13,10 +13,6 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ContGenService", "ContGenSe
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "DbData", "DbData\DbData.fsproj", "{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "MessagingService", "MessagingService\MessagingService.fsproj", "{113FE044-337F-44DA-A458-7F2D41021EBF}"
-EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "MessagingServiceInfo", "MessagingServiceInfo\MessagingServiceInfo.fsproj", "{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}"
-EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Analytics", "Analytics\Analytics.fsproj", "{DC51F3E0-1283-4499-B969-E6A2BCE597A6}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ClmDefaults", "ClmDefaults\ClmDefaults.fsproj", "{1DFD0B16-A295-4DED-9B7B-2FCF2E423498}"
@@ -83,14 +79,6 @@ Global
 		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Debug|x64.Build.0 = Debug|x64
 		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Release|x64.ActiveCfg = Release|x64
 		{98D63122-D2A4-4CBF-BF39-72ADF5BB7835}.Release|x64.Build.0 = Release|x64
-		{113FE044-337F-44DA-A458-7F2D41021EBF}.Debug|x64.ActiveCfg = Debug|x64
-		{113FE044-337F-44DA-A458-7F2D41021EBF}.Debug|x64.Build.0 = Debug|x64
-		{113FE044-337F-44DA-A458-7F2D41021EBF}.Release|x64.ActiveCfg = Release|x64
-		{113FE044-337F-44DA-A458-7F2D41021EBF}.Release|x64.Build.0 = Release|x64
-		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Debug|x64.ActiveCfg = Debug|x64
-		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Debug|x64.Build.0 = Debug|x64
-		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Release|x64.ActiveCfg = Release|x64
-		{1A14126C-1A4D-43BD-8CD8-CAA6CD7C5867}.Release|x64.Build.0 = Release|x64
 		{DC51F3E0-1283-4499-B969-E6A2BCE597A6}.Debug|x64.ActiveCfg = Debug|x64
 		{DC51F3E0-1283-4499-B969-E6A2BCE597A6}.Debug|x64.Build.0 = Debug|x64
 		{DC51F3E0-1283-4499-B969-E6A2BCE597A6}.Release|x64.ActiveCfg = Release|x64

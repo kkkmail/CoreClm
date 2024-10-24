@@ -29,6 +29,8 @@
     <Compile Include="CalculationData.fs" />
     <Compile Include="ReactionRatesExt.fs" />
     <Compile Include="ChartData.fs" />
+    <Compile Include="EarlyExit.fs" />
+    <Compile Include="ClmData.fs" />
   </ItemGroup>
 
   <ItemGroup>

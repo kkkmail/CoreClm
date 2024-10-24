@@ -18,7 +18,10 @@
 
   <ItemGroup>
     <Compile Include="ModelGenerator.fs" />
-    <Compile Include="ContGenServiceResponse.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="8.0.400.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +31,6 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\Model\Model.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
   </ItemGroup>

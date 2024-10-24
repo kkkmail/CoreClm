@@ -1,6 +1,7 @@
 ﻿namespace ClmTests
 
 open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.DistributedProcessing.SolverRunner.OdeSolver
 
 #nowarn "9"
 

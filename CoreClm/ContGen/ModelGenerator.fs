@@ -18,6 +18,12 @@ open DbData.DatabaseTypesDbo
 open DbData.DatabaseTypesClm
 //open ClmSys.Logging
 //open ClmSys.TimerEvents
+open Clm.ClmData
+
+open Softellect.DistributedProcessing.ModelGenerator.Program
+open Softellect.Sys.ExitErrorCodes
+open Softellect.DistributedProcessing.Proxy.ModelGenerator
+open Softellect.DistributedProcessing.Primitives.Common
 
 module ModelGenerator =
 
