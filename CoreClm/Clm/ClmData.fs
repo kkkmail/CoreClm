@@ -1,18 +1,23 @@
 ﻿namespace Clm
 
 open ClmSys.SolverRunnerPrimitives
+open Clm.CalculationData
+open ModelParams
+open ClmSys.ContGenPrimitives
 
 module ClmData =
 
     /// That's 'I in the type signature.
     type ClmImitialData =
         {
-            a : int
+            defaultValueId : ClmDefaultValueId
+            modelCommandLineParam : ModelCommandLineParam
+            modelData : ModelData
         }
 
 
     /// That's 'D in the type signature.
-    type ClmSolverData =
+    type ClmSolverContext =
         {
             b : int
         }

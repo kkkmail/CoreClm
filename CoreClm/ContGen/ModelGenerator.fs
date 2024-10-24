@@ -50,30 +50,46 @@ module ModelGenerator =
             | Ok a ->
                 let model = ClmModel (a.modelGenerationParams, modelDataId, c.clmTaskInfo.clmTaskId)
 
-                match model.getModelData() |> proxy.upsertModelData with
-                | Ok() ->
-                    let r =
-                        a.modelCommandLineParams
-                        |> List.map(fun e ->
-                                        {
-                                            runQueueId = RunQueueId.getNewId()
-                                            info =
-                                                {
-                                                    modelDataId = modelDataId;
-                                                    defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId;
-                                                    modelCommandLineParam = e
-                                                }
-                                            runQueueStatus = NotStartedRunQueue
-                                            workerNodeIdOpt = None
-                                            progressData = ClmProgressData.defaultValue
-                                            createdOn = DateTime.Now
-                                        })
-                        |> List.map proxy.upsertRunQueue
-                        |> foldUnitResults
+                let modelData = model.getModelData()
 
-                    let r1 = proxy.updateClmTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
-                    combineUnitResults r r1 |> mapSuccessValue model
-                | Error e -> addError (UnableUpsertModelDataErr c.clmTaskInfo.clmTaskId) e
+                let g p =
+                    {
+                        defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId
+                        modelCommandLineParam = p
+                        modelData = modelData
+                    }
+
+                let r =
+                    a.modelCommandLineParams
+                    |> List.map g
+
+
+                failwith ""
+
+                //match model.getModelData() |> proxy.upsertModelData with
+                //| Ok() ->
+                //    let r =
+                //        a.modelCommandLineParams
+                //        |> List.map(fun e ->
+                //                        {
+                //                            runQueueId = RunQueueId.getNewId()
+                //                            info =
+                //                                {
+                //                                    modelDataId = modelDataId;
+                //                                    defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId;
+                //                                    modelCommandLineParam = e
+                //                                }
+                //                            runQueueStatus = NotStartedRunQueue
+                //                            workerNodeIdOpt = None
+                //                            progressData = ClmProgressData.defaultValue
+                //                            createdOn = DateTime.Now
+                //                        })
+                //        |> List.map proxy.upsertRunQueue
+                //        |> foldUnitResults
+
+                //    let r1 = proxy.updateClmTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
+                //    combineUnitResults r r1 |> mapSuccessValue model
+                //| Error e -> addError (UnableUpsertModelDataErr c.clmTaskInfo.clmTaskId) e
             | Error e -> addError (GenerateModelError.UnableLoadParamsErr c.clmTaskInfo.clmTaskId) e
         else toError (TaskCompletedErr c.clmTaskInfo.clmTaskId)
 

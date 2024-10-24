@@ -148,12 +148,12 @@ module ModelParams =
         }
 
 
-    type RunQueueInfo =
-        {
-            modelDataId : ModelDataId
-            defaultValueId : ClmDefaultValueId
-            modelCommandLineParam : ModelCommandLineParam
-        }
+    //type RunQueueInfo =
+    //    {
+    //        modelDataId : ModelDataId
+    //        defaultValueId : ClmDefaultValueId
+    //        modelCommandLineParam : ModelCommandLineParam
+    //    }
 
 
     //type RunQueue =

@@ -347,30 +347,30 @@ module DatabaseTypesClm =
         tryDbFun fromDbError g
 
 
-    let upsertModelData c (m : ModelData) =
-        let elevate e = e |> UpsertModelDataErr
-        let toError e = e |> elevate |> Error
-        let fromDbError e = e |> UpsertModelDataDbErr |> elevate
+    //let upsertModelData c (m : ModelData) =
+    //    let elevate e = e |> UpsertModelDataErr
+    //    let toError e = e |> elevate |> Error
+    //    let fromDbError e = e |> UpsertModelDataDbErr |> elevate
 
-        let g() =
-            let ctx = getDbContext c
+    //    let g() =
+    //        let ctx = getDbContext c
 
-            let r = ctx.Procedures.ClmUpsertModelData.Invoke(
-                        ``@modelDataId`` = m.modelDataId.value,
-                        ``@taskId`` = m.clmTaskInfo.clmTaskId.value,
-                        ``@seedValue`` = (match m.data.seedValue with | Some s -> s | None -> -1),
-                        ``@modelDataParams`` = (m.data.modelData.modelDataParams |> JsonConvert.SerializeObject),
-                        ``@modelBinaryData`` = (m.data.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
-                        ``@createdOn`` = DateTime.Now)
+    //        let r = ctx.Procedures.ClmUpsertModelData.Invoke(
+    //                    ``@modelDataId`` = m.modelDataId.value,
+    //                    ``@taskId`` = m.clmTaskInfo.clmTaskId.value,
+    //                    ``@seedValue`` = (match m.data.seedValue with | Some s -> s | None -> -1),
+    //                    ``@modelDataParams`` = (m.data.modelData.modelDataParams |> JsonConvert.SerializeObject),
+    //                    ``@modelBinaryData`` = (m.data.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
+    //                    ``@createdOn`` = DateTime.Now)
 
 
-            let x = r.ResultSet |> mapIntScalar
+    //        let x = r.ResultSet |> mapIntScalar
 
-            match x with
-            | Some 1 -> Ok ()
-            | _ -> toError (CannotUpsertModelData m.modelDataId)
+    //        match x with
+    //        | Some 1 -> Ok ()
+    //        | _ -> toError (CannotUpsertModelData m.modelDataId)
 
-        tryDbFun fromDbError g
+    //    tryDbFun fromDbError g
 
 
     //let private mapRunQueue (r: RunQueueTableData) =

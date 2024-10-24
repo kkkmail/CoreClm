@@ -13,7 +13,7 @@ open Softellect.Messaging.Primitives
 open ClmSys.GeneralErrors
 open Clm.ModelParams
 open Clm.CalculationData
-open MessagingServiceInfo.ServiceInfo
+//open MessagingServiceInfo.ServiceInfo
 //open ClmSys.WorkerNodeData
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives

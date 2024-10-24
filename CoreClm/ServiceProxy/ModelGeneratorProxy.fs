@@ -12,7 +12,7 @@ module ModelGeneratorProxy =
     type GenerateModelProxy =
         {
             loadParams : ClmTask -> ClmResult<AllParams>
-            upsertModelData : ModelData -> UnitResult
+            //upsertModelData : ModelData -> UnitResult
             //upsertRunQueue : RunQueue -> UnitResult
             updateClmTask : ClmTask -> UnitResult
         }
@@ -20,7 +20,7 @@ module ModelGeneratorProxy =
         static member create u coll so c =
             {
                 loadParams = AllParams.create u coll so (loadClmDefaultValue c)
-                upsertModelData = upsertModelData c
+                //upsertModelData = upsertModelData c
                 //upsertRunQueue = upsertRunQueue c
                 updateClmTask = updateClmTask c
             }

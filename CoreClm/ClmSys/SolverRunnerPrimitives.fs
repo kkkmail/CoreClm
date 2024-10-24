@@ -1,12 +1,16 @@
 ﻿namespace ClmSys
 
 open System
+open Softellect.DistributedProcessing.Primitives.Common
 //open ClmSys.GeneralPrimitives
 //open Primitives.GeneralPrimitives
 //open Primitives.SolverPrimitives
 
 module SolverRunnerPrimitives =
-//
+
+    let clmSolverId = "5FA3E38A-87A9-49C5-8A85-5A5AC4A71CAC" |> Guid.Parse |> SolverId
+    let clmSolverName = "Clm" |> SolverName
+
 //     let defaultNoOfOutputPoints = 1000
 //     let defaultNoOfProgressPoints = 100
 //
