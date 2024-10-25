@@ -5,6 +5,7 @@ open ClmSys
 open ClmSys.SolverRunnerPrimitives
 //open Primitives.GeneralPrimitives
 open Softellect.Sys.Rop
+open Softellect.Sys.TimerEvents
 
 open Clm.ModelParams
 open ClmSys.ClmErrors
@@ -21,9 +22,10 @@ open DbData.DatabaseTypesClm
 open Clm.ClmData
 
 open Softellect.DistributedProcessing.ModelGenerator.Program
-open Softellect.Sys.ExitErrorCodes
 open Softellect.DistributedProcessing.Proxy.ModelGenerator
+open Softellect.Sys.ExitErrorCodes
 open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.Sys.Logging
 
 module ModelGenerator =
 
@@ -53,11 +55,37 @@ module ModelGenerator =
                 let modelData = model.getModelData()
 
                 let g p =
-                    {
-                        defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId
-                        modelCommandLineParam = p
-                        modelData = modelData
-                    }
+                    let i =
+                        {
+                            defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId
+                            modelCommandLineParam = p
+                            modelData = modelData
+                        }
+
+                    let inputParams =
+                        {
+                            startTime = EvolutionTime.defaultValue
+                            endTime = failwith "inputParams.endTime is not implemented yet"
+                        }
+
+                    let outputParams =
+                        {
+                            noOfOutputPoints = defaultNoOfOutputPoints
+                            noOfProgressPoints = defaultNoOfProgressPoints
+                        }
+
+                    let generateModelContext i = failwith "generateModelContext is not implemented yet."
+
+                    let proxy :  UserProxy<ClmInitialData, ClmSolverContext> =
+                        {
+                            getInitialData = fun () -> i
+                            generateModelContext = generateModelContext
+                            getSolverInputParams = fun _ -> inputParams
+                            getSolverOutputParams = fun _ -> outputParams
+                        }
+
+                    let result = generateModel<ClmInitialData, ClmSolverContext> clmSolverId proxy
+                    printfn $"result: '%A{result}'."
 
                 let r =
                     a.modelCommandLineParams
@@ -119,8 +147,11 @@ module ModelGenerator =
 
 
     let createModelGenerator (logger : Logger) u coll so c =
-        logger.logInfoString "createModelGenerator: Creating model generator..."
+        logger.logInfo "createModelGenerator: Creating model generator..."
         let proxy = GenerateAllProxy.create u coll so c
-        let e = fun () -> generateAll proxy
-        let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelGenerator - generateAll")
+        let generateAll() = generateAll proxy
+        let toError e = ClmTimerEventErr e
+        let i = TimerEventHandlerInfo<ClmError>.defaultValue toError generateAll "ModelGenerator - generateAll"
+        let h = TimerEventHandler i
+        h.start()
         h

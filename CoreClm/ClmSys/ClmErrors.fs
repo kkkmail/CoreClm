@@ -94,6 +94,7 @@ module ClmErrors =
 
         //=========================
         | SendMessageErr of SendMessageError
+        | ClmTimerEventErr of TimerEventError
 
         //| WcfErr of WcfError
         //| MessagingeErr of MessagingError

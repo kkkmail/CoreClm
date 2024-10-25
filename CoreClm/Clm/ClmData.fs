@@ -8,7 +8,7 @@ open ClmSys.ContGenPrimitives
 module ClmData =
 
     /// That's 'I in the type signature.
-    type ClmImitialData =
+    type ClmInitialData =
         {
             defaultValueId : ClmDefaultValueId
             modelCommandLineParam : ModelCommandLineParam
