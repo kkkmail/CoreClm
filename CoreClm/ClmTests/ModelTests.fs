@@ -114,20 +114,20 @@ type ModelTests(output : ITestOutputHelper) =
         let mdUpdate (md : ModelData) = md.modelData.modelBinaryData.calculationData.getDerivative
         ModelDataShouldMatchGeneratedCodeImpl mdUpdate
 
-    [<Fact>]
-    member _.ModelDataShouldMatchGeneratedCodeForPointerDerivative () : unit =
-        let mdUpdate (md : ModelData) (x : double[]) : double[] =
-            let neq = x.Length
-            let t = 0.0
-            let callaBack _ _ = ()
-            let (dx : double[]) = Array.zeroCreate x.Length
-            use px = fixed &x.[0]
-            use pdx = fixed &dx.[0]
-            let calculateDerivative t x = md.modelData.modelBinaryData.calculationData.getDerivative x
-            let dc : DerivativeCalculator = calculateDerivative |> FullArray
+    //[<Fact>]
+    //member _.ModelDataShouldMatchGeneratedCodeForPointerDerivative () : unit =
+    //    let mdUpdate (md : ModelData) (x : double[]) : double[] =
+    //        let neq = x.Length
+    //        let t = 0.0
+    //        let callaBack _ _ = ()
+    //        let (dx : double[]) = Array.zeroCreate x.Length
+    //        use px = fixed &x.[0]
+    //        use pdx = fixed &dx.[0]
+    //        let calculateDerivative t x = md.modelData.modelBinaryData.calculationData.getDerivative x
+    //        let dc : DerivativeCalculator = calculateDerivative |> FullArray
 
-            let interop = createUseNonNegativeInterop (callaBack, dc)
-            do interop.Invoke(ref neq, ref t, px, pdx)
-            dx
+    //        let interop = createUseNonNegativeInterop (callaBack, dc)
+    //        do interop.Invoke(ref neq, ref t, px, pdx)
+    //        dx
 
-        ModelDataShouldMatchGeneratedCodeImpl mdUpdate
+    //    ModelDataShouldMatchGeneratedCodeImpl mdUpdate

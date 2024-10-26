@@ -9,31 +9,31 @@ open Softellect.Messaging.ServiceInfo
 open Softellect.Wcf.Common
 open Softellect.Messaging.Primitives
 open Softellect.Messaging.Client
-open Softellect.Sys.Worker
+//open Softellect.Sys.Worker
 open Softellect.Messaging.Primitives
 open Softellect.Messaging.Proxy
 open Softellect.Messaging.ServiceProxy
 
-open ClmSys.ClmWorker
+//open ClmSys.ClmWorker
 open Primitives.VersionInfo
-open ClmSys.Logging
+//open ClmSys.Logging
 open ClmSys.ClmErrors
-open MessagingServiceInfo.ServiceInfo
-open ServiceProxy.MsgServiceProxy
+//open MessagingServiceInfo.ServiceInfo
+//open ServiceProxy.MsgServiceProxy
 open ClmSys.ContGenPrimitives
-open ClmSys.PartitionerPrimitives
+//open ClmSys.PartitionerPrimitives
 open ClmSys.ContGenData
 open DbData.Configuration
 open ContGenServiceInfo.ServiceInfo
-open ServiceProxy.ModelRunnerProxy
+//open ServiceProxy.ModelRunnerProxy
 
 module SvcCommandLine =
 
-    type ContGenServiceData =
-        {
-            modelRunnerData : ModelRunnerDataWithProxy
-            contGenServiceAccessInfo : ContGenServiceAccessInfo
-        }
+    //type ContGenServiceData =
+    //    {
+    //        modelRunnerData : ModelRunnerDataWithProxy
+    //        contGenServiceAccessInfo : ContGenServiceAccessInfo
+    //    }
 
 
     [<CliPrefix(CliPrefix.Dash)>]

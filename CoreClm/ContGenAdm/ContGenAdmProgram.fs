@@ -1,8 +1,8 @@
 ﻿open Argu
 open ContGenAdm.AdmCommandLine
 open ContGenAdm.ContGenAdmTasks
-open ClmSys.ExitErrorCodes
-open ClmSys.Logging
+//open ClmSys.ExitErrorCodes
+//open ClmSys.Logging
 open Softellect.Sys.ExitErrorCodes
 
 [<EntryPoint>]
@@ -13,7 +13,7 @@ let main argv =
 
         match results |> ContGenAdmTask.tryCreate with
         | Some task ->
-            task.run Logger.defaultValue |> ignore
+            task.run() |> ignore
             CompletedSuccessfully
         | None ->
             printfn $"%s{parser.PrintUsage()}"

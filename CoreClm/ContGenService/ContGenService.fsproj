@@ -40,10 +40,6 @@
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="ContGenCommandLine.fs" />
-    <Compile Include="ContGenServiceTasks.fs" />
-    <Compile Include="ContGenWcfService.fs" />
-    <Compile Include="ContGenWorker.fs" />
     <Compile Include="ContGenProgram.fs" />
   </ItemGroup>
 

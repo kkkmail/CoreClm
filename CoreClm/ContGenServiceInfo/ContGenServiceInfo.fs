@@ -235,39 +235,39 @@ module ServiceInfo =
             ]
 
 
-    type ContGenSettings
-        with
+    //type ContGenSettings
+    //    with
 
-        member w.trySaveSettings() =
-            //let toErr e = e |> SettingExn |> Error
-            //
-            //match w.isValid(), AppSettingsProvider.tryCreate AppSettingsFile with
-            //| Ok(), Ok provider ->
-            //    try
-            //        updateContGenSettings provider w.contGenSvcInfo w.contGenCommType
-            //        updateMessagingSettings provider w.messagingSvcInfo w.messagingCommType
-            //
-            //        provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
-            //        provider.trySet resultLocationKey w.contGenInfo.resultLocation |> ignore
-            //        provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
-            //        provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
-            //        provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
-            //
-            //        provider.trySet minUsefulEe w.contGenInfo.controlData.minUsefulEe.value |> ignore
-            //        provider.trySet absoluteTolerance w.contGenInfo.controlData.absoluteTolerance.value |> ignore
-            //        provider.trySet noOfProgressPointsKey w.contGenInfo.controlData.noOfProgressPoints |> ignore
-            //
-            //        w.contGenInfo.controlData.earlyExitParamOpt
-            //        |> Option.defaultValue EarlyExitParam.defaultValue
-            //        |> provider.trySetEarlyExitParam
-            //        |> ignore
-            //
-            //        provider.trySave() |> Rop.bindError toErr
-            //    with
-            //    | e -> toErr e
-            //| Error e, _ -> Error e
-            //| _, Error e -> toErr e
-            failwith "trySaveSettings is not implemeted yet."
+    //    member w.trySaveSettings() =
+    //        //let toErr e = e |> SettingExn |> Error
+    //        //
+    //        //match w.isValid(), AppSettingsProvider.tryCreate AppSettingsFile with
+    //        //| Ok(), Ok provider ->
+    //        //    try
+    //        //        updateContGenSettings provider w.contGenSvcInfo w.contGenCommType
+    //        //        updateMessagingSettings provider w.messagingSvcInfo w.messagingCommType
+    //        //
+    //        //        provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
+    //        //        provider.trySet resultLocationKey w.contGenInfo.resultLocation |> ignore
+    //        //        provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
+    //        //        provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
+    //        //        provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
+    //        //
+    //        //        provider.trySet minUsefulEe w.contGenInfo.controlData.minUsefulEe.value |> ignore
+    //        //        provider.trySet absoluteTolerance w.contGenInfo.controlData.absoluteTolerance.value |> ignore
+    //        //        provider.trySet noOfProgressPointsKey w.contGenInfo.controlData.noOfProgressPoints |> ignore
+    //        //
+    //        //        w.contGenInfo.controlData.earlyExitParamOpt
+    //        //        |> Option.defaultValue EarlyExitParam.defaultValue
+    //        //        |> provider.trySetEarlyExitParam
+    //        //        |> ignore
+    //        //
+    //        //        provider.trySave() |> Rop.bindError toErr
+    //        //    with
+    //        //    | e -> toErr e
+    //        //| Error e, _ -> Error e
+    //        //| _, Error e -> toErr e
+    //        failwith "trySaveSettings is not implemeted yet."
 
 
     //type AppSettingsProviderResult = Result<AppSettingsProvider, exn>
@@ -486,13 +486,14 @@ module ServiceInfo =
 
 
     let saveContGenSettings loadSettings tryGetSaveSettings =
-        let (w : ContGenSettings) = loadSettings()
+        //let (w : ContGenSettings) = loadSettings()
 
-        let r =
-            match tryGetSaveSettings() with
-            | Some() -> w.trySaveSettings()
-            | None -> Ok()
+        //let r =
+        //    match tryGetSaveSettings() with
+        //    | Some() -> w.trySaveSettings()
+        //    | None -> Ok()
 
-        match r with
-        | Ok() -> printfn "Successfully saved settings."
-        | Error e -> printfn $"Error occurred trying to save settings: %A{e}."
+        //match r with
+        //| Ok() -> printfn "Successfully saved settings."
+        //| Error e -> printfn $"Error occurred trying to save settings: %A{e}."
+        failwith "saveContGenSettings is not implemented yet."

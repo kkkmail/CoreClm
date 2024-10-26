@@ -33,7 +33,7 @@ module ContGenData =
 
     type ContGenInfo =
         {
-            partitionerId : PartitionerId
+            //partitionerId : PartitionerId
             resultLocation : string
             lastAllowedNodeErr : LastAllowedNodeErr
             collisionData : CollisionData
@@ -42,35 +42,35 @@ module ContGenData =
         }
 
 
-    type ContGenSettings =
-        {
-            contGenInfo : ContGenInfo
-            contGenSvcInfo : ContGenServiceAccessInfo
-            contGenCommType : WcfCommunicationType
-            messagingSvcInfo : MessagingServiceAccessInfo
-            messagingCommType : WcfCommunicationType
-        }
+    //type ContGenSettings =
+    //    {
+    //        contGenInfo : ContGenInfo
+    //        contGenSvcInfo : ContGenServiceAccessInfo
+    //        contGenCommType : WcfCommunicationType
+    //        messagingSvcInfo : MessagingServiceAccessInfo
+    //        messagingCommType : WcfCommunicationType
+    //    }
 
-        member c.messagingClientAccessInfo =
-            {
-                msgClientId = c.contGenInfo.partitionerId.messagingClientId
-                msgSvcAccessInfo = c.messagingSvcInfo
-            }
+    //    member c.messagingClientAccessInfo =
+    //        {
+    //            msgClientId = c.contGenInfo.partitionerId.messagingClientId
+    //            msgSvcAccessInfo = c.messagingSvcInfo
+    //        }
 
-        member w.isValid() =
-            let r =
-                [
-                    //w.contGenSvcInfo.contGenServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.contGenSvcInfo.contGenServiceAddress
-                    //w.contGenSvcInfo.contGenServicePort.value.value > 0, sprintf "%A is invalid" w.contGenSvcInfo.contGenServicePort
+    //    member w.isValid() =
+    //        let r =
+    //            [
+    //                //w.contGenSvcInfo.contGenServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.contGenSvcInfo.contGenServiceAddress
+    //                //w.contGenSvcInfo.contGenServicePort.value.value > 0, sprintf "%A is invalid" w.contGenSvcInfo.contGenServicePort
 
-                    //w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
-                    //w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
+    //                //w.messagingSvcInfo.messagingServiceAddress.value.value <> EmptyString, sprintf "%A is invalid" w.messagingSvcInfo.messagingServiceAddress
+    //                //w.messagingSvcInfo.messagingServicePort.value.value > 0, sprintf "%A is invalid" w.messagingSvcInfo.messagingServicePort
 
-                    w.contGenInfo.partitionerId.value <> Guid.Empty, $"%A{w.contGenInfo.partitionerId} is invalid"
-                    w.contGenInfo.lastAllowedNodeErr.value > 0<minute>, $"%A{w.contGenInfo.lastAllowedNodeErr} is invalid"
-                ]
-                |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
+    //                w.contGenInfo.partitionerId.value <> Guid.Empty, $"%A{w.contGenInfo.partitionerId} is invalid"
+    //                w.contGenInfo.lastAllowedNodeErr.value > 0<minute>, $"%A{w.contGenInfo.lastAllowedNodeErr} is invalid"
+    //            ]
+    //            |> List.fold(fun acc r -> combine acc r) (true, EmptyString)
 
-            match r with
-            | true, _ -> Ok()
-            | false, s -> s |> InvalidSettings |> Error
+    //        match r with
+    //        | true, _ -> Ok()
+    //        | false, s -> s |> InvalidSettings |> Error

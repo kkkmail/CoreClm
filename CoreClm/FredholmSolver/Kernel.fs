@@ -7,6 +7,7 @@ open FredholmSolver.Primitives
 //open Primitives.GeneralData
 open Softellect.Sys.Primitives
 open Softellect.Sys.Wolfram
+open Softellect.Sys.Core
 
 module Kernel =
 
