@@ -1,5 +1,7 @@
 ﻿namespace Clm
 
+open Softellect.DistributedProcessing.Primitives.Common
+
 //open Primitives.SolverPrimitives
 
 #nowarn "9"
@@ -528,6 +530,7 @@ module CalculationData =
 
         member md.getTotalSubst x = x |> makeNonNegative |> calculateTotalSubst md.totalSubst
         member md.getTotals x = x |> makeNonNegative |> calculateTotals md.totals
+        member md.derivativeCalculator = DerivativeCalculator.FullArray (fun _ x -> md.getDerivative x)
 
         static member createTotalSubst (si : SubstInfo) =
             si.allSubst

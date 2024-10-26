@@ -4,8 +4,13 @@ open ClmSys.SolverRunnerPrimitives
 open Clm.CalculationData
 open ModelParams
 open ClmSys.ContGenPrimitives
+open Softellect.DistributedProcessing.Primitives.Common
 
 module ClmData =
+
+    /// Treat all values of u less than this as zero.
+    let correctionValue = 1.0e-12
+
 
     /// That's 'I in the type signature.
     type ClmInitialData =
@@ -19,8 +24,25 @@ module ClmData =
     /// That's 'D in the type signature.
     type ClmSolverContext =
         {
-            b : int
+            derivativeCalculator : DerivativeCalculator
+            evolutionTime : EvolutionTime
+            initialValues : double[]
+            // Add information about chartLabels.
         }
+
+        member d.inputParams =
+            {
+                startTime = EvolutionTime 0m
+                endTime = d.evolutionTime
+            }
+
+        member d.odeContext =
+            {
+                stepSize = 0.0
+                absoluteTolerance = AbsoluteTolerance.defaultValue
+                odeSolverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative correctionValue)
+                derivative = d.derivativeCalculator
+            }
 
 
     /// That's 'P in the type signature.

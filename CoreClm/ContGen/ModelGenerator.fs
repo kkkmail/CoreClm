@@ -20,12 +20,14 @@ open DbData.DatabaseTypesClm
 //open ClmSys.Logging
 //open ClmSys.TimerEvents
 open Clm.ClmData
+open Clm.ModelInit
 
 open Softellect.DistributedProcessing.ModelGenerator.Program
 open Softellect.DistributedProcessing.Proxy.ModelGenerator
 open Softellect.Sys.ExitErrorCodes
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.Sys.Logging
+open Clm.Distributions
 
 module ModelGenerator =
 
@@ -65,16 +67,19 @@ module ModelGenerator =
                     let inputParams =
                         {
                             startTime = EvolutionTime.defaultValue
-                            endTime = failwith "inputParams.endTime is not implemented yet"
+                            endTime = p.tEnd |> decimal |> EvolutionTime
                         }
 
-                    let outputParams =
+                    let outputParams = SolverOutputParams.defaultValue
+                    let modelDataParamsWithExtraData = modelData.modelData.getModelDataParamsWithExtraData()
+                    let rnd = RandomValueGetter.create modelData.seedValue
+
+                    let generateModelContext i =
                         {
-                            noOfOutputPoints = defaultNoOfOutputPoints
-                            noOfProgressPoints = defaultNoOfProgressPoints
+                            derivativeCalculator = modelData.modelData.modelBinaryData.calculationData.derivativeCalculator
+                            evolutionTime = inputParams.endTime
+                            initialValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData p.useAbundant) (double p.y0)
                         }
-
-                    let generateModelContext i = failwith "generateModelContext is not implemented yet."
 
                     let proxy :  UserProxy<ClmInitialData, ClmSolverContext> =
                         {
