@@ -12,6 +12,7 @@ open FredholmSolver.PoissonSolver
 open Xunit
 open Xunit.Abstractions
 open FredholmSolverTests.PoissonTestData
+open Softellect.DistributedProcessing.Proxy.ModelGenerator
 
 /// Naming conventions (all must be specified unless noted otherwise).
 /// All numbers smaller than 1 are prefixed with a relevant letter, e.g. k0 = 0.01 becomes k01.
@@ -1008,3 +1009,16 @@ type PoissonTests (output : ITestOutputHelper) =
         Async.Parallel tests
         |> Async.RunSynchronously
         |> ignore
+
+
+    [<Fact>]
+    member t.generateModel_shouldWork() : unit =
+        let mp = mp_d100k10e01g01i1
+        let noOfEpochs = NoOfEpochs 10_000
+        let p = PoissonParam.defaultValue mp noOfEpochs "mp_d100k10e01g01i1_generateModel_shouldWork"
+        let i = p.initialData
+        let systemProxy = ModelGeneratorSystemProxy.create()
+        let result = poissonModelGenerator systemProxy i
+        writeLine $"result: '%A{result}'."
+
+        ()

@@ -12,10 +12,12 @@ open FredholmSolver.EeInfIntModel
 open FredholmSolver.EeInfChartData
 //open Primitives.WolframPrimitives
 open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.DistributedProcessing.Proxy.ModelGenerator
 open Softellect.DistributedProcessing.SolverRunner.Primitives
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Sys.Wolfram
+open Softellect.DistributedProcessing.ModelGenerator.Program
 
 module PoissonSolver =
 
@@ -32,43 +34,55 @@ module PoissonSolver =
             noOfFrames : int option
             duration : int // Clip duration in seconds.
             name : string
-            outputFolder : string
-            dataFolder : string
-            odePackChartSupportFolder : string
+            outputFolder : FolderName
+            dataFolder : FolderName
+            odePackChartSupportFolder : FolderName
         }
+
+
+    /// That's 'I in the type signature.
+    type PoissonInitialData =
+        {
+            intModelParams : EeInfIntModelParams
+            evolutionParam : PoissonEvolutionParam
+        }
+
+        member p.fullName = p.evolutionParam.name
 
 
     type PoissonParam =
         {
             runQueueId : RunQueueId
-            intModelParams : EeInfIntModelParams
-            evolutionParam : PoissonEvolutionParam
+            initialData : PoissonInitialData
         }
 
         static member defaultValue mp n name =
             {
                 runQueueId = RunQueueId.getNewId()
-                intModelParams = mp
-                evolutionParam =
+                initialData =
                     {
-                        noOfEpochs = n
-                        noOfCharts = Some 20
-                        maxChartPoints = 100_000
-                        noOfFrames = Some 2_000
-                        duration = 50
-                        name = name
-                        outputFolder = @"C:\EeInf"
-                        dataFolder = @"C:\EeInf\Data"
-                        odePackChartSupportFolder = @"C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m" // Need \\ for Wolfram.
+                        intModelParams = mp
+                        evolutionParam =
+                            {
+                                noOfEpochs = n
+                                noOfCharts = Some 20
+                                maxChartPoints = 100_000
+                                noOfFrames = Some 2_000
+                                duration = 50
+                                name = name
+                                outputFolder = FolderName @"C:\EeInf"
+                                dataFolder = FolderName @"C:\EeInf\Data"
+                                odePackChartSupportFolder = FolderName @"C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m" // Need \\ for Wolfram.
+                            }
                     }
             }
 
         member p.modelString =
-            let a = p.intModelParams.modelString
-            let b = p.evolutionParam.noOfEpochs.value |> int64 |> toModelStringInt64 0L |> Option.defaultValue EmptyString
+            let a = p.initialData.intModelParams.modelString
+            let b = p.initialData.evolutionParam.noOfEpochs.value |> int64 |> toModelStringInt64 0L |> Option.defaultValue EmptyString
             $"{a}_{b}"
 
-        member p.fullName = p.evolutionParam.name // |> Option.defaultValue $"{p.runQueueId}"
+        member p.fullName = p.initialData.fullName
 
 
     let createModel (mp : EeInfIntModelParams) name =
@@ -191,7 +205,7 @@ module PoissonSolver =
 
     let outputFrameData (model : EeInfIntModel) (p : PoissonParam) (substanceData : SubstanceIntData) i =
         let name = model.intModelParams.eeInfModelParams.name
-        let wolframFileName = $@"{p.evolutionParam.dataFolder}\{(getNamePrefix name)}{i:D8}.m"
+        let wolframFileName = $@"{p.initialData.evolutionParam.dataFolder}\{(getNamePrefix name)}{i:D8}.m"
         let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
         let norm = 100.0 / (double totalMolecules) // Use values in %.
         let eta = model.kernelData.domain2D.eeDomain.points.value
@@ -217,14 +231,6 @@ module PoissonSolver =
         |> ignore
 
 
-    /// That's 'I in the type signature.
-    type PoissonInitialData =
-        {
-            intModelParams : EeInfIntModelParams
-            evolutionParam : PoissonEvolutionParam
-        }
-
-
     /// That's 'D in the type signature.
     type PoissonSolverData =
         {
@@ -232,7 +238,7 @@ module PoissonSolver =
             model : EeInfIntModel
         }
 
-        member p.getInitialData() = failwith ""
+        member p.getInitialData() = p.model.intInitialValues
         member p.fullName = p.initialData.evolutionParam.name
 
 
@@ -254,6 +260,41 @@ module PoissonSolver =
             d : int
         }
 
+
+    let createPoissonSolverData (i : PoissonInitialData) : PoissonSolverData =
+        {
+            initialData = i
+            model = createModel i.intModelParams i.fullName
+        }
+
+
+    let poissonModelGenerator systemProxy (i : PoissonInitialData) =
+        // let systemProxy = ModelGeneratorSystemProxy.create()
+
+        let userProxy =
+            {
+                getInitialData = fun () -> i
+                generateModelData = createPoissonSolverData
+
+                getSolverInputParams = fun _ ->
+                    {
+                        startTime = EvolutionTime.defaultValue
+                        endTime = i.evolutionParam.noOfEpochs.value |> decimal |> EvolutionTime
+                    }
+
+                getSolverOutputParams = fun _ ->
+                    {
+                        noOfOutputPoints = 2000
+                        noOfProgressPoints = 100
+                        noOfChartDetailedPoints = i.evolutionParam.noOfFrames
+                    }
+            }
+
+        let result = generateModel<PoissonInitialData, PoissonSolverData> systemProxy poissonSolverId userProxy
+        printfn $"result: '%A{result}'."
+        result
+
+
     let poissonSolverRunner (p : PoissonSolverData) =
         let noOfEpochs = p.initialData.evolutionParam.noOfEpochs.value
         let psCount = p.initialData.intModelParams.eeInfModelParams.kernelParams.domainIntervals.value + 1
@@ -272,19 +313,19 @@ module PoissonSolver =
 
 
     let runPoissonEvolution writeLine (p : PoissonParam) =
-        let model = createModel p.intModelParams p.fullName
-        let noOfEpochs = p.evolutionParam.noOfEpochs.value
+        let model = createModel p.initialData.intModelParams p.fullName
+        let noOfEpochs = p.initialData.evolutionParam.noOfEpochs.value
         let progressFreq = noOfEpochs / 100
         let initialValue = model.intInitialValues
         let startInv = model.invariant initialValue
         let startStat = calculateIntStat model initialValue
-        let psCount = p.intModelParams.eeInfModelParams.kernelParams.domainIntervals.value + 1
-        let ps = Random p.intModelParams.intInitParams.seedValue |> PoissonSampler.createMultiSampler psCount
-        let chartMod = p.evolutionParam.noOfCharts |> Option.bind (fun v -> noOfEpochs / v |> Some)
-        let frameMod = p.evolutionParam.noOfFrames |> Option.bind (fun v ->  max (noOfEpochs / v) 1 |> Some)
-        let chartFrequency = if noOfEpochs <= p.evolutionParam.maxChartPoints then 1 else noOfEpochs / p.evolutionParam.maxChartPoints
+        let psCount = p.initialData.intModelParams.eeInfModelParams.kernelParams.domainIntervals.value + 1
+        let ps = Random p.initialData.intModelParams.intInitParams.seedValue |> PoissonSampler.createMultiSampler psCount
+        let chartMod = p.initialData.evolutionParam.noOfCharts |> Option.bind (fun v -> noOfEpochs / v |> Some)
+        let frameMod = p.initialData.evolutionParam.noOfFrames |> Option.bind (fun v ->  max (noOfEpochs / v) 1 |> Some)
+        let chartFrequency = if noOfEpochs <= p.initialData.evolutionParam.maxChartPoints then 1 else noOfEpochs / p.initialData.evolutionParam.maxChartPoints
 
-        let chartInitData = getChartInitData model p.evolutionParam.noOfEpochs
+        let chartInitData = getChartInitData model p.initialData.evolutionParam.noOfEpochs
         let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData) :> IAsyncUpdater<ChartSliceIntData, ChartIntData>
         let getChartSliceData = getChartSliceData model noOfEpochs chartMod
         let outputFrameData = outputFrameData model p
@@ -308,19 +349,19 @@ module PoissonSolver =
         let chartData = chartDataUpdater.getContent()
         chartData |> outputChart
 
-        let wolframFileName = $@"{p.evolutionParam.outputFolder}\{p.fullName}.m"
-        let wolframData = toWolframData model p.evolutionParam result chartData
+        let wolframFileName = $@"{p.initialData.evolutionParam.outputFolder}\{p.fullName}.m"
+        let wolframData = toWolframData model p.initialData.evolutionParam result chartData
         File.WriteAllText(wolframFileName, wolframData)
 
-        let wolframAnimationFileName = $@"{p.evolutionParam.outputFolder}\{getNamePrefix p.fullName}animation.m"
-        let wolframAnimationData = toWolframAnimation p.fullName p.evolutionParam.duration
+        let wolframAnimationFileName = $@"{p.initialData.evolutionParam.outputFolder}\{getNamePrefix p.fullName}animation.m"
+        let wolframAnimationData = toWolframAnimation p.fullName p.initialData.evolutionParam.duration
         File.WriteAllText(wolframAnimationFileName, wolframAnimationData)
 
         let elapsedTime = sw.Elapsed
         let formattedTime = $"%02d{elapsedTime.Days} %02d{elapsedTime.Hours}:%02d{elapsedTime.Minutes}:%02d{elapsedTime.Seconds}"
         writeLine $"Elapsed Time: {formattedTime}."
 
-        writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {p.intModelParams.eeInfModelParams.kernelParams.domainIntervals}"
+        writeLine $"noOfEpochs = {noOfEpochs}, noOfDomainPoints = {p.initialData.intModelParams.eeInfModelParams.kernelParams.domainIntervals}"
         writeLine $"startInv = {startInv}, endInv = {endInv}"
         writeLine $"start: food = {startStat.food}, waste = {startStat.waste}, u = {startStat.total}"
         writeLine $"start: ee mean = {startStat.eeStatData.mean}, ee stdDev = {startStat.eeStatData.stdDev}, inf mean = {startStat.infStatData.mean}, inf stdDev = {startStat.infStatData.stdDev}"
