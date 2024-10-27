@@ -89,7 +89,8 @@ module ModelGenerator =
                             getSolverOutputParams = fun _ -> outputParams
                         }
 
-                    let result = generateModel<ClmInitialData, ClmSolverContext> clmSolverId proxy
+                    let systemProxy = SystemProxy.create()
+                    let result = generateModel<ClmInitialData, ClmSolverContext> systemProxy clmSolverId proxy
                     printfn $"result: '%A{result}'."
 
                 let r =

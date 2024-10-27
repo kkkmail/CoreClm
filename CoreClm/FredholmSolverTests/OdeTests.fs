@@ -51,17 +51,28 @@ type CallBackResults =
         }
 
 
+type OdeTestData =
+    {
+        startTime : EvolutionTime
+        endTime : EvolutionTime
+        stepSize : double
+        absoluteTolerance : AbsoluteTolerance
+        odeSolverType : OdeSolverType
+    }
+
+
 type OdeResultData =
     {
         modelData : EeInfDiffModel
         callBackResults : CallBackResults
-        result : CallBackData
+        //result : CallBackData
+        x : double[]
         getData : double[] -> SubstanceData
         invStart : double
         chartData : ChartDiffData
     }
 
-    member r.toWolframData (odeParams : OdeParams) =
+    member r.toWolframData (odeParams : OdeTestData) =
         let a = $"""Get["C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m"];{Nl}{Nl}"""
         let b = $"""plotAll[1];{Nl}"""
         let d = r.modelData.diffModelParams |> toOutputString |> toWolframNotation
@@ -77,7 +88,7 @@ type OdeResultData =
         let k0Data = $"k0 = {(toWolframNotation k0)};{Nl}{Nl}"
         let gamma0Data = $"gamma0 = {(toWolframNotation gamma0)};{Nl}{Nl}"
 
-        let substanceData = r.getData r.result.x
+        let substanceData = r.getData r.x
         let u = substanceData.protocell.toMatrix().value
         let uData = $"uData = {(toWolframNotation u)};{Nl}{Nl}"
         let ka = r.modelData.kernelData.ka.value.value |> Array.map (fun a -> a |> Array.map (fun b -> b / k0))
@@ -137,6 +148,40 @@ type OdeResultData =
         $"{a}{descr}{k0Data}{gamma0Data}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartData}{uDataT}{b}"
 
 
+type OdeTestInitialData =
+    {
+        x : int
+    }
+
+
+type OdeTestContext =
+    {
+        derivativeCalculator : DerivativeCalculator
+        evolutionTime : EvolutionTime
+        initialValues : double[]
+    }
+
+
+    member d.inputParams =
+        {
+            startTime = EvolutionTime 0m
+            endTime = d.evolutionTime
+        }
+
+    member d.odeContext =
+        {
+            stepSize = 0.0
+            absoluteTolerance = AbsoluteTolerance.defaultValue
+            odeSolverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative 1.0e-12)
+            derivative = d.derivativeCalculator
+        }
+
+type OdeTestProgressData =
+    {
+        x : int
+    }
+
+
 type OdeTests (output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s
     let nullString : string = null
@@ -146,18 +191,13 @@ type OdeTests (output : ITestOutputHelper) =
     /// Treat all values of u less than this as zero.
     let correctionValue = 1.0e-12
 
-    let op_default =
+    let op_default : OdeTestData =
         {
             startTime = 0.0m |> EvolutionTime
             endTime = 10.0m |> EvolutionTime
-        }
-
-    let odeParams =
-        {
             stepSize = 1.0e-3
             absoluteTolerance = AbsoluteTolerance.defaultValue
             odeSolverType = OdePack (Bdf, ChordWithDiagonalJacobian, UseNonNegative correctionValue)
-            derivative = failwith ""
         }
 
     let outputParams =
@@ -187,25 +227,25 @@ type OdeTests (output : ITestOutputHelper) =
         writeLine $"{Nl}===================================================================================={Nl}{Nl}"
 
 
-    let outputEeInfModelData (data : EeInfDiffModelParams) (odeParams : OdeParams) =
-        writeLine $"data:{Nl}{(toOutputString data)}{Nl}"
-        writeLine $"odeParams:{Nl}{(toOutputString odeParams)}"
-
-
-    let outputResult md d (v : SubstanceData) r =
-        let sd = calculateDiffStat md v
-
-        let s = $"t: {d.t}, call count: {d.progressData.callCount}, " +
-                $"progress: {d.progressData.progress}, " +
-                $"inv: {sd.invariant}, total: {sd.total}, " +
-                $"mean: {(sd.eeStatData.mean, sd.infStatData.mean)}, stdDev: {(sd.eeStatData.stdDev, sd.infStatData.stdDev)}.{Nl}"
-
-        writeLine s
-
-        if r
-        then
-            writeLine "u data:"
-            v.protocell.toMatrix() |> outputMatrix md.kernelData.domain2D
+    // let outputEeInfModelData (data : EeInfDiffModelParams) (odeParams : OdeParams) =
+    //     writeLine $"data:{Nl}{(toOutputString data)}{Nl}"
+    //     writeLine $"odeParams:{Nl}{(toOutputString odeParams)}"
+    //
+    //
+    // let outputResult md d (v : SubstanceData) r =
+    //     let sd = calculateDiffStat md v
+    //
+    //     let s = $"t: {d.t}, call count: {d.progressData.callCount}, " +
+    //             $"progress: {d.progressData.progress}, " +
+    //             $"inv: {sd.invariant}, total: {sd.total}, " +
+    //             $"mean: {(sd.eeStatData.mean, sd.infStatData.mean)}, stdDev: {(sd.eeStatData.stdDev, sd.infStatData.stdDev)}.{Nl}"
+    //
+    //     writeLine s
+    //
+    //     if r
+    //     then
+    //         writeLine "u data:"
+    //         v.protocell.toMatrix() |> outputMatrix md.kernelData.domain2D
 
 
     let outputKa (md : EeInfDiffModel) =
@@ -238,66 +278,66 @@ type OdeTests (output : ITestOutputHelper) =
         plotter.uChart()
 
 
-    let outputWolframData odeParams name (d : OdeResultData) =
+    let outputWolframData (odeParams : OdeTestData) name (d : OdeResultData) =
         let wolframFileName = $@"{outputFolder}\{name}.m"
 
         let wolframData = d.toWolframData odeParams
         File.WriteAllText(wolframFileName, wolframData)
 
 
-    let nSolveParam p odeParams =
-        let md = EeInfDiffModel.create p
-        let i = md.diffInitialValues
-        // let f t v = outputResult md t v
-        let f t v = ()
-        let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
+    let nSolveParam p odeParams = failwith "nSolveParam is not implemented yet."
+        // let md = EeInfDiffModel.create p
+        // let i = md.diffInitialValues
+        // // let f t v = outputResult md t v
+        // let f t v = ()
+        // let v x = LinearData<SubstanceType, double>.create i.value.dataInfo x |> SubstanceData
+        //
+        // let n =
+        //     {
+        //         odeParams = odeParams
+        //         runQueueId = Guid() |> RunQueueId
+        //         initialValues = i.value.data
+        //         derivative = md.derivativeCalculator f i.value.dataInfo
+        //         callBackInfo =
+        //             {
+        //                 checkFreq = TimeSpan.MaxValue
+        //                 progressCallBack = ProgressCallBack (fun _ _ -> ())
+        //                 chartCallBack = ChartCallBack (fun _ _ -> ())
+        //                 chartDetailedCallBack = ChartDetailedCallBack (fun _ _ -> ())
+        //                 checkCancellation = CheckCancellation (fun _ -> None)
+        //             }
+        //
+        //         started = DateTime.Now
+        //         logger =
+        //             {
+        //                 logCrit = fun e -> writeLine $"CRIT: {DateTime.Now}, {e}."
+        //                 logError = fun e -> writeLine $"ERROR: {DateTime.Now}, {e}."
+        //                 logWarn = fun e -> writeLine $"WARN: {DateTime.Now}, {e}."
+        //                 logInfo = fun e -> writeLine $"INFO: {DateTime.Now}, {e}."
+        //                 logDebug = fun e -> writeLine $"DEBUG: {DateTime.Now}, {e}."
+        //             }
+        //     }
+        //
+        // n, v
 
-        let n =
-            {
-                odeParams = odeParams
-                runQueueId = Guid() |> RunQueueId
-                initialValues = i.value.data
-                derivative = md.derivativeCalculator f i.value.dataInfo
-                callBackInfo =
-                    {
-                        checkFreq = TimeSpan.MaxValue
-                        progressCallBack = ProgressCallBack (fun _ _ -> ())
-                        chartCallBack = ChartCallBack (fun _ _ -> ())
-                        chartDetailedCallBack = ChartDetailedCallBack (fun _ _ -> ())
-                        checkCancellation = CheckCancellation (fun _ -> None)
-                    }
 
-                started = DateTime.Now
-                logger =
-                    {
-                        logCrit = fun e -> writeLine $"CRIT: {DateTime.Now}, {e}."
-                        logError = fun e -> writeLine $"ERROR: {DateTime.Now}, {e}."
-                        logWarn = fun e -> writeLine $"WARN: {DateTime.Now}, {e}."
-                        logInfo = fun e -> writeLine $"INFO: {DateTime.Now}, {e}."
-                        logDebug = fun e -> writeLine $"DEBUG: {DateTime.Now}, {e}."
-                    }
-            }
-
-        n, v
-
-
-    let callBack cr outputResult c (d : CallBackData) =
-        match c with
-        | RegularCallBack ->
-            outputResult d
-            { cr with progressCallBackCount = cr.progressCallBackCount + 1 }
-        | FinalCallBack ct ->
-            match ct with
-            | CompletedCalculation ->
-                outputResult d
-                writeLine "CompletedCalculation."
-                { cr with completedCallBackCount = cr.completedCallBackCount + 1 }
-            | CancelledCalculation c ->
-                writeLine $"CancelledCalculation: {c}."
-
-                match c with
-                | CancelWithResults _  -> { cr with cancelledCallBackCount = cr.cancelledCallBackCount + 1 }
-                | AbortCalculation _ -> { cr with abortedCallBackCount = cr.abortedCallBackCount + 1 }
+    // let callBack cr outputResult c (d : CallBackData) =
+    //     match c with
+    //     | RegularCallBack ->
+    //         outputResult d
+    //         { cr with progressCallBackCount = cr.progressCallBackCount + 1 }
+    //     | FinalCallBack ct ->
+    //         match ct with
+    //         | CompletedCalculation ->
+    //             outputResult d
+    //             writeLine "CompletedCalculation."
+    //             { cr with completedCallBackCount = cr.completedCallBackCount + 1 }
+    //         | CancelledCalculation c ->
+    //             writeLine $"CancelledCalculation: {c}."
+    //
+    //             match c with
+    //             | CancelWithResults _  -> { cr with cancelledCallBackCount = cr.cancelledCallBackCount + 1 }
+    //             | AbortCalculation _ -> { cr with abortedCallBackCount = cr.abortedCallBackCount + 1 }
 
 
     let chartCallBack cr _ _ = { cr with chartCallBackCount = cr.chartCallBackCount + 1 }
@@ -307,111 +347,111 @@ type OdeTests (output : ITestOutputHelper) =
         { cr with chartCallBackCount = cr.chartCallBackCount + 1; chartDetailedCallBackCount = cr.chartDetailedCallBackCount + 1 }
 
 
-    let calLBackInfo n callBack charCallBack chartDetailedCallBack checkCancellation =
-        {
-            checkFreq = TimeSpan.FromMilliseconds(10.0)
-            progressCallBack = ProgressCallBack callBack
-            chartCallBack = ChartCallBack charCallBack
-            chartDetailedCallBack = ChartDetailedCallBack chartDetailedCallBack
-            checkCancellation = CheckCancellation checkCancellation
-        }
+    // let calLBackInfo n callBack charCallBack chartDetailedCallBack checkCancellation =
+    //     {
+    //         checkFreq = TimeSpan.FromMilliseconds(10.0)
+    //         progressCallBack = ProgressCallBack callBack
+    //         chartCallBack = ChartCallBack charCallBack
+    //         chartDetailedCallBack = ChartDetailedCallBack chartDetailedCallBack
+    //         checkCancellation = CheckCancellation checkCancellation
+    //     }
 
 
-    let odePackRun (p : EeInfDiffModelParams) cc odeParams =
-        let mutable cr = CallBackResults.defaultValue
-        outputEeInfModelData p odeParams
+    let odePackRun (p : EeInfDiffModelParams) cc odeParams = failwith "odePackRun is not implemented yet"
+        // let mutable cr = CallBackResults.defaultValue
+        // outputEeInfModelData p odeParams
+        //
+        // let md = EeInfDiffModel.create p
+        // let n, getData = nSolveParam p odeParams
+        // let outputResult b (d : CallBackData) = outputResult md d (getData d.x) b
+        //
+        // let callBack c d = cr <- callBack cr (outputResult false) c d
+        //
+        // let chartInitData =
+        //     {
+        //         baseData =
+        //             {
+        //                 resultId = RunQueueId.getNewId()
+        //                 modelParams = md.diffModelParams.eeInfModelParams
+        //                 domain2D = md.kernelData.domain2D
+        //             }
+        //         y0 = 0.0M
+        //         tEnd = 0.0M
+        //     }
+        //
+        // let chartDataUpdater = AsyncChartDiffDataUpdater(ChartDiffDataUpdater(), chartInitData)
+        //
+        // let getChartSliceData c b (d : CallBackData) : ChartSliceDiffData =
+        //     let g() = getData d.x
+        //
+        //     let substanceData =
+        //         match c with
+        //         | RegularCallBack ->
+        //             match b with
+        //                 | false -> None
+        //                 | true -> g() |> Some
+        //         | FinalCallBack cct ->
+        //             match cct with
+        //             | CompletedCalculation -> g() |> Some
+        //             | CancelledCalculation ct ->
+        //                 match ct with
+        //                 | AbortCalculation _ -> None
+        //                 | CancelWithResults _ -> g() |> Some
+        //     {
+        //         tChart = d.t
+        //         progressChart = d.progressData
+        //         statData = calculateDiffStat md (getData d.x)
+        //         substanceData = substanceData
+        //     }
+        //
+        // let chartCallBack c d =
+        //     // writeLine $"chartCallBack: t = {d.t}, progress = {d.progressData.progress}."
+        //     getChartSliceData c false d |> chartDataUpdater.addContent
+        //     cr <- chartCallBack cr c d
+        //
+        // let chartDetailedCallBack c d =
+        //     // writeLine $"chartDetailedCallBack: t = {d.t}, progress = {d.progressData.progress}."
+        //     getChartSliceData c true d |> chartDataUpdater.addContent
+        //     cr <- chartDetailedCallBack cr c d
+        //
+        // let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack cc
+        //
+        // let nSolveParam = { n with callBackInfo = c }
+        // let invStart = getData nSolveParam.initialValues |> md.invariant
+        // // outputKa md
+        // // outputGamma md
+        // // outputResult false { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
+        //
+        // let result = nSolve nSolveParam
+        // // outputResult true result
+        // let chartData = chartDataUpdater.getContent()
+        // chartData |> outputChart false
+        //
+        // let odeResult =
+        //     {
+        //         modelData = md
+        //         callBackResults = cr
+        //         result = result
+        //         getData = getData
+        //         invStart = invStart
+        //         chartData = chartData
+        //     }
+        //
+        // odeResult
 
-        let md = EeInfDiffModel.create p
-        let n, getData = nSolveParam p odeParams
-        let outputResult b (d : CallBackData) = outputResult md d (getData d.x) b
 
-        let callBack c d = cr <- callBack cr (outputResult false) c d
-
-        let chartInitData =
-            {
-                baseData =
-                    {
-                        resultId = RunQueueId.getNewId()
-                        modelParams = md.diffModelParams.eeInfModelParams
-                        domain2D = md.kernelData.domain2D
-                    }
-                y0 = 0.0M
-                tEnd = 0.0M
-            }
-
-        let chartDataUpdater = AsyncChartDiffDataUpdater(ChartDiffDataUpdater(), chartInitData)
-
-        let getChartSliceData c b (d : CallBackData) : ChartSliceDiffData =
-            let g() = getData d.x
-
-            let substanceData =
-                match c with
-                | RegularCallBack ->
-                    match b with
-                        | false -> None
-                        | true -> g() |> Some
-                | FinalCallBack cct ->
-                    match cct with
-                    | CompletedCalculation -> g() |> Some
-                    | CancelledCalculation ct ->
-                        match ct with
-                        | AbortCalculation _ -> None
-                        | CancelWithResults _ -> g() |> Some
-            {
-                tChart = d.t
-                progressChart = d.progressData
-                statData = calculateDiffStat md (getData d.x)
-                substanceData = substanceData
-            }
-
-        let chartCallBack c d =
-            // writeLine $"chartCallBack: t = {d.t}, progress = {d.progressData.progress}."
-            getChartSliceData c false d |> chartDataUpdater.addContent
-            cr <- chartCallBack cr c d
-
-        let chartDetailedCallBack c d =
-            // writeLine $"chartDetailedCallBack: t = {d.t}, progress = {d.progressData.progress}."
-            getChartSliceData c true d |> chartDataUpdater.addContent
-            cr <- chartDetailedCallBack cr c d
-
-        let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack cc
-
-        let nSolveParam = { n with callBackInfo = c }
-        let invStart = getData nSolveParam.initialValues |> md.invariant
-        // outputKa md
-        // outputGamma md
-        // outputResult false { progressData = ProgressData.defaultValue; t = nSolveParam.odeParams.startTime; x = nSolveParam.initialValues }
-
-        let result = nSolve nSolveParam
-        // outputResult true result
-        let chartData = chartDataUpdater.getContent()
-        chartData |> outputChart false
-
-        let odeResult =
-            {
-                modelData = md
-                callBackResults = cr
-                result = result
-                getData = getData
-                invStart = invStart
-                chartData = chartData
-            }
-
-        odeResult
-
-
-    let odePackShouldRun (p : EeInfDiffModelParams) odeParams shift name =
+    let odePackShouldRun (p : EeInfDiffModelParams) (odeParams : OdeTestData) shift name =
         let eeInfDiffModelParams = { p.named name with diffInitParams = p.diffInitParams.shifted shift }
         let r = odePackRun eeInfDiffModelParams (fun _ -> None) odeParams
 
         outputWolframData odeParams name r
 
-        let v = r.getData r.result.x
+        let v = r.getData r.x
         let inv_tEnd = r.modelData.invariant v
         let diff = (inv_tEnd - r.invStart) / r.invStart
 
         use _ = new AssertionScope()
-        r.result.Should().NotBeNull(nullString) |> ignore
+        // r.result.Should().NotBeNull(nullString) |> ignore
         diff.Should().BeApproximately(0.0, errInvTolerance, nullString) |> ignore
 
     /// All flat - to study "diffusion".
@@ -614,62 +654,62 @@ type OdeTests (output : ITestOutputHelper) =
         let r = odePackRun (EeInfDiffModelParams.defaultValue.named name) (fun _ -> None) op_default
 
         use _ = new AssertionScope()
-        r.result.Should().NotBeNull(nullString) |> ignore
+        // r.result.Should().NotBeNull(nullString) |> ignore
         r.callBackResults.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
         r.callBackResults.completedCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
         r.callBackResults.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
         r.callBackResults.chartCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
 
     [<Fact>]
-    member t.odePack_ShouldCancel () : unit =
-        let mutable cr = CallBackResults.defaultValue
-
-        let md = EeInfDiffModelParams.defaultValue.named (t.getCallerName())
-        let model = EeInfDiffModel.create md
-        //let r = odePackRun md (fun _ -> None) defaultOdeParams
-
-        let n, getData = nSolveParam md op_default
-        let outputResult b d = outputResult model d (getData d.x) b
-
-        let callBack c d = cr <- callBack cr (outputResult false) c d
-        let chartCallBack c d = cr <- chartCallBack cr c d
-        let chartDetailedCallBack c d = cr <- chartDetailedCallBack cr c d
-        let checkCancellation _ = CancelWithResults None |> Some
-        let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack checkCancellation
-
-        let nSolveParam = { n with callBackInfo = c }
-
-        use _ = new AssertionScope()
-        FluentActions.Invoking(fun () -> nSolve nSolveParam |> ignore).Should().Throw<ComputationAbortedException>(nullString) |> ignore
-        cr.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
-        cr.completedCallBackCount.Should().Be(0, nullString) |> ignore
-        cr.cancelledCallBackCount.Should().Be(1, nullString) |> ignore
-        cr.abortedCallBackCount.Should().Be(0, nullString) |> ignore
+    member t.odePack_ShouldCancel () : unit = failwith "odePack_ShouldCancel is not implemented yet."
+        // let mutable cr = CallBackResults.defaultValue
+        //
+        // let md = EeInfDiffModelParams.defaultValue.named (t.getCallerName())
+        // let model = EeInfDiffModel.create md
+        // //let r = odePackRun md (fun _ -> None) defaultOdeParams
+        //
+        // let n, getData = nSolveParam md op_default
+        // let outputResult b d = outputResult model d (getData d.x) b
+        //
+        // let callBack c d = cr <- callBack cr (outputResult false) c d
+        // let chartCallBack c d = cr <- chartCallBack cr c d
+        // let chartDetailedCallBack c d = cr <- chartDetailedCallBack cr c d
+        // let checkCancellation _ = CancelWithResults None |> Some
+        // let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack checkCancellation
+        //
+        // let nSolveParam = { n with callBackInfo = c }
+        //
+        // use _ = new AssertionScope()
+        // FluentActions.Invoking(fun () -> nSolve nSolveParam |> ignore).Should().Throw<ComputationAbortedException>(nullString) |> ignore
+        // cr.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        // cr.completedCallBackCount.Should().Be(0, nullString) |> ignore
+        // cr.cancelledCallBackCount.Should().Be(1, nullString) |> ignore
+        // cr.abortedCallBackCount.Should().Be(0, nullString) |> ignore
 
     [<Fact>]
-    member _.odePack_ShouldAbort () : unit =
-        let mutable cr = CallBackResults.defaultValue
-
-        let md = EeInfDiffModelParams.defaultValue
-        let model = EeInfDiffModel.create md
-
-        let n, getData = nSolveParam md op_default
-        let outputResult b d = outputResult model d (getData d.x) b
-
-        let callBack c d = cr <- callBack cr (outputResult false) c d
-        let chartCallBack c d = cr <- chartCallBack cr c d
-        let chartDetailedCallBack c d = cr <- chartDetailedCallBack cr c d
-        let checkCancellation _ = AbortCalculation None |> Some
-        let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack checkCancellation
-
-        let nSolveParam = { n with callBackInfo = c }
-
-        use _ = new AssertionScope()
-        FluentActions.Invoking(fun () -> nSolve nSolveParam |> ignore).Should().Throw<ComputationAbortedException>(nullString) |> ignore
-        cr.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
-        cr.completedCallBackCount.Should().Be(0, nullString) |> ignore
-        cr.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
-        cr.abortedCallBackCount.Should().Be(1, nullString) |> ignore
+    member _.odePack_ShouldAbort () : unit = failwith "odePack_ShouldAbort is not implemented yet."
+        // let mutable cr = CallBackResults.defaultValue
+        //
+        // let md = EeInfDiffModelParams.defaultValue
+        // let model = EeInfDiffModel.create md
+        //
+        // let n, getData = nSolveParam md op_default
+        // let outputResult b d = outputResult model d (getData d.x) b
+        //
+        // let callBack c d = cr <- callBack cr (outputResult false) c d
+        // let chartCallBack c d = cr <- chartCallBack cr c d
+        // let chartDetailedCallBack c d = cr <- chartDetailedCallBack cr c d
+        // let checkCancellation _ = AbortCalculation None |> Some
+        // let c = calLBackInfo n callBack chartCallBack chartDetailedCallBack checkCancellation
+        //
+        // let nSolveParam = { n with callBackInfo = c }
+        //
+        // use _ = new AssertionScope()
+        // FluentActions.Invoking(fun () -> nSolve nSolveParam |> ignore).Should().Throw<ComputationAbortedException>(nullString) |> ignore
+        // cr.progressCallBackCount.Should().BeGreaterThan(0, nullString) |> ignore
+        // cr.completedCallBackCount.Should().Be(0, nullString) |> ignore
+        // cr.cancelledCallBackCount.Should().Be(0, nullString) |> ignore
+        // cr.abortedCallBackCount.Should().Be(1, nullString) |> ignore
 
     [<Fact>]
     member _.integrate_ShouldWork () : unit =
