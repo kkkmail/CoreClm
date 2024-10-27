@@ -74,23 +74,23 @@ module ModelGenerator =
                     let modelDataParamsWithExtraData = modelData.modelData.getModelDataParamsWithExtraData()
                     let rnd = RandomValueGetter.create modelData.seedValue
 
-                    let generateModelContext i =
+                    let generateModelData i =
                         {
                             derivativeCalculator = modelData.modelData.modelBinaryData.calculationData.derivativeCalculator
                             evolutionTime = inputParams.endTime
                             initialValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData p.useAbundant) (double p.y0)
                         }
 
-                    let proxy :  UserProxy<ClmInitialData, ClmSolverContext> =
+                    let proxy : ModelGeneratorUserProxy<ClmInitialData, ClmSolverData> =
                         {
                             getInitialData = fun () -> i
-                            generateModelContext = generateModelContext
+                            generateModelData = generateModelData
                             getSolverInputParams = fun _ -> inputParams
                             getSolverOutputParams = fun _ -> outputParams
                         }
 
-                    let systemProxy = SystemProxy.create()
-                    let result = generateModel<ClmInitialData, ClmSolverContext> systemProxy clmSolverId proxy
+                    let systemProxy = ModelGeneratorSystemProxy.create()
+                    let result = generateModel<ClmInitialData, ClmSolverData> systemProxy clmSolverId proxy
                     printfn $"result: '%A{result}'."
 
                 let r =

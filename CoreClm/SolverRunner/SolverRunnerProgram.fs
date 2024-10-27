@@ -50,8 +50,8 @@ module Program =
                         generateDetailedCharts = fun _ _ _ _ -> []
                     }
 
-                let getUserProxy (solverContext : ClmSolverContext) =
-                    let solverRunner = createOdeSolver solverContext.inputParams solverContext.odeContext
+                let getUserProxy (solverData : ClmSolverData) =
+                    let solverRunner = createOdeSolver solverData.inputParams solverData.odeParams
 
                     let solverProxy =
                         {
@@ -68,7 +68,7 @@ module Program =
 
                 // Call solverRunnerMain<'D, 'P, 'X, 'C>
                 printfn "Calling solverRunnerMain..."
-                solverRunnerMain<ClmSolverContext, ClmProgressData, double[], ClmChartData> clmSolverId getUserProxy argv
+                solverRunnerMain<ClmSolverData, ClmProgressData, double[], ClmChartData> clmSolverId getUserProxy argv
             with
             | e ->
                 Console.WriteLine($"Exception: %A{e}.")

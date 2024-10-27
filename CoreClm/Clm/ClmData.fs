@@ -22,7 +22,7 @@ module ClmData =
 
 
     /// That's 'D in the type signature.
-    type ClmSolverContext =
+    type ClmSolverData =
         {
             derivativeCalculator : DerivativeCalculator
             evolutionTime : EvolutionTime
@@ -36,7 +36,7 @@ module ClmData =
                 endTime = d.evolutionTime
             }
 
-        member d.odeContext =
+        member d.odeParams =
             {
                 stepSize = 0.0
                 absoluteTolerance = AbsoluteTolerance.defaultValue
