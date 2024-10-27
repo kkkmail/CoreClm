@@ -47,7 +47,7 @@ module Program =
                     {
                         getChartData = fun _ t (x : double[]) -> failwith "getChartData is not implemented yet."
                         generateCharts = fun q d _ c -> None
-                        generateDetailedCharts = fun _ _ _ _ -> []
+                        generateDetailedCharts = fun _ _ _ _ -> None
                     }
 
                 let getUserProxy (solverData : ClmSolverData) =

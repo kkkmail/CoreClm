@@ -53,6 +53,8 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Primitives", "Primitives\Pr
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "GillespieTauLeapingExample", "GillespieTauLeapingExample\GillespieTauLeapingExample.fsproj", "{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}"
 EndProject
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "PoissonSolverRunner", "PoissonSolverRunner\PoissonSolverRunner.fsproj", "{942A2E37-5F77-48A0-B97F-5CD722DE272D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -155,6 +157,10 @@ Global
 		{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}.Debug|x64.Build.0 = Debug|x64
 		{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}.Release|x64.ActiveCfg = Release|x64
 		{CB340F74-F83A-4B33-9F17-0E7A0A8D7682}.Release|x64.Build.0 = Release|x64
+		{942A2E37-5F77-48A0-B97F-5CD722DE272D}.Debug|x64.ActiveCfg = Debug|x64
+		{942A2E37-5F77-48A0-B97F-5CD722DE272D}.Debug|x64.Build.0 = Debug|x64
+		{942A2E37-5F77-48A0-B97F-5CD722DE272D}.Release|x64.ActiveCfg = Release|x64
+		{942A2E37-5F77-48A0-B97F-5CD722DE272D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

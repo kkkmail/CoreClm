@@ -11,12 +11,16 @@ open FredholmSolver
 open FredholmSolver.EeInfIntModel
 open FredholmSolver.EeInfChartData
 //open Primitives.WolframPrimitives
+open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.DistributedProcessing.SolverRunner.Primitives
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Sys.Wolfram
 
 module PoissonSolver =
 
+    let poissonSolverId = "058EFD02-ECBE-446E-BEBC-8901A6B382D0" |> Guid.Parse |> SolverId
+    let poissonSolverName = "Poisson" |> SolverName
     let getNamePrefix name = $"{name}__"
 
 
@@ -211,6 +215,61 @@ module PoissonSolver =
         |> List.rev
         |> List.map (fun e -> writeLine $"{e.epochNumber},{e.statData.food},{e.statData.waste},{e.statData.total},{e.statData.invariant},{e.statData.eeStatData.mean},{e.statData.eeStatData.stdDev},{e.statData.infStatData.mean},{e.statData.infStatData.stdDev}")
         |> ignore
+
+
+    /// That's 'I in the type signature.
+    type PoissonInitialData =
+        {
+            intModelParams : EeInfIntModelParams
+            evolutionParam : PoissonEvolutionParam
+        }
+
+
+    /// That's 'D in the type signature.
+    type PoissonSolverData =
+        {
+            initialData : PoissonInitialData
+            model : EeInfIntModel
+        }
+
+        member p.getInitialData() = failwith ""
+        member p.fullName = p.initialData.evolutionParam.name
+
+
+    /// That's 'P in the type signature.
+    type PoissonProgressData =
+        {
+            x : int
+        }
+
+        static member defaultValue =
+            {
+                x = 0
+            }
+
+
+    /// That's 'C in the type signature.
+    type PoissonChartData =
+        {
+            d : int
+        }
+
+    let poissonSolverRunner (p : PoissonSolverData) =
+        let noOfEpochs = p.initialData.evolutionParam.noOfEpochs.value
+        let psCount = p.initialData.intModelParams.eeInfModelParams.kernelParams.domainIntervals.value + 1
+        let ps = Random p.initialData.intModelParams.intInitParams.seedValue |> PoissonSampler.createMultiSampler psCount
+
+        let solve (_, x0) (tryCallBack : TryCallBack<SubstanceIntData>) =
+            let evolve e i =
+                let e1 = p.model.evolve ps e
+                tryCallBack.invoke (i |> decimal |> EvolutionTime) e1
+                e1
+
+            let result = [|for i in 0..noOfEpochs -> i |] |> Array.fold evolve x0
+            (noOfEpochs |> decimal |> EvolutionTime), result
+
+        SolverRunner solve
+
 
     let runPoissonEvolution writeLine (p : PoissonParam) =
         let model = createModel p.intModelParams p.fullName

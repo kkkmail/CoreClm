@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SolverRunner</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
@@ -17,24 +19,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.401" />
-    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="8.0.400.2" />
-    <PackageReference Include="Softellect.OdePackInterop" Version="8.0.400.1" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Primitives.fs" />
-    <Compile Include="Kernel.fs" />
-    <Compile Include="EeInfDiffModel.fs" />
-    <Compile Include="EeInfIntModel.fs" />
-    <Compile Include="EeInfChartData.fs" />
-    <Compile Include="EeInfCharts.fs" />
-    <Compile Include="PoissonSolver.fs" />
+    <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="8.0.400.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Analytics\Analytics.fsproj" />
+    <ProjectReference Include="..\FredholmSolver\FredholmSolver.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="C:\Users\kkkma\.nuget\packages\softellect.distributedprocessing.solverrunner\8.0.400.2\contentFiles\any\net8.0\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>
 
 </Project>
