@@ -2,7 +2,7 @@
 
 open System.IO
 open Plotly.NET
-open Plotly.NET.GenericChart
+//open Plotly.NET.GenericChart
 open Giraffe.ViewEngine
 open Softellect.Sys.Primitives
 
@@ -38,18 +38,18 @@ module ChartPrimitives =
                 AdditionalHeadTags = [
                     script [_src description.Heading] []
                 ],
-                Description = [
-                    h1 [] [str description.Heading]
-                    h2 [] [str description.Text]
-                    // h1 [] [str description.Text]
-                ],
+                //Description = [
+                //    h1 [] [str description.Heading]
+                //    h2 [] [str description.Text]
+                //    // h1 [] [str description.Text]
+                //],
                 PlotlyJSReference = plotlyRef
             )
 
         let result =
             gChart
             |> Chart.withDisplayOptions(displayOpts)
-            |> toEmbeddedHTML
+            |> GenericChart.toEmbeddedHTML
 
         result
 

@@ -12,18 +12,18 @@ open Softellect.DistributedProcessing.SolverRunner.OdeSolver
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 //open Wolfram.NETLink
-//open Plotly.NET
-//open Giraffe.ViewEngine
+open Plotly.NET
+open Giraffe.ViewEngine
 open Softellect.Sys.Wolfram
 open FredholmSolver.EeInfIntModel
 
 module Program =
 
-    //type ChartDescription =
-    //    {
-    //        Heading : string
-    //        Text : string
-    //    }
+    type ChartDescription =
+        {
+            Heading : string
+            Text : string
+        }
 
     //type WolframRequest =
     //    {
@@ -88,48 +88,48 @@ module Program =
     //    | ex -> Error $"An error occurred: {ex.Message}"
 
 
-    //let toDescription h t =
-    //    {
-    //        Heading = h
-    //        Text = t
-    //    }
+    let toDescription h t =
+        {
+            Heading = h
+            Text = t
+        }
 
 
-    //let toEmbeddedHtmlWithDescription (description : ChartDescription) (gChart : GenericChart) =
-    //    let plotlyRef = PlotlyJSReference.Full
+    let toEmbeddedHtmlWithDescription (description : ChartDescription) (gChart : GenericChart) =
+        let plotlyRef = PlotlyJSReference.Full
 
-    //    let displayOpts =
-    //        DisplayOptions.init(
-    //            AdditionalHeadTags = [
-    //                script [_src description.Heading] []
-    //            ],
-    //            // Description = [
-    //            //     h1 [] [str description.Heading]
-    //            //     h2 [] [str description.Text]
-    //            // ],
-    //            PlotlyJSReference = plotlyRef
-    //        )
+        let displayOpts =
+            DisplayOptions.init(
+                AdditionalHeadTags = [
+                    script [_src description.Heading] []
+                ],
+                // Description = [
+                //     h1 [] [str description.Heading]
+                //     h2 [] [str description.Text]
+                // ],
+                PlotlyJSReference = plotlyRef
+            )
 
-    //    let result =
-    //        gChart
-    //        |> Chart.withDisplayOptions(displayOpts)
-    //        |> GenericChart.toEmbeddedHTML
+        let result =
+            gChart
+            |> Chart.withDisplayOptions(displayOpts)
+            |> GenericChart.toEmbeddedHTML
 
-    //    result
-
-
-    //let toHtmlFileName (FileName fileName) =
-    //    if fileName.EndsWith(".html", StringComparison.OrdinalIgnoreCase) then fileName
-    //    else fileName + ".html"
-    //    |> FileName
+        result
 
 
-    //let getHtmlChart fileName d ch =
-    //    {
-    //        htmlContent = toEmbeddedHtmlWithDescription d ch
-    //        fileName = toHtmlFileName fileName
-    //    }
-    //    |> HtmlChart
+    let toHtmlFileName (FileName fileName) =
+        if fileName.EndsWith(".html", StringComparison.OrdinalIgnoreCase) then fileName
+        else fileName + ".html"
+        |> FileName
+
+
+    let getHtmlChart fileName d ch =
+        {
+            htmlContent = toEmbeddedHtmlWithDescription d ch
+            fileName = toHtmlFileName fileName
+        }
+        |> HtmlChart
 
 
     //let inputFolder = "C:\\\\Temp\\\\WolframInput\\\\"
@@ -208,24 +208,27 @@ module Program =
     //        None
 
 
-    //let getCharts (q : RunQueueId) (d : TestSolverData) (c : list<ChartSliceData<TestChartData>>) =
-    //    printfn $"getChart - q: '%A{q}', c.Length: '%A{c.Length}'."
+    let getCharts (q : RunQueueId) (d : PoissonSolverData) (c : list<ChartSliceData<PoissonChartData>>) =
+        printfn $"getChart - q: '%A{q}', c.Length: '%A{c.Length}'."
 
-    //    let charts =
-    //        match c |> List.tryHead with
-    //        | Some h ->
-    //            h.chartData.x
-    //            |> Array.mapi (fun i  _ -> Chart.Line(c |> List.map (fun c -> c.t, c.chartData.x[i]), Name = d.chartLabels[i]))
-    //        | None -> [||]
+        let charts =
+            match c |> List.tryHead with
+            | Some _ ->
+                [|
+                    Chart.Line(c |> List.map (fun e -> e.t, (double e.chartData.statData.food)), Name = "Food")
+                    Chart.Line(c |> List.map (fun e -> e.t, (double e.chartData.statData.waste)), Name = "Waste")
+                    Chart.Line(c |> List.map (fun e -> e.t, (double e.chartData.statData.total)), Name = "Total")
+                |]
+            | None -> [||]
 
-    //    let chart = Chart.combine charts
+        let chart = Chart.combine charts
 
-    //    [
-    //        getHtmlChart (FileName $"{q.value}") (toDescription "Heading" "Text") chart |> Some
-    //        getWolframChart q d c
-    //    ]
-    //    |> List.choose id
-    //    |> Some
+        [
+            getHtmlChart (FileName $"{d.fullName}__subst") (toDescription "Heading" "Text") chart |> Some
+            // getWolframChart q d c
+        ]
+        |> List.choose id
+        |> Some
 
 
     [<EntryPoint>]
@@ -237,7 +240,7 @@ module Program =
                         getChartData = fun d t x ->
                             let chartMod = d.initialData.evolutionParam.noOfCharts |> Option.bind (fun v -> d.initialData.evolutionParam.noOfEpochs.value / v |> Some)
                             getChartSliceData d.model d.initialData.evolutionParam.noOfEpochs chartMod x (int t.value)
-                        generateCharts = fun q d _ c -> None //getCharts q d c
+                        generateCharts = fun q d _ c -> getCharts q d c
                         generateDetailedCharts = fun _ _ _ _ -> None
                     }
 
