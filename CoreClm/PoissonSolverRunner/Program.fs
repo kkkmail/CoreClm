@@ -232,9 +232,11 @@ module Program =
     let main argv =
         let retVal =
             try
-                let chartGenerator =
+                let chartGenerator : ChartGenerator<PoissonSolverData, SubstanceIntData, PoissonChartData> =
                     {
-                        getChartData = fun _ t x -> failwith ""
+                        getChartData = fun d t x ->
+                            let chartMod = d.initialData.evolutionParam.noOfCharts |> Option.bind (fun v -> d.initialData.evolutionParam.noOfEpochs.value / v |> Some)
+                            getChartSliceData d.model d.initialData.evolutionParam.noOfEpochs chartMod x (int t.value)
                         generateCharts = fun q d _ c -> None //getCharts q d c
                         generateDetailedCharts = fun _ _ _ _ -> None
                     }

@@ -104,7 +104,7 @@ module PoissonSolver =
         }
 
 
-    let getChartSliceData model noOfEpochs chartMod e i : ChartSliceIntData =
+    let getChartSliceData model (NoOfEpochs noOfEpochs) chartMod e i : ChartSliceIntData =
         {
             epochNumber = i
             progress = (decimal i) / (decimal noOfEpochs)
@@ -255,10 +255,7 @@ module PoissonSolver =
 
 
     /// That's 'C in the type signature.
-    type PoissonChartData =
-        {
-            d : int
-        }
+    type PoissonChartData = ChartSliceIntData
 
 
     let createPoissonSolverData (i : PoissonInitialData) : PoissonSolverData =
@@ -269,8 +266,6 @@ module PoissonSolver =
 
 
     let poissonModelGenerator systemProxy (i : PoissonInitialData) =
-        // let systemProxy = ModelGeneratorSystemProxy.create()
-
         let userProxy =
             {
                 getInitialData = fun () -> i
@@ -327,7 +322,7 @@ module PoissonSolver =
 
         let chartInitData = getChartInitData model p.initialData.evolutionParam.noOfEpochs
         let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData) :> IAsyncUpdater<ChartSliceIntData, ChartIntData>
-        let getChartSliceData = getChartSliceData model noOfEpochs chartMod
+        let getChartSliceData = getChartSliceData model (NoOfEpochs noOfEpochs) chartMod
         let outputFrameData = outputFrameData model p
         let outputChart = outputChart writeLine
         let sw = Stopwatch.StartNew()

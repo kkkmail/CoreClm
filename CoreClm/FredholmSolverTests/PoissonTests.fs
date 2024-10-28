@@ -1021,4 +1021,6 @@ type PoissonTests (output : ITestOutputHelper) =
         let result = poissonModelGenerator systemProxy i
         writeLine $"result: '%A{result}'."
 
-        ()
+        match result with
+        | Ok _ -> ()
+        | Error e -> failwith $"Error: '{e}'."
