@@ -1014,7 +1014,7 @@ type PoissonTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.generateModel_shouldWork() : unit =
         let mp = mp_d100k10e01g01i1
-        let noOfEpochs = NoOfEpochs 10_000
+        let noOfEpochs = NoOfEpochs 100_000
         let p = PoissonParam.defaultValue mp noOfEpochs "mp_d100k10e01g01i1_generateModel_shouldWork"
         let i = p.initialData
         let systemProxy = ModelGeneratorSystemProxy.create()

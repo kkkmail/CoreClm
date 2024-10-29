@@ -46,7 +46,7 @@ module Configuration =
         |> ConnectionString
 
 
-    let private getContGenConnectionStringImpl() = getConnectionString AppSettingsFile contGenConnectionStringKey ContGenConnectionStringValue
+    let private getContGenConnectionStringImpl() = getConnectionString appSettingsFile contGenConnectionStringKey ContGenConnectionStringValue
 
 
     let private contGenConnectionString = Lazy<ConnectionString>(getContGenConnectionStringImpl)
