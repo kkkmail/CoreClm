@@ -236,6 +236,7 @@ module PoissonSolver =
         {
             initialData : PoissonInitialData
             model : EeInfIntModel
+            norm : double // Use values in %.
         }
 
         member p.getInitialData() = p.model.intInitialValues
@@ -259,9 +260,12 @@ module PoissonSolver =
 
 
     let createPoissonSolverData (i : PoissonInitialData) : PoissonSolverData =
+        let model = createModel i.intModelParams i.fullName
+
         {
             initialData = i
-            model = createModel i.intModelParams i.fullName
+            model = model
+            norm = 100.0 / (double i.intModelParams.intInitParams.totalMolecules.value) // Use values in %.
         }
 
 

@@ -215,9 +215,10 @@ module Program =
             match c |> List.tryHead with
             | Some _ ->
                 [|
-                    Chart.Line(c |> List.map (fun e -> e.t, (double e.chartData.statData.food)), Name = "Food")
-                    Chart.Line(c |> List.map (fun e -> e.t, (double e.chartData.statData.waste)), Name = "Waste")
-                    Chart.Line(c |> List.map (fun e -> e.t, (double e.chartData.statData.total)), Name = "Total")
+                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.chartData.statData.invariant)), Name = "Invariant")
+                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.chartData.statData.food)), Name = "Food")
+                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.chartData.statData.waste)), Name = "Waste")
+                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.chartData.statData.total)), Name = "Total")
                 |]
             | None -> [||]
 
@@ -251,7 +252,8 @@ module Program =
                         {
                             getInitialData = _.getInitialData()
                             getProgressData = None
-                            getInvariant = fun _ _ _ -> RelativeInvariant 1.0
+                            getInvariant = fun d _ x ->
+                                (double (d.model.invariant x)) / (double d.model.intModelParams.intInitParams.totalMolecules.value) |> RelativeInvariant
                         }
 
                     {
