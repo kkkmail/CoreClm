@@ -331,8 +331,8 @@ module ServiceInfo =
 
 
     let getCollisionData (provider : AppSettingsProvider) =
-        let getPairCollision defaultValue key = (PairCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
-        let getTripleCollision defaultValue key = (TripleCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
+        let getPairCollision defaultValue key = (PairCollisionResolution.tryDeserialize, key) ||> provider.getOrDefault defaultValue
+        let getTripleCollision defaultValue key = (TripleCollisionResolution.tryDeserialize, key) ||> provider.getOrDefault defaultValue
 
         {
             sugSynthColl = getPairCollision PairCollisionResolution.defaultValue sugSynthCollKey
@@ -390,22 +390,19 @@ module ServiceInfo =
 
 
     let loadEarlyExitParam (provider : AppSettingsProvider) =
-        let getProgress key defaultValue = provider.tryGetDecimal key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
-        let getEe key defaultValue = provider.tryGetDouble key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
+        let getProgress key defaultValue = provider.getDecimalOrDefault key defaultValue
+        let getEe key defaultValue = provider.getDoubleOrDefault key defaultValue
         let d = EarlyExitParam.defaultValue
 
         {
-            earlyExitCheckFreq =
-                provider.tryGetInt earlyExitCheckFreqKey
-                |> toValueOrDefault (fun e -> TimeSpan.FromMinutes(double e) |> EarlyExitCheckFrequency) EarlyExitCheckFrequency.defaultValue
-
+            earlyExitCheckFreq = provider.getIntOrDefault earlyExitCheckFreqKey EarlyExitCheckFrequency.defaultValue.value.Minutes |> double |> TimeSpan.FromMinutes |> EarlyExitCheckFrequency
             quickProgress = getProgress quickProgressKey d.quickProgress
             quickMinEe = getEe quickMinEeKey d.quickMinEe
             standardProgress = getProgress standardProgressKey d.standardProgress
             standardMinEe = getEe standardMinEeKey d.standardMinEe
             slowProgress = getProgress slowProgressKey d.slowProgress
             slowMinEe = getEe slowMinEeKey d.slowMinEe
-            maxRunTime =provider.tryGetDouble maxRunTimeKey|> toValueOrDefault TimeSpan.FromDays d.maxRunTime
+            maxRunTime = provider.getDoubleOrDefault maxRunTimeKey d.maxRunTime.Days |> TimeSpan.FromDays
         }
 
 

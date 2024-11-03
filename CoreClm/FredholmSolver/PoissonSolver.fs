@@ -16,7 +16,7 @@ open Softellect.DistributedProcessing.Proxy.ModelGenerator
 open Softellect.DistributedProcessing.SolverRunner.Primitives
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
-open Softellect.Sys.Wolfram
+open Softellect.Analytics.Wolfram
 open Softellect.DistributedProcessing.ModelGenerator.Program
 
 module PoissonSolver =

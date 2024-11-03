@@ -11,8 +11,7 @@ open FredholmSolver.Kernel
 //open Primitives.WolframPrimitives
 open System.Text
 open Microsoft.FSharp.Reflection
-open Softellect.Sys.Wolfram
-
+open Softellect.Analytics.Wolfram
 
 type TestUnion =
     | A

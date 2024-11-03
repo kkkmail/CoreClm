@@ -14,7 +14,7 @@ open Softellect.Sys.Core
 //open Wolfram.NETLink
 open Plotly.NET
 open Giraffe.ViewEngine
-open Softellect.Sys.Wolfram
+open Softellect.Analytics.Wolfram
 open FredholmSolver.EeInfIntModel
 
 module Program =
@@ -24,68 +24,6 @@ module Program =
             Heading : string
             Text : string
         }
-
-    //type WolframRequest =
-    //    {
-    //        content : string // A content of .m file to be put into inputFolder\inputFileName
-    //        inputFolder : string
-    //        inputFileName : string
-    //        outputFolder : string
-    //        outputFileName : string
-    //        extension : string
-    //    }
-
-
-    //// Function to ensure a directory exists and create it if it doesn't
-    //let ensureDirectoryExists dir =
-    //    if not (Directory.Exists dir) then
-    //        Directory.CreateDirectory dir |> ignore
-
-
-    //let runMathematicaScript (request: WolframRequest) =
-    //    try
-    //        // Ensure input and output folders exist
-    //        ensureDirectoryExists request.inputFolder
-    //        ensureDirectoryExists request.outputFolder
-
-    //        // Write the content to the input file
-    //        let inputFilePath = Path.Combine(request.inputFolder, request.inputFileName)
-    //        File.WriteAllText(inputFilePath, request.content)
-
-    //       // Start the Wolfram Kernel with explicit link name
-    //        let linkArgs = "-linkname 'C:\\Program Files\\Wolfram Research\\Mathematica\\13.0\\mathkernel.exe -mathlink'"
-    //        let link = MathLinkFactory.CreateKernelLink(linkArgs)
-
-    //        try
-    //            // Discard the initial kernel output
-    //            link.WaitAndDiscardAnswer()
-
-    //            // Load the .m file as a script and run it
-    //            let scriptCommand = $"<< \"%s{inputFilePath}\""  // Use "<< file.m" to load the script
-    //            link.Evaluate(scriptCommand)
-
-    //            // Wait for the result of the evaluation
-    //            link.WaitForAnswer() |> ignore
-
-    //            // Check for the output file in the output folder
-    //            let outputFilePath = Path.Combine(request.outputFolder, request.outputFileName) + "." + request.extension
-    //            if File.Exists(outputFilePath) then
-    //                // If the output file is found, read it as a byte array and return it as Ok
-    //                let fileBytes = File.ReadAllBytes(outputFilePath)
-    //                link.Close() // Close the link when done
-    //                Ok fileBytes
-    //            else
-    //                // If the output file is not found, return an error
-    //                link.Close()
-    //                Error $"Output file '{outputFilePath}' not found."
-
-    //        with
-    //        | ex ->
-    //            link.Close()
-    //            Error $"An error occurred during Wolfram evaluation: {ex.Message}"
-
-    //    with
-    //    | ex -> Error $"An error occurred: {ex.Message}"
 
 
     let toDescription h t =

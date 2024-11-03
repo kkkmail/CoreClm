@@ -19,6 +19,7 @@
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="8.0.401" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="Softellect.Analytics" Version="8.0.400.2" />
     <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="8.0.400.2" />
     <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="8.0.400.2" />
     <PackageReference Include="Softellect.OdePackInterop" Version="8.0.400.1" />

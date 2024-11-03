@@ -19,7 +19,7 @@ open Softellect.Sys.Core
 //open Wolfram.NETLink
 open Plotly.NET
 open Giraffe.ViewEngine
-open Softellect.Sys.Wolfram
+open Softellect.Analytics.Wolfram
 open Clm.ClmData
 open ClmSys.SolverRunnerPrimitives
 

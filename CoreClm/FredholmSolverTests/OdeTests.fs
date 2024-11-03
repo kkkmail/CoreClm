@@ -26,7 +26,7 @@ open Analytics.ChartExt
 open Primitives.ChartPrimitives
 //open Primitives.WolframPrimitives
 open Softellect.Sys.Primitives
-open Softellect.Sys.Wolfram
+open Softellect.Analytics.Wolfram
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.DistributedProcessing.SolverRunner.Primitives
 
