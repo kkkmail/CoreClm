@@ -103,7 +103,7 @@ module ServiceInfo =
 
     type IContGenService =
         abstract tryCancelRunQueue : RunQueueId -> CancellationType -> UnitResult
-        abstract tryRequestResults : RunQueueId -> ChartNotificationType -> UnitResult
+        abstract tryRequestResults : RunQueueId -> ResultNotificationType -> UnitResult
         abstract tryReset : RunQueueId -> UnitResult
 
 

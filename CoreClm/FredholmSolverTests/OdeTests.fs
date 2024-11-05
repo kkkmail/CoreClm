@@ -204,7 +204,7 @@ type OdeTests (output : ITestOutputHelper) =
         {
             noOfOutputPoints = 4_000
             noOfProgressPoints = 100
-            noOfChartDetailedPoints = Some 20
+            noOfResultDetailedPoints = Some 20
         }
 
     let op_10K = { op_default with endTime = 10_000.0m |> EvolutionTime }

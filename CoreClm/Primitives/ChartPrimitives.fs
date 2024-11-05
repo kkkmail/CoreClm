@@ -56,7 +56,7 @@ module ChartPrimitives =
 
     let getChart fileName d ch =
         {
-            htmlContent = toEmbeddedHtmlWithDescription d ch
+            textContent = toEmbeddedHtmlWithDescription d ch
             fileName = fileName
         }
         //|> HtmlChart

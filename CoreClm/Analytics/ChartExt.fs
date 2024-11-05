@@ -89,9 +89,9 @@ module ChartExt =
         | false -> Chart.ShowFileWithDescription show fileName
 
 
-    let showHtmlChart (chart : HtmlChart) =
+    let showHtmlChart (chart : TextResult) =
         try
-            File.WriteAllText(chart.fileName.value, chart.htmlContent)
+            File.WriteAllText(chart.fileName.value, chart.textContent)
             System.Diagnostics.Process.Start(chart.fileName.value) |> ignore
             Ok()
         with

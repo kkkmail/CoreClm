@@ -67,17 +67,17 @@ module Program =
 
     let getHtmlChart fileName d ch =
         {
-            htmlContent = toEmbeddedHtmlWithDescription d ch
+            textContent = toEmbeddedHtmlWithDescription d ch
             fileName = toHtmlFileName fileName
         }
-        |> HtmlChart
+        |> TextResult
 
 
     let tryGetInputFileName inputFolder (q : RunQueueId) = (FileName $"{q.value}.m").tryGetFullFileName (Some inputFolder)
     let tryGetOutputFileName outputFolder (q : RunQueueId) = (FileName $"{q.value}.png").tryGetFullFileName (Some outputFolder)
 
 
-    let getWolframChart (q : RunQueueId) (d : PoissonSolverData) (c : list<ChartSliceData<PoissonChartData>>) =
+    let getWolframChart (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
         let w = loadWolframParams()
 
         match tryGetInputFileName w.wolframInputFolder q, tryGetOutputFileName w.wolframOutputFolder q with
@@ -87,8 +87,8 @@ module Program =
 
             let d =
                 [|
-                    { dataLabel = "ee mean" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.chartData.statData.eeStatData.mean} ) }
-                    { dataLabel = "ee stdDev" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.chartData.statData.eeStatData.stdDev} ) }
+                    { dataLabel = "ee mean" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.mean} ) }
+                    { dataLabel = "ee stdDev" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.stdDev} ) }
                 |]
 
             getListLinePlot i o ListLineParams.defaultValue d
@@ -96,17 +96,17 @@ module Program =
             printfn $"getWolframChart - Cannot get data for: %A{q}."
             None
 
-    let getCharts (q : RunQueueId) (d : PoissonSolverData) (c : list<ChartSliceData<PoissonChartData>>) =
+    let getCharts (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
         printfn $"getChart - q: '%A{q}', c.Length: '%A{c.Length}'."
 
         let charts =
             match c |> List.tryHead with
             | Some _ ->
                 [|
-                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.chartData.statData.invariant)), Name = "Invariant")
-                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.chartData.statData.food)), Name = "Food")
-                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.chartData.statData.waste)), Name = "Waste")
-                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.chartData.statData.total)), Name = "Total")
+                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.invariant)), Name = "Invariant")
+                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.food)), Name = "Food")
+                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.waste)), Name = "Waste")
+                    Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.total)), Name = "Total")
                 |]
             | None -> [||]
 
@@ -124,13 +124,13 @@ module Program =
     let main argv =
         let retVal =
             try
-                let chartGenerator : ChartGenerator<PoissonSolverData, SubstanceIntData, PoissonChartData> =
+                let chartGenerator : ResultGenerator<PoissonSolverData, SubstanceIntData, PoissonChartData> =
                     {
-                        getChartData = fun d t x ->
+                        getResultData = fun d t x ->
                             let chartMod = d.initialData.evolutionParam.noOfCharts |> Option.bind (fun v -> d.initialData.evolutionParam.noOfEpochs.value / v |> Some)
                             getChartSliceData d.model d.initialData.evolutionParam.noOfEpochs chartMod x (int t.value)
-                        generateCharts = fun q d _ c -> getCharts q d c
-                        generateDetailedCharts = fun _ _ _ _ -> None
+                        generateResults = fun q d _ c -> getCharts q d c
+                        generateDetailedResults = fun _ _ _ _ -> None
                     }
 
                 let getUserProxy (solverData : PoissonSolverData) : SolverRunnerUserProxy<PoissonSolverData, PoissonProgressData, SubstanceIntData, PoissonChartData> =
@@ -147,7 +147,7 @@ module Program =
                     {
                         solverRunner = solverRunner
                         solverProxy = solverProxy
-                        chartGenerator = chartGenerator
+                        resultGenerator = chartGenerator
                     }
 
                 // Call solverRunnerMain<'D, 'P, 'X, 'C>

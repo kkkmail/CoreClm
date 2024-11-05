@@ -74,9 +74,9 @@ module EeInfCharts =
 
         member _.eeChart() =
             let chart = getEeChart()
-            File.WriteAllText(chart.fileName.value, chart.htmlContent)
+            File.WriteAllText(chart.fileName.value, chart.textContent)
 
         member _.uChart() =
             match getUChart() with
-            | Some chart -> File.WriteAllText(chart.fileName.value, chart.htmlContent)
+            | Some chart -> File.WriteAllText(chart.fileName.value, chart.textContent)
             | None -> ()

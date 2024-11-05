@@ -285,7 +285,7 @@ module PoissonSolver =
                     {
                         noOfOutputPoints = 2000
                         noOfProgressPoints = 100
-                        noOfChartDetailedPoints = i.evolutionParam.noOfFrames
+                        noOfResultDetailedPoints = i.evolutionParam.noOfFrames
                     }
             }
 

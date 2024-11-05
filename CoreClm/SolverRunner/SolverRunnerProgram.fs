@@ -45,9 +45,9 @@ module Program =
             try
                 let chartGenerator =
                     {
-                        getChartData = fun _ t (x : double[]) -> failwith "getChartData is not implemented yet."
-                        generateCharts = fun q d _ c -> None
-                        generateDetailedCharts = fun _ _ _ _ -> None
+                        getResultData = fun _ t (x : double[]) -> failwith "getResultData is not implemented yet."
+                        generateResults = fun q d _ c -> None
+                        generateDetailedResults = fun _ _ _ _ -> None
                     }
 
                 let getUserProxy (solverData : ClmSolverData) =
@@ -63,7 +63,7 @@ module Program =
                     {
                         solverRunner = solverRunner
                         solverProxy = solverProxy
-                        chartGenerator = chartGenerator
+                        resultGenerator = chartGenerator
                     }
 
                 // Call solverRunnerMain<'D, 'P, 'X, 'C>
