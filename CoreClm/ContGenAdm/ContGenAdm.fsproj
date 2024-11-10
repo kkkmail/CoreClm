@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -23,7 +24,6 @@
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\ContGen\ContGen.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
   </ItemGroup>
 
@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="7.0.200" />
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>
 
 </Project>

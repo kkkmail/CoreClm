@@ -3,8 +3,9 @@
 open Argu
 
 open ClmSys.ModelData
+//open Primitives.GeneralPrimitives
 open Softellect.Sys.Logging
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.Primitives
 open Softellect.Wcf.Common
 
@@ -12,14 +13,16 @@ open ClmSys.ClmErrors
 open Clm.Substances
 open Clm.ModelParams
 open System
-open ClmSys.GeneralPrimitives
+//open ClmSys.GeneralPrimitives
 open ClmSys.ContGenPrimitives
-open ClmSys.Logging
-open ClmSys.PartitionerPrimitives
+//open ClmSys.Logging
+//open ClmSys.PartitionerPrimitives
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ContGenData
-open ContGen.ContGenServiceResponse
+//open ContGen.ContGenServiceResponse
 open ContGenServiceInfo.ServiceInfo
+open Softellect.DistributedProcessing.Primitives.Common
+//open Primitives.SolverPrimitives
 
 module AdmCommandLine =
 
@@ -222,84 +225,85 @@ module AdmCommandLine =
     let tryGetY0 (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | Y0 i -> Some i | _ -> None)
     let tryGetTEnd (p :list<RunModelArgs>) = p |> List.tryPick (fun e -> match e with | TEnd i -> Some i | _ -> None)
     let tryGetPartitioner p = p |> List.tryPick (fun e -> match e with | Partitioner p -> p |> MessagingClientId |> PartitionerId |> Some | _ -> None)
-    let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
+    //let tryGetContGenServiceAddress p = p |> List.tryPick (fun e -> match e with | SvcAddress s -> s |> ServiceAddress |> Some | _ -> None)
     let tryGetContGenServicePort p = p |> List.tryPick (fun e -> match e with | SvcPort p -> p |> ServicePort |> Some | _ -> None)
     let tryGetRunQueueIdToModify p = p |> List.tryPick (fun e -> match e with | RunQueueIdToModify e -> e |> RunQueueId |> Some | _ -> None)
     let getResetIfFailed p = p |> List.tryPick (fun e -> match e with | ResetIfFailed -> Some true | _ -> None) |> Option.defaultValue false
 
 
     let loadSettings p =
-        let w = loadContGenSettings()
-        let contGenInfo = { w.contGenInfo with partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId }
-        let h = w.contGenSvcInfo.value.httpServiceInfo
-        let n = w.contGenSvcInfo.value.netTcpServiceInfo
-        let contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue n.netTcpServiceAddress
-        let contGenHttpServicePort = tryGetContGenServicePort p |> Option.defaultValue h.httpServicePort
-        let contGenNetTcpServicePort = tryGetContGenServicePort p |> Option.defaultValue n.netTcpServicePort
-        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenHttpServicePort contGenNetTcpServicePort n.netTcpSecurityMode
+        //let w = loadContGenSettings()
+        //let contGenInfo = { w.contGenInfo with partitionerId = tryGetPartitioner p |> Option.defaultValue w.contGenInfo.partitionerId }
+        //let h = w.contGenSvcInfo.value.httpServiceInfo
+        //let n = w.contGenSvcInfo.value.netTcpServiceInfo
+        //let contGenServiceAddress = tryGetContGenServiceAddress p |> Option.defaultValue n.netTcpServiceAddress
+        //let contGenHttpServicePort = tryGetContGenServicePort p |> Option.defaultValue h.httpServicePort
+        //let contGenNetTcpServicePort = tryGetContGenServicePort p |> Option.defaultValue n.netTcpServicePort
+        //let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenHttpServicePort contGenNetTcpServicePort n.netTcpSecurityMode
 
-        let w1 =
-            {
-                w with
-                    contGenInfo = contGenInfo
-                    contGenSvcInfo = contGenSvcInfo
-            }
+        //let w1 =
+        //    {
+        //        w with
+        //            contGenInfo = contGenInfo
+        //            contGenSvcInfo = contGenSvcInfo
+        //    }
 
-        printfn $"loadSettings: w1 = %A{w1}"
-        w1
-
-
-    let getCancellationTypeOpt p =
-        p |> List.tryPick (fun e -> match e with | CancelOrAbort e -> (match e with | false -> (CancelWithResults None) | true -> (AbortCalculation None)) |> Some | _ -> None)
+        //printfn $"loadSettings: w1 = %A{w1}"
+        //w1
+        failwith "loadSettings is not implemented yet."
 
 
-    let getResultNotificationTypeOpt p =
-        p |> List.tryPick (fun e -> match e with | ReportResults e -> (match e with | false -> RegularChartGeneration | true -> ForceChartGeneration) |> Some | _ -> None)
+    //let getCancellationTypeOpt p =
+    //    p |> List.tryPick (fun e -> match e with | CancelOrAbort e -> (match e with | false -> (CancelWithResults None) | true -> (AbortCalculation None)) |> Some | _ -> None)
 
 
-    let private reportResult (logger : Logger) name r =
-        match r with
-        | Ok() ->
-            printfn $"%s{name}: Successfully scheduled."
-            Ok()
-        | Error e ->
-            printfn $"%s{name}: Error %A{e}"
-            e |> ErrLogData |> logger.logError
-            Error e
+    //let getResultNotificationTypeOpt p =
+    //    p |> List.tryPick (fun e -> match e with | ReportResults e -> (match e with | false -> RegularChartGeneration | true -> ForceChartGeneration) |> Some | _ -> None)
 
 
-    let tryCancelRunQueueImpl (logger : Logger) p =
-        match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with
-        | Some q, Some c ->
-            let s = loadSettings p
-            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
-            h.tryCancelRunQueue q c |> reportResult logger "tryCancelRunQueueImpl"
-        | _ -> Ok()
+    //let private reportResult (logger : Logger) name r =
+    //    match r with
+    //    | Ok() ->
+    //        printfn $"%s{name}: Successfully scheduled."
+    //        Ok()
+    //    | Error e ->
+    //        printfn $"%s{name}: Error %A{e}"
+    //        e |> ErrLogData |> logger.logError
+    //        Error e
 
 
-    let tryRequestResultsImpl (logger : Logger) p =
-        match tryGetRunQueueIdToModify p, getResultNotificationTypeOpt p with
-        | Some q, Some c ->
-            let s = loadSettings p
-            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
-            h.tryRequestResults q c  |> reportResult logger "tryRequestResultsImpl"
-        | _ -> Ok()
+    //let tryCancelRunQueueImpl (logger : Logger) p =
+    //    match tryGetRunQueueIdToModify p, getCancellationTypeOpt p with
+    //    | Some q, Some c ->
+    //        let s = loadSettings p
+    //        let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
+    //        h.tryCancelRunQueue q c |> reportResult logger "tryCancelRunQueueImpl"
+    //    | _ -> Ok()
 
 
-    let tryResetImpl (logger : Logger) p =
-        match tryGetRunQueueIdToModify p, getResetIfFailed p with
-        | Some q, true ->
-            let s = loadSettings p
-            let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
-            h.tryReset q |> reportResult logger "tryResetImpl"
-        | _ -> Ok()
+    //let tryRequestResultsImpl (logger : Logger) p =
+    //    match tryGetRunQueueIdToModify p, getResultNotificationTypeOpt p with
+    //    | Some q, Some c ->
+    //        let s = loadSettings p
+    //        let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
+    //        h.tryRequestResults q c  |> reportResult logger "tryRequestResultsImpl"
+    //    | _ -> Ok()
 
 
-    let tryModifyRunQueueImpl l p =
-        [
-            tryRequestResultsImpl
-            tryCancelRunQueueImpl
-            tryResetImpl
-        ]
-        |> List.map (fun e -> e l p)
-        |> foldUnitResults
+    //let tryResetImpl (logger : Logger) p =
+    //    match tryGetRunQueueIdToModify p, getResetIfFailed p with
+    //    | Some q, true ->
+    //        let s = loadSettings p
+    //        let h = ContGenResponseHandler (s.contGenSvcInfo, s.contGenCommType, WcfSecurityMode.defaultValue) :> IContGenService
+    //        h.tryReset q |> reportResult logger "tryResetImpl"
+    //    | _ -> Ok()
+
+
+    //let tryModifyRunQueueImpl l p =
+    //    [
+    //        tryRequestResultsImpl
+    //        tryCancelRunQueueImpl
+    //        tryResetImpl
+    //    ]
+    //    |> List.map (fun e -> e l p)
+    //    |> foldUnitResults

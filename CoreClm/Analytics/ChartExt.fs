@@ -6,29 +6,16 @@ open Microsoft.FSharp.Core
 open ClmSys.ContGenPrimitives
 open Clm.ModelParams
 open Clm.ChartData
-open Plotly.NET
-open Plotly.NET.GenericChart
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
+//open Primitives.GeneralPrimitives
+open Primitives.ChartPrimitives
+open Plotly.NET
+//open Plotly.NET.GenericChart
+open Giraffe.ViewEngine
+open Softellect.Sys.Primitives
 
 module ChartExt =
-
-    let toDescription h t =
-        {
-            Heading = h
-            Text = t
-        }
-
-
-    let toEmbeddedHtmlWithDescription (description : ChartDescription) gChart =
-         let chartMarkup =
-             toChartHTML gChart
-
-         HTML.doc
-             .Replace("[CHART]", chartMarkup)
-             .Replace("[DESCRIPTION]", description.Text)
-             .Replace("[ADDITIONAL_HEAD_TAGS]", description.Heading)
-
 
     type Chart with
 
@@ -75,7 +62,7 @@ module ChartExt =
             | PlotTotalSubst -> "ts"
 
         member private ct.getFileNameImpl (i : PlotDataInfo) (modelDataId : ModelDataId) (y0 : decimal) (tEnd : decimal) =
-            let suff = ct.fileSuffix
+            let suffix = ct.fileSuffix
 
             let fileName =
                 [
@@ -83,7 +70,7 @@ module ChartExt =
                     i.resultInfo.separator
                     (int y0).ToString().PadLeft(3, '0')
                     (int tEnd).ToString().PadLeft(5, '0')
-                    suff
+                    suffix
                 ]
                 |> String.concat i.resultInfo.separator
 
@@ -91,7 +78,9 @@ module ChartExt =
             Directory.CreateDirectory(i.resultInfo.resultLocation) |> ignore
             Path.Combine(i.resultInfo.resultLocation, fileName + ".html")
 
-        member ct.getFileName (i : PlotDataInfo, d : ChartData) = ct.getFileNameImpl i d.initData.modelDataId d.initData.y0 d.initData.tEnd
+        member ct.getFileName (i : PlotDataInfo, d : ChartData) =
+            ct.getFileNameImpl i d.initData.modelDataId d.initData.y0 d.initData.tEnd
+            |> FileName
 
 
     let showChart (i : PlotDataInfo) show fileName =
@@ -100,17 +89,10 @@ module ChartExt =
         | false -> Chart.ShowFileWithDescription show fileName
 
 
-    let getChart fileName d ch =
-        {
-            htmlContent = toEmbeddedHtmlWithDescription d ch
-            fileName = fileName
-        }
-
-
-    let showHtmlChart chart =
+    let showHtmlChart (chart : TextResult) =
         try
-            File.WriteAllText(chart.fileName, chart.htmlContent)
-            System.Diagnostics.Process.Start(chart.fileName) |> ignore
+            File.WriteAllText(chart.fileName.value, chart.textContent)
+            System.Diagnostics.Process.Start(chart.fileName.value) |> ignore
             Ok()
         with
         | e -> e |> GeneralFileExn |> FileErr |> Result.Error

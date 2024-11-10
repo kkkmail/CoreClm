@@ -2,7 +2,8 @@
 
 open AllDefaults
 open DbData.Configuration
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open Clm.ModelParams
 
 module ClmDefaultsTasks =

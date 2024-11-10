@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -16,13 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="MsgServiceProxy.fs" />
-    <Compile Include="MsgProcessorProxy.fs" />
     <Compile Include="ModelGeneratorProxy.fs" />
-    <Compile Include="ModelRunnerProxy.fs" />
-    <Compile Include="SolverRunnerProxy.fs" />
-    <Compile Include="SolverProcessProxy.fs" />
-    <Compile Include="WorkerNodeProxy.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,14 +27,12 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\NoSql\NoSql.fsproj" />
-    <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="7.0.0" />
-    <PackageReference Update="FSharp.Core" Version="7.0.200" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="8.0.10" />
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>
 
 </Project>

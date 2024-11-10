@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Platforms>x64</Platforms>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -20,6 +21,8 @@
         <Compile Include="SsaPrimitives.fs" />
         <Compile Include="SsaSolver.fs" />
         <Compile Include="SsaSolverMutable.fs" />
+        <Compile Include="TauLeaping.fs" />
+        <Compile Include="TauLeaping2.fs" />
         <Compile Include="LotkaVolterra.fs" />
         <Compile Include="ProtoCells.fs" />
     </ItemGroup>
@@ -30,7 +33,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="FSharp.Core" Version="7.0.200" />
+        <PackageReference Update="FSharp.Core" Version="8.0.401" />
     </ItemGroup>
 
 </Project>

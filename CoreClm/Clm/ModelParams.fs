@@ -2,22 +2,24 @@
 
 open System
 open FSharp.Collections
-open ClmSys.VersionInfo
-open ClmSys.GeneralData
+open Primitives.VersionInfo
+//open Primitives.GeneralData
 open ClmSys.ContGenPrimitives
-open ClmSys.GeneralPrimitives
-open ClmSys.WorkerNodePrimitives
+//open ClmSys.WorkerNodePrimitives
 open Clm.Substances
 open Clm.ReactionTypes
 open ClmSys.ModelData
 open Clm.ReactionRates
-open ClmSys.SolverData
 open ClmSys.SolverRunnerPrimitives
+//open Primitives.GeneralPrimitives
+//open Primitives.GeneralData
+open Softellect.Sys.Primitives
+open Softellect.DistributedProcessing.Primitives.Common
 
 module ModelParams =
 
     [<Literal>]
-    let DefaultRootFolder = DefaultRootDrive + @":\" + ClmBaseName + @"\"
+    let DefaultRootFolder = DefaultRootDrive + @":\" + ContGenBaseName + @"\Clm\"
 
     [<Literal>]
     let DefaultResultLocationFolder = DefaultRootFolder + "Results"
@@ -56,30 +58,6 @@ module ModelParams =
         }
 
 
-//    type ResultData =
-//        {
-//            modelDataId : ModelDataId
-//
-//            y0 : decimal
-//            tEnd : decimal
-//            useAbundant : bool
-//
-//            // All are using abs. Averaging is performed first, then abs is applied.
-//            maxEe : double // max ee over all data points and all pairs of chiral substances.
-//            maxAverageEe : double // max value of ee averaged over evolution period per each pair of chiral substances.
-//            maxWeightedAverageAbsEe : double // the same as above but using linear weighted average and abs of ee.
-//            maxLastEe : double // max ee at the last point.
-//        }
-//
-//
-//    type ResultDataWithId =
-//        {
-//            resultDataId : ResultDataId
-//            workerNodeId : WorkerNodeId
-//            resultData : ResultData
-//        }
-
-
     type AllSubstData =
         {
             allSubst : list<Substance>
@@ -101,25 +79,6 @@ module ModelParams =
 
         member info.getTotalSubst x =
             getTotalSubstValue info.allSubstData.allInd info.allSubstData.allSubst x
-
-
-//    type BinaryResultData =
-//        {
-//            binaryInfo : BinaryInfo
-//
-//            x : double [,]
-//            t : double []
-//        }
-//
-//
-//    type FullResultData =
-//        {
-//            resultData : ResultData
-//            binaryResultData : BinaryResultData
-//        }
-//
-//        member resultData.getTotals x = resultData.binaryResultData.binaryInfo.getTotals x
-//        member resultData.getTotalSubst x = resultData.binaryResultData.binaryInfo.getTotalSubst x
 
 
     type ModelDataRegularParams =
@@ -189,55 +148,55 @@ module ModelParams =
         }
 
 
-    type RunQueueInfo =
-        {
-            modelDataId : ModelDataId
-            defaultValueId : ClmDefaultValueId
-            modelCommandLineParam : ModelCommandLineParam
-        }
+    //type RunQueueInfo =
+    //    {
+    //        modelDataId : ModelDataId
+    //        defaultValueId : ClmDefaultValueId
+    //        modelCommandLineParam : ModelCommandLineParam
+    //    }
 
 
-    type RunQueue =
-        {
-            runQueueId : RunQueueId
-            info : RunQueueInfo
-            runQueueStatus : RunQueueStatus
-            workerNodeIdOpt : WorkerNodeId option
-            progressData : ProgressData
-            createdOn : DateTime
-        }
+    //type RunQueue =
+    //    {
+    //        runQueueId : RunQueueId
+    //        info : RunQueueInfo
+    //        runQueueStatus : RunQueueStatus
+    //        workerNodeIdOpt : WorkerNodeId option
+    //        progressData : ClmProgressData
+    //        createdOn : DateTime
+    //    }
 
-        member q.modelCommandLineParam = q.info.modelCommandLineParam
+    //    member q.modelCommandLineParam = q.info.modelCommandLineParam
 
-        static member fromModelCommandLineParam modelDataId defaultValueId p =
-            {
-                runQueueId = Guid.NewGuid() |> RunQueueId
+    //    static member fromModelCommandLineParam modelDataId defaultValueId p =
+    //        {
+    //            runQueueId = Guid.NewGuid() |> RunQueueId
 
-                info =
-                    {
-                        modelDataId = modelDataId
-                        defaultValueId = defaultValueId
-                        modelCommandLineParam = p
-                    }
+    //            info =
+    //                {
+    //                    modelDataId = modelDataId
+    //                    defaultValueId = defaultValueId
+    //                    modelCommandLineParam = p
+    //                }
 
-                runQueueStatus = NotStartedRunQueue
-                workerNodeIdOpt = None
-                progressData = ProgressData.defaultValue
-                createdOn = DateTime.Now
-            }
+    //            runQueueStatus = NotStartedRunQueue
+    //            workerNodeIdOpt = None
+    //            progressData = ClmProgressData.defaultValue
+    //            createdOn = DateTime.Now
+    //        }
 
-        override r.ToString() =
-            let (ModelDataId modelDataId) = r.info.modelDataId
-            let (ClmDefaultValueId defaultValueId) = r.info.defaultValueId
-            let (RunQueueId runQueueId) = r.runQueueId
-            let s = (DateTime.Now - r.createdOn).ToString("d\.hh\:mm")
+    //    override r.ToString() =
+    //        let (ModelDataId modelDataId) = r.info.modelDataId
+    //        let (ClmDefaultValueId defaultValueId) = r.info.defaultValueId
+    //        let (RunQueueId runQueueId) = r.runQueueId
+    //        let s = (DateTime.Now - r.createdOn).ToString("d\.hh\:mm")
 
-            let estCompl =
-                match r.runQueueStatus, r.progressData.estimateEndTime r.createdOn with
-                | InProgressRunQueue, Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
-                | _ -> EmptyString
+    //        let estCompl =
+    //            match r.runQueueStatus, r.progressData.estimateEndTime r.createdOn with
+    //            | InProgressRunQueue, Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
+    //            | _ -> EmptyString
 
-            $"{{ T: %s{s};%s{estCompl} DF: %A{defaultValueId}; MDID: %A{modelDataId}; PID: %A{runQueueId}; %A{r.progressData.progress} }}"
+    //        $"{{ T: %s{s};%s{estCompl} DF: %A{defaultValueId}; MDID: %A{modelDataId}; PID: %A{runQueueId}; %A{r.progressData.progressData.progress} }}"
 
 
     type ResultInfo =
@@ -251,8 +210,8 @@ module ModelParams =
                 resultLocation = DefaultResultLocationFolder
                 separator = "_"
             }
-            
-            
+
+
     type ClmTaskDetails =
         {
             clmDefaultValueId : ClmDefaultValueId

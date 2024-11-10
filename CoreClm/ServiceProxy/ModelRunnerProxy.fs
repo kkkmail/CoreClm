@@ -1,6 +1,7 @@
 ﻿namespace ServiceProxy
 
 open ClmSys.ContGenData
+open Primitives.GeneralPrimitives
 open Softellect.Messaging.ServiceInfo
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
@@ -13,165 +14,168 @@ open Clm.ModelParams
 open Clm.CalculationData
 open ContGenServiceInfo.ServiceInfo
 open MessagingServiceInfo.ServiceInfo
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open ServiceProxy.MsgProcessorProxy
 open NoSql.FileSystemTypes
+open Softellect.Sys.Primitives
 
 module ModelRunnerProxy =
+    let x = 1
 
-    type RunModelProxy =
-        {
-            sendRunModelMessage : MessageInfo -> UnitResult
-            loadModelData : ModelDataId -> ClmResult<ModelData>
-            controlData : RunnerControlData
-        }
-
-
-    type TryRunFirstModelProxy =
-        {
-            tryLoadFirstRunQueue : unit -> ClmResult<RunQueue option>
-            tryGetAvailableWorkerNode : unit -> ClmResult<WorkerNodeId option>
-            runModel : RunQueue -> UnitResult
-            upsertRunQueue : RunQueue -> UnitResult
-        }
+    //type RunModelProxy =
+    //    {
+    //        sendRunModelMessage : MessageInfo -> MessagingUnitResult
+    //        loadModelData : ModelDataId -> ClmResult<ModelData>
+    //        controlData : RunnerControlData
+    //    }
 
 
-    type TryCancelRunQueueProxy =
-        {
-            tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
-            sendCancelRunQueueMessage : MessageInfo -> UnitResult
-            upsertRunQueue : RunQueue -> UnitResult
-        }
+    //type TryRunFirstModelProxy =
+    //    {
+    //        tryLoadFirstRunQueue : unit -> ClmResult<RunQueue option>
+    //        tryGetAvailableWorkerNode : unit -> ClmResult<WorkerNodeId option>
+    //        runModel : RunQueue -> UnitResult
+    //        upsertRunQueue : RunQueue -> UnitResult
+    //    }
 
 
-    type TryRequestResultsProxy =
-        {
-            tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
-            sendRequestResultsMessage : MessageInfo -> UnitResult
-        }
+    //type TryCancelRunQueueProxy =
+    //    {
+    //        tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
+    //        sendCancelRunQueueMessage : MessageInfo -> MessagingUnitResult
+    //        upsertRunQueue : RunQueue -> UnitResult
+    //    }
 
 
-    type TryResetProxy =
-        {
-            tryResetRunQueue : RunQueueId -> UnitResult
-        }
+    //type TryRequestResultsProxy =
+    //    {
+    //        tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
+    //        sendRequestResultsMessage : MessageInfo -> MessagingUnitResult
+    //    }
 
 
-    type TryRunModelResult =
-        | WorkScheduled
-        | NoWork
-        | NoAvailableWorkerNodes
+    //type TryResetProxy =
+    //    {
+    //        tryResetRunQueue : RunQueueId -> UnitResult
+    //    }
 
 
-    type TryRunAllModelsProxy =
-        {
-            tryRunFirstModel : unit -> ClmResult<TryRunModelResult>
-        }
+    //type TryRunModelResult =
+    //    | WorkScheduled
+    //    | NoWork
+    //    | NoAvailableWorkerNodes
 
 
-    type UpdateProgressProxy =
-        {
-            tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
-            upsertRunQueue : RunQueue -> UnitResult
-            upsertWorkerNodeErr : WorkerNodeId -> UnitResult
-        }
-
-        static member create c p =
-            {
-                tryLoadRunQueue = tryLoadRunQueue c
-                upsertRunQueue = upsertRunQueue c
-                upsertWorkerNodeErr = upsertWorkerNodeErr c p
-            }
+    //type TryRunAllModelsProxy =
+    //    {
+    //        tryRunFirstModel : unit -> ClmResult<TryRunModelResult>
+    //    }
 
 
-    type RegisterProxy =
-        {
-            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
-        }
+    //type UpdateProgressProxy =
+    //    {
+    //        tryLoadRunQueue : RunQueueId -> ClmResult<RunQueue option>
+    //        upsertRunQueue : RunQueue -> UnitResult
+    //        upsertWorkerNodeErr : WorkerNodeId -> UnitResult
+    //    }
 
-        static member create c =
-            {
-                upsertWorkerNodeInfo = upsertWorkerNodeInfo c
-            }
-
-
-    type UnregisterProxy =
-        {
-            loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
-            upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
-        }
-        static member create c p =
-            {
-                loadWorkerNodeInfo = loadWorkerNodeInfo c p
-                upsertWorkerNodeInfo = upsertWorkerNodeInfo c
-            }
+    //    static member create c p =
+    //        {
+    //            tryLoadRunQueue = tryLoadRunQueue c
+    //            upsertRunQueue = upsertRunQueue c
+    //            upsertWorkerNodeErr = upsertWorkerNodeErr c p
+    //        }
 
 
-    type SaveChartsProxy =
-        {
-            saveCharts : ChartInfo -> UnitResult
-        }
+    //type RegisterProxy =
+    //    {
+    //        upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
+    //    }
 
-        static member create resultLocation =
-            {
-                saveCharts = fun (c : ChartInfo) -> saveLocalChartInfo (Some (resultLocation, c.defaultValueId)) c
-            }
-
-
-    type ProcessMessageProxy =
-        {
-            updateProgress : ProgressUpdateInfo -> UnitResult
-            saveCharts : ChartInfo -> UnitResult
-            register : WorkerNodeInfo -> UnitResult
-            unregister : WorkerNodeId -> UnitResult
-        }
+    //    static member create c =
+    //        {
+    //            upsertWorkerNodeInfo = upsertWorkerNodeInfo c
+    //        }
 
 
-    type GetRunStateProxy =
-        {
-            loadRunQueueProgress : unit -> ListResult<RunQueue>
-        }
-
-        static member create c =
-            {
-                loadRunQueueProgress = fun () -> loadRunQueueProgress c
-            }
-
-
-    type RunnerProxy =
-        {
-            getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
-        }
+    //type UnregisterProxy =
+    //    {
+    //        loadWorkerNodeInfo : WorkerNodeId -> ClmResult<WorkerNodeInfo>
+    //        upsertWorkerNodeInfo : WorkerNodeInfo -> UnitResult
+    //    }
+    //    static member create c p =
+    //        {
+    //            loadWorkerNodeInfo = loadWorkerNodeInfo c p
+    //            upsertWorkerNodeInfo = upsertWorkerNodeInfo c
+    //        }
 
 
-    type RunnerData =
-        {
-            getConnectionString : unit -> ConnectionString
-            contGenInfo : ContGenInfo
-        }
+    //type SaveChartsProxy =
+    //    {
+    //        saveCharts : ChartInfo -> UnitResult
+    //    }
+
+    //    static member create resultLocation =
+    //        {
+    //            saveCharts = fun (c : ChartInfo) -> saveLocalChartInfo (Some (resultLocation, c.defaultValueId)) c
+    //        }
 
 
-    type RunModelProxy
-        with
-        static member create (d : RunnerData) s =
-            {
-                sendRunModelMessage = s
-                loadModelData = loadModelData d.getConnectionString
-                controlData = d.contGenInfo.controlData
-            }
+    //type ProcessMessageProxy =
+    //    {
+    //        updateProgress : ProgressUpdateInfo -> UnitResult
+    //        saveCharts : ChartInfo -> UnitResult
+    //        register : WorkerNodeInfo -> UnitResult
+    //        unregister : WorkerNodeId -> UnitResult
+    //    }
 
 
-    type RunnerDataWithProxy =
-        {
-            runnerData : RunnerData
-            messageProcessorProxy : MessageProcessorProxy
-        }
+    //type GetRunStateProxy =
+    //    {
+    //        loadRunQueueProgress : unit -> ListResult<RunQueue>
+    //    }
+
+    //    static member create c =
+    //        {
+    //            loadRunQueueProgress = fun () -> loadRunQueueProgress c
+    //        }
 
 
-    type ModelRunnerDataWithProxy =
-        {
-            runnerData : RunnerData
-            runnerProxy : RunnerProxy
-            messagingClientAccessInfo : MessagingClientAccessInfo
-            logger : Logger
-        }
+    //type RunnerProxy =
+    //    {
+    //        getMessageProcessorProxy : MessagingClientAccessInfo -> MessageProcessorProxy
+    //    }
+
+
+    //type RunnerData =
+    //    {
+    //        getConnectionString : unit -> ConnectionString
+    //        contGenInfo : ContGenInfo
+    //    }
+
+
+    //type RunModelProxy
+    //    with
+    //    static member create (d : RunnerData) s =
+    //        {
+    //            sendRunModelMessage = s
+    //            loadModelData = loadModelData d.getConnectionString
+    //            controlData = d.contGenInfo.controlData
+    //        }
+
+
+    //type RunnerDataWithProxy =
+    //    {
+    //        runnerData : RunnerData
+    //        messageProcessorProxy : MessageProcessorProxy
+    //    }
+
+
+    //type ModelRunnerDataWithProxy =
+    //    {
+    //        runnerData : RunnerData
+    //        runnerProxy : RunnerProxy
+    //        messagingClientAccessInfo : MessagingClientAccessInfo
+    //        logger : Logger
+    //    }

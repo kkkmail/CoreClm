@@ -7,6 +7,7 @@ open WorkerNodeServiceInfo.ServiceInfo
 open ClmSys.WorkerNodeData
 open System.Threading
 open ClmSys.ExitErrorCodes
+open Softellect.Sys.ExitErrorCodes
 
 module WorkerNodeAdmTasks =
 

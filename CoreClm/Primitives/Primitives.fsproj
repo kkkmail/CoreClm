@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Data" Version="6.4.0" />
+    <PackageReference Include="log4net" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+    <PackageReference Include="Plotly.NET" Version="5.1.0" />
+    <PackageReference Include="Softellect.Messaging" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.Sys" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.Wcf" Version="8.0.400.2" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Conventions.fs" />
+    <Compile Include="VersionInfo.fs" />
+    <Compile Include="ChartPrimitives.fs" />
+  </ItemGroup>
+
+</Project>

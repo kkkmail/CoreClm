@@ -70,8 +70,8 @@ module Distributions =
 
     type ReactionRate =
         | ReactionRate of double
-        
-        member r.value = let (ReactionRate v) = r in v             
+
+        member r.value = let (ReactionRate v) = r in v
 
 
     [<Literal>]
@@ -186,15 +186,6 @@ module Distributions =
                 match so with
                 | Some s -> s
                 | None -> Random().Next()
-
-//            let rnd = Random(seed)
-//
-//            {
-//                seed = seed
-//                next = rnd.Next
-//                nextN = rnd.Next
-//                nextDouble = rnd.NextDouble
-//            }
 
             let rnd = Random(seed)
 

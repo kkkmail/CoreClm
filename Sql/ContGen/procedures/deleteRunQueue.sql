@@ -1,4 +1,4 @@
-drop procedure if exists deleteRunQueue
+drop procedure if exists dbo.deleteRunQueue
 go
 
 
@@ -8,12 +8,14 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure deleteRunQueue @runQueueId uniqueidentifier
+create procedure dbo.deleteRunQueue @runQueueId uniqueidentifier
 as
 begin
 	declare @rowCount int
 	set nocount on;
 
+	delete from clm.RunQueue where runQueueId = @runQueueId
+	delete from eeInf.RunQueue where runQueueId = @runQueueId
 	delete from dbo.RunQueue where runQueueId = @runQueueId
 
 	set @rowCount = @@rowcount

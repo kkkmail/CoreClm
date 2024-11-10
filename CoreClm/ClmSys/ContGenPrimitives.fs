@@ -2,20 +2,17 @@
 
 open System
 
-open Softellect.Sys.MessagingPrimitives
+//open Primitives.GeneralPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.Primitives
 
-open GeneralPrimitives
-open WorkerNodePrimitives
+//open GeneralPrimitives
+//open WorkerNodePrimitives
 
 module ContGenPrimitives =
 
     [<Literal>]
     let DefaultMinEe = 0.000_1
-
-
-    [<Literal>]
-    let DefaultAbsoluteTolerance = 1.0e-08
 
 
     type ContGenServiceName =
@@ -33,13 +30,6 @@ module ContGenPrimitives =
         static member defaultValue = MinUsefulEe DefaultMinEe
 
 
-    type AbsoluteTolerance =
-        | AbsoluteTolerance of double
-
-        member this.value = let (AbsoluteTolerance v) = this in v
-        static member defaultValue = AbsoluteTolerance DefaultAbsoluteTolerance
-
-
     type ModelDataId =
         | ModelDataId of Guid
 
@@ -52,15 +42,15 @@ module ContGenPrimitives =
 
         member df.value = let (ClmDefaultValueId v) = df in v
         override df.ToString() = df.value.ToString().PadLeft(9, '0') + "L"
-        
-        
+
+
     type ClmTaskPriority =
         | ClmTaskPriority of int
 
         member df.value = let (ClmTaskPriority v) = df in v
         static member defaultValue = ClmTaskPriority 1_000
 
-    
+
     type ClmTaskStatus =
         | ActiveClmTask
         | InactiveClmTask
@@ -84,24 +74,17 @@ module ContGenPrimitives =
         static member getNewId() = Guid.NewGuid() |> ClmTaskId
 
 
-    type HtmlChart =
-        {
-            htmlContent: string
-            fileName : string
-        }
+    //type ChartInfo =
+    //    {
+    //        runQueueId : RunQueueId
+    //        defaultValueId : ClmDefaultValueId
+    //        charts : list<HtmlChart>
+    //    }
 
 
-    type ChartInfo =
-        {
-            runQueueId : RunQueueId
-            defaultValueId : ClmDefaultValueId
-            charts : list<HtmlChart>
-        }
-
-
-    type ChartGenerationResult =
-        | GeneratedCharts of ChartInfo
-        | NotGeneratedCharts
+    //type ChartGenerationResult =
+    //    | GeneratedCharts of ChartInfo
+    //    | NotGeneratedCharts
 
 
     type ContGenAdmId =
@@ -112,9 +95,9 @@ module ContGenPrimitives =
         static member newId() = Guid.NewGuid() |> MessagingClientId |> ContGenAdmId
 
 
-    /// Number of minutes for worker node errors to expire before the node can be again included in work distribution.
-    type LastAllowedNodeErr =
-        | LastAllowedNodeErr of int<minute>
+    ///// Number of minutes for worker node errors to expire before the node can be again included in work distribution.
+    //type LastAllowedNodeErr =
+    //    | LastAllowedNodeErr of int<minute>
 
-        member this.value = let (LastAllowedNodeErr v) = this in v
-        static member defaultValue = LastAllowedNodeErr 60<minute>
+    //    member this.value = let (LastAllowedNodeErr v) = this in v
+    //    static member defaultValue = LastAllowedNodeErr 60<minute>

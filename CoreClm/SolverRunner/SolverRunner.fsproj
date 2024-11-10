@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
     <OutputType>Exe</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -23,22 +24,22 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\NoSql\NoSql.fsproj" />
-    <ProjectReference Include="..\OdeSolver\OdeSolver.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
-    <ProjectReference Include="..\WorkerNodeServiceInfo\WorkerNodeServiceInfo.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="SolverRunnerTasks.fs" />
-    <Compile Include="SolverRunnerCommandLine.fs" />
-    <Compile Include="SolverRunnerImplementation.fs" />
     <Compile Include="SolverRunnerProgram.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="7.0.200" />
+    <PackageReference Include="Softellect.Analytics" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="8.0.400.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>
 
 </Project>

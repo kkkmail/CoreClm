@@ -1,4 +1,4 @@
-drop procedure if exists tryClearNotificationRunQueue
+drop procedure if exists dbo.tryClearNotificationRunQueue
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryClearNotificationRunQueue @runQueueId uniqueidentifier
+create procedure dbo.tryClearNotificationRunQueue @runQueueId uniqueidentifier
 as
 begin
 	declare @rowCount int

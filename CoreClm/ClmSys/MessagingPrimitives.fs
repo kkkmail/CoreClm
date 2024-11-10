@@ -5,5 +5,6 @@ open Softellect.Messaging.Primitives
 
 module MessagingPrimitives =
 
-    let messagingHttpServiceName = "MessagingHttpService" |> ServiceName |> MessagingServiceName
-    let messagingNetTcpServiceName = "MessagingNetTcpService" |> ServiceName |> MessagingServiceName
+    //let messagingHttpServiceName = "MessagingHttpService" |> ServiceName |> MessagingServiceName
+    //let messagingNetTcpServiceName = "MessagingNetTcpService" |> ServiceName |> MessagingServiceName
+    let x = 0

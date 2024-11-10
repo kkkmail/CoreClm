@@ -2,7 +2,10 @@
 
 open System
 
+//open Primitives.GeneralPrimitives
+//open Primitives.SolverPrimitives
 open Softellect.Sys
+open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
@@ -11,54 +14,54 @@ open Softellect.Messaging.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Messaging.Service
 open Softellect.Messaging.Client
-open Softellect.Sys.MessagingServiceErrors
+open Softellect.Messaging.Errors
 
-open ClmSys.MessagingData
+//open ClmSys.MessagingData
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.VersionInfo
-open ClmSys.WorkerNodeData
+open Primitives.VersionInfo
+//open ClmSys.WorkerNodeData
 open ContGenServiceInfo.ServiceInfo
 open Clm.CalculationData
 open Clm.ModelParams
 open ClmSys.ContGenPrimitives
-open ClmSys.WorkerNodePrimitives
-open ClmSys.PartitionerPrimitives
+//open ClmSys.WorkerNodePrimitives
+//open ClmSys.PartitionerPrimitives
 open ClmSys.ClmErrors
-open ClmSys.GeneralPrimitives
+//open ClmSys.GeneralPrimitives
 open Clm.ChartData
-open ClmSys.GeneralData
+//open Primitives.GeneralData
 open ClmSys.SolverData
 
 module ServiceInfo =
 
-    let messagingProgramName = "MessagingService.exe"
+    //let messagingProgramName = "MessagingService.exe"
 
 
-    [<Literal>]
-    let MessagingWcfServiceName = "MessagingWcfService"
+    //[<Literal>]
+    //let MessagingWcfServiceName = "MessagingWcfService"
 
 
-    type PartitionerMessage =
-        | UpdateProgressPrtMsg of ProgressUpdateInfo
-        | SaveChartsPrtMsg of ChartInfo
-        | RegisterWorkerNodePrtMsg of WorkerNodeInfo
-        | UnregisterWorkerNodePrtMsg of WorkerNodeId
+    //type PartitionerMessage =
+    //    | UpdateProgressPrtMsg of ProgressUpdateInfo
+    //    | SaveChartsPrtMsg of ChartInfo
+    //    | RegisterWorkerNodePrtMsg of WorkerNodeInfo
+    //    | UnregisterWorkerNodePrtMsg of WorkerNodeId
 
-        member this.messageSize =
-            match this with
-            | UpdateProgressPrtMsg _ -> SmallSize
-            | SaveChartsPrtMsg _ -> MediumSize
-            | RegisterWorkerNodePrtMsg _ -> SmallSize
-            | UnregisterWorkerNodePrtMsg _ -> SmallSize
+    //    member this.messageSize =
+    //        match this with
+    //        | UpdateProgressPrtMsg _ -> SmallSize
+    //        | SaveChartsPrtMsg _ -> MediumSize
+    //        | RegisterWorkerNodePrtMsg _ -> SmallSize
+    //        | UnregisterWorkerNodePrtMsg _ -> SmallSize
 
 
     type EarlyExitData = ChartData
 
 
-    let bindBool b s =
-        match b with
-        | true -> b, Some s
-        | false -> b, None
+    //let bindBool b s =
+    //    match b with
+    //    | true -> b, Some s
+    //    | false -> b, None
 
 
     type EarlyExitRule =
@@ -79,18 +82,18 @@ module ServiceInfo =
             ||> bindBool
 
 
-    /// Any rule can be satisfied.        
+    /// Any rule can be satisfied.
     type AnyRule =
         | AnyRule of list<EarlyExitRule>
 
         member e.value = let (AnyRule v) = e in v
-    
+
 
     /// Outer list - all collections must be satisfied, inner list (from AnyRule) - at least one rule must be satisfied.
     type EarlyExitRuleCollection =
         | AllOfAny of list<AnyRule>
 
-    
+
     type EarlyExitStrategy =
         | AnyRuleCollection of list<EarlyExitRuleCollection> // Any of the collections can be satisfied.
 
@@ -139,7 +142,7 @@ module ServiceInfo =
                     ProgressExceeds p
                 ]
                 |> AnyRule
-                
+
                 [
                     MaxWeightedAverageAbsEeExceeds e
                     MaxLastEeExceeds e
@@ -157,7 +160,7 @@ module ServiceInfo =
 
         static member slowValue p =
                 EarlyExitStrategy.getEeValue p.slowProgress p.slowMinEe
-                
+
         static member longRunningValue p =
             [
                 [ RunTimeExceeds p.maxRunTime ] |> AnyRule
@@ -180,239 +183,238 @@ module ServiceInfo =
             frequency : EarlyExitCheckFrequency
             earlyExitStrategy : EarlyExitStrategy
         }
-        
-        static member getValue p = 
+
+        static member getValue p =
             {
                 frequency = p.earlyExitCheckFreq
                 earlyExitStrategy = EarlyExitStrategy.getValue p
             }
 
 
-    type WorkerNodeRunModelData =
-        {
-            runningProcessData : RunningProcessData
-            modelData : ModelData
-            controlData : RunnerControlData
-        }
+    //type WorkerNodeRunModelData =
+    //    {
+    //        runningProcessData : RunningProcessData
+    //        modelData : ModelData
+    //        controlData : RunnerControlData
+    //    }
 
 
-    type WorkerNodeMessage =
-        | RunModelWrkMsg of WorkerNodeRunModelData
-        | CancelRunWrkMsg of (RunQueueId * CancellationType)
-        | RequestResultWrkMsg of (RunQueueId * ResultNotificationType)
+    //type WorkerNodeMessage =
+    //    | RunModelWrkMsg of WorkerNodeRunModelData
+    //    | CancelRunWrkMsg of (RunQueueId * CancellationType)
+    //    | RequestResultWrkMsg of (RunQueueId * ResultNotificationType)
 
-        member this.messageSize =
-            match this with
-            | RunModelWrkMsg _ -> LargeSize
-            | CancelRunWrkMsg _ -> SmallSize
-            | RequestResultWrkMsg _ -> SmallSize
-
-
-    /// The decision was that we want strongly typed messages rather than untyped messages.
-    /// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
-    type ClmMessageData =
-        | TextData of string
-        | PartitionerMsg of PartitionerMessage
-        | WorkerNodeMsg of WorkerNodeMessage
-
-        static member maxInfoLength = 500
-
-        member this.getMessageSize() =
-            match this with
-            | TextData s ->
-                if s.Length < 1_000 then SmallSize
-                else if s.Length < 1_000_000 then MediumSize
-                else LargeSize
-            | PartitionerMsg m -> m.messageSize
-            | WorkerNodeMsg m -> m.messageSize
+    //    member this.messageSize =
+    //        match this with
+    //        | RunModelWrkMsg _ -> LargeSize
+    //        | CancelRunWrkMsg _ -> SmallSize
+    //        | RequestResultWrkMsg _ -> SmallSize
 
 
-    type MessagingClient = MessagingClient<ClmMessageData, ClmError>
-    type MessagingClientData = MessagingClientData<ClmMessageData, ClmError>
-    type MessagingServiceData = MessagingServiceData<ClmMessageData, ClmError>
-    type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData, ClmError>>
-    type Message = Message<ClmMessageData>
-    type MessageInfo = MessageInfo<ClmMessageData>
-    type MessagingService = MessagingService<ClmMessageData, ClmError>
-    type MessagingWcfService = MessagingWcfService<ClmMessageData, ClmError>
-    type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
+    ///// The decision was that we want strongly typed messages rather than untyped messages.
+    ///// TextData is used mostly for tests but can be also used to send an arbitrary object serialized into JSON.
+    //type ClmMessageData =
+    //    | TextData of string
+    //    | PartitionerMsg of PartitionerMessage
+    //    | WorkerNodeMsg of WorkerNodeMessage
+
+    //    static member maxInfoLength = 500
+
+    //    member this.getMessageSize() =
+    //        match this with
+    //        | TextData s ->
+    //            if s.Length < 1_000 then SmallSize
+    //            else if s.Length < 1_000_000 then MediumSize
+    //            else LargeSize
+    //        | PartitionerMsg m -> m.messageSize
+    //        | WorkerNodeMsg m -> m.messageSize
 
 
-    type PartitionerMessageInfo =
-        {
-            partitionerRecipient : PartitionerId
-            deliveryType : MessageDeliveryType
-            messageData : PartitionerMessage
-        }
-
-        member this.getMessageInfo() =
-            {
-                recipientInfo =
-                    {
-                        recipient = this.partitionerRecipient.messagingClientId
-                        deliveryType = this.deliveryType
-                    }
-                messageData = this.messageData |> PartitionerMsg |> UserMsg
-            }
+    //type MessagingClient = MessagingClient<ClmMessageData>
+    //type MessagingClientData = MessagingClientData<ClmMessageData>
+    //type MessagingServiceData = MessagingServiceData<ClmMessageData>
+    //type MessagingWcfServiceData = WcfServiceData<MessagingServiceData<ClmMessageData>>
+    ////type Message = Message<ClmMessageData>
+    ////type MessageInfo = MessageInfo<ClmMessageData>
+    //type MessagingService = MessagingService<ClmMessageData>
+    //type MessagingWcfService = MessagingWcfService<ClmMessageData>
+    //type MessagingWcfServiceImpl = WcfService<MessagingWcfService, IMessagingWcfService, MessagingServiceData>
 
 
-    type WorkerNodeMessageInfo =
-        {
-            workerNodeRecipient : WorkerNodeId
-            deliveryType : MessageDeliveryType
-            messageData : WorkerNodeMessage
-        }
+    //type PartitionerMessageInfo =
+    //    {
+    //        partitionerRecipient : PartitionerId
+    //        deliveryType : MessageDeliveryType
+    //        messageData : PartitionerMessage
+    //    }
 
-        member this.getMessageInfo() =
-            {
-                recipientInfo =
-                    {
-                        recipient = this.workerNodeRecipient.messagingClientId
-                        deliveryType = this.deliveryType
-                    }
-                messageData = this.messageData |> WorkerNodeMsg |> UserMsg
-            }
-
-
-    type MessageWithOptionalData =
-        {
-            messageDataInfo : MessageDataInfo
-            messageDataOpt : ClmMessageData option
-        }
+    //    member this.getMessageInfo() =
+    //        {
+    //            recipientInfo =
+    //                {
+    //                    recipient = this.partitionerRecipient.messagingClientId
+    //                    deliveryType = this.deliveryType
+    //                }
+    //            messageData = this.messageData |> PartitionerMsg |> UserMsg
+    //        }
 
 
-    type MessageDataInfo
-        with
-        member this.isExpired(waitTime : TimeSpan) =
-            match this.recipientInfo.deliveryType with
-            | GuaranteedDelivery -> false
-            | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
+    //type WorkerNodeMessageInfo =
+    //    {
+    //        workerNodeRecipient : WorkerNodeId
+    //        deliveryType : MessageDeliveryType
+    //        messageData : WorkerNodeMessage
+    //    }
+
+    //    member this.getMessageInfo() =
+    //        {
+    //            recipientInfo =
+    //                {
+    //                    recipient = this.workerNodeRecipient.messagingClientId
+    //                    deliveryType = this.deliveryType
+    //                }
+    //            messageData = this.messageData |> WorkerNodeMsg |> UserMsg
+    //        }
 
 
-    type MessagingConfigParam =
-        | DummyConfig
+    //type MessageWithOptionalData =
+    //    {
+    //        messageDataInfo : MessageDataInfo
+    //        messageDataOpt : ClmMessageData option
+    //    }
 
 
-    type RunQueue
-        with
-
-        member q.toRunningProcessDataOpt() =
-            q.workerNodeIdOpt
-            |> Option.bind (fun w ->
-                            {
-                                modelDataId = q.info.modelDataId
-                                defaultValueId = q.info.defaultValueId
-                                runQueueId = q.runQueueId
-                                workerNodeId = w
-                                commandLineParams = q.modelCommandLineParam
-                            }
-                            |> Some)
+    //type MessageDataInfo
+    //    with
+    //    member this.isExpired(waitTime : TimeSpan) =
+    //        match this.recipientInfo.deliveryType with
+    //        | GuaranteedDelivery -> false
+    //        | NonGuaranteedDelivery -> if this.createdOn.Add waitTime < DateTime.Now then true else false
 
 
-        member q.toMessageInfoOpt getModelData cd =
-            match q.toRunningProcessDataOpt() with
-            | Some d ->
-                match getModelData q.info.modelDataId with
-                | Ok m ->
-                    {
-                        workerNodeRecipient = d.workerNodeId
-                        deliveryType = GuaranteedDelivery
-                        messageData =
-                            {
-                                runningProcessData = d
-                                modelData = m
-                                controlData = cd
-                            }
-                            |> RunModelWrkMsg
-                    }.getMessageInfo()
-                    |> Some |> Ok
-                | Error e -> Error e
-            | None -> Ok None
+    //type MessagingConfigParam =
+    //    | DummyConfig
 
 
-    let expirationTimeInMinutes = ConfigKey "ExpirationTimeInMinutes"
+    //type RunQueue
+    //    with
+    //
+    //    member q.toRunningProcessDataOpt() =
+    //        q.workerNodeIdOpt
+    //        |> Option.bind (fun w ->
+    //                        {
+    //                            modelDataId = q.info.modelDataId
+    //                            defaultValueId = q.info.defaultValueId
+    //                            runQueueId = q.runQueueId
+    //                            workerNodeId = w
+    //                            commandLineParams = q.modelCommandLineParam
+    //                        }
+    //                        |> Some)
+    //
+    //    member q.toMessageInfoOpt getModelData cd =
+    //        match q.toRunningProcessDataOpt() with
+    //        | Some d ->
+    //            match getModelData q.info.modelDataId with
+    //            | Ok m ->
+    //                {
+    //                    workerNodeRecipient = d.workerNodeId
+    //                    deliveryType = GuaranteedDelivery
+    //                    messageData =
+    //                        {
+    //                            runningProcessData = d
+    //                            modelData = m
+    //                            controlData = cd
+    //                        }
+    //                        |> RunModelWrkMsg
+    //                }.getMessageInfo()
+    //                |> Some |> Ok
+    //            | Error e -> Error e
+    //        | None -> Ok None
 
 
-    type MsgSettings
-        with
-
-        member w.trySaveSettings() =
-            let toErr e = e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
-
-            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
-            | Ok(), Ok provider ->
-                try
-                    updateMessagingSettings provider w.messagingSvcInfo w.communicationType
-                    provider.trySet expirationTimeInMinutes (int w.messagingInfo.expirationTime.TotalMinutes) |> ignore
-                    provider.trySave() |> Rop.bindError toErr
-                with
-                | e -> toErr e
-            | Error e, _ -> Error e
-            | _, Error e -> toErr e
+    //let expirationTimeInMinutes = ConfigKey "ExpirationTimeInMinutes"
 
 
-    type MsgServiceSettingsProxy<'P> =
-        {
-            tryGetMsgServiceAddress : 'P -> ServiceAddress option
-            tryGetMsgServicePort : 'P -> ServicePort option
-        }
+    //type MsgSettings
+    //    with
 
-    let loadMsgServiceSettings() =
-        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
-        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
+    //    member w.trySaveSettings() =
+    //        let toErr e = e |> MsgSettingExn |> MsgSettingsErr |> MessagingServiceErr |> Error
 
-        let expirationTimeInMinutes =
-            match providerRes with
-            | Ok provider ->
-                match provider.tryGetInt expirationTimeInMinutes with
-                | Ok (Some n) when n > 0 -> TimeSpan.FromMinutes(float n)
-                | _ -> MessagingServiceInfo.defaultExpirationTime
-            | _ -> MessagingServiceInfo.defaultExpirationTime
-
-        let w =
-            {
-                messagingInfo =
-                    {
-                        expirationTime = expirationTimeInMinutes
-                        messagingDataVersion = messagingDataVersion
-                    }
-
-                messagingSvcInfo = messagingSvcInfo
-                communicationType = messagingServiceCommunicationType
-            }
-
-        w
+    //        match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
+    //        | Ok(), Ok provider ->
+    //            try
+    //                updateMessagingSettings provider w.messagingSvcInfo w.communicationType
+    //                provider.trySet expirationTimeInMinutes (int w.messagingInfo.expirationTime.TotalMinutes) |> ignore
+    //                provider.trySave() |> Rop.bindError toErr
+    //            with
+    //            | e -> toErr e
+    //        | Error e, _ -> Error e
+    //        | _, Error e -> toErr e
 
 
-    let loadSettingsImpl (proxy : MsgServiceSettingsProxy<'P>) p =
-        let w = loadMsgServiceSettings()
-        let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
-        let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
+    //type MsgServiceSettingsProxy<'P> =
+    //    {
+    //        tryGetMsgServiceAddress : 'P -> ServiceAddress option
+    //        tryGetMsgServicePort : 'P -> ServicePort option
+    //    }
 
-        let serviceAddress = proxy.tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
-        let netTcpServicePort = proxy.tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
-        let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
-        let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName WcfSecurityMode.defaultValue
-        let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
-        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
+    //let loadMsgServiceSettings() =
+    //    let providerRes = AppSettingsProvider.tryCreate appSettingsFile
+    //    let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
 
-        let w1 = { w with messagingSvcInfo = messagingSvcInfo }
+    //    let expirationTimeInMinutes =
+    //        match providerRes with
+    //        | Ok provider ->
+    //            match provider.tryGetInt expirationTimeInMinutes with
+    //            | Ok (Some n) when n > 0 -> TimeSpan.FromMinutes(float n)
+    //            | _ -> MessagingServiceInfo.defaultExpirationTime
+    //        | _ -> MessagingServiceInfo.defaultExpirationTime
 
-        w1
+    //    let w =
+    //        {
+    //            messagingInfo =
+    //                {
+    //                    expirationTime = expirationTimeInMinutes
+    //                    messagingDataVersion = messagingDataVersion
+    //                }
+
+    //            messagingSvcInfo = messagingSvcInfo
+    //            communicationType = messagingServiceCommunicationType
+    //        }
+
+    //    w
 
 
-    let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =
-        let (w : MsgSettings) = loadSettings()
-        printfn $"getServiceAccessInfoImpl: w = %A{w}"
+    //let loadSettingsImpl (proxy : MsgServiceSettingsProxy<'P>) p =
+    //    let w = loadMsgServiceSettings()
+    //    let h = w.messagingSvcInfo.messagingServiceAccessInfo.httpServiceInfo
+    //    let n = w.messagingSvcInfo.messagingServiceAccessInfo.netTcpServiceInfo
 
-        let r =
-            match tryGetSaveSettings(), b with
-            | Some _, _ -> w.trySaveSettings()
-            | _, true -> w.trySaveSettings()
-            | _ -> Ok()
+    //    let serviceAddress = proxy.tryGetMsgServiceAddress p |> Option.defaultValue h.httpServiceAddress
+    //    let netTcpServicePort = proxy.tryGetMsgServicePort p |> Option.defaultValue n.netTcpServicePort
+    //    let httpServiceInfo = HttpServiceAccessInfo.create serviceAddress h.httpServicePort h.httpServiceName
+    //    let netTcpServiceInfo = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort n.netTcpServiceName WcfSecurityMode.defaultValue
+    //    let msgServiceAccessInfo = ServiceAccessInfo.create httpServiceInfo netTcpServiceInfo
+    //    let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion msgServiceAccessInfo
 
-        match r with
-        | Ok() -> printfn "Successfully saved settings."
-        | Error e -> printfn $"Error occurred trying to save settings: %A{e}."
+    //    let w1 = { w with messagingSvcInfo = messagingSvcInfo }
 
-        w
+    //    w1
+
+
+    //let getMsgServiceInfo (loadSettings, tryGetSaveSettings) b =
+    //    let (w : MsgSettings) = loadSettings()
+    //    printfn $"getServiceAccessInfoImpl: w = %A{w}"
+
+    //    let r =
+    //        match tryGetSaveSettings(), b with
+    //        | Some _, _ -> w.trySaveSettings()
+    //        | _, true -> w.trySaveSettings()
+    //        | _ -> Ok()
+
+    //    match r with
+    //    | Ok() -> printfn "Successfully saved settings."
+    //    | Error e -> printfn $"Error occurred trying to save settings: %A{e}."
+
+    //    w

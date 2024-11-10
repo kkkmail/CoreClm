@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
     <RunPostBuildEvent>1</RunPostBuildEvent>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -39,18 +40,13 @@
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="ContGenCommandLine.fs" />
-    <Compile Include="ContGenServiceTasks.fs" />
-    <Compile Include="ContGenWcfService.fs" />
-    <Compile Include="ContGenWorker.fs" />
     <Compile Include="ContGenProgram.fs" />
   </ItemGroup>
 
   <ItemGroup />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
-    <PackageReference Update="FSharp.Core" Version="7.0.200" />
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,7 +58,6 @@
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\ContGen\ContGen.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
     <ProjectReference Include="..\SolverRunner\SolverRunner.fsproj" />
   </ItemGroup>

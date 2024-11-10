@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OtherFlags>--warnaserror+:25 --platform:x64</OtherFlags>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+    <PackageReference Include="Softellect.Analytics" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="8.0.400.2" />
+    <PackageReference Include="Softellect.OdePackInterop" Version="8.0.400.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Primitives.fs" />
+    <Compile Include="Kernel.fs" />
+    <Compile Include="EeInfDiffModel.fs" />
+    <Compile Include="EeInfIntModel.fs" />
+    <Compile Include="EeInfChartData.fs" />
+    <Compile Include="EeInfCharts.fs" />
+    <Compile Include="PoissonSolver.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Analytics\Analytics.fsproj" />
+  </ItemGroup>
+
+</Project>

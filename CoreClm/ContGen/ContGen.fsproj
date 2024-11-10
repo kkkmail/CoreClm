@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -17,8 +18,10 @@
 
   <ItemGroup>
     <Compile Include="ModelGenerator.fs" />
-    <Compile Include="ModelRunner.fs" />
-    <Compile Include="ContGenServiceResponse.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="8.0.400.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,13 +31,12 @@
     <ProjectReference Include="..\Clm\Clm.fsproj" />
     <ProjectReference Include="..\ContGenServiceInfo\ContGenServiceInfo.fsproj" />
     <ProjectReference Include="..\DbData\DbData.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
     <ProjectReference Include="..\Model\Model.fsproj" />
     <ProjectReference Include="..\ServiceProxy\ServiceProxy.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="7.0.200" />
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>
 
 </Project>

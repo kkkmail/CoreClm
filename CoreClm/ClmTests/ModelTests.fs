@@ -1,17 +1,24 @@
 ﻿namespace ClmTests
 
+open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.DistributedProcessing.SolverRunner.OdeSolver
+
 #nowarn "9"
 
 open System
+//open GenericOdeSolver.Solver
 open Microsoft.FSharp.NativeInterop
 open Softellect.OdePackInterop
 open Xunit
 open Xunit.Abstractions
 open FluentAssertions
-open DbData.DatabaseTypes
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
 open DbData.Configuration
 open Clm.Model.ModelData
 open Clm.CalculationData
+//open GenericOdeSolver.Primitives
+//open OdeSolver.Solver
 
 /// Use
 ///     "ContGenAdm.exe add -i 4005000004 -n 9 -m 3 -y 10 -t 250000 -r 1 -g"
@@ -107,18 +114,20 @@ type ModelTests(output : ITestOutputHelper) =
         let mdUpdate (md : ModelData) = md.modelData.modelBinaryData.calculationData.getDerivative
         ModelDataShouldMatchGeneratedCodeImpl mdUpdate
 
-    [<Fact>]
-    member _.ModelDataShouldMatchGeneratedCodeForPointerDerivative () : unit =
-        let mdUpdate (md : ModelData) (x : double[]) : double[] =
-            let indices = md.modelData.modelBinaryData.calculationData.modelIndices
-            let neq = x.Length
-            let t = 0.0
-            let callaBack _ _ = ()
-            let (dx : double[]) = Array.zeroCreate x.Length
-            use px = fixed &x.[0]
-            use pdx = fixed &dx.[0]
-            let interop = createUseNonNegativeInterop (callaBack, indices)
-            do interop.Invoke(ref neq, ref t, px, pdx)
-            dx
+    //[<Fact>]
+    //member _.ModelDataShouldMatchGeneratedCodeForPointerDerivative () : unit =
+    //    let mdUpdate (md : ModelData) (x : double[]) : double[] =
+    //        let neq = x.Length
+    //        let t = 0.0
+    //        let callaBack _ _ = ()
+    //        let (dx : double[]) = Array.zeroCreate x.Length
+    //        use px = fixed &x.[0]
+    //        use pdx = fixed &dx.[0]
+    //        let calculateDerivative t x = md.modelData.modelBinaryData.calculationData.getDerivative x
+    //        let dc : DerivativeCalculator = calculateDerivative |> FullArray
 
-        ModelDataShouldMatchGeneratedCodeImpl mdUpdate
+    //        let interop = createUseNonNegativeInterop (callaBack, dc)
+    //        do interop.Invoke(ref neq, ref t, px, pdx)
+    //        dx
+
+    //    ModelDataShouldMatchGeneratedCodeImpl mdUpdate

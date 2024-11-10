@@ -1,20 +1,33 @@
 ﻿namespace ContGen
 
 open System
+open ClmSys
 open ClmSys.SolverRunnerPrimitives
+//open Primitives.GeneralPrimitives
 open Softellect.Sys.Rop
+open Softellect.Sys.TimerEvents
 
 open Clm.ModelParams
 open ClmSys.ClmErrors
 open ClmSys.ContGenPrimitives
-open ClmSys.GeneralPrimitives
+//open ClmSys.GeneralPrimitives
 open ClmSys.ModelGeneratorErrors
 open ServiceProxy.ModelGeneratorProxy
 open Clm.Generator.ClmModelData
 open Clm.Generator.ClmModel
-open DbData.DatabaseTypes
-open ClmSys.Logging
-open ClmSys.TimerEvents
+open DbData.DatabaseTypesDbo
+open DbData.DatabaseTypesClm
+//open ClmSys.Logging
+//open ClmSys.TimerEvents
+open Clm.ClmData
+open Clm.ModelInit
+
+open Softellect.DistributedProcessing.ModelGenerator.Program
+open Softellect.DistributedProcessing.Proxy.ModelGenerator
+open Softellect.Sys.ExitErrorCodes
+open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.Sys.Logging
+open Clm.Distributions
 
 module ModelGenerator =
 
@@ -41,30 +54,76 @@ module ModelGenerator =
             | Ok a ->
                 let model = ClmModel (a.modelGenerationParams, modelDataId, c.clmTaskInfo.clmTaskId)
 
-                match model.getModelData() |> proxy.upsertModelData with
-                | Ok() ->
-                    let r =
-                        a.modelCommandLineParams
-                        |> List.map(fun e ->
-                                        {
-                                            runQueueId = RunQueueId.getNewId()
-                                            info =
-                                                {
-                                                    modelDataId = modelDataId;
-                                                    defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId;
-                                                    modelCommandLineParam = e
-                                                }
-                                            runQueueStatus = NotStartedRunQueue
-                                            workerNodeIdOpt = None
-                                            progressData = ProgressData.defaultValue
-                                            createdOn = DateTime.Now
-                                        })
-                        |> List.map proxy.upsertRunQueue
-                        |> foldUnitResults
+                let modelData = model.getModelData()
 
-                    let r1 = proxy.updateClmTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
-                    combineUnitResults r r1 |> mapSuccessValue model
-                | Error e -> addError (UnableUpsertModelDataErr c.clmTaskInfo.clmTaskId) e
+                let g p =
+                    let i =
+                        {
+                            defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId
+                            modelCommandLineParam = p
+                            modelData = modelData
+                        }
+
+                    let inputParams =
+                        {
+                            startTime = EvolutionTime.defaultValue
+                            endTime = p.tEnd |> decimal |> EvolutionTime
+                        }
+
+                    let outputParams = SolverOutputParams.defaultValue
+                    let modelDataParamsWithExtraData = modelData.modelData.getModelDataParamsWithExtraData()
+                    let rnd = RandomValueGetter.create modelData.seedValue
+
+                    let generateModelData i =
+                        {
+                            derivativeCalculator = modelData.modelData.modelBinaryData.calculationData.derivativeCalculator
+                            evolutionTime = inputParams.endTime
+                            initialValues = defaultInit rnd (ModelInitValuesParams.getDefaultValue modelDataParamsWithExtraData p.useAbundant) (double p.y0)
+                        }
+
+                    let proxy : ModelGeneratorUserProxy<ClmInitialData, ClmSolverData> =
+                        {
+                            getInitialData = fun () -> i
+                            generateModelData = generateModelData
+                            getSolverInputParams = fun _ -> inputParams
+                            getSolverOutputParams = fun _ -> outputParams
+                        }
+
+                    let systemProxy = ModelGeneratorSystemProxy.create()
+                    let result = generateModel<ClmInitialData, ClmSolverData> systemProxy clmSolverId proxy
+                    printfn $"result: '%A{result}'."
+
+                let r =
+                    a.modelCommandLineParams
+                    |> List.map g
+
+
+                failwith ""
+
+                //match model.getModelData() |> proxy.upsertModelData with
+                //| Ok() ->
+                //    let r =
+                //        a.modelCommandLineParams
+                //        |> List.map(fun e ->
+                //                        {
+                //                            runQueueId = RunQueueId.getNewId()
+                //                            info =
+                //                                {
+                //                                    modelDataId = modelDataId;
+                //                                    defaultValueId = c.clmTaskInfo.taskDetails.clmDefaultValueId;
+                //                                    modelCommandLineParam = e
+                //                                }
+                //                            runQueueStatus = NotStartedRunQueue
+                //                            workerNodeIdOpt = None
+                //                            progressData = ClmProgressData.defaultValue
+                //                            createdOn = DateTime.Now
+                //                        })
+                //        |> List.map proxy.upsertRunQueue
+                //        |> foldUnitResults
+
+                //    let r1 = proxy.updateClmTask { c with remainingRepetitions = max (c.remainingRepetitions - 1) 0 }
+                //    combineUnitResults r r1 |> mapSuccessValue model
+                //| Error e -> addError (UnableUpsertModelDataErr c.clmTaskInfo.clmTaskId) e
             | Error e -> addError (GenerateModelError.UnableLoadParamsErr c.clmTaskInfo.clmTaskId) e
         else toError (TaskCompletedErr c.clmTaskInfo.clmTaskId)
 
@@ -94,8 +153,11 @@ module ModelGenerator =
 
 
     let createModelGenerator (logger : Logger) u coll so c =
-        logger.logInfoString "createModelGenerator: Creating model generator..."
+        logger.logInfo "createModelGenerator: Creating model generator..."
         let proxy = GenerateAllProxy.create u coll so c
-        let e = fun () -> generateAll proxy
-        let h = ClmEventHandler(ClmEventHandlerInfo.defaultValue logger e "ModelGenerator - generateAll")
+        let generateAll() = generateAll proxy
+        let toError e = ClmTimerEventErr e
+        let i = TimerEventHandlerInfo<ClmError>.defaultValue toError generateAll "ModelGenerator - generateAll"
+        let h = TimerEventHandler i
+        h.start()
         h

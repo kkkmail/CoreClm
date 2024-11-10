@@ -1,18 +1,80 @@
 ﻿namespace OdeSolver
 
+#nowarn "9"
+
 open System
+open ClmSys
 open ClmSys.ContGenPrimitives
+open GenericOdeSolver.Primitives
+open Microsoft.FSharp.NativeInterop
+open Primitives.GeneralPrimitives
+open Primitives.SolverPrimitives
+open Primitives.SolverRunnerErrors
 open Softellect.OdePackInterop
 open Microsoft.FSharp.Core
 open Clm.ChartData
 open ClmSys.GeneralPrimitives
-open ClmSys.GeneralData
+open Primitives.GeneralData
 open ClmSys.SolverRunnerPrimitives
 open ClmSys.ClmErrors
 open ClmSys.SolverData
 open Clm.CalculationData
+open Primitives.GeneralData
+open GenericOdeSolver.Solver
+open Softellect.Sys.Primitives
 
 module Solver =
+
+    let makeNonNegativeByRef (neq : int) (x : nativeptr<double>) : double[] = [| for i in 0..(neq - 1) -> max 0.0 (NativePtr.get x i) |]
+
+    let makeNonNegativeByRefInPlace (neq : int) (x : nativeptr<double>) =
+        for i in 0 .. (neq - 1) do NativePtr.set x i (max 0.0 (NativePtr.get x i))
+
+
+    let private fUseNonNegative (
+                                callBack: double -> double[] -> unit,
+                                derivativeCalculator : DerivativeCalculator,
+                                neq : byref<int>,
+                                t : byref<double>,
+                                x : nativeptr<double>,
+                                dx : nativeptr<double>) : unit =
+
+        let x1 = makeNonNegativeByRef neq x
+        callBack t x1
+        let dxValue = derivativeCalculator.calculate t x1
+        for i in 0 .. (neq - 1) do NativePtr.set dx i (dxValue[i])
+
+
+    let private fDoNotCorrect (
+                                needsCallBack: double -> CancellationType option * bool,
+                                callBack: CancellationType option -> double -> double[] -> unit,
+                                derivativeCalculator : DerivativeCalculator,
+                                neq : byref<int>,
+                                t : byref<double>,
+                                x : nativeptr<double>,
+                                dx : nativeptr<double>) : unit =
+
+        match needsCallBack t with
+        | Some c, _ -> callBack (Some c) t (makeNonNegativeByRef neq x)
+        | None, true -> callBack None t (makeNonNegativeByRef neq x)
+        | None, false -> ()
+
+        // for i in 0 .. (neq - 1) do
+        //     NativePtr.set dx i (calculateByRefDerivativeValue x indices.[i])
+        failwith "fDoNotCorrect is not implemented yet."
+
+
+    let createUseNonNegativeInterop (callaBack: double -> double[] -> unit, derivativeCalculator : DerivativeCalculator) =
+        Interop.F(fun n t y dy -> fUseNonNegative(callaBack, derivativeCalculator, &n, &t, y, dy))
+
+
+    let createDoNotCorrectInterop (
+                                    needsCallBack: double -> CancellationType option * bool,
+                                    callaBack: CancellationType option -> double -> double[] -> unit,
+                                    derivativeCalculator : DerivativeCalculator) =
+        Interop.F(fun n t y dy -> fDoNotCorrect(needsCallBack, callaBack, derivativeCalculator, &n, &t, y, dy))
+
+    // ================================================================ //
 
     //let private printDebug s = printfn $"{s}"
     let private printDebug s = ()
@@ -35,7 +97,7 @@ module Solver =
             startTime : double
             endTime : double
             xEnd : double[]
-            progressData : ProgressData
+            progressData : ClmProgressData
         }
 
 
@@ -86,7 +148,7 @@ module Solver =
             runQueueId : RunQueueId
             calculationData : ModelCalculationData
             initialValues : double[]
-            progressCallBack : RunQueueStatus option -> ProgressData -> unit
+            progressCallBack : RunQueueStatus option -> ClmProgressData -> unit
             chartCallBack : ChartSliceData -> unit
             getChartSliceData : double -> double[] -> EeData -> ChartSliceData
             checkCancellation : RunQueueId -> CancellationType option
@@ -213,12 +275,12 @@ module Solver =
             let dtEeSumNew = (csd.enantiomericExcess, dtEeSum) ||> Array.map2 (fun e s -> dt * e + s)
             let tDtEeSumNew = (csd.enantiomericExcess, tDtEeSum) ||> Array.map2 (fun e s -> tDt * e + s)
 
-            let dtEeAbsMax = 
+            let dtEeAbsMax =
                 dtEeSumNew
                 |> Array.map abs
                 |> Array.max
 
-            let tDtEeAbsMax = 
+            let tDtEeAbsMax =
                 tDtEeSumNew
                 |> Array.map abs
                 |> Array.max
@@ -249,32 +311,35 @@ module Solver =
         calculateChartSliceData d |> d.nSolveParam.chartCallBack
 
 
-    let calculateProgressData (d : StatUpdateData) =
+    let calculateProgressData (d : StatUpdateData) : ClmProgressData =
         printDebug $"calculateProgressData: Called with t = {d.t}."
         let csd = calculateChartSliceData d
 
         {
-            progress = calculateProgress d.nSolveParam d.t
-            callCount = callCount
+            progressData =
+                {
+                    progress = calculateProgress d.nSolveParam d.t
+                    callCount = callCount
+                    errorMessageOpt = None
+                }
             eeData = lastEeData
             yRelative = csd.totalSubst.totalData / firstChartSliceData.totalSubst.totalData
-            errorMessageOpt = None
         }
 
 
-    let calculateProgressDataWithErr (d : StatUpdateData) v =
+    let calculateProgressDataWithErr (d : StatUpdateData) v : ClmProgressData =
         printDebug $"calculateProgressDataWithErr: Called with t = {d.t}, v = {v}."
         let p = calculateProgressData d
 
         let withMessage s m =
             match s with
-            | Some v -> { p with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some }
-            | None ->   { p with errorMessageOpt = m |> ErrorMessage |> Some }
+            | Some v -> { p with progressData = { p.progressData with errorMessageOpt = m + $" Message: {v}" |> ErrorMessage |> Some } }
+            | None ->   { p with progressData = { p.progressData with errorMessageOpt = m |> ErrorMessage |> Some } }
 
         match v with
-        | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progress * 100.0m}%% progress." |> withMessage s
+        | AbortCalculation s -> $"The run queue was aborted at: %.2f{p.progressData.progress * 100.0m}%% progress." |> withMessage s
         | CancelWithResults s ->
-            $"The run queue was cancelled at: %.2f{p.progress * 100.0m}%% progress. Absolute tolerance: {d.nSolveParam.odeParams.absoluteTolerance}."
+            $"The run queue was cancelled at: %.2f{p.progressData.progress * 100.0m}%% progress. Absolute tolerance: {d.nSolveParam.odeParams.absoluteTolerance}."
             |> withMessage s
 
 
@@ -283,7 +348,7 @@ module Solver =
             startTime = solverResult.StartTime
             endTime = solverResult.EndTime
             xEnd = solverResult.X
-            progressData = calculateProgressData { nSolveParam = n; t = solverResult.EndTime; x = solverResult.X }  
+            progressData = (calculateProgressData { nSolveParam = n; t = solverResult.EndTime; x = solverResult.X })
         }
 
 
@@ -347,7 +412,9 @@ module Solver =
         callCount <- callCount + 1L
 
         match checkCancellation d.nSolveParam with
-        | Some v -> raise(ComputationAbortedException (calculateProgressDataWithErr d v, v))
+        | Some v ->
+            let p = calculateProgressDataWithErr d v
+            raise(ComputationAbortedException (p.progressData, v))
         | None -> ()
 
         if shouldNotify d.nSolveParam d.t then callBack d
@@ -357,7 +424,9 @@ module Solver =
         printDebug $"callBackDoNotCorrect: Called with t = {d.t}."
 
         match c with
-        | Some v -> raise(ComputationAbortedException (calculateProgressDataWithErr d v, v))
+        | Some v ->
+            let p = calculateProgressDataWithErr d v
+            raise(ComputationAbortedException (p.progressData, v))
         | None -> ()
 
         if shouldNotify d.nSolveParam d.t then callBack d
@@ -393,19 +462,22 @@ module Solver =
             do alglib.odesolversolve(s, d, null)
             let mutable (m, xTbl, yTbl, rep) = alglib.odesolverresults(s)
             let xEnd = yTbl.[nt - 1, *]
+            let pd = calculateProgressData { nSolveParam = n; t = p.endTime; x = xEnd }
 
             {
                 startTime = p.startTime
                 endTime = p.endTime
                 xEnd = xEnd
-                progressData = calculateProgressData { nSolveParam = n; t = p.endTime; x = xEnd }
+                progressData = pd
             }
         | OdePack (m, i, nc) ->
             printfn $"nSolve: Using {m} / {i} DLSODE solver."
+            let calculateDerivative t x = n.calculationData.getDerivative x
+            let dc : DerivativeCalculator = calculateDerivative |> FullArray
 
             match nc with
             | UseNonNegative ->
-                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, n.calculationData.modelIndices)
+                let interop() = createUseNonNegativeInterop(callBackUseNonNegative, dc)
 
                 OdeSolver.RunFSharp(
                         (fun() -> interop()),
@@ -420,7 +492,7 @@ module Solver =
             | DoNotCorrect ->
                 let needsCallBack t = needsCallBack n t
                 let callBack c t x = callBackDoNotCorrect c { nSolveParam = n; t = t; x = x }
-                let interop() = createDoNotCorrectInterop(needsCallBack, callBack, n.calculationData.modelIndices)
+                let interop() = createDoNotCorrectInterop(needsCallBack, callBack, dc)
 
                 OdeSolver.RunFSharp(
                         (fun() -> interop()),

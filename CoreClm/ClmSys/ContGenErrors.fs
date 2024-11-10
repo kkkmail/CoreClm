@@ -1,27 +1,40 @@
 ﻿namespace ClmSys
-open Softellect.Sys.WcfErrors
+open Softellect.Wcf.Errors
+open Softellect.Messaging.Errors
 
 module ContGenErrors =
 
-    type TryCancelRunQueueError =
+    type ContGenServiceError =
         | TryCancelRunQueueWcfErr of WcfError
-
-
-    type TryRequestResultsError =
         | TryRequestResultsWcfErr of WcfError
-
-
-    type TryResetError =
         | TryResetWcfErr of WcfError
 
+        // ======
+        // Ugly stuff
+        // TODO kk:20240722 - WorkNode error types are now inconsistent and conflict with messaging error types.
+        // See: https://github.com/kkkmail/CoreClm/issues/40
+        | TryCreateModelRunnerErr of MessagingError
 
-    type ContGenSettingsError =
-        | InvalidSettings of string
-        | ContGenSettingExn of exn
+
+    //type TryCancelRunQueueError =
+    //    | TryCancelRunQueueWcfErr of WcfError
 
 
-    type ContGenServiceError =
-        | TryCancelRunQueueErr of TryCancelRunQueueError
-        | TryRequestResultsErr of TryRequestResultsError
-        | TryResetErr of TryResetError
-        | ContGenSettingsErr of ContGenSettingsError
+    //type TryRequestResultsError =
+    //    | TryRequestResultsWcfErr of WcfError
+
+
+    //type TryResetError =
+    //    | TryResetWcfErr of WcfError
+
+
+    //type ContGenSettingsError =
+    //    | InvalidSettings of string
+    //    | ContGenSettingExn of exn
+
+
+    //type ContGenServiceError =
+    //    | TryCancelRunQueueErr of TryCancelRunQueueError
+    //    | TryRequestResultsErr of TryRequestResultsError
+    //    | TryResetErr of TryResetError
+    //    | ContGenSettingsErr of ContGenSettingsError

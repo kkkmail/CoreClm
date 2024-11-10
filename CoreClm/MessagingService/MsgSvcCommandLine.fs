@@ -6,10 +6,11 @@ open Softellect.Sys.Primitives
 open Softellect.Messaging.ServiceInfo
 open Softellect.Sys.Logging
 open Softellect.Messaging.Service
-open Softellect.Sys.WcfErrors
+open Softellect.Wcf.Errors
+open Softellect.Sys.Worker
 
 open ClmSys.ClmWorker
-open ClmSys.VersionInfo
+open Primitives.VersionInfo
 open ClmSys.MessagingData
 open MessagingServiceInfo.ServiceInfo
 

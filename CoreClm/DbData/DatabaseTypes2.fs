@@ -6,6 +6,7 @@ open Newtonsoft.Json
 open FSharp.Data.Sql
 open System
 
+open Primitives.GeneralPrimitives
 open Softellect.Sys
 open Softellect.Sys.Core
 open Softellect.Sys.MessagingPrimitives
@@ -37,10 +38,11 @@ module DatabaseTypes =
     let private getDbContext (c : unit -> ConnectionString) = c().value |> ClmDb.GetDataContext
 
 
-    type private ClmDefaultValueEntity = ClmContext.``dbo.ClmDefaultValueEntity``
-    type private ClmTaskEntity = ClmContext.``dbo.ClmTaskEntity``
-    type private CommandLineParamEntity = ClmContext.``dbo.CommandLineParamEntity``
-    type private ModelDataEntity = ClmContext.``dbo.ModelDataEntity``
+    type private ClmDefaultValueEntity = ClmContext.``clm.DefaultValueEntity``
+    type private ClmTaskEntity = ClmContext.``clm.TaskEntity``
+    type private CommandLineParamEntity = ClmContext.``clm.CommandLineParamEntity``
+    type private ModelDataEntity = ClmContext.``clm.ModelDataEntity``
+    type private ClmRunQueueEntity = ClmContext.``clm.RunQueueEntity``
     type private RunQueueEntity = ClmContext.``dbo.RunQueueEntity``
     type private WorkerNodeEntity = ClmContext.``dbo.WorkerNodeEntity``
 
@@ -48,14 +50,14 @@ module DatabaseTypes =
     type private RunQueueTableData =
         {
             runQueue : RunQueueEntity
+            clmRunQueue : ClmRunQueueEntity
             clmDefaultValueId : int64
         }
 
 
-
     let private createClmDefaultValue (r : ClmDefaultValueEntity) =
         {
-            clmDefaultValueId = r.ClmDefaultValueId |> ClmDefaultValueId
+            clmDefaultValueId = r.DefaultValueId |> ClmDefaultValueId
             defaultRateParams = r.DefaultRateParams |> JsonConvert.DeserializeObject<ReactionRateProviderParams>
             description = r.Description
         }
@@ -67,8 +69,8 @@ module DatabaseTypes =
 
             let x =
                 query {
-                    for c in ctx.Dbo.ClmDefaultValue do
-                    where (c.ClmDefaultValueId = clmDefaultValueId)
+                    for c in ctx.Clm.DefaultValue do
+                    where (c.DefaultValueId = clmDefaultValueId)
                     select (Some c)
                     exactlyOneOrDefault
                 }
@@ -84,8 +86,8 @@ module DatabaseTypes =
         let g() =
             let ctx = getDbContext c
 
-            let r = ctx.Procedures.UpsertClmDefaultValue.Invoke(
-                            ``@clmDefaultValueId`` = p.clmDefaultValueId.value,
+            let r = ctx.Procedures.ClmUpsertDefaultValue.Invoke(
+                            ``@defaultValueId`` = p.clmDefaultValueId.value,
                             ``@defaultRateParams`` = (p.defaultRateParams |> JsonConvert.SerializeObject),
                             ``@description`` = (match p.description with | Some d -> d | None -> null))
 
@@ -108,8 +110,8 @@ module DatabaseTypes =
 
             let x =
                 query {
-                    for p in ctx.Dbo.CommandLineParam do
-                    where (p.ClmTaskId = clmTaskId)
+                    for p in ctx.Clm.CommandLineParam do
+                    where (p.TaskId = clmTaskId)
                     sortBy p.CreatedOn
                     select p
                 }
@@ -123,8 +125,8 @@ module DatabaseTypes =
 
 
     let private addCommandLineParamRow (ctx : ClmContext) (ClmTaskId clmTaskId) (p : ModelCommandLineParam) =
-        let row = ctx.Dbo.CommandLineParam.Create(
-                            ClmTaskId = clmTaskId,
+        let row = ctx.Clm.CommandLineParam.Create(
+                            TaskId = clmTaskId,
                             CommandLineParamId = Guid.NewGuid(),
                             Y0 = p.y0,
                             TEnd = p.tEnd,
@@ -146,7 +148,7 @@ module DatabaseTypes =
     let private tryCreateClmTask c (r : ClmTaskEntity) =
         match r.NumberOfAminoAcids |> NumberOfAminoAcids.tryCreate, r.MaxPeptideLength |> MaxPeptideLength.tryCreate with
         | Some n, Some m ->
-            let clmTaskId = r.ClmTaskId |> ClmTaskId
+            let clmTaskId = r.TaskId |> ClmTaskId
 
             match c clmTaskId with
             | Ok p ->
@@ -157,8 +159,8 @@ module DatabaseTypes =
 
                             taskDetails =
                                 {
-                                    clmDefaultValueId = r.ClmDefaultValueId |> ClmDefaultValueId
-                                    clmTaskPriority = r.ClmTaskPriority |> ClmTaskPriority
+                                    clmDefaultValueId = r.DefaultValueId |> ClmDefaultValueId
+                                    clmTaskPriority = r.TaskPriority |> ClmTaskPriority
                                     numberOfAminoAcids = n
                                     maxPeptideLength = m
                                 }
@@ -169,8 +171,8 @@ module DatabaseTypes =
                     createdOn = r.CreatedOn
                 }
                 |> Ok
-            | Error e -> addError ClmTaskTryCreatErr r.ClmTaskId e
-        | _ -> toError ClmTaskTryCreatErr r.ClmTaskId
+            | Error e -> addError ClmTaskTryCreatErr r.TaskId e
+        | _ -> toError ClmTaskTryCreatErr r.TaskId
 
 
     let loadClmTask c (ClmTaskId clmTaskId) =
@@ -179,8 +181,8 @@ module DatabaseTypes =
 
             let x =
                 query {
-                    for c in ctx.Dbo.ClmTask do
-                    where (c.ClmTaskId = clmTaskId)
+                    for c in ctx.Clm.Task do
+                    where (c.TaskId = clmTaskId)
                     select (Some c)
                     exactlyOneOrDefault
                 }
@@ -198,8 +200,8 @@ module DatabaseTypes =
 
             let x =
                 query {
-                    for c in ctx.Dbo.ClmTask do
-                    where (c.RemainingRepetitions > 0 && c.ClmTaskStatusId = 0)
+                    for c in ctx.Clm.Task do
+                    where (c.RemainingRepetitions > 0 && c.TaskStatusId = 0)
                     select c
                 }
 
@@ -212,10 +214,10 @@ module DatabaseTypes =
 
 
     let private addClmTaskRow  (ctx : ClmContext) (r : ClmTask) =
-        let row = ctx.Dbo.ClmTask.Create(
-                            ClmTaskId = r.clmTaskInfo.clmTaskId.value,
-                            ClmDefaultValueId = r.clmTaskInfo.taskDetails.clmDefaultValueId.value,
-                            ClmTaskPriority = r.clmTaskInfo.taskDetails.clmTaskPriority.value,
+        let row = ctx.Clm.Task.Create(
+                            TaskId = r.clmTaskInfo.clmTaskId.value,
+                            DefaultValueId = r.clmTaskInfo.taskDetails.clmDefaultValueId.value,
+                            TaskPriority = r.clmTaskInfo.taskDetails.clmTaskPriority.value,
                             NumberOfAminoAcids = r.clmTaskInfo.taskDetails.numberOfAminoAcids.length,
                             MaxPeptideLength = r.clmTaskInfo.taskDetails.maxPeptideLength.length,
                             NumberOfRepetitions = r.numberOfRepetitions,
@@ -246,8 +248,8 @@ module DatabaseTypes =
         let g() =
             let ctx = getDbContext c
 
-            let r = ctx.Procedures.UpdateClmTask.Invoke(
-                            ``@clmTaskId`` = clmTask.clmTaskInfo.clmTaskId.value,
+            let r = ctx.Procedures.ClmUpdateTask.Invoke(
+                            ``@taskId`` = clmTask.clmTaskInfo.clmTaskId.value,
                             ``@remainingRepetitions`` = clmTask.remainingRepetitions)
 
             let m = r.ResultSet |> mapIntScalar
@@ -260,7 +262,7 @@ module DatabaseTypes =
 
 
     let private tryCreateModelData (c : ClmTaskId -> ClmResult<ClmTask>) (r : ModelDataEntity) =
-        match r.ClmTaskId |> ClmTaskId |> c with
+        match r.TaskId |> ClmTaskId |> c with
         | Ok i ->
             let rawData =
                 {
@@ -287,7 +289,7 @@ module DatabaseTypes =
 
             let x =
                 query {
-                    for m in ctx.Dbo.ModelData do
+                    for m in ctx.Clm.ModelData do
                     where (m.ModelDataId = modelDataId)
                     select (Some m)
                     exactlyOneOrDefault
@@ -304,9 +306,9 @@ module DatabaseTypes =
         let g() =
             let ctx = getDbContext c
 
-            let r = ctx.Procedures.UpsertModelData.Invoke(
+            let r = ctx.Procedures.ClmUpsertModelData.Invoke(
                         ``@modelDataId`` = m.modelDataId.value,
-                        ``@clmTaskId`` = m.clmTaskInfo.clmTaskId.value,
+                        ``@taskId`` = m.clmTaskInfo.clmTaskId.value,
                         ``@seedValue`` = (match m.data.seedValue with | Some s -> s | None -> -1),
                         ``@modelDataParams`` = (m.data.modelData.modelDataParams |> JsonConvert.SerializeObject),
                         ``@modelBinaryData`` = (m.data.modelData.modelBinaryData |> JsonConvert.SerializeObject |> zip),
@@ -330,14 +332,14 @@ module DatabaseTypes =
 
                 info =
                     {
-                        modelDataId = ModelDataId r.runQueue.ModelDataId
+                        modelDataId = ModelDataId r.clmRunQueue.ModelDataId
                         defaultValueId = ClmDefaultValueId r.clmDefaultValueId
 
                         modelCommandLineParam =
                             {
-                                y0 = r.runQueue.Y0
-                                tEnd = r.runQueue.TEnd
-                                useAbundant = r.runQueue.UseAbundant
+                                y0 = r.clmRunQueue.Y0
+                                tEnd = r.clmRunQueue.TEnd
+                                useAbundant = r.clmRunQueue.UseAbundant
                             }
                     }
 
@@ -346,19 +348,21 @@ module DatabaseTypes =
 
                 progressData =
                     {
-                        progress = r.runQueue.Progress
-                        callCount = r.runQueue.CallCount
-                        yRelative = r.runQueue.YRelative
+                        progressData =
+                            {
+                                progress = r.runQueue.Progress
+                                callCount = r.runQueue.CallCount
+                                errorMessageOpt = r.runQueue.ErrorMessage |> Option.map ErrorMessage
+                            }
+                        yRelative = r.runQueue.RelativeInvariant
 
                         eeData =
                             {
-                                maxEe = r.runQueue.MaxEe
-                                maxAverageEe = r.runQueue.MaxAverageEe
-                                maxWeightedAverageAbsEe = r.runQueue.MaxWeightedAverageAbsEe
-                                maxLastEe = r.runQueue.MaxLastEe
+                                maxEe = r.clmRunQueue.MaxEe
+                                maxAverageEe = r.clmRunQueue.MaxAverageEe
+                                maxWeightedAverageAbsEe = r.clmRunQueue.MaxWeightedAverageAbsEe
+                                maxLastEe = r.clmRunQueue.MaxLastEe
                             }
-
-                        errorMessageOpt = r.runQueue.ErrorMessage |> Option.map ErrorMessage
                     }
 
                 createdOn = r.runQueue.CreatedOn
@@ -370,7 +374,7 @@ module DatabaseTypes =
     let private mapRunQueueResults x =
         x
         |> List.ofSeq
-        |> List.map (fun e -> { runQueue = fst e; clmDefaultValueId = snd e })
+        |> List.map (fun (a, b, c) -> { runQueue = a; clmRunQueue = b; clmDefaultValueId = c })
         |> List.map mapRunQueue
 
 
@@ -382,10 +386,11 @@ module DatabaseTypes =
             let x =
                 query {
                     for r in ctx.Dbo.RunQueue do
-                    join m in ctx.Dbo.ModelData on (r.ModelDataId = m.ModelDataId)
-                    join t in ctx.Dbo.ClmTask on (m.ClmTaskId = t.ClmTaskId)
-                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.ClmTaskStatusId = 0 && r.WorkerNodeId = None)
-                    select (r, t.ClmDefaultValueId)
+                    join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
+                    join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
+                    join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
+                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.TaskStatusId = 0 && r.WorkerNodeId = None)
+                    select (r, cr, t.DefaultValueId)
                 }
 
             mapRunQueueResults x |> Ok
@@ -402,12 +407,13 @@ module DatabaseTypes =
             let x =
                 query {
                     for r in ctx.Dbo.RunQueue do
-                    join m in ctx.Dbo.ModelData on (r.ModelDataId = m.ModelDataId)
-                    join t in ctx.Dbo.ClmTask on (m.ClmTaskId = t.ClmTaskId)
-                    where (r.RunQueueStatusId = 2 && t.ClmTaskStatusId = 0 && r.WorkerNodeId <> None)
-                    sortBy t.ClmTaskPriority
+                    join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
+                    join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
+                    join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
+                    where (r.RunQueueStatusId = 2 && t.TaskStatusId = 0 && r.WorkerNodeId <> None)
+                    sortBy t.TaskPriority
                     thenBy r.RunQueueOrder
-                    select (r, t.ClmDefaultValueId)
+                    select (r, cr, t.DefaultValueId)
                 }
 
             mapRunQueueResults x |> Ok
@@ -423,12 +429,13 @@ module DatabaseTypes =
             let x =
                 query {
                     for r in ctx.Dbo.RunQueue do
-                    join m in ctx.Dbo.ModelData on (r.ModelDataId = m.ModelDataId)
-                    join t in ctx.Dbo.ClmTask on (m.ClmTaskId = t.ClmTaskId)
-                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.ClmTaskStatusId = 0 && r.WorkerNodeId = None)
-                    sortBy t.ClmTaskPriority
+                    join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
+                    join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
+                    join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
+                    where (r.RunQueueStatusId = 0 && r.Progress = 0.0m && t.TaskStatusId = 0 && r.WorkerNodeId = None)
+                    sortBy t.TaskPriority
                     thenBy r.RunQueueOrder
-                    select (r, t.ClmDefaultValueId)
+                    select (r, cr, t.DefaultValueId)
                 }
 
             mapRunQueueResults x |> List.tryHead |> Ok
@@ -444,10 +451,11 @@ module DatabaseTypes =
             let x =
                 query {
                     for r in ctx.Dbo.RunQueue do
-                    join m in ctx.Dbo.ModelData on (r.ModelDataId = m.ModelDataId)
-                    join t in ctx.Dbo.ClmTask on (m.ClmTaskId = t.ClmTaskId)
+                    join cr in ctx.Clm.RunQueue on (r.RunQueueId = cr.RunQueueId)
+                    join m in ctx.Clm.ModelData on (cr.ModelDataId = m.ModelDataId)
+                    join t in ctx.Clm.Task on (m.TaskId = t.TaskId)
                     where (r.RunQueueId = q.value)
-                    select (r, t.ClmDefaultValueId)
+                    select (r, cr, t.DefaultValueId)
                 }
 
             mapRunQueueResults x |> List.tryHead |> Ok
@@ -472,21 +480,29 @@ module DatabaseTypes =
     let private addRunQueueRow (ctx : ClmContext) (r : RunQueue) =
         let row = ctx.Dbo.RunQueue.Create(
                             RunQueueId = r.runQueueId.value,
-                            ModelDataId = r.info.modelDataId.value,
+                            ModelTypeId = 1,
+                            WorkerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
                             RunQueueStatusId = r.runQueueStatus.value,
+                            ErrorMessage = (r.progressData.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)),
+                            Progress = r.progressData.progressData.progress,
+                            CallCount = r.progressData.progressData.callCount,
+                            RelativeInvariant = r.progressData.yRelative,
+                            ModifiedOn = DateTime.Now)
+
+        row
+
+
+    let private addClmRunQueueRow (ctx : ClmContext) (r : RunQueue) =
+        let row = ctx.Clm.RunQueue.Create(
+                            RunQueueId = r.runQueueId.value,
+                            ModelDataId = r.info.modelDataId.value,
                             Y0 = r.modelCommandLineParam.y0,
                             TEnd = r.modelCommandLineParam.tEnd,
                             UseAbundant = r.modelCommandLineParam.useAbundant,
-                            Progress = r.progressData.progress,
-                            CallCount = r.progressData.callCount,
-                            YRelative = r.progressData.yRelative,
                             MaxEe = r.progressData.eeData.maxEe,
                             MaxAverageEe = r.progressData.eeData.maxAverageEe,
                             MaxWeightedAverageAbsEe = r.progressData.eeData.maxWeightedAverageAbsEe,
-                            MaxLastEe = r.progressData.eeData.maxLastEe,
-                            WorkerNodeId = (r.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value)),
-                            ModifiedOn = DateTime.Now,
-                            ErrorMessage = (r.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)))
+                            MaxLastEe = r.progressData.eeData.maxLastEe)
 
         row
 
@@ -545,14 +561,16 @@ module DatabaseTypes =
         let g s u =
             //r.RunQueueId <- q.runQueueId.value
             r.WorkerNodeId <- (q.workerNodeIdOpt |> Option.bind (fun e -> Some e.value.value))
-            r.Progress <- q.progressData.progress
-            r.CallCount <- q.progressData.callCount
-            r.YRelative <- q.progressData.yRelative
-            r.MaxEe <- q.progressData.eeData.maxEe
-            r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
-            r.MaxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
-            r.MaxLastEe <- q.progressData.eeData.maxLastEe
-            r.ErrorMessage <- q.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
+            r.Progress <- q.progressData.progressData.progress
+            r.CallCount <- q.progressData.progressData.callCount
+            r.RelativeInvariant <- q.progressData.yRelative
+            r.ErrorMessage <- q.progressData.progressData.errorMessageOpt |> Option.bind (fun e -> Some e.value)
+
+            // r.YRelative <- q.progressData.yRelative
+            // r.MaxEe <- q.progressData.eeData.maxEe
+            // r.MaxAverageEe <- q.progressData.eeData.maxAverageEe
+            // r.MaxWeightedAverageAbsEe <- q.progressData.eeData.maxWeightedAverageAbsEe
+            // r.MaxLastEe <- q.progressData.eeData.maxLastEe
 
             match s with
             | Some (Some v) -> r.StartedOn <- Some v

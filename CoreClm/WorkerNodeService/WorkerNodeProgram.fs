@@ -10,6 +10,8 @@ open WorkerNodeService.ServiceTasks
 open WorkerNodeService
 open ClmSys.ExitErrorCodes
 open ClmSys.Logging
+open Softellect.Sys.ExitErrorCodes
+open Softellect.Sys.Worker
 
 module Program =
 

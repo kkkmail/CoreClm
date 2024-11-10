@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Platforms>x64</Platforms>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -16,30 +17,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Configuration2.fs" />
-    <Compile Include="DatabaseTypes2.fs" />
-    <Compile Include="MsgSvcDatabaseTypes2.fs" />
-    <Compile Include="WorkerNodeDatabaseTypes2.fs" />
-    <Content Include="MsgClient.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Compile Include="Configuration.fs" />
+    <Compile Include="dbo\DatabaseTypesDbo.fs" />
+    <Compile Include="clm\DatabaseTypesClm.fs" />
+    <Compile Include="eeinf\DatabaseTypesEeinf.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.123" />
-    <PackageReference Include="SQLProvider" Version="1.3.7" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="SQLProvider" Version="1.4.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="SQLite.Interop.dll" Version="1.0.103" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.117" />
-    <PackageReference Update="FSharp.Core" Version="7.0.200" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
+    <PackageReference Update="FSharp.Core" Version="8.0.401" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ClmSys\ClmSys.fsproj" />
     <ProjectReference Include="..\Clm\Clm.fsproj" />
-    <ProjectReference Include="..\MessagingServiceInfo\MessagingServiceInfo.fsproj" />
   </ItemGroup>
 
 </Project>

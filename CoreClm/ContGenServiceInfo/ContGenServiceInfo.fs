@@ -4,29 +4,38 @@ open System
 open System.ServiceModel
 open System.Threading
 
+open ClmSys
 open ClmSys.ContGenPrimitives
 open ClmSys.DistributionData
 open ClmSys.SolverData
+//open Primitives.GeneralPrimitives
+//open Primitives.SolverPrimitives
 open Softellect.Sys
-open Softellect.Sys.MessagingPrimitives
+open Softellect.Messaging.Primitives
 open Softellect.Sys.AppSettings
 open Softellect.Wcf.Common
 open Softellect.Sys.Primitives
 open Softellect.Messaging.ServiceInfo
+//open Softellect.Messaging.Settings
+open Softellect.Sys.Core
+open Softellect.Wcf.Common
+open Softellect.Wcf.AppSettings
+open Softellect.Sys.Rop
 
-open ClmSys.VersionInfo
-open ClmSys.MessagingPrimitives
-open ClmSys.PartitionerPrimitives
-open ClmSys.GeneralData
-open ClmSys.GeneralPrimitives
+open Primitives.VersionInfo
+//open ClmSys.MessagingPrimitives
+//open ClmSys.PartitionerPrimitives
+//open Primitives.GeneralData
+//open ClmSys.GeneralPrimitives
 open ClmSys.SolverRunnerPrimitives
-open ClmSys.WorkerNodePrimitives
+//open ClmSys.WorkerNodePrimitives
 open ClmSys.ClmErrors
 open ClmSys.ContGenErrors
 open ClmSys.ContGenData
-open ClmSys.PartitionerData
+//open ClmSys.PartitionerData
 open ClmSys.ModelData
 open Clm.ModelParams
+open Softellect.DistributedProcessing.Primitives.Common
 
 module ServiceInfo =
 
@@ -47,12 +56,12 @@ module ServiceInfo =
         }
 
 
-    type ProgressUpdateInfo =
-        {
-            runQueueId : RunQueueId
-            updatedRunQueueStatus : RunQueueStatus option
-            progressData : ProgressData
-        }
+    //type ProgressUpdateInfo =
+    //    {
+    //        runQueueId : RunQueueId
+    //        updatedRunQueueStatus : RunQueueStatus option
+    //        progressData : ClmProgressData
+    //    }
 
 
     type RunningProcessInfo =
@@ -73,23 +82,23 @@ module ServiceInfo =
 
     let mutable private callCount = -1
 
+    let getServiceState _ = failwith "getServiceState is not implemented yet."
+    //let getServiceState (getState : unit -> list<RunQueue> * UnitResult) =
+    //    if Interlocked.Increment(&callCount) = 0
+    //    then
+    //        try
+    //            printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
+    //            let q, _ = getState()
+    //            let r0 = q |> List.sortBy (fun e -> e.progressData.progressData.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
+    //            let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
+    //            printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
+    //        with
+    //        | e -> printfn $"Exception occurred: %A{e}"
+    //    else
+    //        printfn $"Not getting state at %A{DateTime.Now} because callCount = %A{callCount}."
 
-    let getServiceState (getState : unit -> list<RunQueue> * UnitResult) =
-        if Interlocked.Increment(&callCount) = 0
-        then
-            try
-                printfn "Getting state at %s ..." (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss"))
-                let q, _ = getState()
-                let r0 = q |> List.sortBy (fun e -> e.progressData.progress) |> List.map (fun e -> "      " + e.ToString()) |> String.concat Nl
-                let r = if r0 = EmptyString then "[]" else Nl + "    [" + Nl + r0 + Nl + "    ]"
-                printfn "... state at %s\n{\n  running = %s\n  runningCount = %A\n }"  (DateTime.Now.ToString("yyyy-MM-dd.HH:mm:ss")) r q.Length
-            with
-            | e -> printfn $"Exception occurred: %A{e}"
-        else
-            printfn $"Not getting state at %A{DateTime.Now} because callCount = %A{callCount}."
-
-        Interlocked.Decrement(&callCount) |> ignore
-        Ok()
+    //    Interlocked.Decrement(&callCount) |> ignore
+    //    Ok()
 
 
     type IContGenService =
@@ -117,37 +126,39 @@ module ServiceInfo =
     let contGenServiceNetTcpPort = ConfigKey "ContGenServiceNetTcpPort"
     let contGenServiceCommunicationType = ConfigKey "ContGenServiceCommunicationType"
 
-    let messagingServiceAddress = ConfigKey "MessagingServiceAddress"
-    let messagingHttpServicePort = ConfigKey "MessagingHttpServicePort"
-    let messagingNetTcpServicePort = ConfigKey "MessagingNetTcpServicePort"
-    let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
+    //let messagingServiceAddress = ConfigKey "MessagingServiceAddress"
+    //let messagingHttpServicePort = ConfigKey "MessagingHttpServicePort"
+    //let messagingNetTcpServicePort = ConfigKey "MessagingNetTcpServicePort"
+    //let messagingServiceCommunicationType = ConfigKey "MessagingServiceCommunicationType"
 
     let minUsefulEe = ConfigKey "MinUsefulEe"
-    let partitionerId = ConfigKey "PartitionerId"
+    //let partitionerId = ConfigKey "PartitionerId"
     let lastAllowedNodeErrInMinutes = ConfigKey "LastAllowedNodeErrInMinutes"
     let earlyExitCheckFrequencyInMinutes = ConfigKey "EarlyExitCheckFrequencyInMinutes"
     let dictionaryUpdateType = ConfigKey "DictionaryUpdateType"
     let absoluteTolerance = ConfigKey "AbsoluteTolerance"
 
 
-    let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType)  =
-        let h = c.value.httpServiceInfo
-        let n = c.value.netTcpServiceInfo
+    let updateContGenSettings (provider : AppSettingsProvider) (c : ContGenServiceAccessInfo) (ct : WcfCommunicationType) =
+        //let h = c.value.httpServiceInfo
+        //let n = c.value.netTcpServiceInfo
 
-        provider.trySet contGenServiceAddress n.netTcpServiceAddress.value |> ignore
-        provider.trySet contGenServiceHttpPort h.httpServicePort.value |> ignore
-        provider.trySet contGenServiceNetTcpPort n.netTcpServicePort.value |> ignore
-        provider.trySet contGenServiceCommunicationType ct.value |> ignore
+        //provider.trySet contGenServiceAddress n.netTcpServiceAddress.value |> ignore
+        //provider.trySet contGenServiceHttpPort h.httpServicePort.value |> ignore
+        //provider.trySet contGenServiceNetTcpPort n.netTcpServicePort.value |> ignore
+        //provider.trySet contGenServiceCommunicationType ct.value |> ignore
+        failwith "updateContGenSettings is not implemented yet."
 
 
-    let updateMessagingSettings (provider : AppSettingsProvider) (m : MessagingServiceAccessInfo) (ct : WcfCommunicationType)  =
-        let mh = m.messagingServiceAccessInfo.httpServiceInfo
-        let mn = m.messagingServiceAccessInfo.netTcpServiceInfo
+    //let updateMessagingSettings (provider : AppSettingsProvider) (m : MessagingServiceAccessInfo) (ct : WcfCommunicationType) =
+    //    let mh = m.messagingServiceAccessInfo.httpServiceInfo
+    //    let mn = m.messagingServiceAccessInfo.netTcpServiceInfo
 
-        provider.trySet messagingServiceAddress mn.netTcpServiceAddress.value |> ignore
-        provider.trySet messagingHttpServicePort mh.httpServicePort.value |> ignore
-        provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
-        provider.trySet messagingServiceCommunicationType ct.value |> ignore
+    //    provider.trySet messagingServiceAddress mn.netTcpServiceAddress.value |> ignore
+    //    provider.trySet messagingHttpServicePort mh.httpServicePort.value |> ignore
+    //    provider.trySet messagingNetTcpServicePort mn.netTcpServicePort.value |> ignore
+    //    provider.trySet messagingServiceCommunicationType ct.value |> ignore
+
 
     let sugSynthCollKey = ConfigKey "SugSynthColl"
     let catSynthCollKey = ConfigKey "CatSynthColl"
@@ -165,7 +176,7 @@ module ServiceInfo =
     let acCatRacemCollKey = ConfigKey "AcCatRacemColl"
     let sedDirCollKey = ConfigKey "SedDirColl"
     let acCollKey = ConfigKey "AcColl"
-    
+
 
     let earlyExitCheckFreqKey = ConfigKey "EarlyExitCheckFrequencyInMinutes"
     let quickProgressKey = ConfigKey "QuickProgress"
@@ -175,7 +186,7 @@ module ServiceInfo =
     let slowProgressKey = ConfigKey "SlowProgress"
     let slowMinEeKey = ConfigKey "SlowMinEe"
     let maxRunTimeKey = ConfigKey "MaxRunTimeInDays"
-    
+
     let resultLocationKey = ConfigKey "ResultLocation"
     let noOfProgressPointsKey = ConfigKey "NoOfProgressPoints"
 
@@ -209,8 +220,8 @@ module ServiceInfo =
                 provider.trySetPairCollisionResolution sedDirCollKey d.sedDirColl
                 provider.trySetPairCollisionResolution acCollKey d.acColl
             ]
-            
-            
+
+
         member provider.trySetEarlyExitParam(d : EarlyExitParam) =
             [
                 provider.trySet earlyExitCheckFreqKey (int d.earlyExitCheckFreq.value.TotalMinutes)
@@ -224,90 +235,91 @@ module ServiceInfo =
             ]
 
 
-    type ContGenSettings
-        with
+    //type ContGenSettings
+    //    with
 
-        member w.trySaveSettings() =
-            let toErr e = e |> ContGenSettingExn |> ContGenSettingsErr |> ContGenServiceErr |> Error
-
-            match w.isValid(), AppSettingsProvider.tryCreate appSettingsFile with
-            | Ok(), Ok provider ->
-                try
-                    updateContGenSettings provider w.contGenSvcInfo w.contGenCommType
-                    updateMessagingSettings provider w.messagingSvcInfo w.messagingCommType
-
-                    provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
-                    provider.trySet resultLocationKey w.contGenInfo.resultLocation |> ignore
-                    provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
-                    provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
-                    provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
-
-                    provider.trySet minUsefulEe w.contGenInfo.controlData.minUsefulEe.value |> ignore
-                    provider.trySet absoluteTolerance w.contGenInfo.controlData.absoluteTolerance.value |> ignore
-                    provider.trySet noOfProgressPointsKey w.contGenInfo.controlData.noOfProgressPoints |> ignore
-                    
-                    w.contGenInfo.controlData.earlyExitParamOpt
-                    |> Option.defaultValue EarlyExitParam.defaultValue
-                    |> provider.trySetEarlyExitParam
-                    |> ignore
-
-                    provider.trySave() |> Rop.bindError toErr
-                with
-                | e -> toErr e
-            | Error e, _ -> Error e
-            | _, Error e -> toErr e
-
-
-    type AppSettingsProviderResult = Result<AppSettingsProvider, exn>
+    //    member w.trySaveSettings() =
+    //        //let toErr e = e |> SettingExn |> Error
+    //        //
+    //        //match w.isValid(), AppSettingsProvider.tryCreate AppSettingsFile with
+    //        //| Ok(), Ok provider ->
+    //        //    try
+    //        //        updateContGenSettings provider w.contGenSvcInfo w.contGenCommType
+    //        //        updateMessagingSettings provider w.messagingSvcInfo w.messagingCommType
+    //        //
+    //        //        provider.trySet partitionerId w.contGenInfo.partitionerId.value.value |> ignore
+    //        //        provider.trySet resultLocationKey w.contGenInfo.resultLocation |> ignore
+    //        //        provider.trySet lastAllowedNodeErrInMinutes (w.contGenInfo.lastAllowedNodeErr.value / 1<minute>) |> ignore
+    //        //        provider.trySet dictionaryUpdateType w.contGenInfo.dictionaryUpdateType |> ignore
+    //        //        provider.trySetCollisionData w.contGenInfo.collisionData |> ignore
+    //        //
+    //        //        provider.trySet minUsefulEe w.contGenInfo.controlData.minUsefulEe.value |> ignore
+    //        //        provider.trySet absoluteTolerance w.contGenInfo.controlData.absoluteTolerance.value |> ignore
+    //        //        provider.trySet noOfProgressPointsKey w.contGenInfo.controlData.noOfProgressPoints |> ignore
+    //        //
+    //        //        w.contGenInfo.controlData.earlyExitParamOpt
+    //        //        |> Option.defaultValue EarlyExitParam.defaultValue
+    //        //        |> provider.trySetEarlyExitParam
+    //        //        |> ignore
+    //        //
+    //        //        provider.trySave() |> Rop.bindError toErr
+    //        //    with
+    //        //    | e -> toErr e
+    //        //| Error e, _ -> Error e
+    //        //| _, Error e -> toErr e
+    //        failwith "trySaveSettings is not implemeted yet."
 
 
-    let getServiceAddress (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetString n with
-            | Ok (Some EmptyString) -> d
-            | Ok (Some s) -> s
-            | _ -> d
-        | _ -> d
-        |> ServiceAddress
+    //type AppSettingsProviderResult = Result<AppSettingsProvider, exn>
 
 
-    let getServiceHttpPort (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetInt n with
-            | Ok (Some k) when k > 0 -> k
-            | _ -> d
-        | _ -> d
-        |> ServicePort
+    //let getServiceAddress (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetString n with
+    //        | Ok (Some EmptyString) -> d
+    //        | Ok (Some s) -> s
+    //        | _ -> d
+    //    | _ -> d
+    //    |> ServiceAddress
 
 
-    let getServiceNetTcpPort (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetInt n with
-            | Ok (Some k) when k > 0 -> k
-            | _ -> d
-        | _ -> d
-        |> ServicePort
+    //let getServiceHttpPort (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetInt n with
+    //        | Ok (Some k) when k > 0 -> k
+    //        | _ -> d
+    //    | _ -> d
+    //    |> ServicePort
 
 
-    let getCommunicationType (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetString n with
-            | Ok (Some s) -> WcfCommunicationType.tryCreate s |> Option.defaultValue NetTcpCommunication
-            | _ -> d
-        | _ -> d
+    //let getServiceNetTcpPort (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetInt n with
+    //        | Ok (Some k) when k > 0 -> k
+    //        | _ -> d
+    //    | _ -> d
+    //    |> ServicePort
 
 
-    let getPartitionerId (providerRes : AppSettingsProviderResult) n d =
-        match providerRes with
-        | Ok provider ->
-            match provider.tryGetGuid n with
-            | Ok (Some p) when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
-            | _ -> d
-        | _ -> d
+    //let getCommunicationType (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetString n with
+    //        | Ok (Some s) -> WcfCommunicationType.tryCreate s |> Option.defaultValue NetTcpCommunication
+    //        | _ -> d
+    //    | _ -> d
+
+
+    //let getPartitionerId (providerRes : AppSettingsProviderResult) n d =
+    //    match providerRes with
+    //    | Ok provider ->
+    //        match provider.tryGetGuid n with
+    //        | Ok (Some p) when p <> Guid.Empty -> p |> MessagingClientId |> PartitionerId
+    //        | _ -> d
+    //    | _ -> d
 
 
     let tryCreateCollisionType s =
@@ -319,8 +331,8 @@ module ServiceInfo =
 
 
     let getCollisionData (provider : AppSettingsProvider) =
-        let getPairCollision defaultValue key = (PairCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
-        let getTripleCollision defaultValue key = (TripleCollisionResolution.tryDeserialize, key) ||> provider.tryGetOrDefault defaultValue
+        let getPairCollision defaultValue key = (PairCollisionResolution.tryDeserialize, key) ||> provider.getOrDefault defaultValue
+        let getTripleCollision defaultValue key = (TripleCollisionResolution.tryDeserialize, key) ||> provider.getOrDefault defaultValue
 
         {
             sugSynthColl = getPairCollision PairCollisionResolution.defaultValue sugSynthCollKey
@@ -342,143 +354,143 @@ module ServiceInfo =
         }
 
 
-    let loadMessagingSettings providerRes =
-        let messagingServiceCommunicationType = getCommunicationType providerRes messagingServiceCommunicationType NetTcpCommunication
-        let serviceAddress = getServiceAddress providerRes messagingServiceAddress defaultMessagingServiceAddress
-        let httpServicePort = getServiceHttpPort providerRes messagingHttpServicePort defaultMessagingHttpServicePort
-        let netTcpServicePort = getServiceNetTcpPort providerRes messagingNetTcpServicePort defaultMessagingNetTcpServicePort
+    //let loadMessagingSettings providerRes =
+    //    let messagingServiceCommunicationType = getCommunicationType providerRes messagingServiceCommunicationType NetTcpCommunication
+    //    let serviceAddress = getServiceAddress providerRes messagingServiceAddress defaultMessagingServiceAddress
+    //    let httpServicePort = getServiceHttpPort providerRes messagingHttpServicePort defaultMessagingHttpServicePort
+    //    let netTcpServicePort = getServiceNetTcpPort providerRes messagingNetTcpServicePort defaultMessagingNetTcpServicePort
 
-        let h = HttpServiceAccessInfo.create serviceAddress httpServicePort messagingHttpServiceName.value
-        let n = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort messagingNetTcpServiceName.value WcfSecurityMode.defaultValue
-        let m = ServiceAccessInfo.create h n
-        let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion m
+    //    let h = HttpServiceAccessInfo.create serviceAddress httpServicePort messagingHttpServiceName.value
+    //    let n = NetTcpServiceAccessInfo.create serviceAddress netTcpServicePort messagingNetTcpServiceName.value WcfSecurityMode.defaultValue
+    //    let m = ServiceAccessInfo.create h n
+    //    let messagingSvcInfo = MessagingServiceAccessInfo.create messagingDataVersion m
 
-        messagingSvcInfo, messagingServiceCommunicationType
+    //    messagingSvcInfo, messagingServiceCommunicationType
 
 
     let loadContGenServiceSettings providerRes =
-        let contGenServiceAddress = getServiceAddress providerRes contGenServiceAddress defaultContGenServiceAddress
-        let contGenServiceHttpPort = getServiceHttpPort providerRes contGenServiceHttpPort defaultContGenHttpServicePort
-        let contGenServiceNetTcpPort = getServiceNetTcpPort providerRes contGenServiceNetTcpPort defaultContGenNetTcpServicePort
-        let contGenServiceCommunicationType = getCommunicationType providerRes contGenServiceCommunicationType NetTcpCommunication
+        //let contGenServiceAddress = getServiceAddress providerRes contGenServiceAddress defaultContGenServiceAddress
+        //let contGenServiceHttpPort = getServiceHttpPort providerRes contGenServiceHttpPort defaultContGenHttpServicePort
+        //let contGenServiceNetTcpPort = getServiceNetTcpPort providerRes contGenServiceNetTcpPort defaultContGenNetTcpServicePort
+        //let contGenServiceCommunicationType = getCommunicationType providerRes contGenServiceCommunicationType NetTcpCommunication
+        //
+        //let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort WcfSecurityMode.defaultValue
+        //
+        //(contGenSvcInfo, contGenServiceCommunicationType)
+        failwith "loadContGenServiceSettings is not implemented yet."
 
-        let contGenSvcInfo = ContGenServiceAccessInfo.create contGenServiceAddress contGenServiceHttpPort contGenServiceNetTcpPort WcfSecurityMode.defaultValue
 
-        (contGenSvcInfo, contGenServiceCommunicationType)
-        
-        
-    /// Gets the value out of provider's result or default.        
-    let toValueOrDefault m d v =
-        v                    
-        |> Rop.toOption
-        |> Option.flatten
-        |> Option.map m
-        |> Option.defaultValue d         
-        
-        
+    ///// Gets the value out of provider's result or default.
+    //let toValueOrDefault m d v =
+    //    v
+    //    |> Rop.toOption
+    //    |> Option.flatten
+    //    |> Option.map m
+    //    |> Option.defaultValue d
+
+
     let loadEarlyExitParam (provider : AppSettingsProvider) =
-        let getProgress key defaultValue = provider.tryGetDecimal key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
-        let getEe key defaultValue = provider.tryGetDouble key |> Rop.toOption |> Option.flatten |> Option.defaultValue defaultValue
+        let getProgress key defaultValue = provider.getDecimalOrDefault key defaultValue
+        let getEe key defaultValue = provider.getDoubleOrDefault key defaultValue
         let d = EarlyExitParam.defaultValue
-        
+
         {
-            earlyExitCheckFreq =
-                provider.tryGetInt earlyExitCheckFreqKey
-                |> toValueOrDefault (fun e -> TimeSpan.FromMinutes(double e) |> EarlyExitCheckFrequency) EarlyExitCheckFrequency.defaultValue
-                
+            earlyExitCheckFreq = provider.getIntOrDefault earlyExitCheckFreqKey EarlyExitCheckFrequency.defaultValue.value.Minutes |> double |> TimeSpan.FromMinutes |> EarlyExitCheckFrequency
             quickProgress = getProgress quickProgressKey d.quickProgress
             quickMinEe = getEe quickMinEeKey d.quickMinEe
             standardProgress = getProgress standardProgressKey d.standardProgress
             standardMinEe = getEe standardMinEeKey d.standardMinEe
             slowProgress = getProgress slowProgressKey d.slowProgress
-            slowMinEe = getEe slowMinEeKey d.slowMinEe            
-            maxRunTime =provider.tryGetDouble maxRunTimeKey|> toValueOrDefault TimeSpan.FromDays d.maxRunTime
+            slowMinEe = getEe slowMinEeKey d.slowMinEe
+            maxRunTime = provider.getDoubleOrDefault maxRunTimeKey d.maxRunTime.Days |> TimeSpan.FromDays
         }
 
 
     let loadContGenSettings() =
-        let providerRes = AppSettingsProvider.tryCreate appSettingsFile
-
-        let contGenInfo =
-            match providerRes with
-            | Ok provider ->
-                {
-                    partitionerId = getPartitionerId providerRes partitionerId defaultPartitionerId
-                    resultLocation = provider.tryGetString resultLocationKey |> toValueOrDefault id DefaultResultLocationFolder
-
-                    lastAllowedNodeErr =
-                        match provider.tryGetInt lastAllowedNodeErrInMinutes with
-                        | Ok (Some p) when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
-                        | _ -> LastAllowedNodeErr.defaultValue
-                        
-                    collisionData = getCollisionData provider
-
-                    dictionaryUpdateType =
-                        match provider.tryGet DictionaryUpdateType.tryDeserialize dictionaryUpdateType with
-                        | Ok (Some v) -> v
-                        | _ -> AllRateData
-                        
-                    controlData =
-                        {
-                            minUsefulEe =
-                                match provider.tryGetDecimal minUsefulEe with
-                                | Ok (Some ee) -> ee |> double |> MinUsefulEe
-                                | _ -> MinUsefulEe.defaultValue
-
-                            noOfProgressPoints = provider.tryGetInt noOfProgressPointsKey |> toValueOrDefault id defaultNoOfProgressPoints                           
-                            earlyExitParamOpt = loadEarlyExitParam provider |> Some                       
-
-                            absoluteTolerance =
-                                match provider.tryGetDouble absoluteTolerance with
-                                | Ok (Some t) -> t |> AbsoluteTolerance
-                                | Error e ->
-                                    printfn $"loadContGenSettings: {absoluteTolerance}, error: {e}."
-                                    AbsoluteTolerance.defaultValue
-                                | _ -> AbsoluteTolerance.defaultValue
-                        }
-                }
-            | _ ->
-                {
-                    partitionerId = defaultPartitionerId
-                    resultLocation = DefaultResultLocationFolder
-                    lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
-                    collisionData = CollisionData.defaultValue
-                    dictionaryUpdateType = AllRateData
-                    
-                    controlData =
-                        {
-                            minUsefulEe = MinUsefulEe.defaultValue
-                            noOfProgressPoints = defaultNoOfProgressPoints                          
-                            earlyExitParamOpt = Some EarlyExitParam.defaultValue
-                            absoluteTolerance = AbsoluteTolerance.defaultValue                            
-                        }
-                }
-
-        let contGenSvcInfo, contGenServiceCommunicationType = loadContGenServiceSettings providerRes
-        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes
-
-        let w =
-            {
-                contGenInfo = contGenInfo
-                contGenSvcInfo = contGenSvcInfo
-                contGenCommType = contGenServiceCommunicationType
-                messagingSvcInfo = messagingSvcInfo
-                messagingCommType = messagingServiceCommunicationType
-            }
-
-//        printfn "loadContGenSettings: Using settings:\n%A" w
-
-        w
+//        let providerRes = AppSettingsProvider.tryCreate AppSettingsFile
+//
+//        let contGenInfo =
+//            match providerRes with
+//            | Ok provider ->
+//                {
+//                    partitionerId = getPartitionerId providerRes partitionerId defaultPartitionerId
+//                    resultLocation = provider.tryGetString resultLocationKey |> toValueOrDefault id DefaultResultLocationFolder
+//
+//                    lastAllowedNodeErr =
+//                        match provider.tryGetInt lastAllowedNodeErrInMinutes with
+//                        | Ok (Some p) when p > 0 -> p * 1<minute> |> LastAllowedNodeErr
+//                        | _ -> LastAllowedNodeErr.defaultValue
+//
+//                    collisionData = getCollisionData provider
+//
+//                    dictionaryUpdateType =
+//                        match provider.tryGet DictionaryUpdateType.tryDeserialize dictionaryUpdateType with
+//                        | Ok (Some v) -> v
+//                        | _ -> AllRateData
+//
+//                    controlData =
+//                        {
+//                            minUsefulEe =
+//                                match provider.tryGetDecimal minUsefulEe with
+//                                | Ok (Some ee) -> ee |> double |> MinUsefulEe
+//                                | _ -> MinUsefulEe.defaultValue
+//
+//                            noOfProgressPoints = provider.tryGetInt noOfProgressPointsKey |> toValueOrDefault id defaultNoOfProgressPoints
+//                            earlyExitParamOpt = loadEarlyExitParam provider |> Some
+//
+//                            absoluteTolerance =
+//                                match provider.tryGetDouble absoluteTolerance with
+//                                | Ok (Some t) -> t |> AbsoluteTolerance
+//                                | Error e ->
+//                                    printfn $"loadContGenSettings: {absoluteTolerance}, error: {e}."
+//                                    AbsoluteTolerance.defaultValue
+//                                | _ -> AbsoluteTolerance.defaultValue
+//                        }
+//                }
+//            | _ ->
+//                {
+//                    partitionerId = defaultPartitionerId
+//                    resultLocation = DefaultResultLocationFolder
+//                    lastAllowedNodeErr = LastAllowedNodeErr.defaultValue
+//                    collisionData = CollisionData.defaultValue
+//                    dictionaryUpdateType = AllRateData
+//
+//                    controlData =
+//                        {
+//                            minUsefulEe = MinUsefulEe.defaultValue
+//                            noOfProgressPoints = defaultNoOfProgressPoints
+//                            earlyExitParamOpt = Some EarlyExitParam.defaultValue
+//                            absoluteTolerance = AbsoluteTolerance.defaultValue
+//                        }
+//                }
+//
+//        let contGenSvcInfo, contGenServiceCommunicationType = loadContGenServiceSettings providerRes
+//        let messagingSvcInfo, messagingServiceCommunicationType = loadMessagingSettings providerRes messagingDataVersion
+//
+//        let w =
+//            {
+//                contGenInfo = contGenInfo
+//                contGenSvcInfo = contGenSvcInfo
+//                contGenCommType = contGenServiceCommunicationType
+//                messagingSvcInfo = messagingSvcInfo
+//                messagingCommType = messagingServiceCommunicationType
+//            }
+//
+////        printfn "loadContGenSettings: Using settings:\n%A" w
+//
+//        w
+        failwith "loadContGenSettings is not implemented yet."
 
 
     let saveContGenSettings loadSettings tryGetSaveSettings =
-        let (w : ContGenSettings) = loadSettings()
+        //let (w : ContGenSettings) = loadSettings()
 
-        let r =
-            match tryGetSaveSettings() with
-            | Some() -> w.trySaveSettings()
-            | None -> Ok()
+        //let r =
+        //    match tryGetSaveSettings() with
+        //    | Some() -> w.trySaveSettings()
+        //    | None -> Ok()
 
-        match r with
-        | Ok() -> printfn "Successfully saved settings."
-        | Error e -> printfn $"Error occurred trying to save settings: %A{e}."
+        //match r with
+        //| Ok() -> printfn "Successfully saved settings."
+        //| Error e -> printfn $"Error occurred trying to save settings: %A{e}."
+        failwith "saveContGenSettings is not implemented yet."

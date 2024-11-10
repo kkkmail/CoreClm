@@ -1,4 +1,4 @@
-drop procedure if exists tryFailRunQueue
+drop procedure if exists dbo.tryFailRunQueue
 go
 
 
@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-create procedure tryFailRunQueue (@runQueueId uniqueidentifier, @errorMessage nvarchar(max))
+create procedure dbo.tryFailRunQueue (@runQueueId uniqueidentifier, @errorMessage nvarchar(max))
 as
 begin
 	declare @rowCount int

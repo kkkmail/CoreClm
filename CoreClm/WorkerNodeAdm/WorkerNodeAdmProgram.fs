@@ -2,6 +2,7 @@
 open WorkerNodeAdm.AdmCommandLine
 open WorkerNodeAdm.WorkerNodeAdmTasks
 open ClmSys.ExitErrorCodes
+open Softellect.Sys.ExitErrorCodes
 
 [<EntryPoint>]
 let main argv =
