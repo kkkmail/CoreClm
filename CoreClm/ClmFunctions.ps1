@@ -59,6 +59,10 @@ function CleanAll()
 
     echo "Deleting all garbage from user Temp folder..."
     Remove-Item -path $env:userprofile\AppData\Local\Temp -recurse -force -ea silentlycontinue
+
+    echo "Deleting all SQL garbage..."
+    Remove-Item -path C:\Windows\ServiceProfiles\SSISScaleOutMaster140\AppData\Local\SSIS\ScaleOut\Master -recurse -force -ea silentlycontinue
+    Remove-Item -path C:\Windows\ServiceProfiles\SSISScaleOutMaster160\AppData\Local\SSIS\ScaleOut\16\Master -recurse -force -ea silentlycontinue
 }
 
 # https://stackoverflow.com/questions/35064964/powershell-script-to-check-if-service-is-started-if-not-then-start-it

@@ -152,8 +152,8 @@ module ModelGenerator =
             }
 
 
-    let createModelGenerator (logger : Logger) u coll so c =
-        logger.logInfo "createModelGenerator: Creating model generator..."
+    let createModelGenerator u coll so c =
+        Logger.logInfo "createModelGenerator: Creating model generator..."
         let proxy = GenerateAllProxy.create u coll so c
         let generateAll() = generateAll proxy
         let toError e = ClmTimerEventErr e
