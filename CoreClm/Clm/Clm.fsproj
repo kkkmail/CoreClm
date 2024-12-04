@@ -34,11 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Softellect.OdePackInterop" Version="8.0.400.1" />
+    <PackageReference Include="Softellect.OdePackInterop" Version="9.0.100.4" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+    <PackageReference Update="FSharp.Core" Version="9.0.100" />
   </ItemGroup>
 
   <ItemGroup>

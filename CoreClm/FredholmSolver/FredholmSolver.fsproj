@@ -17,12 +17,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+    <PackageReference Update="FSharp.Core" Version="9.0.100" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="Softellect.Analytics" Version="8.0.400.2" />
-    <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="8.0.400.2" />
-    <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="8.0.400.2" />
-    <PackageReference Include="Softellect.OdePackInterop" Version="8.0.400.1" />
+    <PackageReference Include="Softellect.Analytics" Version="9.0.100.4" />
+    <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="9.0.100.4" />
+    <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="9.0.100.4" />
+    <PackageReference Include="Softellect.OdePackInterop" Version="9.0.100.4" />
   </ItemGroup>
 
   <ItemGroup>

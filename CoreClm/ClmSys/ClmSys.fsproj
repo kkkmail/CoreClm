@@ -31,15 +31,15 @@
 
   <ItemGroup>
     <PackageReference Include="FSharp.Data" Version="6.4.0" />
-    <PackageReference Include="log4net" Version="3.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
-    <PackageReference Include="Softellect.DistributedProcessing.Core" Version="8.0.400.2" />
-    <PackageReference Include="Softellect.Messaging" Version="8.0.400.2" />
-    <PackageReference Include="Softellect.Sys" Version="8.0.400.2" />
-    <PackageReference Include="Softellect.Wcf" Version="8.0.400.2" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
-    <PackageReference Update="FSharp.Core" Version="8.0.401" />
+    <PackageReference Include="log4net" Version="3.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="9.0.0" />
+    <PackageReference Include="Softellect.DistributedProcessing.Core" Version="9.0.100.4" />
+    <PackageReference Include="Softellect.Messaging" Version="9.0.100.4" />
+    <PackageReference Include="Softellect.Sys" Version="9.0.100.4" />
+    <PackageReference Include="Softellect.Wcf" Version="9.0.100.4" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
+    <PackageReference Update="FSharp.Core" Version="9.0.100" />
   </ItemGroup>
 
   <ItemGroup>
