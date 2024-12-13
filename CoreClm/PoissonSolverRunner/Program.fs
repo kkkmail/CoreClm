@@ -142,6 +142,7 @@ module Program =
                             getProgressData = None
                             getInvariant = fun d _ x ->
                                 (double (d.model.invariant x)) / (double d.model.intModelParams.intInitParams.totalMolecules.value) |> RelativeInvariant
+                            getOptionalFolder = fun _ _ -> None
                         }
 
                     {
