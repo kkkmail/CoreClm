@@ -4,6 +4,7 @@ open System
 open System.IO
 open FredholmSolver.PoissonSolver
 open Softellect.Sys.ExitErrorCodes
+open Softellect.DistributedProcessing.SolverRunner.Implementation
 open Softellect.DistributedProcessing.SolverRunner.Program
 open Softellect.DistributedProcessing.Primitives.Common
 //open Softellect.Samples.DistrProc.Core.Primitives
@@ -73,14 +74,14 @@ module Program =
         |> TextResult
 
 
-    let tryGetInputFileName inputFolder (q : RunQueueId) = (FileName $"{q.value}.m").tryGetFullFileName (Some inputFolder)
-    let tryGetOutputFileName outputFolder (q : RunQueueId) = (FileName $"{q.value}.png").tryGetFullFileName (Some outputFolder)
+    let tryGetInputFileName inputFolder (d : PoissonSolverData) = (FileName $"{d.fullName}__ee.m").tryGetFullFileName (Some inputFolder)
+    let tryGetOutputFileName outputFolder (d : PoissonSolverData) = (FileName $"{d.fullName}__ee.png").tryGetFullFileName (Some outputFolder)
 
 
     let getWolframChart (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
-        let w = loadWolframParams()
+        let w = getSolverWolframParams poissonSolverId
 
-        match tryGetInputFileName w.wolframInputFolder q, tryGetOutputFileName w.wolframOutputFolder q with
+        match tryGetInputFileName w.wolframInputFolder d, tryGetOutputFileName w.wolframOutputFolder d with
         | Ok i, Ok o ->
             let c1 = c |> List.rev
             let t = c1 |> List.map(fun e -> double e.t)
