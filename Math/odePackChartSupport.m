@@ -1,3 +1,5 @@
+(* ::Package:: *)
+
 (* Constants and constant-like data functions *)
 
 ffmpegFolder := "C:\\FFMpeg\\bin";
@@ -82,7 +84,7 @@ getLineStyle[lineNumber_, totalLines_] := Module[{colors, baseStyle},
     {colors[[Mod[lineNumber - 1, Length[colors]] + 1]], baseStyle}
 ];
 
-plotCombinedChart[d_, colIdx_, yName_, divisor_, shift_:{}] := Module[
+plotCombinedChart[d_, colIdx_, yName_, divisor_, shift_:{}, plotRange_:All] := Module[
     {len, data, plotStyles, legendOptions, legendPlacement},
 
     Print[yName];
@@ -108,7 +110,7 @@ plotCombinedChart[d_, colIdx_, yName_, divisor_, shift_:{}] := Module[
     Print[ListPlot[data,
       PlotLegends -> legendOptions,
       FrameLabel -> {{yName, None}, {"t", None}},
-      PlotRange -> All, Frame -> True, GridLines -> Automatic,
+      PlotRange -> plotRange, Frame -> True, GridLines -> Automatic,
       Joined -> True, LabelStyle -> {FontSize -> 16, Bold, Black},
       ImageSize -> Large,
       PlotStyle -> Table[{plotStyles[[ii, 1]], plotStyles[[ii, 2]], Thickness[0.005]}, {ii, 1, len}]
