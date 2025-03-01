@@ -321,7 +321,7 @@ module Kernel =
     /// Uses: x1 = xScale * (x - x0) and y1 = yScale * (y - y0) in Taylor expansion.
     ///
     /// Each sub-array should contain the coefficients for all terms of a particular total order.
-    /// For example, if the highest order is 2, coefficients should be be initialized as
+    /// For example, if the highest order is 2, coefficients should be initialized as
     /// [| [|a00|]; [|a10; a01|]; [|a20; a11; a02|] |],
     /// where a20 is the coefficient of x^2, a11 of x * y, etc.
     /// Note that the binomial coefficient is not included in the coefficients.
@@ -938,7 +938,7 @@ module Kernel =
 
 
     /// Number of "molecules" or building blocks used in a protocell.
-    /// This controls the non linearity of the creation model.
+    /// This controls the non-linearity of the creation model.
     /// Default value is set to 1 because we take into account that a single protocell encounters with food
     /// proportionally to concentration of the food.
     type NumberOfMolecules =

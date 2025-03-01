@@ -4,10 +4,7 @@ open FSharp.Collections
 open MathNet.Numerics.Distributions
 open System
 open Primitives.VersionInfo
-//open Primitives.GeneralData
-//open Primitives.WolframPrimitives
 open Softellect.Sys.Primitives
-open Softellect.Analytics.Wolfram
 open Softellect.Sys.Core
 
 module Primitives =
@@ -324,7 +321,7 @@ module Primitives =
 
     /// A collection of various data (of the same type) packed into an array to be used with FORTRAN DLSODE ODE solver.
     /// The type is generic to simplify tests so that integers can be used for exact comparison.
-    /// Otherwise just double would do fine.
+    /// Otherwise, just double would do fine.
     type LinearData<'K, 'T when 'K : comparison and  ^T: (static member ( * ) : ^T * ^T -> ^T) and ^T: (static member ( + ) : ^T * ^T -> ^T) and ^T: (static member ( - ) : ^T * ^T -> ^T) and ^T: (static member Zero : ^T)> =
         {
             dataInfo : LinearDataInfo<'K>
