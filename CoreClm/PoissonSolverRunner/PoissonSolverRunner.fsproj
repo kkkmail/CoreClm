@@ -32,12 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="C:\Users\kkkma\.nuget\packages\softellect.distributedprocessing.solverrunner\8.0.400.2\contentFiles\any\net8.0\appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="9.0.100" />
   </ItemGroup>
 
