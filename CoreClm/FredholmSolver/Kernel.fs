@@ -196,7 +196,7 @@ module Kernel =
         member d.integrateValues (a : SparseArray4D<double>, b : LinearMatrix<double>) =
             a.value |> Array.map (fun v -> v |> Array.map (fun e -> d.integrateValues (e, b))) |> Matrix
 
-        /// Calculates how many protocells are created.
+        // /// Calculates how many protocells are created.
         // member d.evolve (useParallel: bool, p : PoissonSampler, multiplier : double, a : SparseArray4D<double>, b : Matrix<int64>) =
         //     let evolveFunc i v = v |> Array.map (fun e -> d.evolve (p.getSampler i, multiplier, e, b))
         //
