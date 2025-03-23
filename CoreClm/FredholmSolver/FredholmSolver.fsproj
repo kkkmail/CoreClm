@@ -22,6 +22,7 @@
     <PackageReference Include="Softellect.Analytics" Version="9.0.100.5" />
     <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="9.0.100.5" />
     <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="9.0.100.5" />
+    <PackageReference Include="Softellect.Math" Version="9.0.100.5" />
     <PackageReference Include="Softellect.OdePackInterop" Version="9.0.100.5" />
   </ItemGroup>
 
@@ -30,6 +31,7 @@
     <Compile Include="Kernel.fs" />
     <Compile Include="EeInfDiffModel.fs" />
     <Compile Include="EeInfIntModel.fs" />
+    <Compile Include="EeInfIntModel2.fs" />
     <Compile Include="EeInfChartData.fs" />
     <Compile Include="EeInfCharts.fs" />
     <Compile Include="PoissonSolver.fs" />
