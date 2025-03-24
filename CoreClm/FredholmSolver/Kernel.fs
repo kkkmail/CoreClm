@@ -23,12 +23,6 @@ module Kernel =
     /// Describes a function domain suitable for integral approximation.
     /// Equidistant grid is used to reduce the number of multiplications.
     type Domain
-        // {
-        //     points : Vector<double>
-        //     step : double
-        //     range : double
-        // }
-
         with
         member private d.integralValue xSize (v : SparseValue<double>) =
             match v.i = 0, v.i = xSize with
@@ -46,49 +40,13 @@ module Kernel =
         /// Number of points is (noOfIntervals + 1).
         static member create (noOfIntervals, minValue, maxValue) =
             Domain.create(DomainIntervals noOfIntervals, { minValue = minValue; maxValue = maxValue })
-        //     let points = [| for i in 0..noOfIntervals -> minValue + (maxValue - minValue) * (double i) / (double noOfIntervals) |]
-        //
-        //     {
-        //         points = Vector points
-        //         step = (maxValue - minValue) / (double noOfIntervals)
-        //         range = points[noOfIntervals] - points[0]
-        //     }
 
-
-    // /// Number of intervals in the domain.
-    // type DomainIntervals =
-    //     | DomainIntervals of int
-    //
-    //     member r.value = let (DomainIntervals v) = r in v
-    //     static member defaultValue = DomainIntervals 100
-
-
-    // type DomainRange =
-    //     {
-    //         minValue : double
-    //         maxValue : double
-    //     }
-    //
-    //
-    // type DomainParams =
-    //     {
-    //         domainIntervals : DomainIntervals
-    //         domainRange : DomainRange
-    //     }
-    //
-    //     member dd.domain() =
-    //         Domain.create dd.domainIntervals.value dd.domainRange.minValue dd.domainRange.maxValue
 
     /// Data that describes a rectangle in ee * inf space.
     /// ee space is naturally limited to [-1, 1] unless we use a conformal-like transformation to extend it to [-Infinity, Infinity].
     /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
     type Domain2D
         with
-        // {
-        //     eeDomain : Domain
-        //     infDomain : Domain
-        // }
-
         member d.eeDomain = d.d0
         member d.infDomain = d.d1
 
