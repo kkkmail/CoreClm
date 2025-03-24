@@ -3,6 +3,7 @@
 // open FredholmSolver.Primitives
 // open FredholmSolver.Kernel
 
+open System
 open Softellect.Sys.Primitives
 open Softellect.Analytics.Wolfram
 open Softellect.Sys.Core
@@ -24,6 +25,25 @@ module EeInfIntModel2 =
     type K0 = Kernel.K0
 
     // type PoissonSampler = Softellect.Math.Sampling.PoissonSampler
+
+    // ==========================================
+
+    type Kernel.GammaFuncValue
+        with
+        member g.gammaFunc (d : Domain2D) =
+            match g with
+            | Kernel.GammaFuncValue.ScalarGamma e -> (fun _ -> e)
+            | Kernel.GammaFuncValue.SeparableGamma e ->
+                (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points[p.i0] d.d1.points[p.i1]))
+
+
+    type Kernel.KaFuncValue
+        with
+        member k.kaFunc (d : Domain2D) =
+            match k with
+            | Kernel.KaFuncValue.IdentityKa e -> (fun _ -> e)
+            | Kernel.KaFuncValue.SeparableKa e ->
+                (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points[p.i0] d.d1.points[p.i1]))
 
     // ==========================================
 
@@ -251,8 +271,14 @@ module EeInfIntModel2 =
             let k0 = kp.kaFuncValue.k0.value / kMult |> K0.K0
             let kpScaled = { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
 
-            let k = Kernel.KernelData.create mp.evolutionType kpScaled
-            let gamma = Kernel.Gamma.create k.domain2D mp.eeInfModelParams.gammaFuncValue
+            let domain =
+                {
+                    d0 = Domain.create(d, DomainRange.defaultValue) // ee domain
+                    d1 = Domain.create(d, { minValue = 0.0; maxValue = mp.eeInfModelParams.kernelParams.infMaxValue.value }) // inf domain
+                }
+
+            // let k = Kernel.KernelData.create mp.evolutionType kpScaled
+            // let gamma = Kernel.Gamma.create k.domain2D mp.eeInfModelParams.gammaFuncValue
 
             let f = totalMolecules.value - (int64 n.value) * mp.intInitParams.uInitial.value |> FoodData
             let w = 0L |> WasteData
@@ -268,16 +294,14 @@ module EeInfIntModel2 =
                 |> ProtoCellData
 
             let a = failwith "set value of a"
-            let gamma : Multiplier<Point2D> = 0
-            let multiplier : Multiplier<Point2D> = 0
-            let evolutionMatrix : SparseMatrix<Point2D, double> = createTridiagonalMatrix2D d.value a
-            let poissonSampler : PoissonSampler<int64> = 0
 
-            let domain =
-                {
-                    d0 = Domain.create(d, DomainRange.defaultValue) // ee domain
-                    d1 = Domain.create(d, { minValue = 0.0; maxValue = mp.eeInfModelParams.kernelParams.infMaxValue.value }) // inf domain
-                }
+            let gammaFunc = mp.eeInfModelParams.gammaFuncValue.gammaFunc domain
+            let gamma : Multiplier<Point2D> = Multiplier gammaFunc
+            let kaFunc = mp.eeInfModelParams.kernelParams.kaFuncValue.kaFunc domain
+            let multiplier : Multiplier<Point2D> = Multiplier kaFunc
+            let evolutionMatrix : SparseMatrix<Point2D, double> = createTridiagonalMatrix2D d.value a
+            let ps = Random mp.intInitParams.seedValue |> PoissonSampler.create int64
+            let poissonSampler : PoissonSampler<int64> = ps
 
             let model =
                 {

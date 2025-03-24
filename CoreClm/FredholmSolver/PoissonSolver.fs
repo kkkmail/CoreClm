@@ -2,15 +2,11 @@
 
 open System.Diagnostics
 open System.IO
-//open Primitives.GeneralData
 open System
-//open Primitives.GeneralPrimitives
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-open FredholmSolver
 open FredholmSolver.EeInfIntModel
 open FredholmSolver.EeInfChartData
-//open Primitives.WolframPrimitives
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.DistributedProcessing.Proxy.ModelGenerator
 open Softellect.DistributedProcessing.SolverRunner.Primitives
