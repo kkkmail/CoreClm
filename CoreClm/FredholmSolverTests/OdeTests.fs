@@ -29,6 +29,7 @@ open Softellect.Sys.Primitives
 open Softellect.Analytics.Wolfram
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.DistributedProcessing.SolverRunner.Primitives
+open Softellect.Math.Primitives
 
 type CallBackResults =
     {

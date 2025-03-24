@@ -7,6 +7,7 @@ open FredholmSolver.Kernel
 open Softellect.Sys.Primitives
 open Softellect.Analytics.Wolfram
 open Softellect.Sys.Core
+open Softellect.Math.Primitives
 
 module EeInfIntModel =
 

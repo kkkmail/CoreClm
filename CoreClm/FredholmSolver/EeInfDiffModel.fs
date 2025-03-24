@@ -4,6 +4,7 @@ open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 //open GenericOdeSolver.Primitives
 open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.Math.Primitives
 
 module EeInfDiffModel =
 
@@ -109,7 +110,7 @@ module EeInfDiffModel =
             //     let norm = getNorm v
             //     (eps / norm) * v
             | DeltaEeInfShifted (eeShift, infShift) ->
-                let domainIntervals = domain.eeDomain.noOfIntervals
+                let domainIntervals = domain.eeDomain.noOfIntervals.value
                 let g i j =
                     match domainIntervals % 2 = 0 with
                     | true -> if ((i + eeShift) * 2 = domainIntervals) && (j = infShift) then 1.0 else 0.0

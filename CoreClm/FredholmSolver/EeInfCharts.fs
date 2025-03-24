@@ -2,9 +2,11 @@
 
 open System.IO
 open FredholmSolver.EeInfChartData
+open FredholmSolver.Kernel
 open Plotly.NET
 open Primitives.ChartPrimitives
 open Softellect.Sys.Primitives
+open Softellect.Math.Primitives
 
 module EeInfCharts =
 
@@ -26,14 +28,6 @@ module EeInfCharts =
         let getDescription h =
             $"{p.initData.baseData.modelParams}"
             |> toDescription h
-
-        // | PlotEeMu
-        // | PlotEeStdDev
-        // | PlotInfMu
-        // | PlotInfStdDev
-        // | PlotKa
-        // | PlotU
-        // | PlotGamma
 
         let getEeChart () =
             let fileName = getFileName ChartType.PlotEeMu

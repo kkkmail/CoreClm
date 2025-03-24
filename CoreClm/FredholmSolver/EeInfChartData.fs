@@ -9,6 +9,7 @@ open FredholmSolver.EeInfDiffModel
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.Math.Primitives
 
 module EeInfChartData =
 

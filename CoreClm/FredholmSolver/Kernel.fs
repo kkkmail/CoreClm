@@ -8,6 +8,7 @@ open FredholmSolver.Primitives
 open Softellect.Sys.Primitives
 open Softellect.Analytics.Wolfram
 open Softellect.Sys.Core
+open Softellect.Math.Primitives
 
 module Kernel =
 
@@ -21,69 +22,75 @@ module Kernel =
 
     /// Describes a function domain suitable for integral approximation.
     /// Equidistant grid is used to reduce the number of multiplications.
-    type Domain =
-        {
-            points : Vector<double>
-            step : double
-            range : double
-        }
+    type Domain
+        // {
+        //     points : Vector<double>
+        //     step : double
+        //     range : double
+        // }
 
+        with
         member private d.integralValue xSize (v : SparseValue<double>) =
             match v.i = 0, v.i = xSize with
             | true, false -> 0.5 * v.value1D
             | false, true -> 0.5 * v.value1D
             | _ -> v.value1D
 
-        member d.noOfIntervals = d.points.value.Length - 1
+        // member d.noOfIntervals : int = d.points.Length - 1
 
         member d.integrateValues (v : SparseArray<double>) =
-            let len = d.noOfIntervals
+            let len = d.noOfIntervals.value
             let sum = v.value |> Array.map (fun e -> d.integralValue len e) |> Array.sum
             sum * d.step
 
         /// Number of points is (noOfIntervals + 1).
-        static member create noOfIntervals minValue maxValue =
-            let points = [| for i in 0..noOfIntervals -> minValue + (maxValue - minValue) * (double i) / (double noOfIntervals) |]
-
-            {
-                points = Vector points
-                step = (maxValue - minValue) / (double noOfIntervals)
-                range = points[noOfIntervals] - points[0]
-            }
-
-
-    /// Number of intervals in the domain.
-    type DomainIntervals =
-        | DomainIntervals of int
-
-        member r.value = let (DomainIntervals v) = r in v
-        static member defaultValue = DomainIntervals 100
+        static member create (noOfIntervals, minValue, maxValue) =
+            Domain.create(DomainIntervals noOfIntervals, { minValue = minValue; maxValue = maxValue })
+        //     let points = [| for i in 0..noOfIntervals -> minValue + (maxValue - minValue) * (double i) / (double noOfIntervals) |]
+        //
+        //     {
+        //         points = Vector points
+        //         step = (maxValue - minValue) / (double noOfIntervals)
+        //         range = points[noOfIntervals] - points[0]
+        //     }
 
 
-    type DomainRange =
-        {
-            minValue : double
-            maxValue : double
-        }
+    // /// Number of intervals in the domain.
+    // type DomainIntervals =
+    //     | DomainIntervals of int
+    //
+    //     member r.value = let (DomainIntervals v) = r in v
+    //     static member defaultValue = DomainIntervals 100
 
 
-    type DomainParams =
-        {
-            domainIntervals : DomainIntervals
-            domainRange : DomainRange
-        }
-
-        member dd.domain() =
-            Domain.create dd.domainIntervals.value dd.domainRange.minValue dd.domainRange.maxValue
+    // type DomainRange =
+    //     {
+    //         minValue : double
+    //         maxValue : double
+    //     }
+    //
+    //
+    // type DomainParams =
+    //     {
+    //         domainIntervals : DomainIntervals
+    //         domainRange : DomainRange
+    //     }
+    //
+    //     member dd.domain() =
+    //         Domain.create dd.domainIntervals.value dd.domainRange.minValue dd.domainRange.maxValue
 
     /// Data that describes a rectangle in ee * inf space.
     /// ee space is naturally limited to [-1, 1] unless we use a conformal-like transformation to extend it to [-Infinity, Infinity].
     /// inf (information) space is naturally limited at the lower bound (0). The upper bound can be rescaled to any number or even taken to Infinity.
-    type Domain2D =
-        {
-            eeDomain : Domain
-            infDomain : Domain
-        }
+    type Domain2D
+        with
+        // {
+        //     eeDomain : Domain
+        //     infDomain : Domain
+        // }
+
+        member d.eeDomain = d.d0
+        member d.infDomain = d.d1
 
         member private d.normalize v = v * d.eeDomain.step * d.infDomain.step
 
@@ -272,16 +279,16 @@ module Kernel =
         static member defaultRanges = [| Domain2D.eeMinValue; Domain2D.eeMaxValue; Domain2D.infDefaultMinValue; InfMaxValue.defaultValue.value |]
         member d.ranges = [| d.eeDomain.points.value[0]; Array.last d.eeDomain.points.value; d.infDomain.points.value[0]; Array.last d.infDomain.points.value |]
 
-        static member create noOfIntervals l2 =
-            let eeDomain = Domain.create noOfIntervals Domain2D.eeMinValue Domain2D.eeMaxValue
-            let infDomain = Domain.create noOfIntervals Domain2D.infDefaultMinValue l2
+        static member create (noOfIntervals, l2) =
+            let eeDomain = Domain.create (noOfIntervals, Domain2D.eeMinValue, Domain2D.eeMaxValue)
+            let infDomain = Domain.create (noOfIntervals, Domain2D.infDefaultMinValue, l2)
 
             {
-                eeDomain = eeDomain
-                infDomain = infDomain
+                d0 = eeDomain
+                d1 = infDomain
             }
 
-        static member defaultValue = Domain2D.create 100 InfMaxValue.defaultValue.value
+        static member defaultValue = Domain2D.create (100, InfMaxValue.defaultValue.value)
 
         member d.modelString =
             let a =
@@ -441,7 +448,7 @@ module Kernel =
 
     /// We want (2 / 3) of the domain range to scale to 1.0.
     let twoThirdInfScale (d : Domain2D) =
-        let one = (2.0 / 3.0) * d.infDomain.range
+        let one = (2.0 / 3.0) * d.infDomain.domainRange.range
         let scale = 1.0 / one
         scale
 
@@ -683,7 +690,7 @@ module Kernel =
                 let domain = data.domainParams.domain()
                 let mean = domain.points.value[i]
                 let ef = data.epsFuncValue.epsFunc domain
-                let epsFunc x = (ef.invoke domain x) * domain.range / 2.0
+                let epsFunc x = (ef.invoke domain x) * domain.domainRange.range / 2.0
                 let f x : double = exp (- pown ((x - mean) / (epsFunc x)) 2)
                 let values = domain.points.value |> Array.map f |> SparseArray<double>.create data.zeroThreshold
                 let norm = domain.integrateValues values
@@ -707,8 +714,8 @@ module Kernel =
 
         member d.domain2D() =
             {
-                eeDomain = d.eeMutationProbabilityParams.domainParams.domain()
-                infDomain = d.infMutationProbabilityParams.domainParams.domain()
+                d0 = d.eeMutationProbabilityParams.domainParams.domain()
+                d1 = d.infMutationProbabilityParams.domainParams.domain()
             }
 
 
@@ -810,7 +817,7 @@ module Kernel =
                     }
             }
 
-        member kp.domain2D() = Domain2D.create kp.domainIntervals.value kp.infMaxValue.value
+        member kp.domain2D() = Domain2D.create (kp.domainIntervals.value, kp.infMaxValue.value)
 
         static member defaultValue =
             {
@@ -873,7 +880,7 @@ module Kernel =
             v
 
         static member create (e : EvolutionType) p =
-            let domain2D = Domain2D.create p.domainIntervals.value p.infMaxValue.value
+            let domain2D = Domain2D.create (p.domainIntervals.value, p.infMaxValue.value)
 
             let mp2 =
                 {

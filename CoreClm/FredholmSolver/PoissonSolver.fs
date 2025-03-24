@@ -14,6 +14,7 @@ open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Analytics.Wolfram
 open Softellect.DistributedProcessing.ModelGenerator.Program
+open Softellect.Math.Primitives
 
 module PoissonSolver =
 

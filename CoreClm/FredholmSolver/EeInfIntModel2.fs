@@ -30,20 +30,20 @@ module EeInfIntModel2 =
 
     type Kernel.GammaFuncValue
         with
-        member g.gammaFunc (d : Domain2D) =
+        member g.gammaFunc2 (d : Domain2D) =
             match g with
             | Kernel.ScalarGamma e -> (fun _ -> e)
             | Kernel.SeparableGamma e ->
-                (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points[p.i0] d.d1.points[p.i1]))
+                (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points.value[p.i0] d.d1.points.value[p.i1]))
 
 
     type Kernel.KaFuncValue
         with
-        member k.kaFunc (d : Domain2D) =
+        member k.kaFunc2 (d : Domain2D) =
             match k with
             | Kernel.IdentityKa e -> (fun _ -> e)
             | Kernel.SeparableKa e ->
-                (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points[p.i0] d.d1.points[p.i1]))
+                (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points.value[p.i0] d.d1.points.value[p.i1]))
 
 
     type Kernel.EpsFuncValue
@@ -292,10 +292,10 @@ module EeInfIntModel2 =
             let w = 0L |> WasteData
 
             // Legacy domain.
-            let domain2D = Kernel.Domain2D.create mp.eeInfModelParams.kernelParams.domainIntervals.value mp.eeInfModelParams.kernelParams.infMaxValue.value
+            // let domain2D = Kernel.Domain2D.create mp.eeInfModelParams.kernelParams.domainIntervals.value mp.eeInfModelParams.kernelParams.infMaxValue.value
 
             let u =
-                (mp.intInitParams.protocellInitParams.getIntU mp.intInitParams.uInitial.value domain2D).value
+                (mp.intInitParams.protocellInitParams.getIntU mp.intInitParams.uInitial.value domain).value
                 |> Array.mapi (fun i v -> v |> Array.mapi (fun j e -> { x = { i0 = i; i1 = j }; value = e}))
                 |> Array.concat
                 |> SparseArray.create
@@ -305,10 +305,10 @@ module EeInfIntModel2 =
             // TODO kk:20250325 - Tridiagonal matriicex need to be updated to use different probabilities in different directions.
             let a = (1.0 - e0)
 
-            let gammaFunc = mp.eeInfModelParams.gammaFuncValue.gammaFunc domain
+            let gammaFunc = mp.eeInfModelParams.gammaFuncValue.gammaFunc2 domain
             let gamma : Multiplier<Point2D> = Multiplier gammaFunc
             // let kaFunc0 = mp.eeInfModelParams.kernelParams.kaFuncValue.kaFunc domain
-            let kaFunc = kpScaled.kaFuncValue.kaFunc domain
+            let kaFunc = kpScaled.kaFuncValue.kaFunc2 domain
             let multiplier : Multiplier<Point2D> = Multiplier kaFunc
             let evolutionMatrix : SparseMatrix<Point2D, double> = createTridiagonalMatrix2D d.value a
             let ps = Random mp.intInitParams.seedValue |> PoissonSampler.create int64
