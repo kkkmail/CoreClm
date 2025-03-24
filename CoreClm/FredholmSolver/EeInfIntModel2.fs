@@ -32,8 +32,8 @@ module EeInfIntModel2 =
         with
         member g.gammaFunc (d : Domain2D) =
             match g with
-            | Kernel.GammaFuncValue.ScalarGamma e -> (fun _ -> e)
-            | Kernel.GammaFuncValue.SeparableGamma e ->
+            | Kernel.ScalarGamma e -> (fun _ -> e)
+            | Kernel.SeparableGamma e ->
                 (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points[p.i0] d.d1.points[p.i1]))
 
 
@@ -41,9 +41,16 @@ module EeInfIntModel2 =
         with
         member k.kaFunc (d : Domain2D) =
             match k with
-            | Kernel.KaFuncValue.IdentityKa e -> (fun _ -> e)
-            | Kernel.KaFuncValue.SeparableKa e ->
+            | Kernel.IdentityKa e -> (fun _ -> e)
+            | Kernel.SeparableKa e ->
                 (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points[p.i0] d.d1.points[p.i1]))
+
+
+    type Kernel.EpsFuncValue
+        with
+        member e.eps0 =
+            match e with
+            | Kernel.ScalarEps e0 -> e0
 
     // ==========================================
 
@@ -270,6 +277,7 @@ module EeInfIntModel2 =
             let kp = mp.eeInfModelParams.kernelParams
             let k0 = kp.kaFuncValue.k0.value / kMult |> K0.K0
             let kpScaled = { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
+            let e0 = mp.eeInfModelParams.kernelParams.epsEeFuncValue.eps0.value
 
             let domain =
                 {
@@ -293,11 +301,14 @@ module EeInfIntModel2 =
                 |> SparseArray.create
                 |> ProtoCellData
 
-            let a = failwith "set value of a"
+            // TODO kk:20250325 - This needs to be adjusted to account that eps is for Gaussian distribution.
+            // TODO kk:20250325 - Tridiagonal matriicex need to be updated to use different probabilities in different directions.
+            let a = (1.0 - e0)
 
             let gammaFunc = mp.eeInfModelParams.gammaFuncValue.gammaFunc domain
             let gamma : Multiplier<Point2D> = Multiplier gammaFunc
-            let kaFunc = mp.eeInfModelParams.kernelParams.kaFuncValue.kaFunc domain
+            // let kaFunc0 = mp.eeInfModelParams.kernelParams.kaFuncValue.kaFunc domain
+            let kaFunc = kpScaled.kaFuncValue.kaFunc domain
             let multiplier : Multiplier<Point2D> = Multiplier kaFunc
             let evolutionMatrix : SparseMatrix<Point2D, double> = createTridiagonalMatrix2D d.value a
             let ps = Random mp.intInitParams.seedValue |> PoissonSampler.create int64
