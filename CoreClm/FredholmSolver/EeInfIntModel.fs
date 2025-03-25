@@ -8,6 +8,7 @@ open Softellect.Sys.Primitives
 open Softellect.Analytics.Wolfram
 open Softellect.Sys.Core
 open Softellect.Math.Primitives
+open Softellect.Math.Models
 
 module EeInfIntModel =
 
@@ -39,10 +40,10 @@ module EeInfIntModel =
             sm + p
 
 
-    type NoOfEpochs =
-        | NoOfEpochs of int
-
-        member r.value = let (NoOfEpochs v) = r in v
+    // type NoOfEpochs =
+    //     | NoOfEpochs of int
+    //
+    //     member r.value = let (NoOfEpochs v) = r in v
 
 
     type FoodIntData =
@@ -72,16 +73,16 @@ module EeInfIntModel =
         }
 
 
-    type MoleculeCount =
-        | MoleculeCount of int64
-
-        member r.value = let (MoleculeCount v) = r in v
-        static member OneThousand = MoleculeCount 1_000L // 10^3 - K
-        static member OneMillion = MoleculeCount 1_000_000L // 10^6 - M
-        static member OneBillion = MoleculeCount 1_000_000_000L // 10^9 - G
-        static member OneTrillion = MoleculeCount 1_000_000_000_000L // 10^12 - T
-        static member OneQuadrillion = MoleculeCount 1_000_000_000_000_000L // 10^15 - P
-        static member OneQuintillion = MoleculeCount 1_000_000_000_000_000_000L // 10^18 - E
+    // type MoleculeCount =
+    //     | MoleculeCount of int64
+    //
+    //     member r.value = let (MoleculeCount v) = r in v
+    //     static member OneThousand = MoleculeCount 1_000L // 10^3 - K
+    //     static member OneMillion = MoleculeCount 1_000_000L // 10^6 - M
+    //     static member OneBillion = MoleculeCount 1_000_000_000L // 10^9 - G
+    //     static member OneTrillion = MoleculeCount 1_000_000_000_000L // 10^12 - T
+    //     static member OneQuadrillion = MoleculeCount 1_000_000_000_000_000L // 10^15 - P
+    //     static member OneQuintillion = MoleculeCount 1_000_000_000_000_000_000L // 10^18 - E
 
 
     type EeInfIntInitParams =

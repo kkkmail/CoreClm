@@ -13,6 +13,7 @@ open Xunit
 open Xunit.Abstractions
 open FredholmSolverTests.PoissonTestData
 open Softellect.DistributedProcessing.Proxy.ModelGenerator
+open Softellect.Math.Models
 
 /// Naming conventions (all must be specified unless noted otherwise).
 /// All numbers smaller than 1 are prefixed with a relevant letter, e.g. k0 = 0.01 becomes k01.

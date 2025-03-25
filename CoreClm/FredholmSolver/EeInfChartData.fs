@@ -2,14 +2,13 @@
 
 open FredholmSolver.EeInfIntModel
 open System
-//open Primitives.GeneralPrimitives
-//open Primitives.SolverPrimitives
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfDiffModel
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.Math.Primitives
+open Softellect.Math.Models
 
 module EeInfChartData =
 

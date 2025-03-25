@@ -15,6 +15,7 @@ open Softellect.Sys.Core
 open Softellect.Analytics.Wolfram
 open Softellect.DistributedProcessing.ModelGenerator.Program
 open Softellect.Math.Primitives
+open Softellect.Math.Models
 
 module PoissonSolver =
 
@@ -22,6 +23,8 @@ module PoissonSolver =
     let poissonSolverName = "Poisson" |> SolverName
     let getNamePrefix name = $"{name}__"
 
+
+    // let EeInfIntModelParams = FredholmSolver.EeInfIntModel.EeInfIntModelParams
 
     type PoissonEvolutionParam =
         {
