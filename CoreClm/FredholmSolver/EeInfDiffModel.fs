@@ -32,10 +32,10 @@ module EeInfDiffModel =
         member r.value = let (ProtocellData v) = r in v
 
 
-    type SubstanceData =
-        | SubstanceData of LinearData<SubstanceType, double>
+    type SubstanceLinearData =
+        | SubstanceLinearData of LinearData<SubstanceType, double>
 
-        member r.value = let (SubstanceData v) = r in v
+        member r.value = let (SubstanceLinearData v) = r in v
 
         static member create (x : FoodData) (w: WasteData) (p : ProtocellData) =
             let retVal =
@@ -43,7 +43,7 @@ module EeInfDiffModel =
                     .append(Food, x.value)
                     .append(Waste, w.value)
                     .append(Protocell, p.value)
-                |> SubstanceData
+                |> SubstanceLinearData
 
             retVal
 
@@ -176,7 +176,7 @@ module EeInfDiffModel =
         {
             kernelData : KernelData
             gamma : Gamma
-            diffInitialValues : SubstanceData
+            diffInitialValues : SubstanceLinearData
             diffModelParams : EeInfDiffModelParams // To keep all params used to create a model.
         }
 
@@ -185,7 +185,7 @@ module EeInfDiffModel =
             md.kernelData, md.gamma.value, p.numberOfMolecules.value, p.recyclingRate.value
 
         /// Calculates a derivative.
-        member md.derivative (x : SubstanceData) =
+        member md.derivative (x : SubstanceLinearData) =
             let f, w, u = x.unpack()
             let k, g, n, s = md.unpack()
 
@@ -199,10 +199,10 @@ module EeInfDiffModel =
             let dw = - s * w + int_gamma_u |> WasteData
             let du = (f_n * int_k_u - gamma_u) |> ProtocellData
 
-            let retVal = SubstanceData.create df dw du
+            let retVal = SubstanceLinearData.create df dw du
             retVal
 
-        member md.substanceData i x = LinearData<SubstanceType, double>.create i x |> SubstanceData
+        member md.substanceData i x = LinearData<SubstanceType, double>.create i x |> SubstanceLinearData
 
         member md.derivativeCalculator f (i : LinearDataInfo<SubstanceType>) =
             let d t x =
@@ -213,7 +213,7 @@ module EeInfDiffModel =
 
             FullArray d
 
-        member md.invariant (v : SubstanceData) =
+        member md.invariant (v : SubstanceLinearData) =
             let f, w, u = v.unpack()
             let k, _, n, _ = md.unpack()
 
@@ -227,7 +227,7 @@ module EeInfDiffModel =
             let f = FoodData (mp.diffInitParams.total - (double mp.eeInfModelParams.numberOfMolecules.value) * mp.diffInitParams.eps)
             let w = WasteData 0.0
             let u = mp.diffInitParams.protocellInitParams.getU mp.diffInitParams.eps k.domain2D |> ProtocellData
-            let sd = SubstanceData.create f w u
+            let sd = SubstanceLinearData.create f w u
 
             {
                 kernelData = k

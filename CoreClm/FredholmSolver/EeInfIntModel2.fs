@@ -24,8 +24,6 @@ module EeInfIntModel2 =
     type KaFuncValue = Kernel.KaFuncValue
     type K0 = Kernel.K0
 
-    // type PoissonSampler = Softellect.Math.Sampling.PoissonSampler
-
     // ==========================================
 
     type Kernel.GammaFuncValue
@@ -51,6 +49,12 @@ module EeInfIntModel2 =
         member e.eps0 =
             match e with
             | Kernel.ScalarEps e0 -> e0
+
+    // ==========================================
+
+    type SubstanceData = SubstanceData<Point2D>
+    type EeInfIntInitParams = EeInfIntModel.EeInfIntInitParams
+    type EeInfIntModelParams = EeInfIntModel.EeInfIntModelParams
 
     // ==========================================
 
@@ -82,19 +86,15 @@ module EeInfIntModel2 =
             sm + p
 
 
-    type SubstanceIntData = SubstanceData<Point2D>
-    type EeInfIntInitParams = EeInfIntModel.EeInfIntInitParams
-    type EeInfIntModelParams = EeInfIntModel.EeInfIntModelParams
-
-
     type EeInfIntModel =
         {
             // kernelData : KernelData
             // gamma : Gamma
             model : SimpleEvolutionModel<Point2D, Coord2D>
             evolutionContext : EvolutionContext<Point2D, int64>
-            intInitialValues : SubstanceIntData
+            intInitialValues : SubstanceData
             intModelParams : EeInfIntModelParams // To keep all params used to create a model.
+            domain2D : Domain2D
         }
 
         // member private md.unpack() =
@@ -105,9 +105,9 @@ module EeInfIntModel2 =
 
         /// Calculates a new state of the system after one epoch.
         /// !!! This is different from a derivative above, which calculates the "difference" between states !!!
-        member md.evolve (x : SubstanceIntData) = md.model.evolveStep md.evolutionContext x
+        member md.evolve (x : SubstanceData) = md.model.evolveStep md.evolutionContext x
 
-        member md.invariant (x : SubstanceIntData) = md.model.invariant x
+        member md.invariant (x : SubstanceData) = md.model.invariant x
 
         static member create (mp : EeInfIntModelParams) : EeInfIntModel =
             let totalMolecules = MoleculeCount mp.intInitParams.totalMolecules.value
@@ -189,4 +189,5 @@ module EeInfIntModel2 =
                         protocell = u
                     }
                 intModelParams = mp
+                domain2D = domain
             }

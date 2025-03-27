@@ -68,7 +68,7 @@ type OdeResultData =
         callBackResults : CallBackResults
         //result : CallBackData
         x : double[]
-        getData : double[] -> SubstanceData
+        getData : double[] -> SubstanceLinearData
         invStart : double
         chartData : ChartDiffData
     }

@@ -35,6 +35,7 @@
     <Compile Include="EeInfChartData.fs" />
     <Compile Include="EeInfCharts.fs" />
     <Compile Include="PoissonSolver.fs" />
+    <Compile Include="PoissonSolver2.fs" />
   </ItemGroup>
 
   <ItemGroup>

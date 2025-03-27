@@ -46,16 +46,16 @@ module EeInfIntModel =
     //     member r.value = let (NoOfEpochs v) = r in v
 
 
-    type FoodIntData =
-        | FoodIntData of int64
-
-        member r.value = let (FoodIntData v) = r in v
-
-
-    type WasteIntData =
-        | WasteIntData of int64
-
-        member r.value = let (WasteIntData v) = r in v
+    // type FoodIntData =
+    //     | FoodIntData of int64
+    //
+    //     member r.value = let (FoodIntData v) = r in v
+    //
+    //
+    // type WasteIntData =
+    //     | WasteIntData of int64
+    //
+    //     member r.value = let (WasteIntData v) = r in v
 
 
     type ProtocellIntData =
@@ -67,8 +67,8 @@ module EeInfIntModel =
 
     type SubstanceIntData =
         {
-            food : FoodIntData
-            waste : WasteIntData
+            food : FoodData
+            waste : WasteData
             protocell : ProtocellIntData
         }
 
@@ -192,8 +192,8 @@ module EeInfIntModel =
             let du = int_k_u - gamma_u
 
             if f + df >= 0L then
-                let f1 = f + df |> FoodIntData
-                let w1 = w + dw |> WasteIntData
+                let f1 = f + df |> FoodData
+                let w1 = w + dw |> WasteData
                 let u1 = u + du |> ProtocellIntData
 
                 let retVal =  { food = f1; waste = w1; protocell = u1 }
@@ -212,8 +212,8 @@ module EeInfIntModel =
                 let df = (int64 n) * (r - int_int_k_u)
                 let du = int_k_u - gamma_u
 
-                let f1 = f + df |> FoodIntData
-                let w1 = w + dw |> WasteIntData
+                let f1 = f + df |> FoodData
+                let w1 = w + dw |> WasteData
                 let u1 = u + du |> ProtocellIntData
 
                 let retVal =  { food = f1; waste = w1; protocell = u1 }
@@ -241,8 +241,8 @@ module EeInfIntModel =
 
             let k = KernelData.create mp.evolutionType kpScaled
 
-            let f = totalMolecules - (int64 n) * mp.intInitParams.uInitial.value |> FoodIntData
-            let w = 0L |> WasteIntData
+            let f = totalMolecules - (int64 n) * mp.intInitParams.uInitial.value |> FoodData
+            let w = 0L |> WasteData
             let u = mp.intInitParams.protocellInitParams.getIntU mp.intInitParams.uInitial.value k.domain2D |> ProtocellIntData
 
             {
