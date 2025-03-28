@@ -96,3 +96,54 @@ module ChartExt =
             Ok()
         with
         | e -> e |> GeneralFileExn |> FileErr |> Result.Error
+
+
+    type ChartDescription =
+        {
+            Heading : string
+            Text : string
+        }
+
+
+    let toDescription h t =
+        {
+            Heading = h
+            Text = t
+        }
+
+
+    let toEmbeddedHtmlWithDescription (description : ChartDescription) (gChart : GenericChart) =
+        let plotlyRef = PlotlyJSReference.Full
+
+        let displayOpts =
+            DisplayOptions.init(
+                AdditionalHeadTags = [
+                    script [_src description.Heading] []
+                ],
+                // Description = [
+                //     h1 [] [str description.Heading]
+                //     h2 [] [str description.Text]
+                // ],
+                PlotlyJSReference = plotlyRef
+            )
+
+        let result =
+            gChart
+            |> Chart.withDisplayOptions(displayOpts)
+            |> GenericChart.toEmbeddedHTML
+
+        result
+
+
+    let toHtmlFileName (FileName fileName) =
+        if fileName.EndsWith(".html", StringComparison.OrdinalIgnoreCase) then fileName
+        else fileName + ".html"
+        |> FileName
+
+
+    let getHtmlChart fileName d ch =
+        {
+            textContent = toEmbeddedHtmlWithDescription d ch
+            fileName = toHtmlFileName fileName
+        }
+        |> TextResult

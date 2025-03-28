@@ -1,7 +1,7 @@
 ﻿namespace Softellect.Samples.DistrProc.SolverRunner
 
 open System
-open FredholmSolver.PoissonSolver
+open FredholmSolver.PoissonSolver2
 open Softellect.Sys.ExitErrorCodes
 open Softellect.DistributedProcessing.SolverRunner.Implementation
 open Softellect.DistributedProcessing.SolverRunner.Program
@@ -11,7 +11,7 @@ open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Plotly.NET
 open Softellect.Analytics.Wolfram
-open FredholmSolver.EeInfIntModel
+open FredholmSolver.EeInfIntModel2
 open Softellect.Analytics.AppSettings
 open Softellect.Analytics.Primitives
 open Analytics.ChartExt
@@ -69,7 +69,7 @@ module Program =
     let main argv =
         let retVal =
             try
-                let chartGenerator : ResultGenerator<PoissonSolverData, SubstanceIntData, PoissonChartData> =
+                let chartGenerator : ResultGenerator<PoissonSolverData, SubstanceData, PoissonChartData> =
                     {
                         getResultData = fun d t x ->
                             let chartMod = d.initialData.evolutionParam.noOfCharts |> Option.bind (fun v -> d.initialData.evolutionParam.noOfEpochs.value / v |> Some)
@@ -78,10 +78,10 @@ module Program =
                         generateDetailedResults = fun _ _ _ _ -> None
                     }
 
-                let getUserProxy (solverData : PoissonSolverData) : SolverRunnerUserProxy<PoissonSolverData, PoissonProgressData, SubstanceIntData, PoissonChartData> =
+                let getUserProxy (solverData : PoissonSolverData) : SolverRunnerUserProxy<PoissonSolverData, PoissonProgressData, SubstanceData, PoissonChartData> =
                     let solverRunner = poissonSolverRunner solverData
 
-                    let solverProxy : SolverProxy<PoissonSolverData, PoissonProgressData, SubstanceIntData> =
+                    let solverProxy : SolverProxy<PoissonSolverData, PoissonProgressData, SubstanceData> =
                         {
                             getInitialData = _.getInitialData()
                             getProgressData = None
@@ -98,7 +98,7 @@ module Program =
 
                 // Call solverRunnerMain<'D, 'P, 'X, 'C>
                 printfn "Calling solverRunnerMain..."
-                solverRunnerMain<PoissonSolverData, PoissonProgressData, SubstanceIntData, PoissonChartData> poissonSolverId getUserProxy argv
+                solverRunnerMain<PoissonSolverData, PoissonProgressData, SubstanceData, PoissonChartData> poissonSolverId getUserProxy argv
             with
             | e ->
                 Console.WriteLine($"Exception: %A{e}.")

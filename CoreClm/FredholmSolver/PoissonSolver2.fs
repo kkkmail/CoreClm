@@ -216,8 +216,7 @@ module PoissonSolver2 =
         let eta = model.domain2D.eeDomain.points.value
         let zeta = model.domain2D.infDomain.points.value
         let u = (substanceData.protocell.value.convert (fun e -> norm * (double e)))
-        // let xyz = eta |> Array.mapi (fun i a-> zeta |> Array.mapi (fun j b -> [ a; b; u[i][j] ])) |> Array.concat
-        let xyz = 0
+        let xyz = eta |> Array.mapi (fun i a-> zeta |> Array.mapi (fun j b -> [ a; b; u.map.Value |> Map.tryFind { i0 = i; i1 = j } |> Option.defaultValue 0.0 ])) |> Array.concat
         let wolframData = $"{(toWolframNotation xyz)}{Nl}{Nl}"
         File.WriteAllText(wolframFileName, wolframData)
 
