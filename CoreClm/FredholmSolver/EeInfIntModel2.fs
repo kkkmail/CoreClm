@@ -1,23 +1,16 @@
 ﻿namespace FredholmSolver
 
-// open FredholmSolver.Primitives
-// open FredholmSolver.Kernel
-
-open System
-open Softellect.Sys.Primitives
-open Softellect.Analytics.Wolfram
-open Softellect.Sys.Core
-
 open Softellect.Math.Primitives
 open Softellect.Math.Sparse
 open Softellect.Math.Tridiagonal
 open Softellect.Math.Evolution
 open Softellect.Math.Models
+open FredholmSolver.Common
 
 module EeInfIntModel2 =
     // Aliases to avoid opening the whole FredholmSolver.Primitives module.
-    let toModelStringInt64 = Primitives.toModelStringInt64
-    let bindPrefix = Primitives.bindPrefix
+    // let toModelStringInt64 = Primitives.toModelStringInt64
+    // let bindPrefix = Primitives.bindPrefix
 
     // Aliases to avoid opening the whole FredholmSolver.Kernel module.
     type EeInfModelParams = Kernel.EeInfModelParams
@@ -53,45 +46,16 @@ module EeInfIntModel2 =
     // ==========================================
 
     type SubstanceData = SubstanceData<Point2D>
-    type EeInfIntInitParams = EeInfIntModel.EeInfIntInitParams
-    type EeInfIntModelParams = EeInfIntModel.EeInfIntModelParams
+    type EvolutionContext = EvolutionContext<Point2D, int64>
 
     // ==========================================
-
-    type SolutionMethod =
-        | Euler    // https://en.wikipedia.org/wiki/Euler_method
-        | MidPoint // https://en.wikipedia.org/wiki/Midpoint_method - Not implemented yet.
-
-
-    /// All parameterization of the solution method.
-    type SolutionMethodParams =
-        {
-            solutionMethod : SolutionMethod
-            useParallel : bool
-        }
-
-        static member defaultValue =
-            {
-                solutionMethod = Euler
-                useParallel = false
-            }
-
-        member s.modelString =
-            let sm =
-                match s.solutionMethod with
-                | Euler -> EmptyString
-                | MidPoint -> "_mp"
-
-            let p = if s.useParallel then "_p" else EmptyString
-            sm + p
-
 
     type EeInfIntModel =
         {
             // kernelData : KernelData
             // gamma : Gamma
             model : SimpleEvolutionModel<Point2D, Coord2D>
-            evolutionContext : EvolutionContext<Point2D, int64>
+            // evolutionContext : EvolutionContext<Point2D, int64>
             intInitialValues : SubstanceData
             intModelParams : EeInfIntModelParams // To keep all params used to create a model.
             domain2D : Domain2D
@@ -105,7 +69,7 @@ module EeInfIntModel2 =
 
         /// Calculates a new state of the system after one epoch.
         /// !!! This is different from a derivative above, which calculates the "difference" between states !!!
-        member md.evolve (x : SubstanceData) = md.model.evolveStep md.evolutionContext x
+        member md.evolve (ec : EvolutionContext) (x : SubstanceData) = md.model.evolveStep ec x
 
         member md.invariant (x : SubstanceData) = md.model.invariant x
 
@@ -153,8 +117,6 @@ module EeInfIntModel2 =
             let kaFunc = kpScaled.kaFuncValue.kaFunc2 domain
             let multiplier : Multiplier<Point2D> = Multiplier kaFunc
             let evolutionMatrix : SparseMatrix<Point2D, double> = createTridiagonalMatrix2D d.value a
-            let ps = Random mp.intInitParams.seedValue |> PoissonSampler.create int64
-            let poissonSampler : PoissonSampler<int64> = ps
 
             let model =
                 {
@@ -170,18 +132,11 @@ module EeInfIntModel2 =
                     converter = conversionParameters2D domain
                 }
 
-            let ec =
-                {
-                    poissonSampler = poissonSampler
-                    toDouble = double
-                    fromDouble = int64
-                }
-
             {
                 // kernelData = k
                 // gamma = Gamma.create k.domain2D mp.eeInfModelParams.gammaFuncValue
                 model = model
-                evolutionContext = ec
+                // evolutionContext = ec
                 intInitialValues =
                     {
                         food = f

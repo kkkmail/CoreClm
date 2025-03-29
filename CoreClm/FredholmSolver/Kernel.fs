@@ -1,11 +1,12 @@
 ﻿namespace FredholmSolver
 
 open System
-open FredholmSolver.Primitives
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Math.Primitives
 open Softellect.Math.Models
+open FredholmSolver.Primitives
+open FredholmSolver.Sparse
 
 module Kernel =
 
@@ -899,23 +900,7 @@ module Kernel =
             gamma
 
 
-    // /// Number of "molecules" or building blocks used in a protocell.
-    // /// This controls the non-linearity of the creation model.
-    // /// Default value is set to 1 because we take into account that a single protocell encounters with food
-    // /// proportionally to concentration of the food.
-    // type NumberOfMolecules =
-    //     | NumberOfMolecules of int
-    //
-    //     member r.value = let (NumberOfMolecules v) = r in v
-    //     static member defaultValue = NumberOfMolecules 1
-    //     static member defaultValue2 = NumberOfMolecules 2
-
-
     type RecyclingRate
-        // | RecyclingRate of double
-        //
-        // member r.value = let (RecyclingRate v) = r in v
-        // static member defaultValue = RecyclingRate 1.0
         with
 
         member w.modelString =

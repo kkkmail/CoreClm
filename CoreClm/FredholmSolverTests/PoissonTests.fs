@@ -6,13 +6,13 @@ open System
 open FluentAssertions
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-open FredholmSolver
+open FredholmSolver.Common
+open FredholmSolver.Solver
 open FredholmSolver.EeInfIntModel
 open FredholmSolver.PoissonSolver
 open Xunit
 open Xunit.Abstractions
 open FredholmSolverTests.PoissonTestData
-open Softellect.DistributedProcessing.Proxy.ModelGenerator
 open Softellect.Math.Models
 
 /// Naming conventions (all must be specified unless noted otherwise).
@@ -101,7 +101,7 @@ type PoissonTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.d100k01e01a0_100K_inf2_deltaMiddle () : unit =
         let mp = mp_d100k01e01a0.withInfMaxValue (InfMaxValue 2.0)
-        let mp1 = mp.withProtocellInitParams (EeInfDiffModel.ProtocellInitParams.DeltaEeInfShifted (0, 0))
+        let mp1 = mp.withProtocellInitParams (ProtocellInitParams.DeltaEeInfShifted (0, 0))
         runPoissonEvolution mp1 100_000 (t.getCallerName())
 
     // ===================================================================================
@@ -135,7 +135,7 @@ type PoissonTests (output : ITestOutputHelper) =
     [<Fact>]
     member t.d100k1e01a0_100K_inf2_deltaMiddle () : unit =
         let mp = mp_d100k1e01a0.withInfMaxValue (InfMaxValue 2.0)
-        let mp1 = mp.withProtocellInitParams (EeInfDiffModel.ProtocellInitParams.DeltaEeInfShifted (0, 0))
+        let mp1 = mp.withProtocellInitParams (ProtocellInitParams.DeltaEeInfShifted (0, 0))
         runPoissonEvolution mp1 100_000 (t.getCallerName())
 
     // ===================================================================================
@@ -1010,19 +1010,3 @@ type PoissonTests (output : ITestOutputHelper) =
         Async.Parallel tests
         |> Async.RunSynchronously
         |> ignore
-
-
-    [<Fact>]
-    member t.generateModel_shouldWork() : unit =
-        let name = t.getCallerName()
-        let mp = mp_d100k10e01g01i1
-        let noOfEpochs = NoOfEpochs 100_000
-        let p = PoissonParam.defaultValue mp noOfEpochs name
-        let i = p.initialData
-        let systemProxy = ModelGeneratorSystemProxy.create()
-        let result = poissonModelGenerator systemProxy i
-        writeLine $"result: '%A{result}'."
-
-        match result with
-        | Ok _ -> ()
-        | Error e -> failwith $"Error: '{e}'."

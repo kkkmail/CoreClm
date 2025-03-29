@@ -3,7 +3,6 @@
 open System.Diagnostics
 open System.IO
 open System
-open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfIntModel2
 open FredholmSolver.EeInfChartData
@@ -16,74 +15,14 @@ open Softellect.Analytics.Wolfram
 open Softellect.DistributedProcessing.ModelGenerator.Program
 open Softellect.Math.Primitives
 open Softellect.Math.Models
+open Softellect.Math.Evolution
+open FredholmSolver.Common
+open FredholmSolver.Solver
 
 module PoissonSolver2 =
 
     let poissonSolverId = "0275536F-53F8-4CEF-99AE-CFCC31253557" |> Guid.Parse |> SolverId
     let poissonSolverName = "Poisson2" |> SolverName
-    let getNamePrefix name = $"{name}__"
-
-    type EeInfIntModelParams = EeInfIntModel.EeInfIntModelParams
-    type PoissonEvolutionParam = PoissonSolver.PoissonEvolutionParam
-
-
-    // type PoissonEvolutionParam =
-    //     {
-    //         noOfEpochs : NoOfEpochs
-    //         noOfCharts : int option
-    //         maxChartPoints : int
-    //         noOfFrames : int option
-    //         duration : int // Clip duration in seconds.
-    //         name : string
-    //         outputFolder : FolderName
-    //         dataFolder : FolderName
-    //         odePackChartSupportFolder : FolderName
-    //     }
-
-
-    /// That's 'I in the type signature.
-    type PoissonInitialData =
-        {
-            intModelParams : EeInfIntModelParams
-            evolutionParam : PoissonEvolutionParam
-        }
-
-        member p.fullName = p.evolutionParam.name
-
-
-    type PoissonParam =
-        {
-            runQueueId : RunQueueId
-            initialData : PoissonInitialData
-        }
-
-        static member defaultValue mp n name =
-            {
-                runQueueId = RunQueueId.getNewId()
-                initialData =
-                    {
-                        intModelParams = mp
-                        evolutionParam =
-                            {
-                                noOfEpochs = n
-                                noOfCharts = Some 20
-                                maxChartPoints = 100_000
-                                noOfFrames = Some 2_000
-                                duration = 50
-                                name = name
-                                outputFolder = FolderName @"C:\EeInf"
-                                dataFolder = FolderName @"C:\EeInf\Data"
-                                odePackChartSupportFolder = FolderName @"C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m" // Need \\ for Wolfram.
-                            }
-                    }
-            }
-
-        member p.modelString =
-            let a = p.initialData.intModelParams.modelString
-            let b = p.initialData.evolutionParam.noOfEpochs.value |> int64 |> toModelStringInt64 0L |> Option.defaultValue EmptyString
-            $"{a}_{b}"
-
-        member p.fullName = p.initialData.fullName
 
 
     let createModel (mp : EeInfIntModelParams) name =
@@ -248,18 +187,6 @@ module PoissonSolver2 =
         member p.fullName = p.initialData.evolutionParam.name
 
 
-    /// That's 'P in the type signature.
-    type PoissonProgressData =
-        {
-            x : int
-        }
-
-        static member defaultValue =
-            {
-                x = 0
-            }
-
-
     /// That's 'C in the type signature.
     type PoissonChartData = ChartSliceIntData
 
@@ -302,10 +229,18 @@ module PoissonSolver2 =
     let poissonSolverRunner (p : PoissonSolverData) =
         let noOfEpochs = p.initialData.evolutionParam.noOfEpochs.value
         let psCount = p.initialData.intModelParams.eeInfModelParams.kernelParams.domainIntervals.value + 1
+        let ps = Random p.model.intModelParams.intInitParams.seedValue |> PoissonSampler.create int64
+
+        let ec =
+            {
+                poissonSampler = ps
+                toDouble = double
+                fromDouble = int64
+            }
 
         let solve (_, x0) (tryCallBack : TryCallBack<SubstanceData>) =
             let evolve e i =
-                let e1 = p.model.evolve e
+                let e1 = p.model.evolve ec e
                 tryCallBack.invoke (i |> decimal |> EvolutionTime) e1
                 e1
 
@@ -334,8 +269,17 @@ module PoissonSolver2 =
         let outputChart = outputChart writeLine
         let sw = Stopwatch.StartNew()
 
+        let ps = Random model.intModelParams.intInitParams.seedValue |> PoissonSampler.create int64
+
+        let ec =
+            {
+                poissonSampler = ps
+                toDouble = double
+                fromDouble = int64
+            }
+
         let evolve e i =
-            let e1 = model.evolve e
+            let e1 = model.evolve ec e
             outputProgress sw noOfEpochs progressFreq i
             if i % chartFrequency = 0 then getChartSliceData e1 i |> chartDataUpdater.addContent
 

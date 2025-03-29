@@ -8,9 +8,7 @@ open Xunit.Abstractions
 open FluentAssertions
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-//open Primitives.WolframPrimitives
-open System.Text
-open Microsoft.FSharp.Reflection
+open FredholmSolver.Sparse
 open Softellect.Analytics.Wolfram
 open Softellect.Math.Primitives
 

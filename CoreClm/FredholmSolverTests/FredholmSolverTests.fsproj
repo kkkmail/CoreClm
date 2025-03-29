@@ -44,6 +44,7 @@
     <Compile Include="OdeTests.fs" />
     <Compile Include="PoissonTestData.fs" />
     <Compile Include="PoissonTests.fs" />
+    <Compile Include="PoissonGeneratorTests.fs" />
     <Compile Include="ModelStringTests.fs" />
   </ItemGroup>
 

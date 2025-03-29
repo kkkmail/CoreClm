@@ -1,6 +1,7 @@
 ﻿namespace Softellect.Samples.DistrProc.SolverRunner
 
 open System
+open FredholmSolver.Solver
 open FredholmSolver.PoissonSolver
 open Softellect.Sys.ExitErrorCodes
 open Softellect.DistributedProcessing.SolverRunner.Implementation

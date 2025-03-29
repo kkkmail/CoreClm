@@ -1,6 +1,6 @@
 ﻿namespace FredholmSolverTests
 
-open FredholmSolver.EeInfIntModel
+open FredholmSolver.Common
 open FredholmSolver.Kernel
 open Softellect.Math.Primitives
 open Softellect.Math.Models
