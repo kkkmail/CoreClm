@@ -32,6 +32,27 @@ module Solver =
         }
 
         member p.fullName = p.evolutionParam.name
+        static member defaultValue mp n name =
+            {
+                intModelParams = mp
+                evolutionParam =
+                    {
+                        noOfEpochs = n
+                        noOfCharts = Some 20
+                        maxChartPoints = 100_000
+                        noOfFrames = Some 2_000
+                        duration = 50
+                        name = name
+                        outputFolder = FolderName @"C:\EeInf"
+                        dataFolder = FolderName @"C:\EeInf\Data"
+                        odePackChartSupportFolder = FolderName @"C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m" // Need \\ for Wolfram.
+                    }
+            }
+
+        member p.modelString =
+            let a = p.intModelParams.modelString
+            let b = p.evolutionParam.noOfEpochs.value |> int64 |> toModelStringInt64 0L |> Option.defaultValue EmptyString
+            $"{a}_{b}"
 
 
     type PoissonParam =
@@ -43,29 +64,10 @@ module Solver =
         static member defaultValue mp n name =
             {
                 runQueueId = RunQueueId.getNewId()
-                initialData =
-                    {
-                        intModelParams = mp
-                        evolutionParam =
-                            {
-                                noOfEpochs = n
-                                noOfCharts = Some 20
-                                maxChartPoints = 100_000
-                                noOfFrames = Some 2_000
-                                duration = 50
-                                name = name
-                                outputFolder = FolderName @"C:\EeInf"
-                                dataFolder = FolderName @"C:\EeInf\Data"
-                                odePackChartSupportFolder = FolderName @"C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m" // Need \\ for Wolfram.
-                            }
-                    }
+                initialData = PoissonInitialData.defaultValue mp n name
             }
 
-        member p.modelString =
-            let a = p.initialData.intModelParams.modelString
-            let b = p.initialData.evolutionParam.noOfEpochs.value |> int64 |> toModelStringInt64 0L |> Option.defaultValue EmptyString
-            $"{a}_{b}"
-
+        member p.modelString = p.initialData.modelString
         member p.fullName = p.initialData.fullName
 
 
