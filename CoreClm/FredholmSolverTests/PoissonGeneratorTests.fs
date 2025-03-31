@@ -103,3 +103,57 @@ type PoissonGeneratorTests(output : ITestOutputHelper) =
 
     // ===================================================
     // ===================================================
+    // d500, 200 K - as in the article.
+
+    [<Fact>]
+    member t.d500k1e005g01a002f1E_200K_V2() : unit =
+        let p = PoissonInitialData.defaultValue mp_d500k1e005g01a002f1E ne_200K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+
+    [<Fact>]
+    member t.d500k1e01g01a002f1E_200K_V2() : unit =
+        let p = PoissonInitialData.defaultValue mp_d500k1e01g01a002f1E ne_200K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+
+    [<Fact>]
+    member t.d500k1e005g01a002i10f1E_200K_V2() : unit =
+        let p = PoissonInitialData.defaultValue mp_d500k1e005g01a002i10f1E ne_200K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+
+    [<Fact>]
+    member t.d500k1e01g01a002i10f1E_200K_V2() : unit =
+        let p = PoissonInitialData.defaultValue mp_d500k1e01g01a002i10f1E ne_200K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+    // ===================================================
+    // ===================================================
+    // d500, 500 K - as in the article.
+
+    [<Fact>]
+    member t.d500k1e005g01a002f1E_500K_V2() : unit =
+        let p = PoissonInitialData.defaultValue mp_d500k1e005g01a002f1E ne_500K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+
+    [<Fact>]
+    member t.d500k1e01g01a002f1E_500K_V2() : unit =
+        let p = PoissonInitialData.defaultValue mp_d500k1e01g01a002f1E ne_500K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+
+    [<Fact>]
+    member t.d500k1e005g01a002i10f1E_500K_V2() : unit =
+        let p = PoissonInitialData.defaultValue mp_d500k1e005g01a002i10f1E ne_500K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+
+    [<Fact>]
+    member t.d500k1e01g01a002i10f1E_500K_V2() : unit =
+        let p = PoissonInitialData.defaultValue mp_d500k1e01g01a002i10f1E ne_500K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+    // ===================================================
+    // ===================================================
