@@ -44,7 +44,7 @@ module Solver =
                         duration = 50
                         name = name
                         outputFolder = FolderName @"C:\EeInf"
-                        dataFolder = FolderName @"C:\EeInf\Data"
+                        dataFolder = FolderName @"Data" //FolderName @"C:\EeInf\Data"
                         odePackChartSupportFolder = FolderName @"C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m" // Need \\ for Wolfram.
                     }
             }

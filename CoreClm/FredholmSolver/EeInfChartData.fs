@@ -180,7 +180,7 @@ module EeInfChartData =
         }
 
 
-    let calculateIntStat2 (md : EeInfIntModel2.EeInfIntModel) (v : EeInfIntModel2.SubstanceData) =
+    let calculateIntStat2 (md : EeInfIntModel2.EeInfIntModel2) (v : EeInfIntModel2.SubstanceData) =
         let n = int64 md.intModelParams.eeInfModelParams.numberOfMolecules.value
         let u = v.protocell.value
         let total = u.total()

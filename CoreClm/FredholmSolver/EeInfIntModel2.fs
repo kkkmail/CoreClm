@@ -50,7 +50,8 @@ module EeInfIntModel2 =
 
     // ==========================================
 
-    type EeInfIntModel =
+    /// Renamed from EeInfIntModel to EeInfIntModel2 to avoid confusion with the original EeInfIntModel.
+    type EeInfIntModel2 =
         {
             // kernelData : KernelData
             // gamma : Gamma
@@ -73,7 +74,7 @@ module EeInfIntModel2 =
 
         member md.invariant (x : SubstanceData) = md.model.invariant x
 
-        static member create (mp : EeInfIntModelParams) : EeInfIntModel =
+        static member create (mp : EeInfIntModelParams) : EeInfIntModel2 =
             let totalMolecules = MoleculeCount mp.intInitParams.totalMolecules.value
             let n = NumberOfMolecules mp.eeInfModelParams.numberOfMolecules.value
             let d = DomainIntervals mp.eeInfModelParams.kernelParams.domainIntervals.value

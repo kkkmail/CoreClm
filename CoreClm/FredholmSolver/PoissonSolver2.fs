@@ -8,7 +8,9 @@ open FredholmSolver.EeInfIntModel2
 open FredholmSolver.EeInfChartData
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.DistributedProcessing.Proxy.ModelGenerator
+open Softellect.DistributedProcessing.SolverRunner.Implementation
 open Softellect.DistributedProcessing.SolverRunner.Primitives
+open Softellect.Sys.Logging
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Analytics.Wolfram
@@ -27,11 +29,11 @@ module PoissonSolver2 =
 
     let createModel (mp : EeInfIntModelParams) name =
         let md = mp.named name
-        let model = EeInfIntModel.create md
+        let model = EeInfIntModel2.create md
         model
 
 
-    let getChartInitData (model : EeInfIntModel) noOfEpochs =
+    let getChartInitData (model : EeInfIntModel2) noOfEpochs =
         {
             baseData =
                 {
@@ -44,7 +46,7 @@ module PoissonSolver2 =
         }
 
 
-    let getChartSliceData (model : EeInfIntModel2.EeInfIntModel) (NoOfEpochs noOfEpochs) chartMod e i : ChartSliceIntData =
+    let getChartSliceData (model : EeInfIntModel2.EeInfIntModel2) (NoOfEpochs noOfEpochs) chartMod e i : ChartSliceIntData =
         {
             epochNumber = i
             progress = (decimal i) / (decimal noOfEpochs)
@@ -64,7 +66,7 @@ module PoissonSolver2 =
             printfn $"Completed {i} of {noOfEpochs} steps in {(t / 60_000.0):N2} minutes. Estimated completion: {estCompl}."
 
 
-    let toWolframData (model : EeInfIntModel) (p : PoissonEvolutionParam) (substanceData : SubstanceData) (chartData : ChartIntData) =
+    let toWolframData (model : EeInfIntModel2) (p : PoissonEvolutionParam) (substanceData : SubstanceData) (chartData : ChartIntData) =
         let a = $"""Get["{p.odePackChartSupportFolder}"];{Nl}{Nl}"""
         let b = $"""plotAll[1];{Nl}"""
         let d = model.intModelParams |> toOutputString |> toWolframNotation
@@ -147,17 +149,25 @@ module PoissonSolver2 =
         $"{a}{descr}{k0Data}{gamma0Data}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartDataStr}{uDataT}{b}"
 
 
-    let outputFrameData (model : EeInfIntModel) (p : PoissonParam) (substanceData : SubstanceData) i =
+    let outputFrameData (model : EeInfIntModel2) (p : PoissonInitialData) (substanceData : SubstanceData) i =
+        let w = getSolverWolframParams poissonSolverId
         let name = model.intModelParams.eeInfModelParams.name
-        let wolframFileName = $@"{p.initialData.evolutionParam.dataFolder}\{(getNamePrefix name)}{i:D8}.m"
-        let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
-        let norm = 100.0 / (double totalMolecules) // Use values in %.
-        let eta = model.domain2D.eeDomain.points.value
-        let zeta = model.domain2D.infDomain.points.value
-        let u = (substanceData.protocell.value.convert (fun e -> norm * (double e)))
-        let xyz = eta |> Array.mapi (fun i a-> zeta |> Array.mapi (fun j b -> [ a; b; u.map.Value |> Map.tryFind { i0 = i; i1 = j } |> Option.defaultValue 0.0 ])) |> Array.concat
-        let wolframData = $"{(toWolframNotation xyz)}{Nl}{Nl}"
-        File.WriteAllText(wolframFileName, wolframData)
+
+        match (FileName $@"{p.evolutionParam.dataFolder.value}\{(getNamePrefix name)}{i:D8}.m").tryGetFullFileName (Some w.wolframInputFolder) with
+        | Ok wolframFileName ->  // = $@"{p.evolutionParam.dataFolder.value}\{(getNamePrefix name)}{i:D8}.m"
+            Logger.logTrace $"dataFolder: '{p.evolutionParam.dataFolder}', wolframFileName: '{wolframFileName}'."
+            match wolframFileName.tryEnsureFolderExists() with
+            | Ok() ->
+                let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
+                let norm = 100.0 / (double totalMolecules) // Use values in %.
+                let eta = model.domain2D.eeDomain.points.value
+                let zeta = model.domain2D.infDomain.points.value
+                let u = (substanceData.protocell.value.convert (fun e -> norm * (double e)))
+                let xyz = eta |> Array.mapi (fun i a-> zeta |> Array.mapi (fun j b -> [ a; b; u.map.Value |> Map.tryFind { i0 = i; i1 = j } |> Option.defaultValue 0.0 ])) |> Array.concat
+                let wolframData = $"{(toWolframNotation xyz)}{Nl}{Nl}"
+                File.WriteAllText(wolframFileName.value, wolframData)
+            | Error e -> Logger.logError $"Error with file name: '{wolframFileName}', error: '{e}'"
+        | Error e -> Logger.logError $"Error: '{e}'"
 
 
     let toWolframAnimation name duration =
@@ -179,7 +189,7 @@ module PoissonSolver2 =
     type PoissonSolverData =
         {
             initialData : PoissonInitialData
-            model : EeInfIntModel
+            model : EeInfIntModel2
             norm : double // Use values in %.
         }
 
@@ -265,7 +275,7 @@ module PoissonSolver2 =
         let chartInitData = getChartInitData model p.initialData.evolutionParam.noOfEpochs
         let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData) :> IAsyncUpdater<ChartSliceIntData, ChartIntData>
         let getChartSliceData = getChartSliceData model (NoOfEpochs noOfEpochs) chartMod
-        let outputFrameData = outputFrameData model p
+        let outputFrameData = outputFrameData model p.initialData
         let outputChart = outputChart writeLine
         let sw = Stopwatch.StartNew()
 
