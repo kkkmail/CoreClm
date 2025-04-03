@@ -20,6 +20,7 @@ module Solver =
             name : string
             outputFolder : FolderName
             dataFolder : FolderName
+            framesFolder : FolderName
             odePackChartSupportFolder : FolderName
         }
 
@@ -43,8 +44,9 @@ module Solver =
                         noOfFrames = Some 2_000
                         duration = 50
                         name = name
-                        outputFolder = FolderName @"C:\EeInf"
-                        dataFolder = FolderName @"Data" //FolderName @"C:\EeInf\Data"
+                        outputFolder = FolderName "Output"
+                        dataFolder = FolderName "Data"
+                        framesFolder = FolderName "Frames"
                         odePackChartSupportFolder = FolderName @"C:\\GitHub\\CoreClm\\Math\\odePackChartSupport.m" // Need \\ for Wolfram.
                     }
             }

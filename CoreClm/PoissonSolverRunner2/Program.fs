@@ -42,7 +42,7 @@ module Program =
 
             getListLinePlot i o ListLineParams.defaultValue d
         | _ ->
-            printfn $"getWolframEeChart - Cannot get data for: %A{q}."
+            Logger.logError $"getWolframEeChart - Cannot get data for: %A{q}."
             None
 
 
@@ -62,7 +62,7 @@ module Program =
 
             getListLinePlot i o ListLineParams.defaultValue d
         | _ ->
-            printfn $"getWolframInfChart - Cannot get data for: %A{q}."
+            Logger.logError $"getWolframInfChart - Cannot get data for: %A{q}."
             None
 
 
@@ -159,5 +159,6 @@ module Program =
                 Logger.logCrit($"Exception: %A{e}.")
                 CriticalError
 
+        Logger.logInfo $"Completion code: %A{retVal}."
         // Console.ReadLine() |> ignore
         retVal
