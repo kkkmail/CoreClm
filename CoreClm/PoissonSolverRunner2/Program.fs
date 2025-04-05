@@ -111,7 +111,8 @@ module Program =
                 if i % v = 0
                 then
                     Logger.logTrace $"generateDetailedResults (outputting frame) - q: %A{q}, i: %A{i}, noOfEpochs: %A{noOfEpochs}, frameMod: %A{frameMod}."
-                    outputFrameData d.model d.initialData x i
+                    // outputFrameData d.model d.initialData x i
+                    outputFramePngData d.model d.initialData x i
             | None -> ()
         with
         | e -> Logger.logCrit($"Exception: %A{e}.")

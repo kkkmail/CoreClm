@@ -6,6 +6,7 @@ open System
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfIntModel2
 open FredholmSolver.EeInfChartData
+open Softellect.Analytics
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.DistributedProcessing.Proxy.ModelGenerator
 open Softellect.DistributedProcessing.SolverRunner.Implementation
@@ -149,6 +150,7 @@ module PoissonSolver2 =
         $"{a}{descr}{k0Data}{gamma0Data}{etaData}{zetaData}{kaData}{gammaData}{uData}{chartTitles}{chartDataStr}{uDataT}{b}"
 
 
+    /// Outputs frame data as Wolfram m file.
     let outputFrameData (model : EeInfIntModel2) (p : PoissonInitialData) (substanceData : SubstanceData) i =
         let w = getSolverWolframParams poissonSolverId
         let name = model.intModelParams.eeInfModelParams.name
@@ -163,11 +165,52 @@ module PoissonSolver2 =
                 let eta = model.domain2D.eeDomain.points.value
                 let zeta = model.domain2D.infDomain.points.value
                 let u = (substanceData.protocell.value.convert (fun e -> norm * (double e)))
-                let xyz = eta |> Array.mapi (fun i a-> zeta |> Array.mapi (fun j b -> [ a; b; u.map.Value |> Map.tryFind { i0 = i; i1 = j } |> Option.defaultValue 0.0 ])) |> Array.concat
+                let xyz = eta |> Array.mapi (fun i a -> zeta |> Array.mapi (fun j b -> [ a; b; u.map.Value |> Map.tryFind { i0 = i; i1 = j } |> Option.defaultValue 0.0 ])) |> Array.concat
                 let wolframData = $"{(toWolframNotation xyz)}{Nl}{Nl}"
                 File.WriteAllText(wolframFileName.value, wolframData)
             | Error e -> Logger.logError $"Error with file name: '{wolframFileName}', error: '{e}'"
         | Error e -> Logger.logError $"Error: '{e}'"
+
+
+    /// Outputs frame data as PNG.
+    let outputFramePngData (model : EeInfIntModel2) (p : PoissonInitialData) (substanceData : SubstanceData) i =
+        let w = getSolverWolframParams poissonSolverId
+        let name = model.intModelParams.eeInfModelParams.name
+
+        let n = $@"{p.evolutionParam.dataFolder.value}\{(getNamePrefix name)}{i:D8}"
+        let iName = (FileName $@"{n}.m").tryGetFullFileName (Some w.wolframInputFolder)
+        let oName = (FileName $@"{n}.png").tryGetFullFileName (Some w.wolframOutputFolder)
+        Logger.logTrace $"iName: '{iName}', oName: '{oName}'."
+
+        match iName, oName with
+        | Ok i, Ok o ->
+            Logger.logTrace $"dataFolder: '{p.evolutionParam.dataFolder}', i: '{i}', o: '{o}'."
+            match i.tryEnsureFolderExists(), o.tryEnsureFolderExists() with
+            | Ok(), Ok() ->
+                let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
+                let norm = 100.0 / (double totalMolecules) // Use values in %.
+                let eta = model.domain2D.eeDomain.points.value
+                let zeta = model.domain2D.infDomain.points.value
+                let u = (substanceData.protocell.value.convert (fun e -> norm * (double e)))
+
+                let xyz =
+                    eta
+                    |> Array.mapi (fun i a -> zeta |> Array.mapi (fun j b -> { x = a; y = b; z = u.tryFind { i0 = i; i1 = j } |> Option.defaultValue 0.0 } : Primitives.DataPoint3D))
+                    |> Array.concat
+                    |> List.ofArray
+
+                // let wolframData = $"{(toWolframNotation xyz)}{Nl}{Nl}"
+                // File.WriteAllText(i.value, wolframData)
+                let p = ListPlot3DParams.defaultValue
+                let r = getListPlot3D i o p xyz
+
+                match r with
+                | Some _ ->
+                    Logger.logTrace $"Successfully created output chart: '{o}'."
+                    ()
+                | None -> Logger.logError $"Could not create output file: '{o}'."
+            | _ -> Logger.logError $"Error with folder(s) for file name(s): '{i}', '{o}'."
+        | _ -> Logger.logError $"Error: with one or both file name(s): '{iName}', '{oName}'."
 
 
     let toWolframAnimation name duration =
@@ -275,7 +318,8 @@ module PoissonSolver2 =
         let chartInitData = getChartInitData model p.initialData.evolutionParam.noOfEpochs
         let chartDataUpdater = AsyncChartIntDataUpdater(ChartIntDataUpdater(), chartInitData) :> IAsyncUpdater<ChartSliceIntData, ChartIntData>
         let getChartSliceData = getChartSliceData model (NoOfEpochs noOfEpochs) chartMod
-        let outputFrameData = outputFrameData model p.initialData
+        // let outputFrameData = outputFrameData model p.initialData
+        let outputFrameData = outputFramePngData model p.initialData
         let outputChart = outputChart writeLine
         let sw = Stopwatch.StartNew()
 

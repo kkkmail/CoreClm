@@ -1,1 +1,1 @@
-C:\GitHub\Softellect\Apps\DistrProc\PartitionerAdm\bin\x64\Release\net9.0\PartitionerAdm.exe sendallsolvers
+C:\GitHub\Softellect\Apps\DistrProc\PartitionerAdm\bin\x64\Release\net9.0\PartitionerAdm.exe sendallsolvers -f true
