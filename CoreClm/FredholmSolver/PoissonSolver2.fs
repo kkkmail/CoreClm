@@ -15,6 +15,7 @@ open Softellect.Sys.Logging
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
 open Softellect.Analytics.Wolfram
+open Softellect.Analytics.FFMpeg
 open Softellect.DistributedProcessing.ModelGenerator.Program
 open Softellect.Math.Primitives
 open Softellect.Math.Models
@@ -156,7 +157,7 @@ module PoissonSolver2 =
         let name = model.intModelParams.eeInfModelParams.name
 
         match (FileName $@"{p.evolutionParam.dataFolder.value}\{(getNamePrefix name)}{i:D8}.m").tryGetFullFileName (Some w.wolframInputFolder) with
-        | Ok wolframFileName ->  // = $@"{p.evolutionParam.dataFolder.value}\{(getNamePrefix name)}{i:D8}.m"
+        | Ok wolframFileName ->
             Logger.logTrace $"dataFolder: '{p.evolutionParam.dataFolder}', wolframFileName: '{wolframFileName}'."
             match wolframFileName.tryEnsureFolderExists() with
             | Ok() ->
@@ -211,6 +212,33 @@ module PoissonSolver2 =
                 | None -> Logger.logError $"Could not create output file: '{o}'."
             | _ -> Logger.logError $"Error with folder(s) for file name(s): '{i}', '{o}'."
         | _ -> Logger.logError $"Error: with one or both file name(s): '{iName}', '{oName}'."
+
+
+    let outputAnimation (model : EeInfIntModel2) (p : PoissonInitialData) =
+        let w = getSolverWolframParams poissonSolverId
+        let name = model.intModelParams.eeInfModelParams.name
+
+        // p.evolutionParam.framesFolder does not contain Wolfram output folder.
+        let framesFolder = w.wolframOutputFolder.combine p.evolutionParam.dataFolder
+        let outputFolder = w.wolframOutputFolder.combine p.evolutionParam.outputFolder
+        let tempFolder = w.wolframOutputFolder.combine p.evolutionParam.outputFolder
+
+        let d =
+            {
+                filePrefix = getNamePrefix name
+                framesFolder = framesFolder
+                frameExtension = FileExtension ".png"
+                outputFolder = outputFolder
+                animationExtension = FileExtension ".mp4"
+                tempFolder = tempFolder
+                clipDuration = p.evolutionParam.duration |> double |> ClipDuration
+                ffmpegExecutable = "C:\\FFMpeg\\bin\\ffmpeg.exe" |> FileName
+            }
+
+        Logger.logTrace $"Using animation data: '%A{d}'."
+        let r = createAnimation d
+        Logger.logInfo $"Animation created wtih result: '%A{r}'."
+        r
 
 
     let toWolframAnimation name duration =

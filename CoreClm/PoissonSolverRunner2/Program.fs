@@ -1,5 +1,6 @@
 ﻿namespace Softellect.Samples.DistrProc.SolverRunner
 
+open System.IO
 open FredholmSolver.Solver
 open FredholmSolver.PoissonSolver2
 open Softellect.Sys.ExitErrorCodes
@@ -97,6 +98,39 @@ module Program =
         |> Some
 
 
+    let getAnimation (d : PoissonSolverData) =
+        try
+            match outputAnimation d.model d.initialData with
+            | Ok o ->
+                if File.Exists(o.value) then
+                    let v = File.ReadAllBytes(o.value)
+                    {
+                        binaryContent = v
+                        fileName = o
+                    }
+                    |> BinaryResult
+                    |> Some
+                else None
+            | Error e ->
+                Logger.logCrit($"Error: %A{e}.")
+                None
+        with
+        | e ->
+            Logger.logCrit($"Exception: %A{e}.")
+            None
+
+
+    let getAllResults (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
+        let a = getAnimation d
+        let c = getCharts q d c
+
+        match a, c with
+        | Some a1, Some c1 -> a1 :: c1 |> Some
+        | Some a1, None -> [ a1 ] |> Some
+        | None, Some c1 -> c1 |> Some
+        | None, None -> None
+
+
     let generateDetailedResults (q : RunQueueId) (d : PoissonSolverData) (t : EvolutionTime) (x : SubstanceData) =
         try
             // Evolution time is effectively measured in ints.
@@ -130,21 +164,22 @@ module Program =
                         getResultData = fun d t x ->
                             let chartMod = d.initialData.evolutionParam.noOfCharts |> Option.bind (fun v -> d.initialData.evolutionParam.noOfEpochs.value / v |> Some)
                             getChartSliceData d.model d.initialData.evolutionParam.noOfEpochs chartMod x (int t.value)
-                        generateResults = fun q d _ c -> getCharts q d c
+                        // generateResults = fun q d _ c -> getCharts q d c
+                        generateResults = fun q d _ c -> getAllResults q d c
                         generateDetailedResults = generateDetailedResults
+                    }
+
+                let solverProxy : SolverProxy<PoissonSolverData, PoissonProgressData, SubstanceData> =
+                    {
+                        getInitialData = _.getInitialData()
+                        getProgressData = None
+                        getInvariant = fun d _ x ->
+                            (double (d.model.invariant x)) / (double d.model.intModelParams.intInitParams.totalMolecules.value) |> RelativeInvariant
+                        getOptionalFolder = fun _ _ -> None
                     }
 
                 let getUserProxy (solverData : PoissonSolverData) : SolverRunnerUserProxy<PoissonSolverData, PoissonProgressData, SubstanceData, PoissonChartData> =
                     let solverRunner = poissonSolverRunner solverData
-
-                    let solverProxy : SolverProxy<PoissonSolverData, PoissonProgressData, SubstanceData> =
-                        {
-                            getInitialData = _.getInitialData()
-                            getProgressData = None
-                            getInvariant = fun d _ x ->
-                                (double (d.model.invariant x)) / (double d.model.intModelParams.intInitParams.totalMolecules.value) |> RelativeInvariant
-                            getOptionalFolder = fun _ _ -> None
-                        }
 
                     {
                         solverRunner = solverRunner
