@@ -103,9 +103,8 @@ module Program =
             match outputAnimation d.model d.initialData with
             | Ok o ->
                 if File.Exists(o.value) then
-                    let v = File.ReadAllBytes(o.value)
                     {
-                        binaryContent = v
+                        binaryContent = File.ReadAllBytes(o.value)
                         fileName = o
                     }
                     |> BinaryResult
