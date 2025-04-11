@@ -75,9 +75,9 @@ module EeInfIntModel2 =
         member md.invariant (x : SubstanceData) = md.model.invariant x
 
         static member create (mp : EeInfIntModelParams) : EeInfIntModel2 =
-            let totalMolecules = MoleculeCount mp.intInitParams.totalMolecules.value
-            let n = NumberOfMolecules mp.eeInfModelParams.numberOfMolecules.value
-            let d = DomainIntervals mp.eeInfModelParams.kernelParams.domainIntervals.value
+            let totalMolecules = mp.intInitParams.totalMolecules
+            let n = mp.eeInfModelParams.numberOfMolecules
+            let d = mp.eeInfModelParams.kernelParams.domainIntervals
 
             // Need to rescale kaFuncValue.
             let kMult = pown (double totalMolecules.value) n.value
@@ -86,11 +86,7 @@ module EeInfIntModel2 =
             let kpScaled = { kp with kaFuncValue = kp.kaFuncValue.withK0 k0 }
             let e0 = mp.eeInfModelParams.kernelParams.epsEeFuncValue.eps0.value
 
-            let domain =
-                {
-                    d0 = Domain.create(d, DomainRange.defaultValue) // ee domain
-                    d1 = Domain.create(d, { minValue = 0.0; maxValue = mp.eeInfModelParams.kernelParams.infMaxValue.value }) // inf domain
-                }
+            let domain = mp.eeInfModelParams.kernelParams.domain2D()
 
             // let k = Kernel.KernelData.create mp.evolutionType kpScaled
             // let gamma = Kernel.Gamma.create k.domain2D mp.eeInfModelParams.gammaFuncValue

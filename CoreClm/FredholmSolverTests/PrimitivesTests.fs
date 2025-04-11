@@ -56,7 +56,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
     let nullString : string = null
     let errTolerance = 1.0e-10
 
-    let domain2D (data : KernelParams) = Domain2D.create (data.domainIntervals.value, data.infMaxValue.value)
+    let domain2D (data : KernelParams) = data.domain2D()
     let normalize (data : KernelParams) v = v / (double (data.domainIntervals.value * data.domainIntervals.value))
 
 
@@ -264,8 +264,8 @@ type PrimitivesTests (output : ITestOutputHelper) =
     [<Fact>]
     member _.integrate2D_ShouldMatch () : unit =
         let rnd = Random(1)
-        let n = 100
-        let domain = Domain2D.create (n, 25.0)
+        let n = DomainIntervals 100
+        let domain = Domain2D.create (n, DomainRange.defaultValue)
 
         let m =
             domain.eeDomain.points.value

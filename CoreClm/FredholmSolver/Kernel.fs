@@ -229,22 +229,36 @@ module Kernel =
                 (Math.Max(m2x - mx * mx, 0.0) |> Math.Sqrt, Math.Max(m2y - my * my, 0.0) |> Math.Sqrt)
             else (0.0, 0.0)
 
-        static member eeMinValue = -1.0
-        static member eeMaxValue = 1.0
-        static member infDefaultMinValue = 0.0
-        static member defaultRanges = [| Domain2D.eeMinValue; Domain2D.eeMaxValue; Domain2D.infDefaultMinValue; InfMaxValue.defaultValue.value |]
-        member d.ranges = [| d.eeDomain.points.value[0]; Array.last d.eeDomain.points.value; d.infDomain.points.value[0]; Array.last d.infDomain.points.value |]
+        // static member eeMinValue = -1.0
+        // static member eeMaxValue = 1.0
+        // static member infDefaultMinValue = 0.0
+        // static member defaultRanges = [| Domain2D.eeMinValue; Domain2D.eeMaxValue; Domain2D.infDefaultMinValue; InfMaxValue.defaultValue.value |]
 
-        static member create (noOfIntervals, l2) =
-            let eeDomain = Domain.create (noOfIntervals, Domain2D.eeMinValue, Domain2D.eeMaxValue)
-            let infDomain = Domain.create (noOfIntervals, Domain2D.infDefaultMinValue, l2)
-
+        static member defaultDomainRange =
             {
-                d0 = eeDomain
-                d1 = infDomain
+                r0 = DomainRange.defaultValue
+                r1 = { minValue = 0.0; maxValue = InfMaxValue.defaultValue.value }
             }
 
-        static member defaultValue = Domain2D.create (100, InfMaxValue.defaultValue.value)
+        static member defaultRanges =
+            [|
+                Domain2D.defaultDomainRange.r0.minValue
+                Domain2D.defaultDomainRange.r0.maxValue
+                Domain2D.defaultDomainRange.r1.minValue
+                Domain2D.defaultDomainRange.r1.maxValue
+            |]
+        member d.ranges = [| d.eeDomain.points.value[0]; Array.last d.eeDomain.points.value; d.infDomain.points.value[0]; Array.last d.infDomain.points.value |]
+
+        // static member create (noOfIntervals, l2) =
+        //     let eeDomain = Domain.create (noOfIntervals, Domain2D.eeMinValue, Domain2D.eeMaxValue)
+        //     let infDomain = Domain.create (noOfIntervals, Domain2D.infDefaultMinValue, l2)
+        //
+        //     {
+        //         d0 = eeDomain
+        //         d1 = infDomain
+        //     }
+
+        static member defaultValue = Domain2D.create (DomainIntervals.defaultValue, Domain2D.defaultDomainRange)
 
         member d.modelString =
             let a =
@@ -462,6 +476,23 @@ module Kernel =
                 {
                     x0 = 0.0
                     xScale = twoThirdInfScale d
+                    coefficients = KaFuncValue.defaultQuadraticCoefficients
+                }
+
+            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+
+        static member defaultSymmetricQuadraticValue (d : Domain2D) =
+            let tEe =
+                {
+                    x0 = 0.0
+                    xScale = 1.0
+                    coefficients = KaFuncValue.defaultQuadraticCoefficients
+                }
+
+            let tInf =
+                {
+                    x0 = 0.0
+                    xScale = 1.0
                     coefficients = KaFuncValue.defaultQuadraticCoefficients
                 }
 
@@ -730,7 +761,7 @@ module Kernel =
     type KernelParams =
         {
             domainIntervals : DomainIntervals
-            infMaxValue : InfMaxValue
+            eeInfDomainRange : DomainRange2D
             zeroThreshold : ZeroThreshold
             epsEeFuncValue : EpsFuncValue
             epsInfFuncValue : EpsFuncValue
@@ -740,21 +771,13 @@ module Kernel =
         member kp.eeDomainParams =
             {
                 domainIntervals = kp.domainIntervals
-                domainRange =
-                    {
-                        minValue = Domain2D.eeMinValue
-                        maxValue = Domain2D.eeMaxValue
-                    }
+                domainRange = kp.eeInfDomainRange.r0
             }
 
         member kp.infDomainParams =
             {
                 domainIntervals = kp.domainIntervals
-                domainRange =
-                    {
-                        minValue = Domain2D.infDefaultMinValue
-                        maxValue = kp.infMaxValue.value
-                    }
+                domainRange = kp.eeInfDomainRange.r1
             }
 
         member kp.mutationProbabilityData2D =
@@ -773,12 +796,16 @@ module Kernel =
                     }
             }
 
-        member kp.domain2D() = Domain2D.create (kp.domainIntervals.value, kp.infMaxValue.value)
+        member kp.domain2D() = Domain2D.create (kp.domainIntervals, kp.eeInfDomainRange)
 
         static member defaultValue =
             {
                 domainIntervals = DomainIntervals.defaultValue
-                infMaxValue = InfMaxValue.defaultValue
+                eeInfDomainRange =
+                    {
+                        r0 = DomainRange.defaultValue
+                        r1 = { minValue = 0.0; maxValue = InfMaxValue.defaultValue.value }
+                    }
                 zeroThreshold = ZeroThreshold.defaultValue
                 epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue
                 epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue
@@ -789,6 +816,21 @@ module Kernel =
         static member defaultQuadraticValue =
             let kp = KernelParams.defaultValue
             { kp with kaFuncValue = KaFuncValue.defaultQuadraticValue (kp.domain2D()) }
+
+        static member defaultSymmetricValue =
+            {
+                domainIntervals = DomainIntervals.defaultValue
+                eeInfDomainRange = DomainRange2D.defaultValue
+                zeroThreshold = ZeroThreshold.defaultValue
+                epsEeFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue
+                epsInfFuncValue = EpsFuncValue.ScalarEps Eps0.defaultValue
+                kaFuncValue = KaFuncValue.IdentityKa 1.0
+            }
+
+        /// Same as above but with quadratic ka.
+        static member defaultSymmetricQuadraticValue =
+            let kp = KernelParams.defaultSymmetricValue
+            { kp with kaFuncValue = KaFuncValue.defaultSymmetricQuadraticValue (kp.domain2D()) }
 
         static member defaultQuadraticWithLinearInfValue =
             let kp = KernelParams.defaultValue
@@ -836,7 +878,7 @@ module Kernel =
             v
 
         static member create (e : EvolutionType) p =
-            let domain2D = Domain2D.create (p.domainIntervals.value, p.infMaxValue.value)
+            let domain2D = Domain2D.create (p.domainIntervals, p.eeInfDomainRange)
 
             let mp2 =
                 {
@@ -949,12 +991,26 @@ module Kernel =
                 name = EmptyString
             }
 
+        static member defaultSymmetricValue =
+            {
+                kernelParams = KernelParams.defaultSymmetricValue
+                gammaFuncValue = GammaFuncValue.defaultValue
+                numberOfMolecules = NumberOfMolecules.defaultValue
+                recyclingRate = RecyclingRate.defaultValue
+                name = EmptyString
+            }
+
         /// Default value with quadratic kernel and non-linear gamma.
         /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
         static member defaultNonLinearValue =
             let kp = KernelParams.defaultQuadraticValue
             let d = kp.domain2D()
             { EeInfModelParams.defaultValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
+
+        static member defaultSymmetricNonLinearValue =
+            let kp = KernelParams.defaultSymmetricQuadraticValue
+            let d = kp.domain2D()
+            { EeInfModelParams.defaultSymmetricValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
 
         static member defaultQuadraticWithLinearInfValue =
             let kp = KernelParams.defaultQuadraticWithLinearInfValue
@@ -966,5 +1022,5 @@ module Kernel =
         static member withEps0 eps0 p = { p with kernelParams = p.kernelParams |> KernelParams.withEps0 eps0 }
         static member withGamma0 gamma0 p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGamma0 gamma0 }
         static member withDomainIntervals d p = { p with kernelParams = p.kernelParams |> KernelParams.withDomainIntervals d }
-        static member withInfMaxValue infMaxValue p = { p with kernelParams = { p.kernelParams with infMaxValue = infMaxValue } }
+        static member withInfMaxValue (InfMaxValue infMaxValue) p = { p with kernelParams.eeInfDomainRange.r1.maxValue = infMaxValue }
         static member withGlobalAsymmetryFactor a p = { p with gammaFuncValue = p.gammaFuncValue |> GammaFuncValue.withGlobalAsymmetryFactor a }

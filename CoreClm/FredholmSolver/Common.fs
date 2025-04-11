@@ -128,7 +128,7 @@ module Common =
         member p.named n = { p with eeInfModelParams.name = n }
         member p.withTotalMolecules totalMolecules = { p with intInitParams = p.intInitParams.withTotalMolecules totalMolecules }
         member p.withUInitial uInitial = { p with intInitParams = p.intInitParams.withUInitial uInitial }
-        member p.withInfMaxValue infMaxValue = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withInfMaxValue infMaxValue }
+        member p.withInfMaxValue (infMaxValue : InfMaxValue) = { p with eeInfModelParams = p.eeInfModelParams |> EeInfModelParams.withInfMaxValue infMaxValue }
         member p.withProtocellInitParams protocellInitParams = { p with intInitParams = { p.intInitParams with protocellInitParams = protocellInitParams } }
         member p.modelString = $"{p.eeInfModelParams.modelString}{p.solutionMethodParams.modelString}{p.intInitParams.modelString}"
 
@@ -140,11 +140,20 @@ module Common =
                 solutionMethodParams = SolutionMethodParams.defaultValue
             }
 
+        static member defaultSymmetricValue =
+            {
+                eeInfModelParams = EeInfModelParams.defaultSymmetricValue
+                intInitParams = EeInfIntInitParams.defaultValue
+                solutionMethodParams = SolutionMethodParams.defaultValue
+            }
+
         /// Default value with quadratic kernel and non-linear gamma.
         /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
         static member defaultNonLinearValue =
             { EeInfIntModelParams.defaultValue with eeInfModelParams = EeInfModelParams.defaultNonLinearValue }
 
+        /// Default symmetric value with quadratic kernel and non-linear gamma.
+        /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
         static member defaultQuadraticWithLinearInfValue =
             { EeInfIntModelParams.defaultValue with eeInfModelParams = EeInfModelParams.defaultQuadraticWithLinearInfValue }
 

@@ -18,7 +18,7 @@ module PoissonTestData =
 
     /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI1 but keeps K0
     let toI1 (mp : EeInfIntModelParams) =
-        let domain2D = Domain2D.create (mp.eeInfModelParams.kernelParams.domainIntervals.value, mp.eeInfModelParams.kernelParams.infMaxValue.value)
+        let domain2D = mp.eeInfModelParams.kernelParams.domain2D()
         let k0 = mp.eeInfModelParams.kernelParams.kaFuncValue.k0
 
         mp
@@ -28,7 +28,7 @@ module PoissonTestData =
 
     /// Sets kaFuncValue to KaFuncValue.defaultQuadraticWithLinearInfValueI10 but keeps K0
     let toI10 (mp : EeInfIntModelParams) =
-        let domain2D = Domain2D.create (mp.eeInfModelParams.kernelParams.domainIntervals.value, mp.eeInfModelParams.kernelParams.infMaxValue.value)
+        let domain2D = mp.eeInfModelParams.kernelParams.domain2D()
         let k0 = mp.eeInfModelParams.kernelParams.kaFuncValue.k0
 
         mp
