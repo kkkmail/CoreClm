@@ -152,7 +152,12 @@ module Common =
         static member defaultNonLinearValue =
             { EeInfIntModelParams.defaultValue with eeInfModelParams = EeInfModelParams.defaultNonLinearValue }
 
-        /// Default symmetric value with quadratic kernel and non-linear gamma.
+        /// Default SYMMETRIC value with quadratic kernel and non-linear gamma.
+        /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
+        static member defaultSymmetricNonLinearValue =
+            { EeInfIntModelParams.defaultSymmetricValue with eeInfModelParams = EeInfModelParams.defaultSymmetricNonLinearValue }
+
+        /// Default value with quadratic kernel and non-linear gamma.
         /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
         static member defaultQuadraticWithLinearInfValue =
             { EeInfIntModelParams.defaultValue with eeInfModelParams = EeInfModelParams.defaultQuadraticWithLinearInfValue }

@@ -376,3 +376,15 @@ module PoissonTestData =
     let mp_d1000k1e01g01a002f1E = mp_d1000k1e01g01a002.withTotalMolecules MoleculeCount.OneQuintillion
     let mp_d1000k1e005g01a002i10f1E = mp_d1000k1e005g01a002i10.withTotalMolecules MoleculeCount.OneQuintillion
     let mp_d1000k1e01g01a002i10f1E = mp_d1000k1e01g01a002i10.withTotalMolecules MoleculeCount.OneQuintillion
+
+    // ===================================================================================
+    // ===================================================================================
+    // ===================================================================================
+    // Symmetric
+
+    let smp_d100k1e01g01 = createModelParams EeInfIntModelParams.defaultSymmetricNonLinearValue 100 K0.defaultValue id
+
+    let smp_d500k1e005g01 =
+        createModelParams EeInfIntModelParams.defaultSymmetricNonLinearValue 500 K0.defaultValue (EeInfIntModelParams.withEps0 Eps0.defaultNarrowValue)
+
+    let smp_d500k1e005g01f1E = smp_d500k1e005g01.withTotalMolecules MoleculeCount.OneQuintillion

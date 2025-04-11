@@ -10,6 +10,9 @@ open FredholmSolver.Sparse
 
 module Kernel =
 
+    let radius (a : double) (b : double) = sqrt (a * a + b * b)
+
+
     /// Max value of the range in inf space.
     type InfMaxValue =
         | InfMaxValue of double
@@ -295,6 +298,15 @@ module Kernel =
         member ta.comparisonFactors = [| ta.x0; ta.xScale |]
 
 
+    type ScaledTaylorApproximation =
+        {
+            scale : double
+            taylorApproximation : TaylorApproximation
+        }
+
+        member ta.comparisonFactors = Array.concat [| [| ta.scale |];  ta.taylorApproximation.comparisonFactors |]
+
+
     /// Uses: x1 = xScale * (x - x0) and y1 = yScale * (y - y0) in Taylor expansion.
     ///
     /// Each sub-array should contain the coefficients for all terms of a particular total order.
@@ -426,11 +438,13 @@ module Kernel =
     type KaFuncValue =
         | IdentityKa of double
         | SeparableKa of ScaledEeInfTaylorApproximation
+        | SphericalKa of ScaledTaylorApproximation
 
         member k.kaFunc (_ : Domain2D) : KaFunc =
             match k with
             | IdentityKa v -> (fun _ _ _ -> v)
             | SeparableKa v -> (fun _ a b -> v.eeInfScale * (separableFunc v.tEeInf a b))
+            | SphericalKa e -> fun _ a b -> e.scale * (e.taylorApproximation.calculate (radius a b))
             |> KaFunc
 
         /// Same as kaFunc but without k0.
@@ -438,6 +452,7 @@ module Kernel =
             match k with
             | IdentityKa _ -> (fun _ _ _ -> 1.0)
             | SeparableKa v -> (fun _ a b -> separableFunc v.tEeInf a b)
+            | SphericalKa e -> fun _ a b -> e.taylorApproximation.calculate (radius a b)
             |> KaFunc
 
         /// k0 - effective y scale of ka.
@@ -445,6 +460,7 @@ module Kernel =
             match k with
             | IdentityKa v -> v
             | SeparableKa v -> v.eeInfScale
+            | SphericalKa e -> e.scale
             |> K0
 
         /// Changes k0 value.
@@ -452,11 +468,13 @@ module Kernel =
             match k with
             | IdentityKa _ -> IdentityKa k0.value
             | SeparableKa v -> SeparableKa { v with eeInfScale = k0.value }
+            | SphericalKa v -> SphericalKa { v with scale = k0.value }
 
         member k.comparisonFactors =
             match k with
             | IdentityKa _ -> [||]
             | SeparableKa v -> v.comparisonFactors
+            | SphericalKa v -> v.comparisonFactors
 
         /// Default value is 1.0 on all domain.
         static member defaultValue = IdentityKa 1.0
@@ -482,21 +500,14 @@ module Kernel =
             SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
         static member defaultSymmetricQuadraticValue (d : Domain2D) =
-            let tEe =
+            let ta =
                 {
                     x0 = 0.0
-                    xScale = 1.0
+                    xScale = twoThirdInfScale d
                     coefficients = KaFuncValue.defaultQuadraticCoefficients
                 }
 
-            let tInf =
-                {
-                    x0 = 0.0
-                    xScale = 1.0
-                    coefficients = KaFuncValue.defaultQuadraticCoefficients
-                }
-
-            SeparableKa { eeInfScale = K0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
+            SphericalKa { scale = K0.defaultValue.value; taylorApproximation = ta }
 
         /// Quadratic growth from (0, 0) point with a 0.01 linear growth in inf space.
         static member defaultQuadraticWithLinearInfValue (d : Domain2D) =
@@ -563,6 +574,12 @@ module Kernel =
                 let d = toModelStringArray (KaFuncValue.defaultQuadraticValue Domain2D.defaultValue).comparisonFactors k.comparisonFactors |> bindPrefix "@"
                 let e = [| a; b; c; d |] |> Array.choose id |> joinStrings EmptyString
                 e
+            | SphericalKa v ->
+                let a = toModelString K0.defaultValue.value v.scale |> bindPrefix "k"
+                let b = toModelStringArray KaFuncValue.defaultQuadraticCoefficients v.taylorApproximation.coefficients |> bindPrefix "_"
+                let d = toModelStringArray (KaFuncValue.defaultQuadraticValue Domain2D.defaultValue).comparisonFactors k.comparisonFactors |> bindPrefix "@"
+                let e = [| a; b; d |] |> Array.choose id |> joinStrings EmptyString
+                e
 
 
     /// gamma0 multiplier in gamma.
@@ -587,34 +604,40 @@ module Kernel =
     type GammaFuncValue =
         | ScalarGamma of double
         | SeparableGamma of ScaledEeInfTaylorApproximation
+        | SphericalGamma of ScaledTaylorApproximation
 
         member g.gammaFunc (_ : Domain2D) : GammaFunc =
             match g with
             | ScalarGamma e -> (fun _ _ _ -> e)
             | SeparableGamma e -> (fun _ a b -> e.eeInfScale * (separableFunc e.tEeInf a b))
+            | SphericalGamma e -> fun _ a b -> e.scale * (e.taylorApproximation.calculate (radius a b))
             |> GammaFunc
 
         member g.gammaFuncUnscaled (_ : Domain2D) : GammaFunc =
             match g with
             | ScalarGamma _ -> (fun _ _ _ -> 1.0)
             | SeparableGamma e -> (fun _ a b -> separableFunc e.tEeInf a b)
+            | SphericalGamma e -> fun _ a b -> e.taylorApproximation.calculate (radius a b)
             |> GammaFunc
 
         member g.gamma0 =
             match g with
             | ScalarGamma e -> e
             | SeparableGamma e -> e.eeInfScale
+            | SphericalGamma e -> e.scale
             |> Gamma0
 
         member g.comparisonFactors =
             match g with
             | ScalarGamma _ -> [||]
             | SeparableGamma v -> v.comparisonFactors
+            | SphericalGamma e -> e.comparisonFactors
 
         static member withGamma0 (gamma0 : Gamma0) (g : GammaFuncValue) =
             match g with
             | ScalarGamma _ -> ScalarGamma gamma0.value
             | SeparableGamma e -> SeparableGamma { e with eeInfScale = gamma0.value }
+            | SphericalGamma e -> SphericalGamma { e with scale = gamma0.value }
 
         static member defaultValue = ScalarGamma Gamma0.defaultValue.value
         static member defaultNonLinearEeCoefficients = [| 1.0; GlobalAsymmetryFactor.defaultValue.value |]
@@ -637,10 +660,21 @@ module Kernel =
 
             SeparableGamma { eeInfScale = Gamma0.defaultValue.value; tEeInf = { tEe = tEe; tInf = tInf } }
 
+        static member defaultSymmetricNonLinearValue (d : Domain2D) =
+            let ta =
+                {
+                    x0 = 0.0
+                    xScale = twoThirdInfScale d
+                    coefficients = GammaFuncValue.defaultNonLinearInfCoefficients
+                }
+
+            SphericalGamma { scale = Gamma0.defaultValue.value; taylorApproximation = ta }
+
         static member withGlobalAsymmetryFactor (a : GlobalAsymmetryFactor) (g : GammaFuncValue) =
             match g with
             | ScalarGamma _ -> failwith "Cannot set global asymmetry factor for scalar gamma."
-            | SeparableGamma e -> SeparableGamma { e with tEeInf = { e.tEeInf with tEe = { e.tEeInf.tEe with coefficients = [| 1.0; a.value |] } } }
+            | SeparableGamma e -> SeparableGamma { e with tEeInf.tEe.coefficients = [| 1.0; a.value |] }
+            | SphericalGamma _ -> failwith "Cannot set global asymmetry factor for spherical gamma."
 
         member g.modelString =
             match g with
@@ -651,6 +685,12 @@ module Kernel =
                 let c = toModelStringArray GammaFuncValue.defaultNonLinearInfCoefficients e.tEeInf.tInf.coefficients |> bindPrefix "_"
                 let d = toModelStringArray (GammaFuncValue.defaultNonLinearValue Domain2D.defaultValue).comparisonFactors g.comparisonFactors |> bindPrefix "@"
                 let e = [| a; b; c; d |] |> Array.choose id |> joinStrings EmptyString
+                e.Replace("-", "") // We don't care about the sign as the only negative coefficient is asymmetry factor (due to historical reasons).
+            | SphericalGamma e ->
+                let a = toModelString Gamma0.defaultValue.value e.scale |> bindPrefix "g"
+                let c = toModelStringArray GammaFuncValue.defaultNonLinearInfCoefficients e.taylorApproximation.coefficients |> bindPrefix "_"
+                let d = toModelStringArray (GammaFuncValue.defaultNonLinearValue Domain2D.defaultValue).comparisonFactors g.comparisonFactors |> bindPrefix "@"
+                let e = [| a; c; d |] |> Array.choose id |> joinStrings EmptyString
                 e.Replace("-", "") // We don't care about the sign as the only negative coefficient is asymmetry factor (due to historical reasons).
 
 
@@ -1007,6 +1047,8 @@ module Kernel =
             let d = kp.domain2D()
             { EeInfModelParams.defaultValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
 
+        /// Default SYMMETRIC value with quadratic kernel and non-linear gamma.
+        /// This is the main starting point where we can vary k0, eps0, gamma0, etc...
         static member defaultSymmetricNonLinearValue =
             let kp = KernelParams.defaultSymmetricQuadraticValue
             let d = kp.domain2D()

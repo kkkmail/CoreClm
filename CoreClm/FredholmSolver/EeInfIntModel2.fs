@@ -26,6 +26,8 @@ module EeInfIntModel2 =
             | Kernel.ScalarGamma e -> (fun _ -> e)
             | Kernel.SeparableGamma e ->
                 (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points.value[p.i0] d.d1.points.value[p.i1]))
+            | Kernel.SphericalGamma e ->
+                (fun (p : Point2D) -> e.scale * (e.taylorApproximation.calculate (Kernel.radius d.d0.points.value[p.i0] d.d1.points.value[p.i1])))
 
 
     type Kernel.KaFuncValue
@@ -35,6 +37,8 @@ module EeInfIntModel2 =
             | Kernel.IdentityKa e -> (fun _ -> e)
             | Kernel.SeparableKa e ->
                 (fun (p : Point2D) -> e.eeInfScale * (Kernel.separableFunc e.tEeInf d.d0.points.value[p.i0] d.d1.points.value[p.i1]))
+            | Kernel.SphericalKa e ->
+                (fun (p : Point2D) -> e.scale * (e.taylorApproximation.calculate (Kernel.radius d.d0.points.value[p.i0] d.d1.points.value[p.i1])))
 
 
     type Kernel.EpsFuncValue
