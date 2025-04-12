@@ -3,16 +3,18 @@
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 open System
+open FluentAssertions
 open FredholmSolver.Solver
 open Xunit
 open Xunit.Abstractions
 open Softellect.DistributedProcessing.Proxy.ModelGenerator
 open Softellect.Math.Models
 open PoissonTestData
+open Softellect.Analytics.Primitives
 
 type PoissonGeneratorTests(output : ITestOutputHelper) =
-
     let writeLine s = output.WriteLine s
+    let nullString : string = null
     let systemProxy = ModelGeneratorSystemProxy.create()
     let ne_100K = NoOfEpochs 100_000
     let ne_200K = NoOfEpochs 200_000
@@ -35,6 +37,24 @@ type PoissonGeneratorTests(output : ITestOutputHelper) =
 
     // ===================================================
     // ===================================================
+
+    [<Fact>]
+    member t.getGammaData_ShouldBeCorrect() : unit =
+        let x = smp_d100k1e01g01
+        let g = x.eeInfModelParams.gammaFuncValue
+        let domain2D = x.eeInfModelParams.kernelParams.domain2D()
+
+        match g with
+        | FredholmSolver.Kernel.GammaFuncValue.SphericalGamma v ->
+            let a = domain2D.d0.points.value[0]
+            let dataPoint = { x = a; y = (g.gammaFunc domain2D).invoke domain2D a 0.0 }
+            writeLine $"dataPoint: '%A{dataPoint}'."
+            dataPoint.y.Should().BePositive(nullString) |> ignore
+        | _ ->
+            failwith $"Non SphericalGamma is not supported yet: %A{g}."
+
+    // ===================================================
+    // ===================================================
     // // d100, 100K - quick test.
     //
     // [<Fact(Skip = "Don't need to run.")>]
@@ -42,10 +62,10 @@ type PoissonGeneratorTests(output : ITestOutputHelper) =
     //     let p = PoissonInitialData.defaultValue mp_d100k10e01g01i1 ne_100K (t.getCallerName())
     //     FredholmSolver.PoissonSolver.poissonModelGenerator systemProxy p |> failIfError
     //
-    [<Fact>]
-    member t.d100k10e01g01i1_100K_V2() : unit =
-        let p = PoissonInitialData.defaultValue mp_d100k10e01g01i1 ne_100K (t.getCallerName())
-        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+    // [<Fact>]
+    // member t.d100k10e01g01i1_100K_V2() : unit =
+    //     let p = PoissonInitialData.defaultValue mp_d100k10e01g01i1 ne_100K (t.getCallerName())
+    //     FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
     //
     // // ===================================================
     // // ===================================================

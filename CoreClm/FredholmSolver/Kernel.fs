@@ -503,7 +503,7 @@ module Kernel =
             let ta =
                 {
                     x0 = 0.0
-                    xScale = twoThirdInfScale d
+                    xScale = 1.0
                     coefficients = KaFuncValue.defaultQuadraticCoefficients
                 }
 
@@ -664,7 +664,9 @@ module Kernel =
             let ta =
                 {
                     x0 = 0.0
-                    xScale = twoThirdInfScale d
+
+                    // twoThirdInfScale assumes that the domain start from 0.0, which is not the case for spherical gamma.
+                    xScale = 2.0 * (twoThirdInfScale d)
                     coefficients = GammaFuncValue.defaultNonLinearInfCoefficients
                 }
 
@@ -1052,7 +1054,7 @@ module Kernel =
         static member defaultSymmetricNonLinearValue =
             let kp = KernelParams.defaultSymmetricQuadraticValue
             let d = kp.domain2D()
-            { EeInfModelParams.defaultSymmetricValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultNonLinearValue d }
+            { EeInfModelParams.defaultSymmetricValue with kernelParams = kp; gammaFuncValue = GammaFuncValue.defaultSymmetricNonLinearValue d }
 
         static member defaultQuadraticWithLinearInfValue =
             let kp = KernelParams.defaultQuadraticWithLinearInfValue

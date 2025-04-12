@@ -20,6 +20,10 @@ open Analytics.ChartExt
 
 module Program =
 
+    /// Set it to true to generate the animation. This will slow down the solver.
+    let generateAnimation = true
+
+
     type FileSuffix =
         | FileSuffix of string
 
@@ -36,7 +40,7 @@ module Program =
         let w = getSolverWolframParams poissonSolverId
 
         let i = (FileName $"{d.fullName}__{fileSuffix}.m").tryGetFullFileName (Some w.wolframInputFolder)
-        let o = (FileName $"{d.fullName}__ee.png").tryGetFullFileName (Some w.wolframOutputFolder)
+        let o = (FileName $"{d.fullName}__{fileSuffix}.png").tryGetFullFileName (Some w.wolframOutputFolder)
 
         (i, o)
 
@@ -69,20 +73,23 @@ module Program =
         Some data
 
 
-    let getGammaData (d : PoissonSolverData) (c1 : ResultSliceData<PoissonChartData> list) (t : list<double>) =
+    let getGammaData (d : PoissonSolverData) _ _ =
         let g = d.model.intModelParams.eeInfModelParams.gammaFuncValue
         let domain2D = d.model.domain2D
 
         match g with
-        | FredholmSolver.Kernel.GammaFuncValue.SphericalGamma _ ->
+        | FredholmSolver.Kernel.GammaFuncValue.SphericalGamma v ->
+            Logger.logTrace $"getGammaData - SphericalGamma: %A{v}."
+
             let dataPoints =
                 domain2D.d0.points.value
                 |> List.ofArray
                 |> List.map (fun a -> { x = a; y = (g.gammaFunc domain2D).invoke domain2D a 0.0 })
 
+            Logger.logTrace $"getGammaData - SphericalGamma, dataPoints: %A{dataPoints}"
             Some [ { dataLabel = "gamma" |> DataLabel; dataPoints = dataPoints }  ]
         | _ ->
-            Logger.logWarn $"getKaData - Cannot get data for: %A{g}."
+            Logger.logWarn $"getGammaData - Cannot get data for: %A{g}."
             None
 
 
@@ -92,11 +99,14 @@ module Program =
 
         match d.model.intModelParams.eeInfModelParams.kernelParams.kaFuncValue with
         | KaFuncValue.SphericalKa v ->
+            Logger.logTrace $"getKaData - SphericalKa: %A{v}."
+
             let dataPoints =
                 domain2D.d0.points.value
                 |> List.ofArray
                 |> List.map (fun a -> { x = a; y = (k.kaFunc domain2D).invoke domain2D a 0.0 })
 
+            Logger.logTrace $"getKaData - SphericalKa, dataPoints: %A{dataPoints}"
             Some [ { dataLabel = "ka" |> DataLabel; dataPoints = dataPoints } ]
         | _ ->
             Logger.logWarn $"getKaData - Cannot get data for: %A{k}."
@@ -113,9 +123,7 @@ module Program =
         |> List.choose id
 
 
-    let getCharts (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
-        printfn $"getChart - q: '%A{q}', c.Length: '%A{c.Length}'."
-
+    let getHtmlCharts _ (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
         let charts =
             match c |> List.tryHead with
             | Some _ ->
@@ -132,7 +140,14 @@ module Program =
         [
             getHtmlChart (FileName $"{d.fullName}__subst") (toDescription "Heading" "Text") chart |> Some
         ]
-        @ (getWolframCharts q d c)
+
+
+    let getCharts (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
+        printfn $"getChart - q: '%A{q}', c.Length: '%A{c.Length}'."
+
+        getHtmlCharts q d c
+        @
+        getWolframCharts q d c
         |> List.choose id
         |> Some
 
@@ -159,7 +174,11 @@ module Program =
 
 
     let getAllResults (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
-        let a = getAnimation d
+        let a =
+            match generateAnimation with
+            | true -> getAnimation d
+            | false -> None
+
         let c = getCharts q d c
 
         match a, c with
@@ -184,7 +203,9 @@ module Program =
                 then
                     Logger.logTrace $"generateDetailedResults (outputting frame) - q: %A{q}, i: %A{i}, noOfEpochs: %A{noOfEpochs}, frameMod: %A{frameMod}."
                     // outputFrameData d.model d.initialData x i
-                    outputFramePngData d.model d.initialData x i
+                    match generateAnimation with
+                    | true -> outputFramePngData d.model d.initialData x i
+                    | false -> ()
             | None -> ()
         with
         | e -> Logger.logCrit($"Exception: %A{e}.")
