@@ -233,6 +233,16 @@ type PoissonGeneratorTests(output : ITestOutputHelper) =
         let p = PoissonInitialData.defaultValue smp_d100k1e01g01 ne_100K (t.getCallerName())
         FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
 
+    [<Fact>]
+    member t.d100k1e01g01_500K_V2_S() : unit =
+        let p = PoissonInitialData.defaultValue smp_d100k1e01g01 ne_500K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+    [<Fact>]
+    member t.d100k1e01g01_2M_V2_S() : unit =
+        let p = PoissonInitialData.defaultValue smp_d100k1e01g01 ne_2M (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
     // [<Fact>]
     // member t.d500k1e005g01a002f1E_100K_V2_S() : unit =
     //     let p = PoissonInitialData.defaultValue mp_d500k1e005g01a002f1E ne_100K (t.getCallerName())

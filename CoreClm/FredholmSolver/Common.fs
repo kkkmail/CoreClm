@@ -80,10 +80,29 @@ module Common =
                 let norm = getNorm v
                 (eps / norm) * v
 
+        /// Creates a "delta" function centered near the middle of the domain.
+        member private p.calculateSymmetricU eps (getNorm : Matrix<double> -> double) (domain : Domain2D) =
+            match p with
+            | DeltaEeInfShifted (eeShift, infShift) ->
+                let domainIntervals = domain.eeDomain.noOfIntervals.value
+                let g i j =
+                    match domainIntervals % 2 = 0 with
+                    | true -> if ((i + eeShift) * 2 = domainIntervals) && ((j + infShift) * 2 = domainIntervals) then 1.0 else 0.0
+                    | false -> if (((i + eeShift) * 2 = domainIntervals - 1) || ((i + eeShift) * 2 = domainIntervals + 1)) && (((j + infShift) * 2 = domainIntervals - 1) || ((j + infShift) * 2 = domainIntervals + 1)) then 1.0 else 0.0
+
+                let v = domain.eeDomain.points.value |> Array.mapi (fun i _ -> domain.infDomain.points.value |> Array.mapi (fun j _ -> g i j)) |> Matrix
+                let norm = getNorm v
+                (eps / norm) * v
+
         member p.getU eps (domain : Domain2D) = p.calculateU eps domain.integrateValues domain
+        member p.getSymmetricU eps (domain : Domain2D) = p.calculateSymmetricU eps domain.integrateValues domain
 
         member p.getIntU (uTotal : int64) (domain : Domain2D) =
-            let m = p.calculateU (double uTotal) (fun v -> v.total()) domain
+            let m = p.calculateU (double uTotal) _.total() domain
+            m.convert int64
+
+        member p.getSymmetricIntU (uTotal : int64) (domain : Domain2D) =
+            let m = p.calculateSymmetricU (double uTotal) _.total() domain
             m.convert int64
 
 

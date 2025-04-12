@@ -32,10 +32,10 @@ module Program =
             let t = c1 |> List.map(fun e -> double e.t)
 
             let d =
-                [|
+                [
                     { dataLabel = "ee mean" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.mean} ) }
                     { dataLabel = "ee stdDev" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.stdDev} ) }
-                |]
+                ]
 
             getListLinePlot i o ListLineParams.defaultValue d
         | _ ->
@@ -48,13 +48,13 @@ module Program =
         let charts =
             match c |> List.tryHead with
             | Some _ ->
-                [|
+                [
                     Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.invariant)), Name = "Invariant")
                     Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.food)), Name = "Food")
                     Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.waste)), Name = "Waste")
                     Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.total)), Name = "Total")
-                |]
-            | None -> [||]
+                ]
+            | None -> []
 
         let chart = Chart.combine charts
 

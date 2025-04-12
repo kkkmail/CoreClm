@@ -20,58 +20,97 @@ open Analytics.ChartExt
 
 module Program =
 
-    let tryGetInputEeFileName inputFolder (d : PoissonSolverData) = (FileName $"{d.fullName}__ee.m").tryGetFullFileName (Some inputFolder)
-    let tryGetOutputEeFileName outputFolder (d : PoissonSolverData) = (FileName $"{d.fullName}__ee.png").tryGetFullFileName (Some outputFolder)
-
-    let tryGetInputInfFileName inputFolder (d : PoissonSolverData) = (FileName $"{d.fullName}__inf.m").tryGetFullFileName (Some inputFolder)
-    let tryGetOutputInfFileName outputFolder (d : PoissonSolverData) = (FileName $"{d.fullName}__inf.png").tryGetFullFileName (Some outputFolder)
+    type FileSuffix =
+        | FileSuffix of string
 
 
-    let getWolframEeChart (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
+    type FileSuffix
+        with
+        static member EeSuffix = FileSuffix "ee"
+        static member InfSuffix = FileSuffix "inf"
+        static member GammaSuffix = FileSuffix "gamma"
+        static member KaSuffix = FileSuffix "ka"
+
+
+    let tryGetWolframFileNames (FileSuffix fileSuffix) (d : PoissonSolverData) =
         let w = getSolverWolframParams poissonSolverId
 
-        match tryGetInputEeFileName w.wolframInputFolder d, tryGetOutputEeFileName w.wolframOutputFolder d with
+        let i = (FileName $"{d.fullName}__{fileSuffix}.m").tryGetFullFileName (Some w.wolframInputFolder)
+        let o = (FileName $"{d.fullName}__ee.png").tryGetFullFileName (Some w.wolframOutputFolder)
+
+        (i, o)
+
+
+    let getWolframChart fileSuffix (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) getData =
+        match tryGetWolframFileNames fileSuffix d with
         | Ok i, Ok o ->
             let c1 = c |> List.rev
             let t = c1 |> List.map(fun e -> double e.t)
-
-            let d =
-                [|
-                    { dataLabel = "ee mean" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.mean} ) }
-                    { dataLabel = "ee stdDev" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.stdDev} ) }
-                |]
-
-            getListLinePlot i o ListLineParams.defaultValue d
+            getData d c1 t |> Option.map (getListLinePlot i o ListLineParams.defaultValue)
         | _ ->
-            Logger.logError $"getWolframEeChart - Cannot get data for: %A{q}."
+            Logger.logError $"getWolframChart - Cannot get data for: %A{q}."
+            None
+
+    let getEeData _ (c1 : ResultSliceData<PoissonChartData> list) (t : list<double>) =
+        let data =
+            [
+                { dataLabel = "ee mean" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.mean} ) }
+                { dataLabel = "ee stdDev" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.stdDev} ) }
+            ]
+        Some data
+
+
+    let getInfData _ (c1 : ResultSliceData<PoissonChartData> list) (t : list<double>) =
+        let data =
+            [
+                { dataLabel = "inf mean" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.infStatData.mean} ) }
+                { dataLabel = "inf stdDev" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.infStatData.stdDev} ) }
+            ]
+        Some data
+
+
+    let getGammaData (d : PoissonSolverData) (c1 : ResultSliceData<PoissonChartData> list) (t : list<double>) =
+        let g = d.model.intModelParams.eeInfModelParams.gammaFuncValue
+        let domain2D = d.model.domain2D
+
+        match g with
+        | FredholmSolver.Kernel.GammaFuncValue.SphericalGamma _ ->
+            let dataPoints =
+                domain2D.d0.points.value
+                |> List.ofArray
+                |> List.map (fun a -> { x = a; y = (g.gammaFunc domain2D).invoke domain2D a 0.0 })
+
+            Some [ { dataLabel = "gamma" |> DataLabel; dataPoints = dataPoints }  ]
+        | _ ->
+            Logger.logWarn $"getKaData - Cannot get data for: %A{g}."
             None
 
 
-    let getWolframInfChart (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =
-        let w = getSolverWolframParams poissonSolverId
+    let getKaData (d : PoissonSolverData) _ _ =
+        let k = d.model.intModelParams.eeInfModelParams.kernelParams.kaFuncValue
+        let domain2D = d.model.domain2D
 
-        match tryGetInputInfFileName w.wolframInputFolder d, tryGetOutputInfFileName w.wolframOutputFolder d with
-        | Ok i, Ok o ->
-            let c1 = c |> List.rev
-            let t = c1 |> List.map(fun e -> double e.t)
+        match d.model.intModelParams.eeInfModelParams.kernelParams.kaFuncValue with
+        | KaFuncValue.SphericalKa v ->
+            let dataPoints =
+                domain2D.d0.points.value
+                |> List.ofArray
+                |> List.map (fun a -> { x = a; y = (k.kaFunc domain2D).invoke domain2D a 0.0 })
 
-            let d =
-                [|
-                    { dataLabel = "inf mean" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.infStatData.mean} ) }
-                    { dataLabel = "inf stdDev" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.infStatData.stdDev} ) }
-                |]
-
-            getListLinePlot i o ListLineParams.defaultValue d
+            Some [ { dataLabel = "ka" |> DataLabel; dataPoints = dataPoints } ]
         | _ ->
-            Logger.logError $"getWolframInfChart - Cannot get data for: %A{q}."
+            Logger.logWarn $"getKaData - Cannot get data for: %A{k}."
             None
 
 
     let getWolframCharts q d c =
         [
-            getWolframEeChart q d c
-            getWolframInfChart q d c
+            getWolframChart FileSuffix.EeSuffix q d c getEeData
+            getWolframChart FileSuffix.InfSuffix q d c getInfData
+            getWolframChart FileSuffix.GammaSuffix q d c getGammaData
+            getWolframChart FileSuffix.KaSuffix q d c getKaData
         ]
+        |> List.choose id
 
 
     let getCharts (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) =

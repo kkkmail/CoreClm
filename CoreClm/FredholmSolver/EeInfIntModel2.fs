@@ -101,8 +101,9 @@ module EeInfIntModel2 =
             // Legacy domain.
             // let domain2D = Kernel.Domain2D.create mp.eeInfModelParams.kernelParams.domainIntervals.value mp.eeInfModelParams.kernelParams.infMaxValue.value
 
+            // TODO kk:20250411 - getU and getSymmetricIntU should be merged.
             let u =
-                (mp.intInitParams.protocellInitParams.getIntU mp.intInitParams.uInitial.value domain).value
+                (mp.intInitParams.protocellInitParams.getSymmetricIntU mp.intInitParams.uInitial.value domain).value
                 |> Array.mapi (fun i v -> v |> Array.mapi (fun j e -> { x = { i0 = i; i1 = j }; value = e}))
                 |> Array.concat
                 |> SparseArray.create
