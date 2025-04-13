@@ -8,10 +8,8 @@ open Clm.ModelParams
 open Clm.ChartData
 open ClmSys.GeneralErrors
 open ClmSys.ClmErrors
-//open Primitives.GeneralPrimitives
 open Primitives.ChartPrimitives
 open Plotly.NET
-//open Plotly.NET.GenericChart
 open Giraffe.ViewEngine
 open Softellect.Sys.Primitives
 

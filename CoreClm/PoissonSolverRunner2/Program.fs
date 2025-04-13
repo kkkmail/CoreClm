@@ -1,6 +1,7 @@
 ﻿namespace Softellect.Samples.DistrProc.SolverRunner
 
 open System.IO
+open FredholmSolver.Common
 open FredholmSolver.Solver
 open FredholmSolver.PoissonSolver2
 open Softellect.Sys.ExitErrorCodes
@@ -10,11 +11,8 @@ open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.DistributedProcessing.SolverRunner.Primitives
 open Softellect.Sys.Logging
 open Softellect.Sys.Primitives
-open Softellect.Sys.Core
 open Plotly.NET
-open Softellect.Analytics.Wolfram
 open FredholmSolver.EeInfIntModel2
-open Softellect.Analytics.AppSettings
 open Softellect.Analytics.Primitives
 open Analytics.ChartExt
 
@@ -23,37 +21,6 @@ module Program =
     /// Set it to true to generate the animation. This will slow down the solver.
     let generateAnimation = true
 
-
-    type FileSuffix =
-        | FileSuffix of string
-
-
-    type FileSuffix
-        with
-        static member EeSuffix = FileSuffix "ee"
-        static member InfSuffix = FileSuffix "inf"
-        static member GammaSuffix = FileSuffix "gamma"
-        static member KaSuffix = FileSuffix "ka"
-
-
-    let tryGetWolframFileNames (FileSuffix fileSuffix) (d : PoissonSolverData) =
-        let w = getSolverWolframParams poissonSolverId
-
-        let i = (FileName $"{d.fullName}__{fileSuffix}.m").tryGetFullFileName (Some w.wolframInputFolder)
-        let o = (FileName $"{d.fullName}__{fileSuffix}.png").tryGetFullFileName (Some w.wolframOutputFolder)
-
-        (i, o)
-
-
-    let getWolframChart fileSuffix (q : RunQueueId) (d : PoissonSolverData) (c : list<ResultSliceData<PoissonChartData>>) getData =
-        match tryGetWolframFileNames fileSuffix d with
-        | Ok i, Ok o ->
-            let c1 = c |> List.rev
-            let t = c1 |> List.map(fun e -> double e.t)
-            getData d c1 t |> Option.map (getListLinePlot i o ListLineParams.defaultValue)
-        | _ ->
-            Logger.logError $"getWolframChart - Cannot get data for: %A{q}."
-            None
 
     let getEeData _ (c1 : ResultSliceData<PoissonChartData> list) (t : list<double>) =
         let data =
@@ -113,12 +80,12 @@ module Program =
             None
 
 
-    let getWolframCharts q d c =
+    let getWolframCharts (d : PoissonSolverData) c =
         [
-            getWolframChart FileSuffix.EeSuffix q d c getEeData
-            getWolframChart FileSuffix.InfSuffix q d c getInfData
-            getWolframChart FileSuffix.GammaSuffix q d c getGammaData
-            getWolframChart FileSuffix.KaSuffix q d c getKaData
+            getWolframChart poissonSolverId d d.fullName c FileSuffix.EeSuffix getEeData
+            getWolframChart poissonSolverId d d.fullName c FileSuffix.InfSuffix getInfData
+            getWolframChart poissonSolverId d d.fullName c FileSuffix.GammaSuffix getGammaData
+            getWolframChart poissonSolverId d d.fullName c FileSuffix.KaSuffix getKaData
         ]
         |> List.choose id
 
@@ -147,7 +114,7 @@ module Program =
 
         getHtmlCharts q d c
         @
-        getWolframCharts q d c
+        getWolframCharts d c
         |> List.choose id
         |> Some
 

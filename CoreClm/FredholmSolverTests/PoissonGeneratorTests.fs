@@ -21,6 +21,7 @@ type PoissonGeneratorTests(output : ITestOutputHelper) =
     let ne_500K = NoOfEpochs 500_000
     let ne_1M = NoOfEpochs 1_000_000
     let ne_2M = NoOfEpochs 2_000_000
+    let ne_4M = NoOfEpochs 4_000_000
 
     let failIfError result =
         writeLine $"result: '%A{result}'."
@@ -271,4 +272,14 @@ type PoissonGeneratorTests(output : ITestOutputHelper) =
     [<Fact>]
     member t.d500k1e005g01f1E_500K_V2_S() : unit =
         let p = PoissonInitialData.defaultValue smp_d500k1e005g01f1E ne_500K (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+    [<Fact>]
+    member t.d500k1e005g01f1E_2M_V2_S() : unit =
+        let p = PoissonInitialData.defaultValue smp_d500k1e005g01f1E ne_2M (t.getCallerName())
+        FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
+
+    [<Fact>]
+    member t.d500k1e005g01f1E_4M_V2_S() : unit =
+        let p = PoissonInitialData.defaultValue smp_d500k1e005g01f1E ne_4M (t.getCallerName())
         FredholmSolver.PoissonSolver2.poissonModelGenerator systemProxy p |> failIfError
