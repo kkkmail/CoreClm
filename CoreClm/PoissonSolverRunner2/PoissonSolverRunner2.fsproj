@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="9.0.100.23" />
+    <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="9.0.202.24" />
   </ItemGroup>
 
   <ItemGroup>

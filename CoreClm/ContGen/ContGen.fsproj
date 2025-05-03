@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="9.0.100.23" />
+    <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="9.0.202.24" />
   </ItemGroup>
 
   <ItemGroup>
