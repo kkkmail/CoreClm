@@ -1,9 +1,9 @@
 ﻿namespace FredholmSolverTests
 
-open FredholmSolver.EeInfIntModel
 open Xunit
 open FluentAssertions
 open FredholmSolverTests.PoissonTestData
+open FredholmSolver.Common
 
 type ModelStringTestData() =
     static member Data =

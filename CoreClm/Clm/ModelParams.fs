@@ -148,57 +148,6 @@ module ModelParams =
         }
 
 
-    //type RunQueueInfo =
-    //    {
-    //        modelDataId : ModelDataId
-    //        defaultValueId : ClmDefaultValueId
-    //        modelCommandLineParam : ModelCommandLineParam
-    //    }
-
-
-    //type RunQueue =
-    //    {
-    //        runQueueId : RunQueueId
-    //        info : RunQueueInfo
-    //        runQueueStatus : RunQueueStatus
-    //        workerNodeIdOpt : WorkerNodeId option
-    //        progressData : ClmProgressData
-    //        createdOn : DateTime
-    //    }
-
-    //    member q.modelCommandLineParam = q.info.modelCommandLineParam
-
-    //    static member fromModelCommandLineParam modelDataId defaultValueId p =
-    //        {
-    //            runQueueId = Guid.NewGuid() |> RunQueueId
-
-    //            info =
-    //                {
-    //                    modelDataId = modelDataId
-    //                    defaultValueId = defaultValueId
-    //                    modelCommandLineParam = p
-    //                }
-
-    //            runQueueStatus = NotStartedRunQueue
-    //            workerNodeIdOpt = None
-    //            progressData = ClmProgressData.defaultValue
-    //            createdOn = DateTime.Now
-    //        }
-
-    //    override r.ToString() =
-    //        let (ModelDataId modelDataId) = r.info.modelDataId
-    //        let (ClmDefaultValueId defaultValueId) = r.info.defaultValueId
-    //        let (RunQueueId runQueueId) = r.runQueueId
-    //        let s = (DateTime.Now - r.createdOn).ToString("d\.hh\:mm")
-
-    //        let estCompl =
-    //            match r.runQueueStatus, r.progressData.estimateEndTime r.createdOn with
-    //            | InProgressRunQueue, Some e -> " ETC: " + e.ToString("yyyy-MM-dd.HH:mm") + ";"
-    //            | _ -> EmptyString
-
-    //        $"{{ T: %s{s};%s{estCompl} DF: %A{defaultValueId}; MDID: %A{modelDataId}; PID: %A{runQueueId}; %A{r.progressData.progressData.progress} }}"
-
-
     type ResultInfo =
         {
             resultLocation : string

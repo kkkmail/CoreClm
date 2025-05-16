@@ -1,78 +1,23 @@
 ﻿namespace Softellect.Samples.DistrProc.SolverRunner
 
 open System
-open System.IO
+open FredholmSolver.Solver
 open FredholmSolver.PoissonSolver
 open Softellect.Sys.ExitErrorCodes
 open Softellect.DistributedProcessing.SolverRunner.Implementation
 open Softellect.DistributedProcessing.SolverRunner.Program
 open Softellect.DistributedProcessing.Primitives.Common
-//open Softellect.Samples.DistrProc.Core.Primitives
 open Softellect.DistributedProcessing.SolverRunner.Primitives
-open Softellect.DistributedProcessing.SolverRunner.OdeSolver
 open Softellect.Sys.Primitives
 open Softellect.Sys.Core
-//open Wolfram.NETLink
 open Plotly.NET
-open Giraffe.ViewEngine
 open Softellect.Analytics.Wolfram
 open FredholmSolver.EeInfIntModel
-open Softellect.Analytics.Wolfram
 open Softellect.Analytics.AppSettings
 open Softellect.Analytics.Primitives
+open Analytics.ChartExt
 
 module Program =
-
-    type ChartDescription =
-        {
-            Heading : string
-            Text : string
-        }
-
-
-    let toDescription h t =
-        {
-            Heading = h
-            Text = t
-        }
-
-
-    let toEmbeddedHtmlWithDescription (description : ChartDescription) (gChart : GenericChart) =
-        let plotlyRef = PlotlyJSReference.Full
-
-        let displayOpts =
-            DisplayOptions.init(
-                AdditionalHeadTags = [
-                    script [_src description.Heading] []
-                ],
-                // Description = [
-                //     h1 [] [str description.Heading]
-                //     h2 [] [str description.Text]
-                // ],
-                PlotlyJSReference = plotlyRef
-            )
-
-        let result =
-            gChart
-            |> Chart.withDisplayOptions(displayOpts)
-            |> GenericChart.toEmbeddedHTML
-
-        result
-
-
-    let toHtmlFileName (FileName fileName) =
-        if fileName.EndsWith(".html", StringComparison.OrdinalIgnoreCase) then fileName
-        else fileName + ".html"
-        |> FileName
-
-
-    let getHtmlChart fileName d ch =
-        {
-            textContent = toEmbeddedHtmlWithDescription d ch
-            fileName = toHtmlFileName fileName
-        }
-        |> TextResult
-
 
     let tryGetInputFileName inputFolder (d : PoissonSolverData) = (FileName $"{d.fullName}__ee.m").tryGetFullFileName (Some inputFolder)
     let tryGetOutputFileName outputFolder (d : PoissonSolverData) = (FileName $"{d.fullName}__ee.png").tryGetFullFileName (Some outputFolder)
@@ -87,10 +32,10 @@ module Program =
             let t = c1 |> List.map(fun e -> double e.t)
 
             let d =
-                [|
+                [
                     { dataLabel = "ee mean" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.mean} ) }
                     { dataLabel = "ee stdDev" |> DataLabel; dataPoints = c1 |> List.mapi (fun j e -> { x = t[j]; y = e.resultData.statData.eeStatData.stdDev} ) }
-                |]
+                ]
 
             getListLinePlot i o ListLineParams.defaultValue d
         | _ ->
@@ -103,13 +48,13 @@ module Program =
         let charts =
             match c |> List.tryHead with
             | Some _ ->
-                [|
+                [
                     Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.invariant)), Name = "Invariant")
                     Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.food)), Name = "Food")
                     Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.waste)), Name = "Waste")
                     Chart.Line(c |> List.map (fun e -> e.t, d.norm * (double e.resultData.statData.total)), Name = "Total")
-                |]
-            | None -> [||]
+                ]
+            | None -> []
 
         let chart = Chart.combine charts
 

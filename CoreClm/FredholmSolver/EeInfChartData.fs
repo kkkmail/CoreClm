@@ -2,13 +2,13 @@
 
 open FredholmSolver.EeInfIntModel
 open System
-//open Primitives.GeneralPrimitives
-//open Primitives.SolverPrimitives
 open FredholmSolver.Kernel
 open FredholmSolver.EeInfDiffModel
 open Softellect.Sys.Core
 open Softellect.Sys.Primitives
 open Softellect.DistributedProcessing.Primitives.Common
+open Softellect.Math.Primitives
+open Softellect.Math.Models
 
 module EeInfChartData =
 
@@ -78,7 +78,7 @@ module EeInfChartData =
             tChart : double
             progressChart : ProgressData
             statData : EeInfStatData<double>
-            substanceData : SubstanceData option
+            substanceData : SubstanceLinearData option
         }
 
 
@@ -128,7 +128,7 @@ module EeInfChartData =
     type AsyncChartIntDataUpdater = AsyncUpdater<ChartInitIntData, ChartSliceIntData, ChartIntData>
 
 
-    let calculateDiffStat (md : EeInfDiffModel) (v : SubstanceData) =
+    let calculateDiffStat (md : EeInfDiffModel) (v : SubstanceLinearData) =
         let n = md.diffModelParams.eeInfModelParams.numberOfMolecules.value
         let u = v.protocell
         let total = md.kernelData.domain2D.integrateValues u
@@ -161,6 +161,34 @@ module EeInfChartData =
         let inv = md.invariant v
         let mEe, mInf = md.kernelData.domain2D.mean u
         let sEe, sInf = md.kernelData.domain2D.stdDev u
+
+        {
+            eeStatData =
+                {
+                    mean = mEe
+                    stdDev = sEe
+                }
+            infStatData =
+                {
+                    mean = mInf
+                    stdDev = sInf
+                }
+            invariant = inv
+            total = n * total
+            food = v.food.value
+            waste = n * v.waste.value
+        }
+
+
+    let calculateIntStat2 (md : EeInfIntModel2.EeInfIntModel2) (v : EeInfIntModel2.SubstanceData) =
+        let n = int64 md.intModelParams.eeInfModelParams.numberOfMolecules.value
+        let u = v.protocell.value
+        let total = u.total()
+        let inv = md.invariant v
+        let mean = md.model.mean v
+        let mEe, mInf = mean.x0, mean.x1
+        let stdDev = md.model.stdDev v
+        let sEe, sInf = stdDev.x0, stdDev.x1
 
         {
             eeStatData =

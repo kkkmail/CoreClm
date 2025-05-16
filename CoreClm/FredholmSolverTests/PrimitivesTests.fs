@@ -8,10 +8,9 @@ open Xunit.Abstractions
 open FluentAssertions
 open FredholmSolver.Primitives
 open FredholmSolver.Kernel
-//open Primitives.WolframPrimitives
-open System.Text
-open Microsoft.FSharp.Reflection
+open FredholmSolver.Sparse
 open Softellect.Analytics.Wolfram
+open Softellect.Math.Primitives
 
 type TestUnion =
     | A
@@ -57,11 +56,11 @@ type PrimitivesTests (output : ITestOutputHelper) =
     let nullString : string = null
     let errTolerance = 1.0e-10
 
-    let domain2D (data : KernelParams) = Domain2D.create data.domainIntervals.value data.infMaxValue.value
-    let normalize data v = v / (double (data.domainIntervals.value * data.domainIntervals.value))
+    let domain2D (data : KernelParams) = data.domain2D()
+    let normalize (data : KernelParams) v = v / (double (data.domainIntervals.value * data.domainIntervals.value))
 
 
-    let mutationProbability4D_ShouldIntegrateToOneImpl data =
+    let mutationProbability4D_ShouldIntegrateToOneImpl (data : KernelParams) =
         let domain = domain2D data
         let sw = Stopwatch.StartNew()
         let p = MutationProbability4D.create EvolutionType.DifferentialEvolution data.mutationProbabilityData2D
@@ -84,7 +83,7 @@ type PrimitivesTests (output : ITestOutputHelper) =
 
     /// Creates a "delta" function centered near (0, 0) in the domain,
     /// which is a middle point in ee domain and 0-th point in inf domain.
-    let getDeltaU data =
+    let getDeltaU (data : KernelParams) =
         let domain =
             if data.domainIntervals.value % 2 = 0
             then domain2D data
@@ -265,8 +264,8 @@ type PrimitivesTests (output : ITestOutputHelper) =
     [<Fact>]
     member _.integrate2D_ShouldMatch () : unit =
         let rnd = Random(1)
-        let n = 100
-        let domain = Domain2D.create n 25.0
+        let n = DomainIntervals 100
+        let domain = Domain2D.create (n, DomainRange.defaultValue)
 
         let m =
             domain.eeDomain.points.value
