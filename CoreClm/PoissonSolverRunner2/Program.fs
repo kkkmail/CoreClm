@@ -46,14 +46,14 @@ module Program =
 
         match g with
         | FredholmSolver.Kernel.GammaFuncValue.SphericalGamma v ->
-            Logger.logTrace $"getGammaData - SphericalGamma: %A{v}."
+            Logger.logTrace (fun () -> $"getGammaData - SphericalGamma: %A{v}.")
 
             let dataPoints =
                 domain2D.d0.points.value
                 |> List.ofArray
                 |> List.map (fun a -> { x = a; y = (g.gammaFunc domain2D).invoke domain2D a 0.0 })
 
-            Logger.logTrace $"getGammaData - SphericalGamma, dataPoints: %A{dataPoints}"
+            Logger.logTrace (fun () -> $"getGammaData - SphericalGamma, dataPoints: %A{dataPoints}")
             Some [ { dataLabel = "gamma" |> DataLabel; dataPoints = dataPoints }  ]
         | _ ->
             Logger.logWarn $"getGammaData - Cannot get data for: %A{g}."
@@ -66,14 +66,14 @@ module Program =
 
         match d.model.intModelParams.eeInfModelParams.kernelParams.kaFuncValue with
         | KaFuncValue.SphericalKa v ->
-            Logger.logTrace $"getKaData - SphericalKa: %A{v}."
+            Logger.logTrace (fun () -> $"getKaData - SphericalKa: %A{v}.")
 
             let dataPoints =
                 domain2D.d0.points.value
                 |> List.ofArray
                 |> List.map (fun a -> { x = a; y = (k.kaFunc domain2D).invoke domain2D a 0.0 })
 
-            Logger.logTrace $"getKaData - SphericalKa, dataPoints: %A{dataPoints}"
+            Logger.logTrace (fun () -> $"getKaData - SphericalKa, dataPoints: %A{dataPoints}")
             Some [ { dataLabel = "ka" |> DataLabel; dataPoints = dataPoints } ]
         | _ ->
             Logger.logWarn $"getKaData - Cannot get data for: %A{k}."
@@ -162,13 +162,13 @@ module Program =
             let noOfEpochs = d.initialData.evolutionParam.noOfEpochs.value
             let frameMod = d.initialData.evolutionParam.noOfFrames |> Option.bind (fun v ->  max (noOfEpochs / v) 1 |> Some)
             // let chartFrequency = if noOfEpochs <= d.initialData.evolutionParam.maxChartPoints then 1 else noOfEpochs / d.initialData.evolutionParam.maxChartPoints
-            Logger.logTrace $"generateDetailedResults - q: %A{q}, i: %A{i}, noOfEpochs: %A{noOfEpochs}, frameMod: %A{frameMod}."
+            Logger.logTrace (fun () -> $"generateDetailedResults - q: %A{q}, i: %A{i}, noOfEpochs: %A{noOfEpochs}, frameMod: %A{frameMod}.")
 
             match frameMod with
             | Some v ->
                 if i % v = 0
                 then
-                    Logger.logTrace $"generateDetailedResults (outputting frame) - q: %A{q}, i: %A{i}, noOfEpochs: %A{noOfEpochs}, frameMod: %A{frameMod}."
+                    Logger.logTrace (fun () -> $"generateDetailedResults (outputting frame) - q: %A{q}, i: %A{i}, noOfEpochs: %A{noOfEpochs}, frameMod: %A{frameMod}.")
                     // outputFrameData d.model d.initialData x i
                     match generateAnimation with
                     | true -> outputFramePngData d.model d.initialData x i

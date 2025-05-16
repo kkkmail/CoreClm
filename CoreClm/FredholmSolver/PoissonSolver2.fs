@@ -158,7 +158,7 @@ module PoissonSolver2 =
 
         match (FileName $@"{p.evolutionParam.dataFolder.value}\{(getNamePrefix name)}{i:D8}.m").tryGetFullFileName (Some w.wolframInputFolder) with
         | Ok wolframFileName ->
-            Logger.logTrace $"dataFolder: '{p.evolutionParam.dataFolder}', wolframFileName: '{wolframFileName}'."
+            Logger.logTrace (fun () -> $"dataFolder: '{p.evolutionParam.dataFolder}', wolframFileName: '{wolframFileName}'.")
             match wolframFileName.tryEnsureFolderExists() with
             | Ok() ->
                 let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
@@ -181,11 +181,11 @@ module PoissonSolver2 =
         let n = $@"{p.evolutionParam.dataFolder.value}\{(getNamePrefix name)}{i:D8}"
         let iName = (FileName $@"{n}.m").tryGetFullFileName (Some w.wolframInputFolder)
         let oName = (FileName $@"{n}.png").tryGetFullFileName (Some w.wolframOutputFolder)
-        Logger.logTrace $"iName: '{iName}', oName: '{oName}'."
+        Logger.logTrace (fun () -> $"iName: '{iName}', oName: '{oName}'.")
 
         match iName, oName with
         | Ok i, Ok o ->
-            Logger.logTrace $"dataFolder: '{p.evolutionParam.dataFolder}', i: '{i}', o: '{o}'."
+            Logger.logTrace (fun () -> $"dataFolder: '{p.evolutionParam.dataFolder}', i: '{i}', o: '{o}'.")
             match i.tryEnsureFolderExists(), o.tryEnsureFolderExists() with
             | Ok(), Ok() ->
                 let totalMolecules = model.intModelParams.intInitParams.totalMolecules.value
@@ -207,7 +207,7 @@ module PoissonSolver2 =
 
                 match r with
                 | Some _ ->
-                    Logger.logTrace $"Successfully created output chart: '{o}'."
+                    Logger.logTrace (fun () -> $"Successfully created output chart: '{o}'.")
                     ()
                 | None -> Logger.logError $"Could not create output file: '{o}'."
             | _ -> Logger.logError $"Error with folder(s) for file name(s): '{i}', '{o}'."
@@ -235,7 +235,7 @@ module PoissonSolver2 =
                 ffmpegExecutable = "C:\\FFMpeg\\bin\\ffmpeg.exe" |> FileName
             }
 
-        Logger.logTrace $"Using animation data: '%A{d}'."
+        Logger.logTrace (fun () -> $"Using animation data: '%A{d}'.")
         let r = createAnimation d
         Logger.logInfo $"Animation created wtih result: '%A{r}'."
         r
