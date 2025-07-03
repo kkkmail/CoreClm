@@ -2,6 +2,7 @@
 
 module SsaPrimitives =
 
+    /// Called MoleculeCount in Softellect.Math.Models
     type NoOfMolecules =
         | NoOfMolecules of int
 

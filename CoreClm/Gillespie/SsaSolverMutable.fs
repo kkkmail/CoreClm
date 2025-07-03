@@ -1,11 +1,6 @@
 ﻿namespace Gillespie
 
-//open Clm.Distributions
-//open Clm.ReactionTypes
-//open Clm.Substances
-
 open System.Linq
-
 open SsaPrimitives
 
 module SsaSolverMutable =

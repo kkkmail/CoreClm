@@ -15,7 +15,6 @@ module SsaSolver =
     let getValueOrDefault m e d = m |> Map.tryFind e |> Option.defaultValue d
 
 
-
     let getPropensity (i: ReactionRateInfo) (m : SubstanceMap) : double =
         match i.info.inputNormalized with
         | [] -> i.rate.value
