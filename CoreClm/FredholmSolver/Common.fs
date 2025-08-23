@@ -5,7 +5,7 @@ open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open Softellect.Sys.Core
 open Softellect.Math.Primitives
-open Softellect.Math.Models
+open Softellect.Math.Evolution
 
 module Common =
 

@@ -2,7 +2,7 @@
 
 open FredholmSolver.Primitives
 open Softellect.Sys.Primitives
-open Softellect.Math.Models
+open Softellect.Math.Evolution
 open FredholmSolver.Common
 
 module Solver =

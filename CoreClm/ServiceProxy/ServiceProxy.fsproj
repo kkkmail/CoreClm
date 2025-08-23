@@ -31,8 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.6" />
-    <PackageReference Update="FSharp.Core" Version="9.0.300" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="9.0.8" />
+    <PackageReference Update="FSharp.Core" Version="9.0.303" />
   </ItemGroup>
 
 </Project>

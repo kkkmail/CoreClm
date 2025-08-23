@@ -1,0 +1,85 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/Samples/">
+    <Project Path="GillespieTauLeapingExample/GillespieTauLeapingExample.fsproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="Samples/GillespieExample/GillespieExample.fsproj">
+      <Platform Project="x64" />
+    </Project>
+  </Folder>
+  <Project Path="Analytics/Analytics.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="Clm/Clm.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ClmDefaults/ClmDefaults.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ClmGenerator/ClmGenerator.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ClmImpure/ClmImpure.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ClmSys/ClmSys.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ClmTests/ClmTests.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ContGen/ContGen.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ContGenAdm/ContGenAdm.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ContGenService/ContGenService.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ContGenServiceInfo/ContGenServiceInfo.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="DbData/DbData.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="DnaEvolution/DnaEvolution.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="FredholmRunner/FredholmRunner.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="FredholmSolver/FredholmSolver.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="FredholmSolverTests/FredholmSolverTests.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="Gillespie/Gillespie.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="Model/Model.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="NoSql/NoSql.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="PoissonSolverRunner/PoissonSolverRunner.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="PoissonSolverRunner2/PoissonSolverRunner2.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="Primitives/Primitives.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="ServiceProxy/ServiceProxy.fsproj">
+    <Platform Project="x64" />
+  </Project>
+  <Project Path="SolverRunner/SolverRunner.fsproj">
+    <Platform Project="x64" />
+  </Project>
+</Solution>

@@ -7,6 +7,7 @@ open Softellect.Math.Primitives
 open Softellect.Math.Models
 open FredholmSolver.Primitives
 open FredholmSolver.Sparse
+open Softellect.Math.Evolution
 
 module Kernel =
 

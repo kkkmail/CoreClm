@@ -3,7 +3,7 @@
 open FredholmSolver.Common
 open FredholmSolver.Kernel
 open Softellect.Math.Primitives
-open Softellect.Math.Models
+open Softellect.Math.Evolution
 
 module PoissonTestData =
     let createModelParams mp noOfDomainPoints k0 modifier : EeInfIntModelParams =

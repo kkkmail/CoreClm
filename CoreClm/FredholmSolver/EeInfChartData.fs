@@ -9,6 +9,7 @@ open Softellect.Sys.Primitives
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.Math.Primitives
 open Softellect.Math.Models
+open Softellect.Math.Evolution
 
 module EeInfChartData =
 

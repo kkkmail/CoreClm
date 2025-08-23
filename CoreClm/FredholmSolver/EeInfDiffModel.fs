@@ -1,10 +1,10 @@
 ﻿namespace FredholmSolver
 
-open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver.Common
 open Softellect.DistributedProcessing.Primitives.Common
 open Softellect.Math.Primitives
+open Softellect.Math.Evolution
 
 module EeInfDiffModel =
 

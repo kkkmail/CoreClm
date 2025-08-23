@@ -8,9 +8,9 @@ open FredholmSolver.Solver
 open Xunit
 open Xunit.Abstractions
 open Softellect.DistributedProcessing.Proxy.ModelGenerator
-open Softellect.Math.Models
 open PoissonTestData
 open Softellect.Analytics.Primitives
+open Softellect.Math.Evolution
 
 type PoissonGeneratorTests(output : ITestOutputHelper) =
     let writeLine s = output.WriteLine s

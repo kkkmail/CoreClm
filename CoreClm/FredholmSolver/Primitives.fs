@@ -163,11 +163,6 @@ module Primitives =
         static member createSingleSampler rnd = PoissonSingleSampler.create rnd |> SingleSampler
 
 
-    type EvolutionType =
-        | DifferentialEvolution
-        | DiscreteEvolution
-
-
     /// A parameter to control when a value in a sparse array should be treated as exact zero (and ignored).
     type ZeroThreshold =
         | ZeroThreshold of double

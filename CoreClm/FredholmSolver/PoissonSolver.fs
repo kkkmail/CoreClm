@@ -15,7 +15,7 @@ open Softellect.Sys.Core
 open Softellect.Analytics.Wolfram
 open Softellect.DistributedProcessing.ModelGenerator.Program
 open Softellect.Math.Primitives
-open Softellect.Math.Models
+open Softellect.Math.Evolution
 open FredholmSolver.Solver
 open FredholmSolver.Common
 

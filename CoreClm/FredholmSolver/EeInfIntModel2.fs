@@ -118,7 +118,7 @@ module EeInfIntModel2 =
             // let kaFunc0 = mp.eeInfModelParams.kernelParams.kaFuncValue.kaFunc domain
             let kaFunc = kpScaled.kaFuncValue.kaFunc2 domain
             let multiplier : Multiplier<Point2D> = Multiplier kaFunc
-            let evolutionMatrix : SparseMatrix<Point2D, double> = createTridiagonalMatrix2D d.value a
+            let evolutionMatrix : SparseMatrix<Point2D, double> = createTridiagonalMatrix2D BoundaryConfig.ProportionalScaling d.value a
 
             let model =
                 {

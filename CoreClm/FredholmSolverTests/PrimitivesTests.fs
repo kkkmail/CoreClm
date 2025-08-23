@@ -6,11 +6,11 @@ open FluentAssertions.Execution
 open Xunit
 open Xunit.Abstractions
 open FluentAssertions
-open FredholmSolver.Primitives
 open FredholmSolver.Kernel
 open FredholmSolver.Sparse
 open Softellect.Analytics.Wolfram
 open Softellect.Math.Primitives
+open Softellect.Math.Evolution
 
 type TestUnion =
     | A
