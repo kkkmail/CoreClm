@@ -23,7 +23,7 @@
     <PackageReference Include="Softellect.DistributedProcessing.ModelGenerator" Version="9.0.303.39" />
     <PackageReference Include="Softellect.DistributedProcessing.SolverRunner" Version="9.0.303.39" />
     <PackageReference Include="Softellect.Math" Version="9.0.303.39" />
-    <PackageReference Include="Softellect.OdePackInterop" Version="9.0.300.27" />
+    <PackageReference Include="Softellect.OdePackInterop" Version="9.0.303.28" />
   </ItemGroup>
 
   <ItemGroup>
